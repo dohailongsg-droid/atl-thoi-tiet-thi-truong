@@ -19,6 +19,8 @@ python3 dash_watch.py
 python3 dash_dcd.py > /dev/null
 python3 dash_final.py
 python3 dash_lenhdai.py
+# tiêu điểm tin (lỗi không làm dừng pipeline)
+python3 tin.py || echo "tin.py lỗi, bỏ qua"
 # sang thư mục trang (co_ban.json cập nhật riêng theo quý nên không bị ghi đè)
 cp dash_out/*.json ../site/data/
 python3 -c "
