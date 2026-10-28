@@ -1,26 +1,26 @@
 {
-  "ngay": "2026-10-27",
+  "ngay": "2026-10-28",
   "nhiet_ke": {
-    "ngay": "2026-10-27",
-    "diem": 42.0,
-    "tb7": 55.0,
+    "ngay": "2026-10-28",
+    "diem": 48.0,
+    "tb7": 54.1,
     "vung": 2.0,
-    "do_rong": 38.3,
+    "do_rong": 41.2,
     "tran_san": 50.0,
-    "thanh_khoan": 41.6,
-    "hukt": 39.0
+    "thanh_khoan": 49.7,
+    "hukt": 51.9
   },
-  "gtgd_tb20": 12267.0,
+  "gtgd_tb20": 12317.8,
   "top10_hom_qua": [
-    "HHP",
-    "DGC",
-    "BSI",
-    "NKG",
-    "CII",
-    "HVN",
-    "TCH",
-    "MSB",
-    "CTD",
-    "VIC"
+    "TV2",
+    "TCM",
+    "MSH",
+    "HDB",
+    "VCG",
+    "BVH",
+    "VCB",
+    "TPB",
+    "VPI",
+    "VPL"
   ]
 }
