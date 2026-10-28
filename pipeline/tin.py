@@ -13,11 +13,22 @@ HIST = os.path.join(HERE, "state", "tin.json")
 
 # Nguồn RSS. Chỉ giữ nguồn đã kiểm tra được; thêm/bớt ở đây.
 FEEDS = [
-    ("The Straits Times · Asia", "https://www.straitstimes.com/news/asia/rss.xml"),
+    # Trong nước (ưu tiên) - feed nào lỗi sẽ được ghi vào "canh_bao", không làm hỏng các feed khác
+    ("CafeF · Chứng khoán", "https://cafef.vn/thi-truong-chung-khoan.rss"),
+    ("CafeF · Doanh nghiệp", "https://cafef.vn/doanh-nghiep.rss"),
+    ("CafeF · Vĩ mô", "https://cafef.vn/vi-mo-dau-tu.rss"),
+    ("VnEconomy · Chứng khoán", "https://vneconomy.vn/chung-khoan.rss"),
+    ("Báo Đầu tư · Chứng khoán", "https://baodautu.vn/tai-chinh-chung-khoan.rss"),
+    ("VnExpress · Kinh doanh", "https://vnexpress.net/rss/kinh-doanh.rss"),
+    ("Người Quan Sát · Chứng khoán", "https://nguoiquansat.vn/rss/chung-khoan.rss"),
+    ("NDH · Chứng khoán", "https://ndh.vn/chung-khoan.rss"),
+    # Quốc tế / khu vực (bối cảnh)
     ("The Straits Times · Business", "https://www.straitstimes.com/news/business/rss.xml"),
+    ("The Straits Times · Asia", "https://www.straitstimes.com/news/asia/rss.xml"),
 ]
+PER_FEED = 8  # tối đa tin mỗi nguồn, để không nguồn nào lấn át
 MAX_AGE = dt.timedelta(hours=36)
-MAX_CANDIDATES = 40
+MAX_CANDIDATES = 60
 NHAN = {"Vì sao quan trọng", "Đằng sau con số", "Hành động tiếp theo",
         "Bức tranh lớn", "Tác động thị trường", "Bản chất vấn đề"}
 # Danh sách model thử lần lượt (model cũ bị Google/Groq gỡ định kỳ -> 404, nên có nhiều lựa chọn).
@@ -28,7 +39,8 @@ MODELS_GROQ = ([os.environ["GROQ_MODEL"]] if os.environ.get("GROQ_MODEL") else [
     "openai/gpt-oss-120b", "qwen/qwen3.6-27b", "llama-3.3-70b-versatile"]
 
 PROMPT = """Bạn là biên tập viên bản tin TTCK. Từ danh sách tin ứng viên bên dưới, chọn ĐÚNG 5 tin quan trọng nhất
-cho thị trường chứng khoán (ưu tiên tác động lớn nhất). Nếu một chủ đề không có tin đủ mạnh, bỏ trống — không lấp đầy.
+cho thị trường chứng khoán Việt Nam. Ưu tiên tin trong nước tác động trực tiếp đến cổ phiếu, ngành, vĩ mô, chính sách, dòng vốn;
+chỉ chọn tin quốc tế khi ảnh hưởng rõ rệt tới thị trường Việt Nam. Không chọn hai tin trùng chủ đề. Nếu một chủ đề không có tin đủ mạnh, bỏ trống — không lấp đầy.
 
 Viết mỗi tin theo khuôn sau:
 - "tieu_de": tối đa 10 từ, tiếng Việt.
@@ -53,36 +65,57 @@ def fetch(url, timeout=20):
         return r.read()
 
 
+def parse_when(pub):
+    if not pub:
+        return None
+    try:
+        return parsedate_to_datetime(pub).astimezone(dt.timezone.utc)
+    except Exception:
+        pass
+    try:
+        w = dt.datetime.fromisoformat(pub.strip().replace("Z", "+00:00"))
+        if w.tzinfo is None:
+            w = w.replace(tzinfo=dt.timezone(dt.timedelta(hours=7)))
+        return w.astimezone(dt.timezone.utc)
+    except Exception:
+        return None
+
+
 def read_feeds():
     now = dt.datetime.now(dt.timezone.utc)
-    items, errs = [], []
+    items, errs, stats = [], [], {}
     for name, url in FEEDS:
         try:
-            root = ET.fromstring(fetch(url))
-        except Exception as e:  # mạng, XML lỗi
+            raw = fetch(url).decode("utf-8", "replace")
+            raw = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", raw)  # ký tự điều khiển làm hỏng XML
+            root = ET.fromstring(raw.encode("utf-8"))
+        except Exception as e:  # mạng, XML lỗi, trang không tồn tại
             errs.append(f"{name}: {e}")
+            stats[name] = 0
             continue
+        got = 0
         for it in root.iter("item"):
+            if got >= PER_FEED:
+                break
             title = (it.findtext("title") or "").strip()
             link = (it.findtext("link") or "").strip()
-            desc = re.sub(r"<[^>]+>", " ", it.findtext("description") or "").strip()
-            pub = it.findtext("pubDate")
-            try:
-                when = parsedate_to_datetime(pub).astimezone(dt.timezone.utc) if pub else None
-            except Exception:
-                when = None
+            desc = re.sub(r"<[^>]+>", " ", it.findtext("description") or "")
+            desc = re.sub(r"\s+", " ", desc).strip()
+            when = parse_when(it.findtext("pubDate") or it.findtext("{http://purl.org/dc/elements/1.1/}date"))
             if not title or not link or when is None:
                 continue  # không xác định được ngày gốc -> loại (quy tắc 36h)
             if now - when > MAX_AGE:
                 continue
             items.append({"title": title, "link": link, "desc": desc[:800],
-                          "source": name, "date": when.date().isoformat()})
+                          "source": name, "date": when.astimezone(dt.timezone(dt.timedelta(hours=7))).date().isoformat()})
+            got += 1
+        stats[name] = got
     # khử trùng lặp theo link
     seen, uniq = set(), []
     for x in items:
         if x["link"] not in seen:
             seen.add(x["link"]); uniq.append(x)
-    return uniq[:MAX_CANDIDATES], errs
+    return uniq[:MAX_CANDIDATES], errs, stats
 
 
 def _post(req):
@@ -173,7 +206,7 @@ def validate(result, cands):
 
 def main():
     now = dt.datetime.now(dt.timezone.utc)
-    cands, feed_errs = read_feeds()
+    cands, feed_errs, feed_stats = read_feeds()
     status, err, provider = "loi", "", ""
     items, gocnhin, warn = [], "", []
     if not cands:
@@ -198,7 +231,7 @@ def main():
                "tao_luc": now.isoformat(timespec="seconds"), "trang_thai": status,
                "nha_cung_cap": provider, "loi": err, "canh_bao": warn + feed_errs,
                "tieu_diem": items, "gocnhin": gocnhin,
-               "so_ung_vien": len(cands)}
+               "so_ung_vien": len(cands), "nguon_rss": feed_stats}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     if status == "ok" or not os.path.exists(OUT):
         with open(OUT, "w", encoding="utf-8") as f:
