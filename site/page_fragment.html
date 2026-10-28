@@ -222,6 +222,7 @@
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
     <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="false">Bảng giá</button>
+    <button class="atl-tab" role="tab" id="tab-danh-muc" data-sec="danh-muc" aria-selected="false">Danh mục</button>
   </nav>
 
   <!-- ============ HÔM NAY ============ -->
@@ -295,6 +296,64 @@
   <p class="lv-note">Nguồn: bảng giá Vietcap, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể chậm). Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.</p>
 </div></div>
 </section>
+
+  <!-- ============ DANH MỤC ============ -->
+  <section class="atl-sec" id="danh-muc" role="tabpanel" aria-labelledby="tab-danh-muc" hidden>
+<style>
+.dm{width:100%;max-width:34rem;margin:0 auto;display:grid;gap:var(--cds-gap-md)}
+.dm-nk{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:grid;gap:6px;font-size:var(--cds-font-size-caption);line-height:1.55}
+.dm-nk .t{font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)}
+.dm-nk .r{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dm-nk b{font-variant-numeric:tabular-nums}
+.dm-nk .w{color:var(--sem-down)} .dm-nk .o{color:var(--sem-up)}
+.dm-nk .n{color:var(--color-fg-muted);font-size:11px}
+.dm-fr{width:100%;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:#0B0F14;display:block;min-height:30rem}
+</style>
+    <div class="dm">
+      <div class="dm-nk" id="dm-nk"><span class="t">Đối chiếu với nhiệt kế</span><span class="n">Đang đọc…</span></div>
+      <iframe class="dm-fr" id="dm-fr" title="Danh mục cá nhân" scrolling="no" data-src="danh-muc.html"></iframe>
+      <p class="atl-note">Danh mục lưu trong trình duyệt của riêng bạn (không gửi đi đâu, người khác mở trang này không thấy). Xóa dữ liệu trình duyệt sẽ mất, nên dùng nút Xuất để sao lưu. Chỉ để theo dõi cá nhân, không phải khuyến nghị đầu tư.</p>
+    </div>
+  </section>
+<script>
+(function(){
+  var KEY='quy-ca-nhan-portfolio-state',frame=document.getElementById('dm-fr'),box=document.getElementById('dm-nk'),nk=null,loaded=false;
+  // tỷ trọng cổ phiếu tối đa theo vùng nhiệt kế (số dùng để so sánh; null = không có trần số)
+  var CAP={1:[30,'10–30%'],2:[30,'30%'],3:[50,'50%'],4:[100,'80–100%, không margin'],5:[null,'giữ, không mở rộng'],6:[40,'hạ về ~40%']};
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+  function fp(x,d){return x.toLocaleString('vi-VN',{minimumFractionDigits:d==null?1:d,maximumFractionDigits:d==null?1:d});}
+  function readState(){try{var v=localStorage.getItem(KEY);return v?JSON.parse(v):null;}catch(e){return null;}}
+  function render(){
+    box.textContent='';box.appendChild(el('span','t','Đối chiếu với nhiệt kế'));
+    if(!nk){box.appendChild(el('span','n','Chưa tải được dữ liệu nhiệt kế.'));return;}
+    var z=Math.round(nk.vung),cap=CAP[z]||[null,'—'];
+    var d=nk.ngay.slice(8)+'/'+nk.ngay.slice(5,7);
+    var r1=el('div','r');r1.appendChild(el('span',null,'Nhiệt kế '+d+': vùng '+z+' · TB7 '+fp(nk.tb7)));r1.appendChild((function(){var b=el('b',null,'Tỷ trọng tối đa '+cap[1]);return b;})());box.appendChild(r1);
+    var st=readState(),pos=(st&&st.positions)||[];
+    if(!st||!pos.length){box.appendChild(el('span','n','Chưa có vị thế trong trình duyệt này. Thêm vị thế bên dưới để đối chiếu.'));return;}
+    var mv=0;pos.forEach(function(p){mv+=(+p.shares||0)*(+p.currentPrice||0);});
+    var nav=mv+(+st.cash||0);if(!(nav>0)){return;}
+    var exp=mv/nav*100,mg=Math.max(0,-(+st.cash||0))/nav*100;
+    var r2=el('div','r');r2.appendChild(el('span',null,'Danh mục: cổ phiếu '+fp(exp)+'% NAV'+(mg>0?' · margin '+fp(mg)+'% NAV':'')));
+    var over=cap[0]!=null&&exp>cap[0]+0.05;
+    var b2=el('b',over?'w':'o',cap[0]==null?'Không có trần số ở vùng này':(over?'Vượt trần '+fp(exp-cap[0])+' điểm %':'Trong trần'));r2.appendChild(b2);box.appendChild(r2);
+    if(mg>0&&z<4)box.appendChild(el('span','w','Đang dùng margin khi nhiệt kế chưa ở vùng 4 (65–70). Theo quy tắc ATL, không dùng margin chỉ vì nhiệt kế nóng.'));
+    box.appendChild(el('span','n','Chỉ đối chiếu, không thay đổi quy tắc riêng của danh mục (trần mã, trần ngành, stop). Giá lấy theo phiên đóng cửa gần nhất.'));
+  }
+  function resize(){try{var d=frame.contentDocument;if(d&&d.documentElement)frame.style.height=Math.max(480,d.documentElement.scrollHeight+4)+'px';}catch(e){}}
+  function boot(){
+    if(loaded)return;loaded=true;
+    frame.addEventListener('load',function(){resize();try{var ro=new ResizeObserver(resize);ro.observe(frame.contentDocument.body);}catch(e){} setInterval(resize,1500);});
+    frame.src=frame.dataset.src;
+    fetch('data/nhiet_ke.json?v='+new Date().toISOString().slice(0,10)).then(function(r){return r.json();}).then(function(j){nk=j[j.length-1];render();}).catch(function(){render();});
+  }
+  window.addEventListener('storage',function(e){if(e.key===KEY)render();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&nk)render();});
+  setInterval(function(){if(nk&&!document.hidden&&document.getElementById('danh-muc')&&!document.getElementById('danh-muc').hidden)render();},5000);
+  document.getElementById('tab-danh-muc').addEventListener('click',boot);
+})();
+</script>
+
 <script>
 (function(){
   var URL_LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/trong_phien.json';

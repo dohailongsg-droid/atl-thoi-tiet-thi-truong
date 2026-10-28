@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quỹ cá nhân — Theo dõi NAV</title>
+<meta name="robots" content="noindex">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0B0F14;
+    --panel:#131922;
+    --panel-2:#1B2330;
+    --border:#2A3444;
+    --text:#E7EAEE;
+    --text-dim:#8A94A6;
+    --gain:#3FB27F;
+    --loss:#E0685F;
+    --warn:#D9A441;
+    --accent:#5B8DEF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Be Vietnam Pro', -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:24px 16px 80px;
+  }
+  .mono{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* header */
+  .header{margin-bottom:22px;}
+  .header-top-row{display:flex; justify-content:flex-end; align-items:center; margin-bottom:10px;}
+  .header .title{font-size:14px; color:var(--text-dim); margin:0;}
+  .privacy-toggle{
+    font-size:11px; color:var(--text-dim); background:var(--panel-2);
+    border:1px solid var(--border); border-radius:999px; padding:5px 11px;
+    cursor:pointer; font-family:inherit; white-space:nowrap;
+  }
+  .privacy-toggle.active{color:var(--text); border-color:var(--text-dim);}
+  .masked{letter-spacing:2px; opacity:0.75;}
+  .header .nav-value{font-size:36px; font-weight:700; letter-spacing:-0.5px; line-height:1;}
+  .header .nav-value small{font-size:16px; font-weight:500; color:var(--text-dim); margin-left:4px;}
+  .pnl-badge{
+    display:inline-flex; align-items:center; gap:5px;
+    padding:5px 10px; border-radius:999px;
+    font-size:13px; font-weight:600; margin-top:10px;
+  }
+  .pnl-badge.gain{background:rgba(63,178,127,0.14); color:var(--gain);}
+  .pnl-badge.loss{background:rgba(224,104,95,0.14); color:var(--loss);}
+  .pnl-badge.flat{background:var(--panel-2); color:var(--text-dim);}
+
+  .substats{
+    display:flex; gap:10px; margin-top:16px;
+  }
+  .substat{
+    flex:1; background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius); padding:10px 12px;
+  }
+  .substat .label{font-size:11px; color:var(--text-dim); margin-bottom:4px;}
+  .substat .val{font-size:14px; font-weight:600; line-height:1.25;}
+  .substat .sub{font-size:10.5px; color:var(--text-dim); margin-top:2px;}
+
+  /* alerts */
+  .alerts{
+    background:rgba(217,164,65,0.10);
+    border:1px solid rgba(217,164,65,0.4);
+    border-radius:var(--radius);
+    padding:11px 13px;
+    margin-bottom:16px;
+  }
+  .alerts .alert-title{font-size:12px; font-weight:600; color:var(--warn); margin-bottom:6px;}
+  .alerts .alert-line{font-size:12.5px; color:var(--warn); line-height:1.5; opacity:0.92; margin-bottom:2px;}
+  .alerts .alert-line.urgent{
+    color:var(--loss); opacity:1; font-weight:700;
+    background:rgba(224,104,95,0.12); border-radius:6px; padding:6px 8px; margin:2px 0 6px;
+  }
+
+  /* section label */
+  .section-label{
+    font-size:12px; color:var(--text-dim); margin:22px 0 10px;
+  }
+
+  /* cards */
+  .card{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px;
+  }
+  .card.stop-hit{
+    border:1px solid var(--loss); box-shadow:0 0 0 1px var(--loss) inset;
+    background:rgba(224,104,95,0.07);
+  }
+  .stop-hit-banner{
+    display:flex; align-items:center; gap:7px;
+    background:rgba(224,104,95,0.16); color:var(--loss);
+    border-radius:8px; padding:8px 10px; margin-bottom:10px;
+    font-size:13px; font-weight:700; line-height:1.4;
+  }
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .ticker-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ticker{font-weight:700; font-size:16px;}
+  .sector-tag{
+    font-size:11px; color:var(--text-dim); background:var(--panel-2);
+    padding:2px 9px; border-radius:999px;
+  }
+  .card-actions{display:flex; gap:10px; flex-shrink:0;}
+  .link-btn{
+    background:none; border:none; color:var(--text-dim);
+    font-family:inherit; font-size:12.5px; cursor:pointer; padding:2px 0;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .link-btn.danger{color:var(--loss);}
+
+  .detail-grid{
+    display:flex; justify-content:space-between;
+    font-size:12.5px; color:var(--text-dim); margin-top:10px;
+  }
+  .detail-grid .val{color:var(--text);}
+
+  .pnl-line{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-top:11px; padding-top:11px; border-top:1px solid var(--border);
+  }
+  .pnl-amount{font-size:15px; font-weight:600;}
+  .pnl-amount.gain{color:var(--gain);}
+  .pnl-amount.loss{color:var(--loss);}
+  .pnl-pct{font-size:12.5px; margin-left:6px;}
+
+  .bar-wrap{margin-top:10px;}
+  .bar-track{height:6px; background:var(--panel-2); border-radius:999px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:999px; background:var(--gain); transition:width .3s;}
+  .bar-fill.warn{background:var(--warn);}
+  .bar-fill.over{background:var(--loss);}
+  .bar-label{display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-top:4px;}
+
+  /* cash card */
+  .cash-card{display:flex; justify-content:space-between; align-items:center;}
+  .cash-left{display:flex; align-items:center; gap:10px;}
+  .cash-icon{
+    width:32px; height:32px; border-radius:8px; background:var(--panel-2);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .cash-right{text-align:right;}
+  .cash-right .cash-val{font-size:15px; font-weight:600;}
+  .cash-right .cash-pct{font-size:11.5px; color:var(--text-dim);}
+
+  /* forms */
+  .form-card{
+    background:var(--panel-2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px;
+  }
+  .form-row{display:flex; gap:10px; margin-bottom:10px;}
+  .form-field{flex:1;}
+  .form-field label{display:block; font-size:11.5px; color:var(--text-dim); margin-bottom:5px;}
+  .form-field input, .form-field select{
+    width:100%; background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; padding:9px 10px; color:var(--text);
+    font-family:inherit; font-size:14px;
+  }
+  .form-field input:focus, .form-field select:focus{outline:1px solid var(--gain);}
+  .form-btns{display:flex; gap:8px; margin-top:2px;}
+  .btn{
+    border-radius:8px; padding:10px 16px; font-family:inherit;
+    font-size:13.5px; font-weight:600; cursor:pointer; border:none;
+  }
+  .btn-primary{background:var(--gain); color:#08130D;}
+  .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--text-dim);}
+  .form-error{font-size:12px; color:var(--loss); margin-bottom:8px;}
+
+  .add-btn{
+    width:100%; background:transparent; border:1px dashed var(--border);
+    border-radius:var(--radius); padding:14px; color:var(--text-dim);
+    font-family:inherit; font-size:14px; cursor:pointer; margin-top:4px;
+  }
+  .add-btn:hover{border-color:var(--gain); color:var(--gain);}
+
+  .empty-state{
+    text-align:center; padding:30px 16px; color:var(--text-dim); font-size:13.5px;
+  }
+
+  /* performance / equity curve */
+  .perf-card{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px; margin-bottom:10px;
+  }
+  .perf-metric{margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border);}
+  .perf-metric:last-child{margin-bottom:0; padding-bottom:0; border-bottom:none;}
+  .perf-label{font-size:12px; color:var(--text-dim); margin-bottom:6px;}
+  .perf-value{font-size:26px; font-weight:700; line-height:1.1;}
+  .perf-sub{font-size:12.5px; color:var(--text-dim); margin-top:4px;}
+  .tier-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:999px;
+    font-size:12px; font-weight:600; margin-top:9px;
+  }
+  .tier-badge.gain{background:rgba(63,178,127,0.14); color:var(--gain);}
+  .tier-badge.warn{background:rgba(217,164,65,0.14); color:var(--warn);}
+  .tier-badge.loss{background:rgba(224,104,95,0.14); color:var(--loss);}
+  .tier-badge.flat{background:var(--panel-2); color:var(--text-dim);}
+  .tier-action{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
+  .tier-ref{margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);}
+  .tier-ref-row{display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); padding:2.5px 0;}
+  .tier-ref-row.active{color:var(--text); font-weight:600;}
+
+  .chart-legend{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;}
+  .chart-legend-item{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim);}
+  .chart-legend-item .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+  .chart-legend-item .val{font-family:'IBM Plex Mono',monospace; font-weight:700;}
+  .chart-wrap{width:100%; overflow:hidden; position:relative; cursor:crosshair;}
+  .chart-wrap svg{display:block; width:100%; height:auto;}
+  .chart-empty{font-size:12.5px; color:var(--text-dim); padding:14px 0; text-align:center;}
+  .chart-tooltip{
+    position:absolute; top:0; left:0; opacity:0; pointer-events:none;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    padding:6px 9px; font-size:11px; line-height:1.5; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; z-index:5; transform:translateY(-4px);
+  }
+  .chart-tooltip .date{font-weight:700; color:var(--text); margin-bottom:2px; font-family:'Be Vietnam Pro',sans-serif;}
+
+  .footer-actions{
+    text-align:center; margin-top:30px;
+  }
+  .footer-actions button{
+    background:none; border:none; color:var(--text-dim);
+    font-family:inherit; font-size:12px; cursor:pointer; text-decoration:underline;
+  }
+  .loading{text-align:center; padding:60px 16px; color:var(--text-dim); font-size:13.5px;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading">Đang tải dữ liệu danh mục…</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'quy-ca-nhan-portfolio-state';
+const POSITION_CEIL = 25;   // % NAV tối đa / mã
+const SECTOR_CEIL = 30;     // % NAV tối đa / ngành
+const MAX_POSITIONS = 4;
+const MARGIN_CEIL = 50;         // trần margin/NAV theo Mục 3 — trần CỨNG, thang gợi ý margin/ROE bên dưới không bao giờ vượt qua
+const TOTAL_EXPOSURE_CEIL = 150; // trần tổng exposure (vốn+margin)/NAV theo Mục 3
+
+// Thang GỢI Ý margin theo ROE (không phải trần cứng, không thay thế Checklist Margin Mục 3 — chỉ quyết định
+// dùng BAO NHIÊU trong trần margin NAV đó khi Checklist đã Pass đủ 5 điều kiện). Theo yêu cầu người dùng, quy đổi
+// các mốc 30/50/100 thành % CỦA TRẦN MARGIN (không phải %NAV trực tiếp) để không bao giờ vượt trần cứng 30% NAV.
+function marginGuideCeilPct(roe){
+  if(roe===null || roe<6) return 0;
+  if(roe<10) return MARGIN_CEIL*0.3;  // ROE 6-9%: tối đa 30% trần margin
+  if(roe<20) return MARGIN_CEIL*0.5;  // ROE 10-19%: tối đa 50% trần margin
+  return MARGIN_CEIL;                 // ROE ≥20%: tối đa 100% trần margin (vẫn phải Pass Checklist)
+}
+
+// Tỷ lệ % lợi nhuận bị khoá, tăng LIÊN TỤC theo R-multiple (không nhảy bậc như bản cũ GĐ2/GĐ3/GĐ4/GĐ5):
+// 0% tại đúng +1R (hoà vốn) → tăng tuyến tính → 65% tại +5R → giữ nguyên 65% từ +5R trở lên.
+// Lý do chọn tuyến tính: đơn giản, dễ kiểm tra, và tránh đúng vấn đề "giá nhích 0,1% mà sàn nhảy vọt" của
+// bản 5 bậc rời rạc trước đây — mỗi đồng lãi tăng thêm chỉ kéo sàn lên một chút tương ứng, không có mốc gãy khúc.
+function lockFraction(r){
+  if(r < 1) return 0;
+  if(r >= 5) return 0.65;
+  return 0.65 * (r - 1) / 4;
+}
+
+let state = { cash: 0, positions: [], initialCapital: 0, navHistory: [], vnindexHistory: [] };
+let ui = { syncMsg:'', showAddForm:false, editingId:null, error:'', showBulkUpdate:false, bulkResult:'', txId:null, stopId:null, privacyMode:false, showVnChips:false, lastRatchetEvents:[] };
+
+function fmtVND(n){
+  n = n||0;
+  return n.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function fmtPct(n, digits=1){
+  return (n||0).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+}
+// Chế độ riêng tư (để chụp màn hình gửi khách): che số tiền tuyệt đối (NAV, lợi nhuận đ, giá vốn...),
+// CHỈ dùng cho hiển thị — không đụng tới form nhập/hộp thoại xác nhận (vẫn cần số thật để thao tác).
+function vmask(n){
+  return ui.privacyMode ? '•••' : fmtVND(n);
+}
+function vmaskN(n){
+  return ui.privacyMode ? '•••' : n.toLocaleString('en-US');
+}
+// Chế độ ẩn: mã CP chỉ hiện ký tự đầu (CII -> C**); ngành giữ nguyên.
+function tmask(t){ t=String(t||''); return ui.privacyMode && t ? t.charAt(0)+'**' : t; }
+function maskText(txt){
+  if(!ui.privacyMode) return txt;
+  let out=String(txt);
+  (state.positions||[]).forEach(p=>{
+    if(!p.ticker) return;
+    const re=new RegExp('(^|[^A-Za-z0-9])'+p.ticker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-z0-9])','g');
+    out=out.replace(re,(m,pre)=>pre+tmask(p.ticker));
+  });
+  return out;
+}
+function togglePrivacy(){ ui.privacyMode = !ui.privacyMode; render(); }
+function uid(){ return 'p_' + Math.random().toString(36).slice(2,10); }
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function tierColorVar(cls){
+  if(cls==='gain') return 'var(--gain)';
+  if(cls==='warn') return 'var(--warn)';
+  if(cls==='loss') return 'var(--loss)';
+  return 'var(--text)';
+}
+function renderTierRefRow(range, action, isActive){
+  return `<div class="tier-ref-row ${isActive?'active':''}"><span>${range}</span><span>${action}</span></div>`;
+}
+function fmtShortDate(iso){
+  const parts = (iso||'').split('-');
+  return parts.length===3 ? `${parts[2]}/${parts[1]}` : (iso||'');
+}
+
+// Chuỗi ROE%/Drawdown% theo từng phiên (1 điểm/ngày), lấy từ navHistory + NAV hiện tại (live, kể cả chưa lưu).
+// Đỉnh NAV dùng để tính Drawdown là đỉnh CHẠY (running peak) tính trên toàn bộ lịch sử tới thời điểm đó,
+// không phải đỉnh toàn cục — để đường Drawdown phản ánh đúng diễn biến "dưới nước" qua từng phiên.
+const PERF_RANGES = [['1 tháng',20],['1 quý',60],['6 tháng',120],['1 năm',250],['Tất cả',0]];
+function setPerfRange(n){ ui.perfRange = n; render(); }
+function buildPerfSeries(d){
+  const hist = [...(state.navHistory||[])].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+  const today = todayStr();
+  if(hist.length && hist[hist.length-1].date===today){
+    hist[hist.length-1] = {date:today, nav:d.totalNAV};
+  } else {
+    hist.push({date:today, nav:d.totalNAV});
+  }
+  let peak = state.initialCapital>0 ? state.initialCapital : (hist[0] ? hist[0].nav : 0);
+
+  // VN-Index nhập thủ công theo ngày — forward-fill giữa các lần nhập, quy về % tích luỹ
+  // từ điểm VN-Index SỚM NHẤT đã nhập, để so sánh "cùng gốc thời gian" với ROE (tích luỹ từ Vốn góp ban đầu).
+  const vnHist = [...(state.vnindexHistory||[])].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+  const vnBase = vnHist.length ? vnHist[0].value : null;
+  let vnIdx = 0, lastVnVal = null;
+
+  const full = hist.map(h=>{
+    peak = Math.max(peak, h.nav);
+    const roe = state.initialCapital>0 ? (h.nav-state.initialCapital)/state.initialCapital*100 : null;
+    const dd = peak>0 ? Math.max(0,(peak-h.nav)/peak*100) : 0;
+    while(vnIdx < vnHist.length && vnHist[vnIdx].date <= h.date){
+      lastVnVal = vnHist[vnIdx].value;
+      vnIdx++;
+    }
+    const vnPct = (vnBase!=null && lastVnVal!=null) ? (lastVnVal-vnBase)/vnBase*100 : null;
+    return {date:h.date, nav:h.nav, roe, dd, vnPct};
+  });
+  const rng = (ui.perfRange===undefined) ? 20 : ui.perfRange;
+  return rng>0 ? full.slice(-rng) : full;
+}
+
+// Ô nhập VN-Index thủ công — đặt cạnh "Cập nhật giá hàng loạt" để nhập 1 lần cho tiện, đỡ quên.
+// Có chọn NGÀY riêng (không mặc định hôm nay) để còn backfill các phiên cũ — nếu không, mọi lần Lưu
+// trong cùng 1 ngày sẽ bị coi là "hôm nay" và ghi đè lên nhau (lỗi hay gặp khi nhập dồn nhiều phiên 1 lúc).
+function renderVnIndexInput(){
+  const vnHistSorted = [...(state.vnindexHistory||[])].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+  const today = todayStr();
+  const todayVn = vnHistSorted.find(h=>h.date===today);
+  const lastVnEntry = vnHistSorted[vnHistSorted.length-1];
+  const navDates = (state.navHistory||[]).map(h=>h.date);
+  const missingDates = navDates.filter(dt => !vnHistSorted.some(h=>h.date===dt));
+  const showDetails = ui.showVnChips && !ui.privacyMode;
+
+  return `<div class="card" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <label style="font-size:12px;color:var(--text-dim);">VN-Index ngày</label>
+      <input type="date" id="vnindexDate" value="${today}" max="${today}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12.5px;">
+      <input type="number" id="vnindexInput" inputmode="decimal" step="0.01" value="${todayVn ? todayVn.value : (lastVnEntry ? lastVnEntry.value : '')}" placeholder="Điểm" style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12.5px;">
+      <button class="btn btn-primary" style="padding:5px 12px;font-size:12px;" onclick="saveVnIndex()">Lưu</button>
+      ${!ui.privacyMode ? `<label style="font-size:11px;color:var(--text-dim);margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="checkbox" ${ui.showVnChips?'checked':''} onchange="toggleVnChips()"> Chi tiết</label>` : ''}
+    </div>
+    ${showDetails ? `
+    <div style="margin-top:8px;">
+      ${lastVnEntry ? `<span style="font-size:11px;color:var(--text-dim);">Gốc so sánh: ${vnHistSorted[0].value} (${fmtShortDate(vnHistSorted[0].date)}) · Đã nhập ${vnHistSorted.length} phiên</span>` : `<span style="font-size:11px;color:var(--text-dim);">Chọn ngày + nhập điểm VN-Index phiên đầu tiên để bắt đầu so sánh với lợi nhuận</span>`}
+      ${missingDates.length ? `<div style="font-size:11px;color:var(--warn);margin-top:3px;">Còn thiếu VN-Index cho ${missingDates.length} phiên đã có NAV: ${missingDates.map(fmtShortDate).join(', ')} — chọn từng ngày ở trên rồi Lưu để backfill.</div>` : ''}
+      ${vnHistSorted.length ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">${vnHistSorted.map(h=>`<span style="font-size:10.5px;color:var(--text-dim);background:var(--panel-2);border-radius:6px;padding:2px 7px;">${fmtShortDate(h.date)}: ${h.value}<span style="cursor:pointer;color:var(--loss);margin-left:5px;" onclick="deleteVnIndex('${h.date}')" title="Xoá điểm này">✕</span></span>`).join('')}</div>` : ''}
+    </div>` : ''}
+  </div>`;
+}
+
+function toggleVnChips(){ ui.showVnChips = !ui.showVnChips; render(); }
+
+function renderPerfChart(series){
+  if(series.length < 2){
+    return `<div class="chart-empty">Cần ít nhất 2 phiên có dữ liệu NAV để vẽ biểu đồ (hiện có ${series.length}). Cập nhật giá/giao dịch thêm vài phiên nữa nhé.</div>`;
+  }
+  const hasRoe = state.initialCapital > 0;
+  const hasVn = series.some(s=>s.vnPct!=null);
+  const n = series.length;
+
+  // Quy ROE & VN-Index về mốc 0 tại điểm ĐẦU GIAI ĐOẠN đang hiển thị — CHỈ để vẽ, cho 3 đường cùng
+  // xuất phát 1 điểm rồi mới tách ra theo biến động tương đối (số % thật vẫn hiện nguyên ở chú thích/Alpha).
+  // Drawdown KHÔNG quy mốc vì đây là ngưỡng rủi ro tuyệt đối (khoảng cách tới đỉnh NAV thật) — quy mốc sẽ làm sai lệch cảnh báo.
+  const roeBase = hasRoe ? series[0].roe : null;
+  const firstVnIdx = series.findIndex(s=>s.vnPct!=null);
+  const vnBase = firstVnIdx>-1 ? series[firstVnIdx].vnPct : null;
+  const roeRel = i => (hasRoe && series[i].roe!=null) ? series[i].roe - roeBase : null;
+  const vnRel = i => (series[i].vnPct!=null && vnBase!=null) ? series[i].vnPct - vnBase : null;
+
+  const roeRelVals = hasRoe ? series.map((s,i)=>roeRel(i)) : [];
+  const vnRelVals = hasVn ? series.map((s,i)=>vnRel(i)).filter(v=>v!=null) : [];
+  const ddNegVals = series.map(s=>-s.dd); // âm để vẽ bên dưới trục 0 — cùng chiều "xuống = xấu"
+  const allVals = [...roeRelVals, ...vnRelVals, ...ddNegVals, 0];
+  let yMin = Math.min(...allVals), yMax = Math.max(...allVals);
+  const range = (yMax - yMin) || 10;
+  const pad = range * 0.15;
+  yMin -= pad; yMax += pad;
+
+  const W = 560, H = 190, mTop = 10, mBottom = 20, plotH = H - mTop - mBottom;
+  const stepX = n > 1 ? W / (n - 1) : 0;
+  const sx = i => i * stepX;
+  const sy = v => mTop + (yMax - v) / (yMax - yMin) * plotH;
+  const y0 = sy(0);
+
+  const ddPath = series.map((s,i)=> `${i===0?'M':'L'}${sx(i).toFixed(1)},${sy(-s.dd).toFixed(1)}`).join(' ');
+  const ddArea = `M${sx(0).toFixed(1)},${y0.toFixed(1)} ${series.map((s,i)=>`L${sx(i).toFixed(1)},${sy(-s.dd).toFixed(1)}`).join(' ')} L${sx(n-1).toFixed(1)},${y0.toFixed(1)} Z`;
+  const roePath = hasRoe ? series.map((s,i)=> `${i===0?'M':'L'}${sx(i).toFixed(1)},${sy(roeRel(i)).toFixed(1)}`).join(' ') : '';
+  // Đường VN-Index có thể có đoạn null ở đầu (trước lần nhập đầu tiên) — tách thành nhiều đoạn path liên tục.
+  let vnPath = '';
+  if(hasVn){
+    let drawing = false;
+    series.forEach((s,i)=>{
+      const v = vnRel(i);
+      if(v==null){ drawing=false; return; }
+      vnPath += (drawing?'L':'M') + `${sx(i).toFixed(1)},${sy(v).toFixed(1)} `;
+      drawing = true;
+    });
+  }
+
+  const lastDd = series[n-1].dd;
+  const lastRoe = series[n-1].roe;
+  const lastVnPct = series[n-1].vnPct;
+  const alpha = (hasRoe && lastVnPct!=null) ? (lastRoe - lastVnPct) : null;
+  // Tìm điểm cuối cùng có vnPct (để đặt chấm tròn, phòng khi phiên cuối chưa nhập VN-Index)
+  let lastVnIdx = -1;
+  for(let i=n-1;i>=0;i--){ if(series[i].vnPct!=null){ lastVnIdx=i; break; } }
+
+  // Dữ liệu cho hover/tooltip: toạ độ pixel (theo viewBox) + giá trị THẬT (không quy mốc) để hiện khi rê chuột.
+  const pts = series.map((s,i)=>({
+    x: Number(sx(i).toFixed(1)),
+    date: fmtShortDate(s.date),
+    roe: (hasRoe && s.roe!=null) ? fmtPct(s.roe) : null,
+    yRoe: (hasRoe && s.roe!=null) ? Number(sy(roeRel(i)).toFixed(1)) : null,
+    vn: s.vnPct!=null ? fmtPct(s.vnPct) : null,
+    yVn: s.vnPct!=null ? Number(sy(vnRel(i)).toFixed(1)) : null,
+    dd: fmtPct(s.dd),
+    yDd: Number(sy(-s.dd).toFixed(1))
+  }));
+
+  return `
+    <div class="chart-legend">
+      <div class="chart-legend-item"><span class="dot" style="background:var(--gain);"></span>Lợi nhuận <span class="val" style="color:var(--gain);">${hasRoe ? (lastRoe>=0?'+':'')+fmtPct(lastRoe) : '—'}${hasRoe?'%':''}</span></div>
+      <div class="chart-legend-item"><span class="dot" style="background:var(--accent);"></span>VN-Index <span class="val" style="color:var(--accent);">${hasVn ? (lastVnPct>=0?'+':'')+fmtPct(lastVnPct)+'%' : '— chưa nhập'}</span></div>
+      <div class="chart-legend-item"><span class="dot" style="background:var(--loss);"></span>Drawdown <span class="val" style="color:var(--loss);">-${fmtPct(lastDd)}%</span></div>
+    </div>
+    ${alpha!=null ? `<div class="perf-sub" style="margin-bottom:8px;">Alpha so VN-Index: <b style="color:${alpha>=0?'var(--gain)':'var(--loss)'};">${alpha>=0?'+':''}${fmtPct(alpha)}%</b> — ${alpha>=0 ? 'đang thắng thị trường' : 'đang thua thị trường'} kể từ ${fmtShortDate(series[firstVnIdx].date)}</div>` : ''}
+    <div class="chart-wrap" data-points='${JSON.stringify(pts)}' onmousemove="chartHoverMove(event,this)" onmouseleave="chartHoverEnd(this)" ontouchstart="chartHoverMove(event,this)" ontouchmove="chartHoverMove(event,this)" ontouchend="chartHoverEnd(this)">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <line x1="0" y1="${y0.toFixed(1)}" x2="${W}" y2="${y0.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+        <path d="${ddArea}" fill="var(--loss)" fill-opacity="0.12" stroke="none"/>
+        <path d="${ddPath}" fill="none" stroke="var(--loss)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${hasVn ? `<path d="${vnPath}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5,3" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+        ${hasRoe ? `<path d="${roePath}" fill="none" stroke="var(--gain)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+        <circle cx="${sx(0).toFixed(1)}" cy="${y0.toFixed(1)}" r="3" fill="var(--text-dim)"/>
+        ${hasRoe ? `<circle cx="${sx(n-1).toFixed(1)}" cy="${sy(roeRel(n-1)).toFixed(1)}" r="3.5" fill="var(--gain)"/>` : ''}
+        ${lastVnIdx>-1 ? `<circle cx="${sx(lastVnIdx).toFixed(1)}" cy="${sy(vnRel(lastVnIdx)).toFixed(1)}" r="3.5" fill="var(--accent)"/>` : ''}
+        <circle cx="${sx(n-1).toFixed(1)}" cy="${sy(-lastDd).toFixed(1)}" r="3.5" fill="var(--loss)"/>
+        <text x="0" y="${H-5}" font-size="10" fill="var(--text-dim)" font-family="IBM Plex Mono, monospace">${fmtShortDate(series[0].date)}</text>
+        <text x="${W}" y="${H-5}" font-size="10" fill="var(--text-dim)" font-family="IBM Plex Mono, monospace" text-anchor="end">${fmtShortDate(series[n-1].date)}</text>
+        <line id="chartHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--text-dim)" stroke-width="1" opacity="0"/>
+        <circle id="chartHoverRoe" r="4" fill="var(--gain)" stroke="var(--bg)" stroke-width="1.5" opacity="0"/>
+        <circle id="chartHoverVn" r="4" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" opacity="0"/>
+        <circle id="chartHoverDd" r="4" fill="var(--loss)" stroke="var(--bg)" stroke-width="1.5" opacity="0"/>
+      </svg>
+      <div class="chart-tooltip"></div>
+    </div>
+  `;
+}
+
+// Rê chuột/chạm trên biểu đồ ROE/VN-Index/Drawdown để xem số liệu THẬT của từng phiên (không bị quy mốc 0 như đường vẽ).
+function chartHoverMove(evt, wrapEl){
+  evt.preventDefault && evt.target.tagName==='svg' && evt.cancelable && evt.preventDefault();
+  const pts = JSON.parse(wrapEl.dataset.points);
+  const svg = wrapEl.querySelector('svg');
+  const rect = svg.getBoundingClientRect();
+  const touch = evt.touches && evt.touches[0];
+  const clientX = touch ? touch.clientX : evt.clientX;
+  if(clientX==null) return;
+  const scaleX = 560 / rect.width;
+  const xVB = (clientX - rect.left) * scaleX;
+  let nearest = pts[0], minDist = Infinity;
+  pts.forEach(p=>{ const dist = Math.abs(p.x - xVB); if(dist < minDist){ minDist = dist; nearest = p; } });
+
+  const line = wrapEl.querySelector('#chartHoverLine');
+  const dotRoe = wrapEl.querySelector('#chartHoverRoe');
+  const dotVn = wrapEl.querySelector('#chartHoverVn');
+  const dotDd = wrapEl.querySelector('#chartHoverDd');
+  line.setAttribute('x1', nearest.x); line.setAttribute('x2', nearest.x); line.setAttribute('opacity', '1');
+  if(nearest.yRoe!=null){ dotRoe.setAttribute('cx', nearest.x); dotRoe.setAttribute('cy', nearest.yRoe); dotRoe.setAttribute('opacity','1'); } else { dotRoe.setAttribute('opacity','0'); }
+  if(nearest.yVn!=null){ dotVn.setAttribute('cx', nearest.x); dotVn.setAttribute('cy', nearest.yVn); dotVn.setAttribute('opacity','1'); } else { dotVn.setAttribute('opacity','0'); }
+  dotDd.setAttribute('cx', nearest.x); dotDd.setAttribute('cy', nearest.yDd); dotDd.setAttribute('opacity','1');
+
+  const tip = wrapEl.querySelector('.chart-tooltip');
+  tip.innerHTML = `<div class="date">${nearest.date}</div>` +
+    (nearest.roe!=null ? `<div style="color:var(--gain);">Lợi nhuận ${nearest.roe>=0?'+':''}${nearest.roe}%</div>` : '') +
+    (nearest.vn!=null ? `<div style="color:var(--accent);">VN-Index ${nearest.vn>=0?'+':''}${nearest.vn}%</div>` : '') +
+    `<div style="color:var(--loss);">Drawdown -${nearest.dd}%</div>`;
+  tip.style.opacity = '1';
+  const pxX = nearest.x / scaleX; // quy đổi lại ra pixel thật trên màn hình theo bề rộng hiển thị
+  const tipW = tip.offsetWidth || 90;
+  let left = pxX + 10;
+  if(left + tipW > rect.width) left = pxX - tipW - 10;
+  tip.style.left = Math.max(0, left) + 'px';
+  tip.style.top = '4px';
+}
+function chartHoverEnd(wrapEl){
+  const tip = wrapEl.querySelector('.chart-tooltip');
+  if(tip) tip.style.opacity = '0';
+  ['chartHoverLine','chartHoverRoe','chartHoverVn','chartHoverDd'].forEach(id=>{
+    const el = wrapEl.querySelector('#'+id);
+    if(el) el.setAttribute('opacity','0');
+  });
+}
+function ddTier(dd){
+  if(dd>=10) return {label:'Bán hết', action:'Cắt toàn bộ vị thế còn lại.', cls:'loss'};
+  if(dd>=8) return {label:'Bán thêm 70%', action:'Bán thêm 70% phần còn lại.', cls:'loss'};
+  if(dd>=5) return {label:'Hạ tỷ trọng 30%', action:'Hạ tỷ trọng 30% danh mục.', cls:'warn'};
+  return {label:'Bình thường', action:'Không cần hành động.', cls:'flat'};
+}
+
+// Lưu trữ có dự phòng: ưu tiên window.storage (nếu môi trường có), không được thì dùng localStorage của trình duyệt.
+async function storeGet(key){
+  try{ if(window.storage && window.storage.get){ const r = await window.storage.get(key, false); if(r && r.value) return r; } }catch(e){}
+  try{ const v = window.localStorage.getItem(key); if(v) return {value:v}; }catch(e){}
+  return null;
+}
+async function storeSet(key, val){
+  let ok = false;
+  try{ if(window.storage && window.storage.set){ ok = !!(await window.storage.set(key, val, false)); } }catch(e){}
+  try{ window.localStorage.setItem(key, val); ok = true; }catch(e){}
+  return ok;
+}
+
+async function loadState(){
+  try{
+    const res = await storeGet(STORAGE_KEY);
+    if(res && res.value){
+      state = JSON.parse(res.value);
+      if(!Array.isArray(state.positions)) state.positions = [];
+      if(typeof state.cash !== 'number') state.cash = 0;
+      if(typeof state.initialCapital !== 'number') state.initialCapital = 0;
+      if(!Array.isArray(state.navHistory)) state.navHistory = [];
+      if(!Array.isArray(state.vnindexHistory)) state.vnindexHistory = [];
+    }
+  }catch(e){
+    // key not found yet — keep defaults
+  }
+  // Bắt kịp ratchet ngay khi mở app (phòng khi dữ liệu được lưu từ trước lúc có tính năng tự động dời stop này).
+  // saveState() tự chạy autoRatchetStops() + set ui.lastRatchetEvents bên trong nó — không gọi tay ở đây để
+  // tránh chạy 2 lần và bị ghi đè về rỗng (lần sau không còn gì để ratchet nữa).
+  await saveState();
+  render();
+}
+
+// Tự động dời stop LIÊN TỤC theo R-multiple (ratchet — chỉ dời LÊN, không bao giờ hạ xuống). Chạy tập trung
+// bên trong saveState() (và 1 lần lúc loadState()) để áp dụng sau MỌI thao tác đổi giá, không cần patch riêng
+// từng nơi. Dùng R-multiple làm mốc (không dùng %lãi cố định): cùng 1 mức %lãi mang ý nghĩa rủi ro khác nhau
+// tuỳ khoảng cách stop ban đầu từng mã, còn R-multiple thì giữ tính nhất quán rủi ro giữa các mã — đúng tinh
+// thần Minervini (quản lý theo bội số R đã mạo hiểm, không theo %cố định giống nhau cho mọi mã):
+//   <1R   : giữ nguyên stop kỹ thuật ban đầu — chưa đủ "đệm" lãi để dời.
+//   ≥1R   : sàn = giá vốn + lockFraction(R-multiple) × lãi/cổ phiếu — khoá 0% đúng tại +1R (hoà vốn), tăng
+//           DẦN ĐỀU không nhảy bậc, tới 65% tại +5R rồi giữ nguyên 65% từ đó trở lên. Nhờ cơ chế chỉ-dời-lên,
+//           đây tự nhiên trở thành "khoá X% lãi tại ĐỈNH đã đạt" chứ không tụt theo giá hiện tại khi rung lắc.
+function autoRatchetStops(){
+  const events = [];
+  (state.positions||[]).forEach(p=>{
+    const hasInitial = typeof p.initialStop==='number' && p.initialStop>0 && p.initialStop<p.avgCost;
+    if(!hasInitial) return;
+    const R = p.avgCost - p.initialStop;
+    if(!(R>0)) return;
+    const gainPerShare = p.currentPrice - p.avgCost;
+    const rMultiple = gainPerShare / R;
+    const floor = rMultiple < 1 ? p.initialStop : p.avgCost + lockFraction(rMultiple)*gainPerShare;
+    const cur = (typeof p.currentStop==='number' && p.currentStop>0) ? p.currentStop : p.initialStop;
+    if(floor > cur + 0.0001){
+      events.push({ticker:p.ticker, from:cur, to:floor, rMultiple});
+      p.currentStop = floor;
+    }
+  });
+  return events;
+}
+
+function dismissRatchetEvents(){ ui.lastRatchetEvents = []; render(); }
+
+// Chuyển dữ liệu giữa các thiết bị: xuất ra 1 chuỗi văn bản, dán sang thiết bị kia để nhập.
+async function redoLast(){
+  if(!state.redo || !state.redo.snap) return;
+  const lbl = state.redo.label, cur = snapshotState();
+  try{ state = JSON.parse(state.redo.snap); }catch(e){ return; }
+  state.redo = null;
+  state.undo = {label: lbl, snap: cur};
+  ui.pendingUndo = null;
+  await saveState();
+  render();
+}
+async function ackStop(id){
+  const p=(state.positions||[]).find(x=>x.id===id); if(!p) return;
+  markUndo('Bỏ qua cảnh báo stop '+p.ticker);
+  p.stopAck=true; await saveState(); render();
+}
+async function unackStop(id){
+  const p=(state.positions||[]).find(x=>x.id===id); if(!p) return;
+  delete p.stopAck; await saveState(); render();
+}
+async function toggleAlerts(){
+  state.prefs = state.prefs || {};
+  state.prefs.alertsHidden = !state.prefs.alertsHidden;
+  await saveState(); render();
+}
+function toggleUndoBar(){ ui.showUndo = !ui.showUndo; render(); }
+function toggleBackup(){ ui.showBackup = !ui.showBackup; render(); }
+function toggleNavHist(){ ui.showNavHist = !ui.showNavHist; render(); }
+function deleteNavPoint(date){
+  markUndo('Xoá điểm NAV '+date);
+  state.navHistory = (state.navHistory||[]).filter(h=>h.date!==date);
+  saveState(); render();
+}
+function editNavPoint(date){
+  const h=(state.navHistory||[]).find(x=>x.date===date); if(!h) return;
+  const v=prompt('NAV ngày '+date+' (cùng đơn vị đang hiển thị):', h.nav);
+  if(v===null) return;
+  const n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));
+  if(!isFinite(n)||n<=0){ alert('Số không hợp lệ'); return; }
+  markUndo('Sửa điểm NAV '+date);
+  h.nav=n; saveState(); render();
+}
+function exportData(){
+  const ta = document.getElementById('backupText');
+  const _c = {...state}; delete _c.undo; delete _c.redo;
+  const code = 'NAVBK1:' + btoa(unescape(encodeURIComponent(JSON.stringify(_c))));
+  ta.value = code; ta.focus(); ta.select();
+  let copied = false;
+  try{ copied = document.execCommand('copy'); }catch(e){}
+  try{ if(navigator.clipboard) navigator.clipboard.writeText(code); copied = true; }catch(e){}
+  document.getElementById('backupMsg').textContent = copied ? 'Đã sao chép. Sang thiết bị kia, dán vào ô này rồi bấm Nhập.' : 'Giữ ngón tay trên ô, chọn Sao chép toàn bộ chuỗi, rồi dán sang thiết bị kia.';
+}
+async function importData(){
+  const ta = document.getElementById('backupText');
+  const msg = document.getElementById('backupMsg');
+  const txt = (ta.value||'').trim();
+  const ci = txt.indexOf(':');
+  if(!txt.startsWith('NAVBK1') || ci<0){ msg.textContent = 'Chuỗi không hợp lệ — phải bắt đầu bằng NAVBK1: (dán nguyên chuỗi, đừng gõ tay).'; return; }
+  const body = txt.slice(ci+1).replace(/[^A-Za-z0-9+\/=]/g,'');
+  let obj;
+  try{ obj = JSON.parse(decodeURIComponent(escape(atob(body)))); }catch(e){ msg.textContent = 'Không đọc được chuỗi (bị cắt thiếu?). Xuất lại và dán đủ.'; return; }
+  if(!obj || !Array.isArray(obj.positions)){ msg.textContent = 'Dữ liệu không đúng định dạng.'; return; }
+  if(ui.importArmed !== txt){ ui.importArmed = txt; msg.textContent = 'Chuỗi hợp lệ. Bấm "Nhập dữ liệu" LẦN NỮA để ghi đè dữ liệu hiện có.'; return; }
+  ui.importArmed = null;
+  obj.undo = null; obj.redo = null;
+  state = obj;
+  await saveState();
+  ui.showBackup = false;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Hoàn tác thao tác gần nhất: chụp lại toàn bộ dữ liệu TRƯỚC khi thay đổi, lưu cùng dữ liệu (chỉ giữ 1 bước gần nhất).
+function snapshotState(){ const c = {...state}; delete c.undo; delete c.redo; return JSON.stringify(c); }
+function markUndo(label){ ui.pendingUndo = {label, snap: snapshotState()}; }
+async function undoLast(){
+  if(!state.undo || !state.undo.snap) return;
+  const lbl = state.undo.label, cur = snapshotState();
+  try{ state = JSON.parse(state.undo.snap); }catch(e){ return; }
+  state.undo = null;
+  state.redo = {label: lbl, snap: cur};
+  ui.pendingUndo = null;
+  await saveState();
+  render();
+}
+
+async function saveState(){
+  try{
+    if(ui.pendingUndo){ state.undo = ui.pendingUndo; state.redo = null; ui.pendingUndo = null; }
+    (state.positions||[]).forEach(p=>{ if(p.stopAck && p.currentStop!=null && p.currentPrice > p.currentStop + 0.0001) delete p.stopAck; });
+    ui.lastRatchetEvents = autoRatchetStops();
+    const d = computeDerived();
+    const today = todayStr();
+    if(!Array.isArray(state.navHistory)) state.navHistory = [];
+    const idx = state.navHistory.findIndex(h=>h.date===today);
+    if(idx>-1) state.navHistory[idx].nav = d.totalNAV;
+    else state.navHistory.push({date:today, nav:d.totalNAV});
+
+    const result = await storeSet(STORAGE_KEY, JSON.stringify(state));
+    if(!result) console.error('Lưu dữ liệu thất bại');
+  }catch(e){
+    console.error('Storage error:', e);
+  }
+}
+
+// Lưu điểm VN-Index thủ công theo NGÀY TỰ CHỌN (tool không tự fetch dữ liệu thị trường) — dùng để so sánh ROE với benchmark.
+// Dùng ngày do người dùng chọn (không ép cứng "hôm nay") để còn backfill các phiên cũ mà không bị ghi đè lẫn nhau.
+async function saveVnIndex(){
+  const val = parseFloat(document.getElementById('vnindexInput').value);
+  const dateInput = document.getElementById('vnindexDate').value;
+  const dateVal = dateInput || todayStr();
+  if(!(val>0)){ ui.error = 'Nhập điểm VN-Index hợp lệ lớn hơn 0.'; render(); return; }
+  if(!Array.isArray(state.vnindexHistory)) state.vnindexHistory = [];
+  const idx = state.vnindexHistory.findIndex(h=>h.date===dateVal);
+  if(idx>-1) state.vnindexHistory[idx].value = val;
+  else state.vnindexHistory.push({date:dateVal, value:val});
+  ui.error = '';
+  await saveState();
+  render();
+}
+
+async function deleteVnIndex(date){
+  state.vnindexHistory = (state.vnindexHistory||[]).filter(h=>h.date!==date);
+  await saveState();
+  render();
+}
+
+function computeDerived(){
+  const positions = state.positions.map(p=>{
+    const costValue = p.shares * p.avgCost;
+    const marketValue = p.shares * p.currentPrice;
+    const pnl = marketValue - costValue;
+    const pnlPct = costValue > 0 ? (pnl / costValue * 100) : 0;
+    return {...p, costValue, marketValue, pnl, pnlPct};
+  });
+  const investedValue = positions.reduce((s,p)=>s+p.marketValue,0);
+  const totalCost = positions.reduce((s,p)=>s+p.costValue,0);
+  const totalNAV = investedValue + (state.cash||0);
+  const totalPnl = investedValue - totalCost;
+  const totalPnlPct = totalCost > 0 ? (totalPnl/totalCost*100) : 0;
+
+  const withPct = positions.map(p=>({
+    ...p,
+    navPct: totalNAV > 0 ? (p.marketValue/totalNAV*100) : 0
+  }));
+
+  // --- Stop khoá lãi LIÊN TỤC theo R-multiple, tự động dời LÊN — xem lockFraction()/autoRatchetStops() ---
+  // <1R : stop kỹ thuật ban đầu (mốc R), chưa khoá gì.
+  // ≥1R : sàn = giá vốn + lockFraction(R-multiple) × lãi/cổ phiếu — 0% tại +1R, tăng dần đều, 65% từ +5R.
+  const withStage = withPct.map(p=>{
+    const stopMaxPct = p.navPct>0 ? Math.min(100, 1/p.navPct*100) : null; // trần Rule 2
+    const stopMaxPrice = stopMaxPct!=null ? p.avgCost*(1-stopMaxPct/100) : null;
+    const hasInitialStop = typeof p.initialStop === 'number' && p.initialStop>0 && p.initialStop < p.avgCost;
+    const R = hasInitialStop ? (p.avgCost - p.initialStop) : null;
+    const gainPerShare = p.currentPrice - p.avgCost;
+    const rMultiple = (R && R>0) ? (gainPerShare / R) : null;
+
+    let stage, stageLabel, stageCls, requiredMinStop, lockedPct;
+    if(rMultiple===null){
+      stage=0; stageLabel='Chưa đặt stop ban đầu'; stageCls='flat'; requiredMinStop=null; lockedPct=null;
+    } else if(rMultiple<1){
+      stage=1; stageLabel='Trước +1R — Stop ban đầu'; stageCls='flat'; requiredMinStop=p.initialStop; lockedPct=0;
+    } else {
+      stage=2;
+      lockedPct = lockFraction(rMultiple)*100;
+      requiredMinStop = p.avgCost + lockFraction(rMultiple)*gainPerShare;
+      stageLabel = `Khoá ${fmtPct(lockedPct,0)}% lãi (tự động, +${rMultiple.toFixed(1)}R)`;
+      stageCls = lockedPct < 1 ? 'warn' : 'gain';
+    }
+
+    const currentStop = (typeof p.currentStop === 'number' && p.currentStop>0)
+      ? p.currentStop
+      : (hasInitialStop ? p.initialStop : null);
+    const stopBehind = (requiredMinStop!=null && currentStop!=null && currentStop < requiredMinStop - 0.0001);
+    const currentStopPct = currentStop!=null ? (p.avgCost-currentStop)/p.avgCost*100 : null;
+    const violatesRule2 = (currentStopPct!=null && currentStopPct>0 && stopMaxPct!=null && currentStopPct > stopMaxPct + 0.05);
+
+    // Giá đã chạm/thủng stop hiện tại → vi phạm stop, theo Bảng quyết định Mục 7: "Bán mạnh ngay"
+    const stopHitRaw = (currentStop!=null && p.currentPrice <= currentStop + 0.0001);
+    const stopHit = stopHitRaw && !p.stopAck;   // stopAck: người dùng đã ghi nhận (VD giá điều chỉnh do cổ tức) — tự bật lại khi giá vượt lại trên stop
+
+    // Vi phạm Rule 2 (risk >1% NAV) → đề xuất cụ thể: giảm size về mức an toàn với đúng stop kỹ thuật này
+    let targetNavPct = null, suggestedSellShares = null, suggestedSellValue = null;
+    if(violatesRule2 && currentStopPct>0){
+      targetNavPct = 100/currentStopPct; // %NAV tối đa để risk ≤1% NAV với khoảng cách stop này
+      const suggestedTargetValue = (totalNAV>0) ? (targetNavPct/100*totalNAV) : 0;
+      suggestedSellValue = Math.max(0, p.marketValue - suggestedTargetValue);
+      suggestedSellShares = (p.currentPrice>0) ? Math.ceil(suggestedSellValue / p.currentPrice) : null;
+    }
+
+    return {...p, stopMaxPct, stopMaxPrice, hasInitialStop, R, rMultiple,
+      stage, stageLabel, stageCls, lockedPct, requiredMinStop, currentStop, stopBehind, currentStopPct, violatesRule2,
+      stopHit, stopHitRaw, targetNavPct, suggestedSellShares, suggestedSellValue};
+  });
+
+  const sectorMap = {};
+  withStage.forEach(p=>{
+    const key = (p.sector || 'Khác').trim() || 'Khác';
+    sectorMap[key] = (sectorMap[key]||0) + p.marketValue;
+  });
+  const sectorPcts = Object.entries(sectorMap).map(([sector, val])=>({
+    sector, pct: totalNAV>0 ? (val/totalNAV*100) : 0
+  }));
+
+  const alerts = [];
+  const urgentAlerts = [];
+  withStage.forEach(p=>{
+    if(p.stopHit){
+      urgentAlerts.push(`🚨 ${p.ticker} ĐÃ CHẠM STOP — giá hiện tại ${vmask(p.currentPrice)}đ ≤ stop ${vmask(p.currentStop)}đ. Theo quy tắc: Bán mạnh ngay/ATO, ưu tiên tốc độ — không chờ hồi.`);
+    }
+    if(p.navPct > POSITION_CEIL + 0.05){
+      alerts.push(`${p.ticker} đang ở ${fmtPct(p.navPct)}% NAV — vượt trần ${POSITION_CEIL}%/mã`);
+    }
+    if(p.stage===0){
+      alerts.push(`${p.ticker} chưa đặt stop ban đầu — bấm "Stop" trên thẻ vị thế để nhập (không tính được R-multiple/giai đoạn)`);
+    }
+    if(p.stopBehind){
+      alerts.push(`${p.ticker} đang ở ${p.stageLabel} nhưng stop vẫn thấp hơn mức cần thiết — nên dời lên tối thiểu ${vmask(p.requiredMinStop)}đ`);
+    }
+    if(p.violatesRule2){
+      let msg = `${p.ticker} stop hiện tại cách giá vốn quá xa (-${fmtPct(p.currentStopPct)}%) — vượt trần Rule 2 (tối đa -${fmtPct(p.stopMaxPct)}%, risk >1% NAV).`;
+      if(p.suggestedSellShares>0){
+        msg += ` Đề xuất: giảm về tối đa ${fmtPct(p.targetNavPct)}% NAV (bán bớt ~${vmaskN(p.suggestedSellShares)} cổ), hoặc dời stop lên tối thiểu ${vmask(p.stopMaxPrice)}đ nếu cấu trúc kỹ thuật cho phép.`;
+      }
+      alerts.push(msg);
+    }
+  });
+  sectorPcts.forEach(s=>{
+    if(s.pct > SECTOR_CEIL + 0.05){
+      alerts.push(`Nhóm ngành "${s.sector}" chiếm ${fmtPct(s.pct)}% NAV — vượt trần ${SECTOR_CEIL}%/ngành`);
+    }
+  });
+  if(positions.length > MAX_POSITIONS){
+    alerts.push(`Đang giữ ${positions.length} mã — vượt giới hạn tối đa ${MAX_POSITIONS} vị thế`);
+  }
+
+  const peakCandidates = [...(state.navHistory||[]).map(h=>h.nav), totalNAV];
+  if(state.initialCapital>0) peakCandidates.push(state.initialCapital);
+  const equityPeak = peakCandidates.length ? Math.max(...peakCandidates) : totalNAV;
+  const drawdownPct = equityPeak>0 ? Math.max(0, (equityPeak-totalNAV)/equityPeak*100) : 0;
+  const roePct = (state.initialCapital>0) ? ((totalNAV-state.initialCapital)/state.initialCapital*100) : null;
+  const totalPnlVsCapital = (state.initialCapital>0) ? (totalNAV-state.initialCapital) : 0;
+  let peakRoePct = null;
+  if(state.initialCapital>0){
+    const roeHistory = (state.navHistory||[]).map(h=>(h.nav-state.initialCapital)/state.initialCapital*100);
+    roeHistory.push(roePct);
+    peakRoePct = Math.max(...roeHistory);
+  }
+
+  // Margin: cash âm nghĩa là đang vay margin để mua vượt vốn tự có
+  const marginUsed = state.cash < 0 ? -state.cash : 0;
+  const marginPct = totalNAV>0 ? (marginUsed/totalNAV*100) : 0;
+  const totalExposurePct = totalNAV>0 ? (investedValue/totalNAV*100) : 0; // >100% khi có margin
+  const marginGuideCeil = marginGuideCeilPct(roePct); // gợi ý: % NAV margin tối đa nên dùng ở mức ROE hiện tại (xem Mục 3)
+
+  if(marginUsed > 0){
+    if(marginPct > MARGIN_CEIL + 0.05){
+      alerts.push(`Margin đang dùng ${fmtPct(marginPct)}% NAV — vượt trần ${MARGIN_CEIL}% NAV (Mục 3)`);
+    }
+    if(totalExposurePct > TOTAL_EXPOSURE_CEIL + 0.05){
+      alerts.push(`Tổng exposure (vốn+margin) ${fmtPct(totalExposurePct)}% NAV — vượt trần ${TOTAL_EXPOSURE_CEIL}% NAV (Mục 3)`);
+    }
+    if(roePct === null || roePct < 5){
+      alerts.push(`Đang dùng margin nhưng danh mục ${roePct===null ? 'chưa có dữ liệu lãi/lỗ' : `chỉ lãi ${fmtPct(roePct)}%`} — Checklist Margin (Mục 3) yêu cầu lãi ≥5% NAV mới đủ điều kiện dùng margin`);
+    } else if(marginPct > marginGuideCeil + 0.05 && marginPct <= MARGIN_CEIL + 0.05){
+      alerts.push(`Margin đang dùng ${fmtPct(marginPct)}% NAV — vượt mức GỢI Ý cho lợi nhuận tích lũy hiện tại (${fmtPct(roePct)}% → nên ≤${fmtPct(marginGuideCeil)}% NAV); chưa chạm trần cứng ${MARGIN_CEIL}% NAV nhưng nên cân nhắc hạ bớt`);
+    }
+  }
+
+  return {
+    positions: withStage, investedValue, totalCost, totalNAV,
+    totalPnl, totalPnlPct, cashPct: totalNAV>0 ? (state.cash/totalNAV*100) : 0,
+    investedPct: totalNAV>0 ? (investedValue/totalNAV*100) : 0,
+    alerts: [...urgentAlerts, ...alerts], equityPeak, drawdownPct, roePct, totalPnlVsCapital, peakRoePct,
+    marginUsed, marginPct, totalExposurePct, marginGuideCeil
+  };
+}
+
+function barClass(navPct){
+  if(navPct > POSITION_CEIL) return 'over';
+  if(navPct > POSITION_CEIL - 5) return 'warn';
+  return '';
+}
+
+
+// Biểu đồ tròn phân bổ (donut SVG): items=[{label,value(giá trị tiền),navPct,warn}]; tỷ lệ cung tròn theo value / tổng value.
+const DONUT_COLORS=['#5B8DEF','#3FB27F','#E0685F','#E5B94E','#A77BE0','#4FC3D9','#E58A4E','#8A94A6'];
+function renderDonut(title, items, centerTop, centerBottom, cash){
+  // cash = {value, navPct}: tiền mặt dương -> thêm cung xám vào vòng; âm (margin) -> chỉ hiện ở chú giải
+  const arcItems = items.slice();
+  if(cash && cash.value>0) arcItems.push({label:'Tiền mặt', value:cash.value, navPct:cash.navPct, color:'#8A94A6'});
+  const total = arcItems.reduce((a,b)=>a+b.value,0);
+  if(!(total>0)) return '';
+  // Donut kiểu "chuyên nghiệp": vòng dày, đầu cung bo tròn có khe hở, nhãn mã + % kéo ra ngoài bằng đường dẫn.
+  const W=380, H=236, cx=190, cy=118, r=62, sw=24, TAU=2*Math.PI;
+  const P=(th,rad)=>[cx+rad*Math.sin(th), cy-rad*Math.cos(th)];
+  const f=v=>v.toFixed(1);
+  let acc=0; const labs=[];
+  const arcs = arcItems.map((it,i)=>{
+    const col = it.color||DONUT_COLORS[i%DONUT_COLORS.length];
+    const th0=acc/total*TAU; acc+=it.value; const th1=acc/total*TAU, mid=(th0+th1)/2;
+    let shape;
+    if(arcItems.length===1){
+      shape=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}"/>`;
+    } else {
+      const trim=(sw/2+2.5)/r;
+      let s0=th0+trim, s1=th1-trim; if(s1<=s0){ s0=mid-0.001; s1=mid+0.001; }
+      const [x0,y0]=P(s0,r), [x1,y1]=P(s1,r);
+      shape=`<path d="M${f(x0)} ${f(y0)} A${r} ${r} 0 ${(s1-s0)>Math.PI?1:0} 1 ${f(x1)} ${f(y1)}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
+    }
+    const right = Math.sin(mid)>=0;
+    const [ax,ay]=P(mid,r+sw/2+3), [ex,ey]=P(mid,r+sw/2+13);
+    labs.push({right,ax,ay,ex,ey,col,y:ey,text:it.label,pct:it.navPct});
+    return shape;
+  }).join('');
+  // chống chồng nhãn: mỗi bên sắp xếp theo y, giữ khoảng cách tối thiểu
+  [true,false].forEach(side=>{
+    const g=labs.filter(l=>l.right===side).sort((p,q)=>p.y-q.y);
+    for(let i=0;i<g.length;i++){ g[i].y=Math.max(g[i].y, i? g[i-1].y+28 : 16); }
+    for(let i=g.length-1;i>=0;i--){ g[i].y=Math.min(g[i].y, i<g.length-1? g[i+1].y-28 : H-16); }
+  });
+  const lbl = labs.map(l=>{
+    const xe = l.right ? l.ex+12 : l.ex-12;
+    const nm = (l.text||'').length>10 ? l.text.slice(0,9)+'…' : l.text;
+    const anc = l.right ? 'start' : 'end', tx = l.right ? xe+4 : xe-4;
+    return `<polyline points="${f(l.ax)},${f(l.ay)} ${f(l.ex)},${f(l.ey)} ${f(xe)},${f(l.y)}" fill="none" stroke="${l.col}" stroke-width="1" opacity="0.8"/>`+
+      `<text x="${f(tx)}" y="${f(l.y-1)}" text-anchor="${anc}" fill="var(--text)" font-size="12" font-weight="700">${nm}</text>`+
+      `<text x="${f(tx)}" y="${f(l.y+12)}" text-anchor="${anc}" fill="${l.col}" font-size="11.5" font-weight="600" font-family="ui-monospace,Menlo,Consolas,monospace">${fmtPct(l.pct)}%</text>`;
+  }).join('');
+  const legendItems = items.map((it,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;">
+      <span style="width:10px;height:10px;border-radius:3px;background:${DONUT_COLORS[i%DONUT_COLORS.length]};flex:none;"></span>
+      <span style="flex:1;">${it.label}</span>
+      <span class="mono" style="color:${it.warn?'var(--loss)':'var(--text)'};font-weight:${it.warn?700:500};">${fmtPct(it.navPct)}%${it.warn?' ⚠️':''}</span>
+    </div>`).join('');
+  const cashRow = cash ? `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;margin-top:4px;border-top:1px solid var(--border);font-size:12.5px;">
+      <span style="width:10px;height:10px;border-radius:3px;background:${cash.value>0?'#8A94A6':'transparent'};border:1.5px solid #8A94A6;flex:none;box-sizing:border-box;"></span>
+      <span style="flex:1;">Tiền mặt${cash.value<0?' <span style="font-size:11px;color:var(--text-dim);">(đang vay margin)</span>':''}</span>
+      <span class="mono" style="color:${cash.value<0?'var(--loss)':'var(--text)'};font-weight:500;">${cash.navPct>0?'':''}${fmtPct(cash.navPct)}%</span>
+    </div>` : '';
+  const legend = legendItems + cashRow;
+  return `<div class="section-label">${title}</div>
+    <div class="perf-card" style="display:block;">
+      <div style="display:flex;justify-content:center;">
+        <svg viewBox="0 0 380 236" width="100%" style="max-width:420px;display:block;">${arcs}${lbl}
+          <text x="190" y="123" text-anchor="middle" fill="var(--text)" font-size="21" font-weight="700" font-family="ui-monospace,Menlo,Consolas,monospace">${centerTop}</text>
+          <text x="190" y="140" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-weight="600" letter-spacing="1.5">${centerBottom}</text>
+        </svg>
+      </div>
+      <div style="margin-top:8px;">${legend}</div>
+    </div>`;
+}
+
+// ---------- render ----------
+function render(){
+  const d = computeDerived();
+  const app = document.getElementById('app');
+
+  const pnlClass = d.totalPnl > 0 ? 'gain' : d.totalPnl < 0 ? 'loss' : 'flat';
+  const pnlSign = d.totalPnl > 0 ? '+' : '';
+
+  let html = '';
+
+  const isFresh = (!state.initialCapital || state.initialCapital<=0) && state.positions.length===0;
+  if(isFresh){
+    html += `<div class="card" style="border-color:var(--gain); margin-bottom:16px;">
+      <div style="font-size:13.5px;font-weight:700;margin-bottom:10px;">🚀 Thiết lập lần đầu — làm theo 4 bước</div>
+      <div class="perf-sub" style="margin-bottom:8px;"><b style="color:var(--text);">Bước 1 — Vốn góp ban đầu:</b> ở ô đầu tiên trên trang, bấm Sửa, nhập tổng số tiền đã góp vào quỹ (nghìn đ).</div>
+      <div class="perf-sub" style="margin-bottom:8px;"><b style="color:var(--text);">Bước 2 — Tiền mặt:</b> ở ô "Tiền mặt" đầu trang, bấm Sửa, nhập số tiền mặt CHƯA đầu tư hiện có. Nếu chưa mua gì thì bằng đúng Vốn góp ban đầu.</div>
+      <div class="perf-sub" style="margin-bottom:8px;"><b style="color:var(--text);">Bước 3 — Vị thế đang giữ:</b> bấm "+ Thêm vị thế" bên dưới cho từng mã. Nếu mã ĐÃ mua từ trước — bỏ tick "Trừ vào tiền mặt" rồi quay lại Bước 2 sửa Tiền mặt cho khớp số dư thực tế. Nếu là mua MỚI ngay bây giờ — giữ tick để tiền mặt tự trừ đúng.</div>
+      <div class="perf-sub"><b style="color:var(--text);">Bước 4 — Stop ban đầu:</b> bấm "Stop" trên từng thẻ vị thế, nhập giá stop kỹ thuật theo chart (đáy nền/MA), không phải theo %. Từ đây về sau, mọi lần mua/bán thêm dùng nút "Giao dịch" — tiền mặt tự động cập nhật, không cần sửa tay.</div>
+    </div>`;
+  }
+
+  html += `<div class="header-top-row">
+    <button class="privacy-toggle${ui.privacyMode?' active':''}" onclick="togglePrivacy()">${ui.privacyMode?'👁️ Hiện số tiền':'🙈 Ẩn số tiền (chụp màn hình)'}</button>
+  </div>`;
+
+  html += `<div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">Vốn góp ban đầu</div>
+        <div class="mono" style="font-size:17px;font-weight:600;">${state.initialCapital ? vmask(state.initialCapital)+'đ' : '— chưa nhập'}</div>
+      </div>
+      <button class="link-btn" onclick="startEdit('capital')">Sửa</button>
+    </div>
+  </div>`;
+
+  if(ui.editingId === 'capital'){
+    html += `<div class="form-card">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Vốn góp ban đầu (nghìn đ)</label>
+          <input type="number" id="capitalInput" value="${state.initialCapital||0}" inputmode="numeric">
+        </div>
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-primary" onclick="saveCapital()">Lưu</button>
+        <button class="btn btn-ghost" onclick="cancelEdit()">Hủy</button>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="header">
+    <p class="title">Tổng NAV</p>
+    <div class="nav-value mono">${vmask(d.totalNAV)} <small>đ</small></div>
+    <div class="pnl-badge ${pnlClass}">
+      <span class="mono">${pnlSign}${vmask(d.totalPnl)}đ</span>
+      <span class="mono">(${pnlSign}${fmtPct(d.totalPnlPct)}%)</span>
+    </div>
+    <p style="font-size:11px;color:var(--text-dim);margin:10px 0 14px;">Đơn vị: nghìn đồng — nhập giá theo cách bảng giá chứng khoán hiển thị (VD: 62 = 62.000đ)</p>
+    <div class="substats">
+      <div class="substat">
+        <div class="label">Giá trị danh mục</div>
+        <div class="val mono">${vmask(d.investedValue)}đ</div>
+        <div class="sub mono">${fmtPct(d.investedPct,1)}% NAV</div>
+      </div>
+      <div class="substat">
+        <div class="label">${state.cash<0?'Margin đang dùng':'Tiền mặt'} <button class="link-btn" style="margin-left:2px;font-size:10.5px;" onclick="startEdit('cash')">Sửa</button></div>
+        <div class="val mono" style="${state.cash<0?'color:var(--warn);':''}">${vmask(state.cash<0?d.marginUsed:state.cash)}đ</div>
+        <div class="sub mono">${fmtPct(Math.abs(d.cashPct),1)}% NAV${state.cash<0?' · trần '+MARGIN_CEIL+'%':''}</div>
+      </div>
+      <div class="substat">
+        <div class="label">Số vị thế</div>
+        <div class="val mono">${d.positions.length}/${MAX_POSITIONS}</div>
+      </div>
+    </div>
+  </div>`;
+
+  if(d.alerts.length){
+    const hidden = !!(state.prefs && state.prefs.alertsHidden);
+    const urgentN = d.alerts.filter(a=>a.startsWith('🚨')).length;
+    html += `<div class="alerts">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleAlerts()">
+        <div class="alert-title" style="margin-bottom:${hidden?0:6}px;">⚠️ Vi phạm giới hạn danh mục (${d.alerts.length})${hidden&&urgentN?` · <span style="color:var(--loss);">${urgentN} khẩn</span>`:''}</div>
+        <span class="link-btn" style="font-size:11.5px;">${hidden?'Hiện ▾':'Ẩn ▴'}</span>
+      </div>
+      ${hidden ? '' : d.alerts.map(a=>`<div class="alert-line${a.startsWith('🚨')?' urgent':''}">${a.startsWith('🚨')?'':'• '}${maskText(a)}</div>`).join('')}
+    </div>`;
+  }
+
+  html += `<div class="section-label" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>Vị thế</span>
+    <span><button class="link-btn" onclick="syncATL()">Đồng bộ giá ATL</button> · <button class="link-btn" onclick="toggleBulkUpdate()">Cập nhật giá hàng loạt</button></span>
+  </div>`;
+  if(ui.syncMsg) html += `<div class="perf-sub" style="margin-bottom:8px;">${maskText(ui.syncMsg)}</div>`;
+
+  html += renderVnIndexInput();
+
+  if(ui.showBulkUpdate){
+    html += `<div class="form-card">
+      <div class="form-field" style="margin-bottom:10px;">
+        <label>Dán mỗi dòng "Mã Giá" (nghìn đ) — VD: VNM 61</label>
+        <textarea id="bulkInput" rows="5" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:9px 10px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:13px;" placeholder="VNM 61&#10;VPB 27&#10;NTP 54&#10;PVP 19"></textarea>
+      </div>
+      ${ui.bulkResult ? `<div class="perf-sub" style="margin-bottom:8px;">${ui.bulkResult}</div>` : ''}
+      <div class="form-btns">
+        <button class="btn btn-primary" onclick="applyBulkUpdate()">Áp dụng</button>
+        <button class="btn btn-ghost" onclick="toggleBulkUpdate()">Đóng</button>
+      </div>
+    </div>`;
+  }
+
+  if(ui.lastRatchetEvents && ui.lastRatchetEvents.length){
+    html += `<div class="card" style="border-color:var(--gain);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="font-size:12.5px;font-weight:700;color:var(--gain);">🔼 Đã tự động nâng stop</div>
+        <button class="link-btn" onclick="dismissRatchetEvents()">Đóng</button>
+      </div>
+      ${ui.lastRatchetEvents.map(e=>`<div class="perf-sub" style="margin-top:4px;">${tmask(e.ticker)}: ${vmask(e.from)}đ → <b style="color:var(--text);">${vmask(e.to)}đ</b> (đạt +${e.rMultiple.toFixed(1)}R)</div>`).join('')}
+    </div>`;
+  }
+
+  if((state.undo && state.undo.snap) || (state.redo && state.redo.snap)){
+    const bs = 'background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:12px;cursor:pointer;';
+    html += `<div style="display:flex;justify-content:center;margin:0 0 6px;"><button class="link-btn" onclick="toggleUndoBar()" style="font-size:11.5px;">${ui.showUndo?'▴ Ẩn':'⋯ Hoàn tác / Làm lại'}</button></div>`;
+    if(ui.showUndo){
+      html += `<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;">` +
+        ((state.undo && state.undo.snap) ? `<button onclick="undoLast()" style="${bs}">↩ Hoàn tác: ${maskText(state.undo.label)}</button>` : '') +
+        ((state.redo && state.redo.snap) ? `<button onclick="redoLast()" style="${bs}">↪ Làm lại: ${maskText(state.redo.label)}</button>` : '') +
+        `</div>`;
+    }
+  }
+  if(d.positions.length === 0 && !ui.showAddForm){
+    html += `<div class="empty-state">Chưa có vị thế nào. Thêm mã đầu tiên bên dưới.</div>`;
+  }
+
+  d.positions.forEach(p=>{
+    if(ui.editingId === p.id){
+      html += renderPositionForm(p);
+    } else if(ui.txId === p.id){
+      html += renderTxForm(p);
+    } else if(ui.stopId === p.id){
+      html += renderStopForm(p);
+    } else {
+      const pnlCls = p.pnl > 0 ? 'gain' : p.pnl < 0 ? 'loss' : '';
+      const pnlSignP = p.pnl > 0 ? '+' : '';
+      html += `<div class="card${p.stopHit ? ' stop-hit' : ''}">
+        ${p.stopHit ? `<div class="stop-hit-banner">🚨 ĐÃ CHẠM STOP — Bán mạnh ngay/ATO, ưu tiên tốc độ, không chờ hồi <button class="link-btn" style="margin-left:6px;font-size:11.5px;" onclick="ackStop('${p.id}')">Bỏ qua (VD: giá điều chỉnh do cổ tức)</button></div>` : (p.stopHitRaw && p.stopAck ? `<div class="perf-sub" style="margin:0 0 8px;">🔕 Đã chạm stop nhưng đã ghi nhận, không nhắc. <button class="link-btn" style="font-size:11.5px;" onclick="unackStop('${p.id}')">Bật lại cảnh báo</button> · tự bật lại khi giá vượt trên stop.</div>` : '')}
+        <div class="card-top">
+          <div class="ticker-row">
+            <span class="ticker">${tmask(p.ticker)}</span>
+            <span class="sector-tag">${p.sector || 'Khác'}</span>
+          </div>
+          <div class="card-actions">
+            <button class="link-btn" onclick="startTx('${p.id}')">Giao dịch</button>
+            <button class="link-btn" onclick="startStop('${p.id}')">Stop</button>
+            <button class="link-btn" onclick="startEdit('${p.id}')">Sửa</button>
+            <button class="link-btn danger" onclick="deletePosition('${p.id}')">Xoá</button>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <span>${vmaskN(p.shares)} CP @ <span class="val mono">${vmask(p.avgCost)}đ</span></span>
+          <span>Hiện tại <span class="val mono">${vmask(p.currentPrice)}đ</span></span>
+        </div>
+        <div class="pnl-line">
+          <span class="pnl-amount mono ${pnlCls}">${pnlSignP}${vmask(p.pnl)}đ<span class="pnl-pct">(${pnlSignP}${fmtPct(p.pnlPct)}%)</span></span>
+          <span class="mono" style="color:var(--text-dim); font-size:13px;">${vmask(p.marketValue)}đ</span>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill ${barClass(p.navPct)}" style="width:${Math.min(p.navPct,100)}%"></div></div>
+          <div class="bar-label"><span>% NAV</span><span class="mono">${fmtPct(p.navPct)}% <span style="opacity:.6">/ trần ${POSITION_CEIL}%</span></span></div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <span class="tier-badge ${p.stageCls}" style="margin-top:0;">${p.stageLabel}</span>
+            <span class="mono" style="font-size:12px;color:var(--text-dim);">${p.rMultiple!=null ? (p.rMultiple>=0?'+':'')+fmtPct(p.rMultiple,2)+'R' : '— chưa có R'}</span>
+          </div>
+          <div class="perf-sub" style="margin-top:6px;">Stop hiện tại: <span class="mono" style="color:var(--text);">${p.currentStop!=null ? vmask(p.currentStop)+'đ' : 'Chưa đặt'}</span>${p.currentStop!=null ? ` <span class="mono">(${p.currentStopPct>=0?'-':'+'}${fmtPct(Math.abs(p.currentStopPct))}% so giá vốn)</span>` : ''}</div>
+          ${p.stage===0 ? `<div class="perf-sub" style="color:var(--warn);margin-top:4px;">Chưa nhập stop ban đầu — bấm "Stop" để đặt${p.stopMaxPct!=null ? ` (trần Rule 2: tối đa -${fmtPct(p.stopMaxPct)}%, ~${vmask(p.stopMaxPrice)}đ)` : ''}</div>` : ''}
+          ${p.stopBehind ? `<div class="perf-sub" style="color:var(--warn);margin-top:4px;">⚠️ Stop đang thấp hơn sàn tự động của ${p.stageLabel} (tối thiểu ${vmask(p.requiredMinStop)}đ) — sẽ tự nâng ở lần lưu tiếp theo, hoặc bấm "Stop" để cập nhật ngay</div>` : ''}
+          ${p.violatesRule2 ? `<div class="perf-sub" style="color:var(--loss);margin-top:4px;">⚠️ Stop hiện tại vượt trần Rule 2 (risk >1% NAV). Đề xuất: giảm về tối đa <b>${fmtPct(p.targetNavPct)}% NAV</b>${p.suggestedSellShares>0 ? ` — bán bớt ~<b>${vmaskN(p.suggestedSellShares)} cổ</b>` : ''}, hoặc dời stop lên tối thiểu ${vmask(p.stopMaxPrice)}đ nếu cấu trúc kỹ thuật cho phép.</div>` : ''}
+        </div>
+      </div>`;
+    }
+  });
+
+  if(ui.showAddForm){
+    html += renderPositionForm(null);
+  } else {
+    html += `<button class="add-btn" onclick="openAddForm()">+ Thêm vị thế</button>`;
+  }
+
+  if(ui.editingId === 'cash'){
+    html += `<div class="section-label">Sửa tiền mặt / margin</div>`;
+    html += `<div class="form-card">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Số dư tiền mặt (nghìn đ) — nhập số âm nếu đang dùng margin (vay để mua vượt vốn)</label>
+          <input type="number" id="cashInput" value="${state.cash}" inputmode="numeric">
+        </div>
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-primary" onclick="saveCash()">Lưu</button>
+        <button class="btn btn-ghost" onclick="cancelEdit()">Hủy</button>
+      </div>
+    </div>`;
+  }
+
+  // Biểu đồ tròn: tỷ trọng theo mã và theo ngành (% NAV)
+  const pos = d.positions.filter(p=>p.marketValue>0).slice().sort((a,b)=>b.marketValue-a.marketValue);
+  if(pos.length){
+    const nav = d.totalNAV;
+    const centerTop = `${fmtPct(d.investedPct)}%`;
+    const centerBottom = 'NAV';
+    html += renderDonut('Tỷ trọng theo mã cổ phiếu',
+      pos.map(p=>({label:tmask(p.ticker), value:p.marketValue, navPct:p.marketValue/nav*100, warn:p.marketValue/nav*100>POSITION_CEIL+0.05})),
+      centerTop, centerBottom, {value:state.cash, navPct:d.cashPct});
+    const secMap={};
+    pos.forEach(p=>{const k=(p.sector||'Khác').trim()||'Khác'; secMap[k]=(secMap[k]||0)+p.marketValue;});
+    html += renderDonut('Tỷ trọng theo ngành',
+      Object.entries(secMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k, value:v, navPct:v/nav*100, warn:v/nav*100>SECTOR_CEIL+0.05})),
+      centerTop, centerBottom, {value:state.cash, navPct:d.cashPct});
+  }
+
+  html += `<div class="section-label">Hiệu suất & quản trị rủi ro (Equity Curve)</div>`;
+
+  {
+    const roe = d.roePct;
+    const peakRoe = d.peakRoePct;
+    const dd = d.drawdownPct;
+    const dTier = ddTier(dd);
+
+    html += `<div class="perf-card">
+      <div class="perf-metric">
+        <div class="perf-label">Lợi nhuận tích lũy (so với Vốn góp ban đầu)</div>
+        ${roe===null ? `<div class="perf-sub">Nhập vốn góp ban đầu ở trên để tính chỉ số này.</div>` : `
+        <div class="perf-value mono" style="color:${roe>=0?'var(--gain)':'var(--loss)'}">${roe>=0?'+':''}${fmtPct(roe)}%</div>
+        <div class="perf-sub">Lãi/lỗ: ${d.totalPnlVsCapital>=0?'+':''}${vmask(d.totalPnlVsCapital)}đ · Đỉnh lợi nhuận từng đạt: ${fmtPct(peakRoe)}%</div>
+        `}
+        <div class="perf-label" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">Gợi ý tỷ trọng margin theo lợi nhuận tích lũy</div>
+        <div class="tier-ref">
+          ${renderTierRefRow('< 6%','Không dùng margin (0% NAV)', roe!==null && roe<6)}
+          ${renderTierRefRow('6 – 10%',`Tối đa ${fmtPct(MARGIN_CEIL*0.3)}% NAV (30% trần)`, roe!==null && roe>=6 && roe<10)}
+          ${renderTierRefRow('10 – 20%',`Tối đa ${fmtPct(MARGIN_CEIL*0.5)}% NAV (50% trần)`, roe!==null && roe>=10 && roe<20)}
+          ${renderTierRefRow('≥ 20%',`Tối đa ${MARGIN_CEIL}% NAV (100% trần)`, roe!==null && roe>=20)}
+        </div>
+      </div>
+
+      <div class="perf-metric">
+        <div class="perf-label">Drawdown từ đỉnh NAV (đỉnh: ${vmask(d.equityPeak)}đ)</div>
+        <div class="perf-value mono" style="color:${dd>0.05 ? 'var(--loss)' : 'var(--text)'}">${dd>0.05?'-':''}${fmtPct(dd)}%</div>
+        <span class="tier-badge ${dTier.cls}">${dTier.label}</span>
+        <div class="tier-action">${dTier.action}</div>
+        <div class="tier-ref">
+          ${renderTierRefRow('< 5%','Bình thường', dd<5)}
+          ${renderTierRefRow('≥ 5%','Hạ tỷ trọng 30%', dd>=5 && dd<8)}
+          ${renderTierRefRow('≥ 8%','Bán thêm 70% phần còn lại', dd>=8 && dd<10)}
+          ${renderTierRefRow('≥ 10%','Bán hết', dd>=10)}
+        </div>
+      </div>
+    </div>`;
+
+    const series = buildPerfSeries(d);
+    html += `<div class="section-label">Lợi nhuận tích lũy & Drawdown</div>`;
+    { const cur = (ui.perfRange===undefined)?20:ui.perfRange;
+      html += `<div style="display:flex;gap:6px;margin:0 0 8px;">` + PERF_RANGES.map(([lb,n])=>`<button onclick="setPerfRange(${n})" style="flex:1;padding:7px 4px;font-size:12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:${cur===n?'var(--panel-2)':'transparent'};color:${cur===n?'var(--text)':'var(--text-dim)'};font-weight:${cur===n?'700':'400'};">${lb}</button>`).join('') + `</div>`; }
+    html += `<div class="perf-card">${renderPerfChart(series)}</div>`;
+
+  }
+
+  html += `<div class="section-label" style="cursor:pointer;user-select:none;" onclick="toggleNavHist()">Lịch sử NAV (sửa/xoá điểm sai → chỉnh đỉnh & drawdown) ${ui.showNavHist?'▴':'▾'}</div>`;
+  if(ui.showNavHist){
+    const hs = [...(state.navHistory||[])].sort((a,b)=> a.date<b.date?1:-1);
+    const mx = hs.reduce((m,h)=>Math.max(m,h.nav),0);
+    html += `<div class="card"><div class="perf-sub" style="margin-bottom:8px;">Đỉnh NAV lấy từ điểm cao nhất ở đây. Điểm nào do nhập nhầm thì bấm Xoá (có thể Hoàn tác). Dữ liệu hôm nay tự cập nhật theo NAV hiện tại mỗi lần lưu.</div>`;
+    if(!hs.length) html += `<div class="perf-sub">Chưa có lịch sử.</div>`;
+    hs.forEach(h=>{
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:13px;">
+        <span style="flex:1;">${h.date}${h.nav===mx?' <b style="color:var(--loss);">(đỉnh)</b>':''}</span>
+        <span class="mono">${vmask(h.nav)}đ</span>
+        <button class="link-btn" onclick="deleteNavPoint('${h.date}')">Xoá</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="section-label" style="cursor:pointer;user-select:none;" onclick="toggleBackup()">Chuyển dữ liệu giữa các thiết bị ${ui.showBackup?'▴':'▾'}</div>`;
+  if(ui.showBackup){
+    html += `<div class="card">
+      <div class="perf-sub" style="margin-bottom:8px;">Máy gốc: bấm Xuất → chuỗi tự sao chép. Thiết bị mới: dán vào ô dưới → bấm Nhập (ghi đè dữ liệu máy đó). Hai máy không tự đồng bộ — muốn cập nhật thì xuất/nhập lại.</div>
+      <textarea id="backupText" rows="3" style="width:100%;box-sizing:border-box;background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:11px;" placeholder="Dán chuỗi NAVBK1:... vào đây để nhập"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-primary" style="flex:1;" onclick="exportData()">Xuất dữ liệu</button>
+        <button class="btn-primary" style="flex:1;background:var(--panel-2);color:var(--text);border:1px solid var(--border);" onclick="importData()">Nhập dữ liệu</button>
+      </div>
+      <div id="backupMsg" class="perf-sub" style="margin-top:8px;"></div>
+    </div>`;
+  }
+
+  html += `<div class="footer-actions">
+    <button onclick="resetAll()">Xoá toàn bộ dữ liệu</button>
+  </div>`;
+
+  app.innerHTML = html;
+}
+
+function renderTxForm(p){
+  return `<div class="form-card">
+    ${ui.error ? `<div class="form-error">${ui.error}</div>` : ''}
+    <div class="ticker-row" style="margin-bottom:12px;">
+      <span class="ticker">${tmask(p.ticker)}</span>
+      <span class="sector-tag">${p.sector||'Khác'}</span>
+      <span style="font-size:12px;color:var(--text-dim);">đang giữ ${p.shares.toLocaleString('en-US')} CP</span>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Loại giao dịch</label>
+        <select id="tx_type">
+          <option value="buy">Mua thêm</option>
+          <option value="sell">Bán bớt</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Số lượng CP</label>
+        <input type="number" id="tx_qty" inputmode="numeric" placeholder="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Giá khớp (nghìn đ)</label>
+        <input type="number" id="tx_price" inputmode="decimal" step="0.01" value="${p.currentPrice}">
+      </div>
+      <div class="form-field"></div>
+    </div>
+    <div class="perf-sub" style="margin-bottom:10px;">Mua thêm: cộng số lượng, tính lại giá vốn bình quân, tự trừ tiền mặt. Bán bớt: trừ số lượng, giữ nguyên giá vốn phần còn lại, tự cộng tiền mặt (bán hết sẽ xoá vị thế).</div>
+    <div class="form-btns">
+      <button class="btn btn-primary" onclick="submitTx('${p.id}')">Xác nhận giao dịch</button>
+      <button class="btn btn-ghost" onclick="cancelTx()">Hủy</button>
+    </div>
+  </div>`;
+}
+
+function startTx(id){ ui.txId = id; ui.editingId = null; ui.showAddForm = false; ui.stopId = null; ui.error=''; render(); }
+function cancelTx(){ ui.txId = null; ui.error=''; render(); }
+
+async function submitTx(id){
+  const pos = state.positions.find(p=>p.id===id);
+  if(!pos) return;
+  const type = document.getElementById('tx_type').value;
+  const qty = parseFloat(document.getElementById('tx_qty').value);
+  const price = parseFloat(document.getElementById('tx_price').value);
+  if(!(qty>0)){ ui.error='Nhập số lượng CP giao dịch lớn hơn 0.'; render(); return; }
+  if(!(price>0)){ ui.error='Nhập giá khớp lớn hơn 0.'; render(); return; }
+
+  if(type==='buy'){
+    markUndo(`Mua thêm ${qty.toLocaleString('en-US')} ${pos.ticker} @ ${price}`);
+    const cost = qty*price;
+    const newShares = pos.shares + qty;
+    pos.avgCost = (pos.shares*pos.avgCost + qty*price) / newShares;
+    pos.shares = newShares;
+    pos.currentPrice = price;
+    state.cash -= cost;
+  } else {
+    if(qty > pos.shares){ ui.error = `Chỉ đang giữ ${pos.shares.toLocaleString('en-US')} CP, không thể bán ${qty.toLocaleString('en-US')}.`; render(); return; }
+    markUndo(`Bán bớt ${qty.toLocaleString('en-US')} ${pos.ticker} @ ${price}`);
+    const proceeds = qty*price;
+    pos.shares -= qty;
+    pos.currentPrice = price;
+    state.cash += proceeds;
+    if(pos.shares <= 0){
+      state.positions = state.positions.filter(x=>x.id!==id);
+    }
+  }
+  ui.txId = null; ui.error='';
+  await saveState();
+  render();
+}
+
+function renderStopForm(p){
+  const suggested = p.requiredMinStop!=null ? p.requiredMinStop : (p.stopMaxPrice!=null ? p.stopMaxPrice : '');
+  const guideText = p.stage===0
+    ? `Chưa có stop ban đầu. Nhập stop kỹ thuật (theo cấu trúc giá — đáy nền/LPS)${p.stopMaxPct!=null ? ` — trần Rule 2 cho phép tối đa -${fmtPct(p.stopMaxPct)}% (~${fmtVND(p.stopMaxPrice)}đ) để giữ rủi ro ≤1% NAV` : ''}. Đây sẽ là mốc R dùng để tính R-multiple và TỰ ĐỘNG khoá lãi dần ở các mốc tiếp theo.`
+    : p.stage===1
+      ? `Chưa đạt +1R (hiện +${p.rMultiple.toFixed(1)}R). Hệ thống giữ nguyên stop kỹ thuật ban đầu, sẽ bắt đầu tự động nâng dần NGAY khi đạt +1R (hoà vốn) rồi khoá lãi tăng dần liên tục theo R-multiple sau đó — không chờ tới mốc nào khác. Chỉ sửa tay ở đây nếu cấu trúc giá thay đổi hẳn (không nới ra xa hơn).`
+      : `Đã đạt +${p.rMultiple.toFixed(1)}R — hệ thống đã TỰ ĐỘNG khoá <b>${fmtPct(p.lockedPct,0)}%</b> phần lãi đang có, sàn stop tối thiểu ${fmtVND(p.requiredMinStop)}đ (không cần bấm gì). Mức khoá tăng DẦN ĐỀU theo R-multiple — 0% tại +1R, lên tới 65% từ +5R trở lên, không nhảy bậc đột ngột. Vẫn có thể sửa tay lên CAO HƠN nếu cấu trúc giá (MA20/MA50/đáy swing) cho phép stop chặt hơn.${p.rMultiple>=5 ? ' Đã ở mức khoá tối đa 65% — cân nhắc chốt lời một phần nếu giá có dấu hiệu climax (tăng vọt bất thường, volume kỷ lục).' : ''}`;
+  return `<div class="form-card">
+    ${ui.error ? `<div class="form-error">${ui.error}</div>` : ''}
+    <div class="ticker-row" style="margin-bottom:10px;">
+      <span class="ticker">${tmask(p.ticker)}</span>
+      <span class="tier-badge ${p.stageCls}" style="margin-top:0;">${p.stageLabel}</span>
+    </div>
+    <div class="perf-sub" style="margin-bottom:10px;">${guideText}</div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Stop mới (nghìn đ)</label>
+        <input type="number" id="stop_price" inputmode="decimal" step="0.01" value="${p.currentStop!=null?p.currentStop:suggested}">
+      </div>
+      <div class="form-field"></div>
+    </div>
+    <div class="form-btns">
+      <button class="btn btn-primary" onclick="submitStopUpdate('${p.id}')">Lưu Stop</button>
+      <button class="btn btn-ghost" onclick="cancelStop()">Hủy</button>
+    </div>
+  </div>`;
+}
+
+function startStop(id){ ui.stopId = id; ui.editingId = null; ui.txId = null; ui.showAddForm = false; ui.error=''; render(); }
+function cancelStop(){ ui.stopId = null; ui.error=''; render(); }
+
+async function submitStopUpdate(id){
+  const pos = state.positions.find(p=>p.id===id);
+  if(!pos) return;
+  const val = parseFloat(document.getElementById('stop_price').value);
+  if(!(val>0)){ ui.error='Nhập giá stop hợp lệ lớn hơn 0.'; render(); return; }
+
+  const hasInitial = typeof pos.initialStop === 'number' && pos.initialStop>0 && pos.initialStop < pos.avgCost;
+  if(!hasInitial){
+    if(val >= pos.avgCost){ ui.error='Stop ban đầu phải thấp hơn giá vốn (đây là mốc rủi ro R dùng để tính R-multiple).'; render(); return; }
+    markUndo(`Đặt stop ${pos.ticker} = ${val}`);
+    pos.initialStop = val;
+    pos.currentStop = val;
+  } else {
+    const prevStop = (typeof pos.currentStop==='number' && pos.currentStop>0) ? pos.currentStop : pos.initialStop;
+    if(val < prevStop - 0.0001){
+      if(!confirm(`Bạn đang HẠ stop từ ${fmtVND(prevStop)}đ xuống ${fmtVND(val)}đ — vi phạm nguyên tắc "chỉ dời stop lên, không dời xuống". Vẫn muốn hạ?`)){ render(); return; }
+    }
+    markUndo(`Đổi stop ${pos.ticker} = ${val}`);
+    pos.currentStop = val;
+  }
+  ui.stopId = null; ui.error='';
+  await saveState();
+  render();
+}
+
+function renderPositionForm(p){
+  const isEdit = !!p;
+  const v = p || {ticker:'', sector:'', shares:'', avgCost:'', currentPrice:'', initialStop:null};
+  return `<div class="form-card">
+    ${ui.error ? `<div class="form-error">${ui.error}</div>` : ''}
+    <div class="form-row">
+      <div class="form-field">
+        <label>Mã CP</label>
+        <input type="text" id="f_ticker" maxlength="10" style="text-transform:uppercase" value="${v.ticker}" placeholder="VD: NTP">
+      </div>
+      <div class="form-field">
+        <label>Ngành</label>
+        <input type="text" id="f_sector" list="sectorList" value="${v.sector}" placeholder="VD: Ngân hàng">
+        <datalist id="sectorList">
+          <option value="Ngân hàng">
+          <option value="Dầu khí/Năng lượng">
+          <option value="Bất động sản/Xây dựng">
+          <option value="Vật liệu xây dựng">
+          <option value="Bán lẻ/Tiêu dùng">
+          <option value="Công nghệ/Viễn thông">
+          <option value="Vận tải">
+          <option value="Chứng khoán">
+        </datalist>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Số lượng CP</label>
+        <input type="number" id="f_shares" value="${v.shares}" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="form-field">
+        <label>Giá vốn BQ (nghìn đ)</label>
+        <input type="number" id="f_avgCost" value="${v.avgCost}" inputmode="decimal" step="0.01" placeholder="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Giá hiện tại (nghìn đ)</label>
+        <input type="number" id="f_currentPrice" value="${v.currentPrice}" inputmode="decimal" step="0.01" placeholder="0">
+      </div>
+      <div class="form-field"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Stop kỹ thuật ban đầu (nghìn đ) — theo cấu trúc giá, để trống nếu chưa xác định</label>
+        <input type="number" id="f_initialStop" value="${v.initialStop!=null?v.initialStop:''}" inputmode="decimal" step="0.01" placeholder="VD: 18.5">
+      </div>
+      <div class="form-field"></div>
+    </div>
+    ${!isEdit ? `
+    <div class="form-row">
+      <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim);">
+        <input type="checkbox" id="f_deductCash" checked style="width:auto;">
+        Trừ số tiền mua này vào tiền mặt hiện có
+      </label>
+    </div>` : `
+    <div class="perf-sub" style="margin-bottom:2px;">"Sửa" chỉ chỉnh lại số liệu, không đụng vào tiền mặt/margin. Muốn ghi nhận mua/bán thật, dùng nút "Giao dịch" ở thẻ vị thế.</div>`}
+    <div class="form-btns">
+      <button class="btn btn-primary" onclick="${isEdit ? `saveEdit('${p.id}')` : 'submitAdd()'}">Lưu</button>
+      <button class="btn btn-ghost" onclick="cancelEdit()">Hủy</button>
+    </div>
+  </div>`;
+}
+
+// ---------- actions ----------
+function openAddForm(){ ui.showAddForm = true; ui.editingId = null; ui.txId = null; ui.stopId = null; ui.error=''; render(); scrollToBottom(); }
+
+function readForm(){
+  const ticker = document.getElementById('f_ticker').value.trim().toUpperCase();
+  const sector = document.getElementById('f_sector').value.trim();
+  const shares = parseFloat(document.getElementById('f_shares').value);
+  const avgCost = parseFloat(document.getElementById('f_avgCost').value);
+  const currentPriceRaw = document.getElementById('f_currentPrice').value;
+  const currentPrice = currentPriceRaw === '' ? avgCost : parseFloat(currentPriceRaw);
+  const initialStopRaw = document.getElementById('f_initialStop') ? document.getElementById('f_initialStop').value : '';
+  const initialStop = initialStopRaw === '' ? null : parseFloat(initialStopRaw);
+
+  if(!ticker){ ui.error = 'Nhập mã cổ phiếu.'; return null; }
+  if(!(shares > 0)){ ui.error = 'Số lượng CP phải lớn hơn 0.'; return null; }
+  if(!(avgCost > 0)){ ui.error = 'Giá vốn phải lớn hơn 0.'; return null; }
+  if(initialStop!=null && !(initialStop>0)){ ui.error = 'Stop ban đầu phải lớn hơn 0 (hoặc để trống).'; return null; }
+  if(initialStop!=null && initialStop >= avgCost){ ui.error = 'Stop ban đầu phải thấp hơn giá vốn.'; return null; }
+  ui.error = '';
+  return {ticker, sector, shares, avgCost, currentPrice: currentPrice > 0 ? currentPrice : avgCost, initialStop};
+}
+
+async function submitAdd(){
+  const data = readForm();
+  if(!data){ render(); return; }
+  const deduct = document.getElementById('f_deductCash') ? document.getElementById('f_deductCash').checked : false;
+  markUndo(`Thêm vị thế ${data.ticker}`);
+  if(deduct){ state.cash -= data.shares * data.avgCost; }
+  state.positions.push({id: uid(), ...data, currentStop: data.initialStop});
+  ui.showAddForm = false;
+  await saveState();
+  render();
+}
+
+function startEdit(id){ ui.editingId = id; ui.showAddForm = false; ui.txId = null; ui.stopId = null; ui.error=''; render();
+  if(id==='cash'){ setTimeout(()=>{ const el=document.getElementById('cashInput'); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); try{el.focus();el.select();}catch(e){} } },60); } }
+
+async function saveEdit(id){
+  const data = readForm();
+  if(!data){ render(); return; }
+  const idx = state.positions.findIndex(p=>p.id===id);
+  if(idx > -1){
+    markUndo(`Sửa vị thế ${data.ticker}`);
+    // "Sửa" chỉ chỉnh lại số liệu đã ghi — KHÔNG bao giờ tự động đụng vào tiền mặt/margin.
+    // Muốn ghi nhận mua/bán thật (có ảnh hưởng tiền mặt), dùng nút "Giao dịch".
+    // currentStop (stop đang quản lý thực tế) được giữ nguyên, chỉ đổi qua nút "Stop".
+    const prevStop = state.positions[idx].currentStop;
+    state.positions[idx] = {id, ...data, currentStop: (prevStop!=null ? prevStop : data.initialStop)};
+  }
+  ui.editingId = null;
+  await saveState();
+  render();
+}
+
+async function deletePosition(id){
+  if(!confirm('Xoá vị thế này khỏi danh mục?\n\nLưu ý: thao tác này KHÔNG cộng tiền vào tiền mặt — chỉ dùng để xoá một mục nhập sai. Nếu bạn đã thực sự bán hết, hãy Hủy và dùng "Giao dịch → Bán bớt" với đủ số lượng để tiền mặt được cộng đúng.')) return;
+  markUndo('Xoá vị thế');
+  state.positions = state.positions.filter(p=>p.id!==id);
+  await saveState();
+  render();
+}
+
+async function saveCash(){
+  const val = parseFloat(document.getElementById('cashInput').value);
+  markUndo('Sửa tiền mặt');
+  state.cash = isNaN(val) ? 0 : val;
+  ui.editingId = null;
+  await saveState();
+  render();
+}
+
+async function saveCapital(){
+  const val = parseFloat(document.getElementById('capitalInput').value);
+  markUndo('Sửa vốn góp');
+  state.initialCapital = isNaN(val) ? 0 : val;
+  ui.editingId = null;
+  await saveState();
+  render();
+}
+
+function toggleBulkUpdate(){ ui.showBulkUpdate = !ui.showBulkUpdate; ui.bulkResult=''; render(); if(ui.showBulkUpdate) scrollToBottom(); }
+
+async function applyBulkUpdate(){
+  const raw = document.getElementById('bulkInput').value;
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  markUndo('Cập nhật giá hàng loạt');
+  let updated = 0; const notFound = [];
+  lines.forEach(line=>{
+    const parts = line.split(/\s+/);
+    if(parts.length < 2) return;
+    const ticker = parts[0].toUpperCase();
+    const price = parseFloat(parts[1].replace(',', '.'));
+    if(isNaN(price)) return;
+    const pos = state.positions.find(p=>p.ticker.toUpperCase()===ticker);
+    if(pos){ pos.currentPrice = price; updated++; }
+    else notFound.push(ticker);
+  });
+  ui.bulkResult = `Đã cập nhật ${updated} mã.` + (notFound.length ? ` Không khớp: ${notFound.join(', ')}` : '');
+  await saveState();
+  render();
+}
+
+// Đồng bộ giá đóng cửa mới nhất (nghìn đồng) và điểm VN-Index từ dữ liệu ATL (data/gia_hose.json, cập nhật mỗi ngày sau phiên).
+// Chỉ ghi đè giá hiện tại của các vị thế có trong dữ liệu; VN-Index chỉ bổ sung ngày còn thiếu, không đè điểm đã nhập tay.
+async function syncATL(){
+  let G;
+  try{
+    const r = await fetch('data/gia_hose.json?v='+Date.now(), {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    G = await r.json();
+  }catch(e){
+    ui.syncMsg = 'Không tải được giá từ ATL ('+e.message+'). Thử lại sau hoặc dùng "Cập nhật giá hàng loạt".';
+    render(); return;
+  }
+  markUndo('Đồng bộ giá ATL');
+  let updated = 0; const miss = [];
+  (state.positions||[]).forEach(p=>{
+    const px = G.gia && G.gia[String(p.ticker||'').toUpperCase()];
+    if(px > 0){ p.currentPrice = px; updated++; } else miss.push(p.ticker);
+  });
+  let addedVn = 0;
+  const start = (state.navHistory||[]).map(h=>h.date).sort()[0];
+  if(start && G.vni){
+    if(!Array.isArray(state.vnindexHistory)) state.vnindexHistory = [];
+    const have = new Set(state.vnindexHistory.map(h=>h.date));
+    Object.keys(G.vni).sort().forEach(d=>{ if(d >= start && !have.has(d)){ state.vnindexHistory.push({date:d, value:G.vni[d]}); addedVn++; } });
+    state.vnindexHistory.sort((a,b)=> a.date < b.date ? -1 : 1);
+  }
+  ui.syncMsg = `Đã cập nhật giá ${updated} mã theo phiên ${G.ngay}` + (addedVn ? `, thêm ${addedVn} điểm VN-Index` : '') + (miss.length ? `. Không có dữ liệu: ${miss.join(', ')}` : '') + '.';
+  await saveState();
+  render();
+}
+
+function cancelEdit(){ ui.editingId = null; ui.showAddForm = false; ui.txId = null; ui.stopId = null; ui.error=''; render(); }
+
+async function resetAll(){
+  if(!confirm('Xoá toàn bộ dữ liệu danh mục? Không thể hoàn tác.')) return;
+  state = {cash:0, positions:[], initialCapital:0, navHistory:[], vnindexHistory:[]};
+  await saveState();
+  render();
+}
+
+function scrollToBottom(){ setTimeout(()=>window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}), 50); }
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.tagName === 'INPUT'){
+    const card = e.target.closest('.form-card');
+    if(card){
+      const btn = card.querySelector('.btn-primary');
+      if(btn){ e.preventDefault(); btn.click(); }
+    }
+  }
+});
+
+loadState();
+</script>
+</body>
+</html>
