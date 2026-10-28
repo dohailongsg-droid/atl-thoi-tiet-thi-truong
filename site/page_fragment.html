@@ -221,8 +221,7 @@
     <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
-    <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="false">Trong phiên</button>
-    <button class="atl-tab" role="tab" id="tab-tieu-diem" data-sec="tieu-diem" aria-selected="false">Tiêu điểm</button>
+    <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="false">Bảng giá</button>
   </nav>
 
   <!-- ============ HÔM NAY ============ -->
@@ -235,10 +234,10 @@
 .lv-dot{width:8px;height:8px;border-radius:50%;background:var(--color-fg-muted);opacity:.5}
 .lv-dot.on{background:var(--sem-up);opacity:1}
 .lv-warn{margin:0;font-size:var(--cds-font-size-caption);color:var(--sem-down)}
-.lv-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:var(--cds-gap-sm)}
+.lv-kpis{margin-bottom:var(--cds-gap-md);display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:var(--cds-gap-sm)}
 .lv-k{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:flex;flex-direction:column;gap:2px;min-width:0}
 .lv-k .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
-.lv-k .v{font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.lv-k .v{font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.15rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lv-k .s{font-size:11px;color:var(--color-fg-muted);line-height:1.4}
 .lv-up{color:var(--sem-up)} .lv-dn{color:var(--sem-down)}
 .lv-note{margin:0;font-size:11px;color:var(--color-fg-muted);line-height:1.5;max-width:68ch}
@@ -261,12 +260,39 @@
 .lv-news .tm{color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
 .lv-news a{color:inherit;text-decoration:none} .lv-news a:hover{text-decoration:underline}
 .lv-news .sr{display:block;font-size:11px;color:var(--color-fg-muted)}
-.lv-spark{width:100%;height:72px;display:block}
+
+
+
+
+.tin-date{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.tin-item{padding:var(--cds-gap-md) 0;border-top:1px solid var(--color-border-line)}
+.tin-lab{font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted);margin:0 0 6px}
+.tin-title{display:block;font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.0625rem;line-height:1.35;color:inherit;text-decoration:none;margin:0 0 6px}
+.tin-title:hover{text-decoration:underline}
+.tin-cau{margin:0 0 8px;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);line-height:1.55}
+.tin-ul{margin:0 0 8px;padding:0;list-style:none;display:grid;gap:4px}
+.tin-ul li{position:relative;padding-left:16px;font-size:var(--cds-font-size-caption);line-height:1.5}
+.tin-ul li::before{content:"";position:absolute;left:3px;top:.6em;width:5px;height:5px;border-radius:50%;background:var(--color-fg-muted);opacity:.6}
+.tin-src{font-size:11px;color:var(--color-fg-muted)}
+.tin-view{margin-top:var(--cds-gap-md);padding:var(--cds-pad-md);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg)}
+.tin-view .tin-lab{margin-bottom:8px}
+.tin-view p{margin:0;font-size:var(--cds-font-size-body);line-height:1.6}
+.tin-foot{margin:var(--cds-gap-md) 0 0;font-size:11px;color:var(--color-fg-muted);line-height:1.5}
+
+.tin-date{float:right;text-transform:none;letter-spacing:0;font-weight:400}
+.lv-spark{width:100%;height:96px;display:block;color:var(--color-fg-muted)}
 </style>
 <div class="atl-card atl-wide"><div class="lv" id="lv">
-  <div class="lv-head"><h2>Trong phiên</h2><div class="lv-stat"><span class="lv-dot" id="lv-dot"></span><span id="lv-stat">Đang tải…</span></div></div>
+  <div class="lv-head"><h2>Bảng giá</h2><div class="lv-stat"><span class="lv-dot" id="lv-dot"></span><span id="lv-stat">Đang tải…</span></div></div>
   <p class="lv-warn" id="lv-warn" hidden></p>
   <div id="lv-body"></div>
+  <div class="lv-box" id="tin-sec">
+    <h3>Tiêu điểm hôm nay · tóm tắt bằng AI <span class="tin-date" id="tin-date"></span></h3>
+    <div id="tin-body"></div>
+    <div class="tin-view" id="tin-view" hidden><div class="tin-lab">Góc nhìn</div><p id="tin-gocnhin"></p></div>
+    <p class="tin-foot" id="tin-foot"></p>
+  </div>
+  <p class="lv-note">Nguồn: bảng giá Vietcap, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể chậm). Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.</p>
 </div></div>
 </section>
 <script>
@@ -281,13 +307,16 @@
   function kpi(k,v,s,c){var d=el('div','lv-k');d.appendChild(el('span','k',k));var vv=el('span','v'+(c?' '+c:''),v);d.appendChild(vv);if(s)d.appendChild(el('span','s',s));return d;}
   function box(title){var b=el('div','lv-box');b.appendChild(el('h3',null,title));return b;}
   function tbl(rows,fn){var t=el('table','lv-t'),tb=el('tbody');rows.forEach(function(r){var tr=el('tr');fn(r).forEach(function(c,i){var td=el('td',c.c||'',c.t);tr.appendChild(td);});tb.appendChild(tr);});t.appendChild(tb);return t;}
-  function spark(ch,key,label){
-    var pts=ch.filter(function(p){return p[key]!=null;});if(pts.length<2)return null;
-    var vals=pts.map(function(p){return p[key];}),mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1,W=300,H=60;
-    var d=pts.map(function(p,i){return (i/(pts.length-1)*W).toFixed(1)+','+(H-4-(p[key]-mn)/rg*(H-8)).toFixed(1);}).join(' ');
+  function chart(title,vals,labs,ref){
+    if(!vals||vals.length<3)return null;
+    var all=ref!=null?vals.concat([ref]):vals,mn=Math.min.apply(null,all),mx=Math.max.apply(null,all),rg=(mx-mn)||1,W=300,H=70,pd=6;
+    function Y(v){return H-pd-(v-mn)/rg*(H-2*pd);}
     var ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 '+W+' '+H);s.setAttribute('class','lv-spark');s.setAttribute('preserveAspectRatio','none');
-    var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke','currentColor');pl.setAttribute('stroke-width','1.5');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
-    var b=box(label+' trong ngày');b.appendChild(s);b.appendChild(el('p','lv-note',pts[0].gio+' → '+pts[pts.length-1].gio+' · thấp '+n1(mn)+' · cao '+n1(mx)));return b;}
+    if(ref!=null){var rl=document.createElementNS(ns,'line');rl.setAttribute('x1',0);rl.setAttribute('x2',W);rl.setAttribute('y1',Y(ref));rl.setAttribute('y2',Y(ref));rl.setAttribute('stroke','currentColor');rl.setAttribute('stroke-opacity','.35');rl.setAttribute('stroke-dasharray','3 3');rl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(rl);}
+    var d=vals.map(function(v,i){return (i/(vals.length-1)*W).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');
+    var base=ref!=null?ref:vals[0],up=vals[vals.length-1]>=base;
+    var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke',up?'var(--sem-up)':'var(--sem-down)');pl.setAttribute('stroke-width','1.6');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
+    var b=box(title);b.appendChild(s);b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
   function render(d){
     body.textContent='';
     var age=(Date.now()-Date.parse(d.cap_nhat))/60000;
@@ -298,8 +327,6 @@
     var k=el('div','lv-kpis');
     if(cs.VNINDEX)k.appendChild(kpi('VN-Index',n1(cs.VNINDEX.gia),sg(cs.VNINDEX.pct,2)+'%',cl(cs.VNINDEX.pct)));
     if(cs.VN30)k.appendChild(kpi('VN30',n1(cs.VN30.gia),sg(cs.VN30.pct,2)+'%',cl(cs.VN30.pct)));
-    var nk=d.nhiet_ke||{},hq=nk.hom_qua;
-    k.appendChild(kpi('Điểm tạm tính',n1(nk.diem_tam),hq?('Chính thức '+hq.ngay.slice(8)+'/'+hq.ngay.slice(5,7)+': điểm '+n1(hq.diem)+' · TB7 '+n1(hq.tb7)+' · vùng '+n0(hq.vung)):'Chưa có số liệu hôm qua'));
     var r=d.do_rong||{};
     k.appendChild(kpi('Độ rộng',(r.tang||0)+' ↑ / '+(r.giam||0)+' ↓',(r.dung||0)+' đứng giá'));
     k.appendChild(kpi('Trần / Sàn',(r.tran||0)+' / '+(r.san||0),'ngưỡng ±6,5%'));
@@ -308,13 +335,10 @@
     var kn=d.khoi_ngoai||{};
     k.appendChild(kpi('Khối ngoại ròng',sg(kn.rong_ty,0)+' tỷ','Mua '+n0(kn.mua_ty)+' · bán '+n0(kn.ban_ty),cl(kn.rong_ty)));
     body.appendChild(k);
-    var tp=nk.thanh_phan||{},parts=[];
-    if(tp.do_rong!=null)parts.push('độ rộng '+n1(tp.do_rong));if(tp.tran_san!=null)parts.push('trần−sàn '+n1(tp.tran_san));if(tp.hukt!=null)parts.push('hiệu ứng kiếm tiền '+n1(tp.hukt));
-    var nt=el('p','lv-note','Điểm tạm tính chỉ gồm '+parts.join(', ')+' (chưa có thanh khoản, chưa làm mượt TB7). Đây là chỉ báo tham khảo trong phiên, chưa kiểm định như nhiệt kế chính thức; vùng và tỷ trọng tối đa vẫn lấy từ nhiệt kế sau phiên.');
-    nt.style.margin='var(--cds-gap-md) 0';body.appendChild(nt);
     var g=el('div','lv-grid');
-    var s1=spark(d.chuoi||[],'vni','VN-Index'),s2=spark(d.chuoi||[],'do_rong','Độ rộng (%)');
-    if(s1)g.appendChild(s1);if(s2)g.appendChild(s2);
+    var pm=d.vni_phut||[],s1=chart('VN-Index trong ngày',pm.map(function(p){return p[1];}),pm.map(function(p){return p[0];}),d.vni_ref,null);
+    var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng) qua các lần cập nhật',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
+    if(s1){if(!s2)s1.style.gridColumn='1/-1';g.appendChild(s1);}if(s2)g.appendChild(s2);
     var b1=box('Tăng mạnh (GTGD ≥ 10 tỷ)');b1.appendChild(tbl(d.top_tang||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b1);
     var b2=box('Giảm mạnh (GTGD ≥ 10 tỷ)');b2.appendChild(tbl(d.top_giam||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b2);
     var b3=box('Giao dịch lớn nhất');b3.appendChild(tbl(d.top_gtgd||[],function(x){return [{t:x.ma},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b3);
@@ -330,8 +354,6 @@
       var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');bt.style.marginTop='var(--cds-gap-md)';
       var ul=el('ul','lv-news');d.tin_moi.forEach(function(t){var li=el('li');li.appendChild(el('span','tm',t.luc));var w=el('div');var a=el('a',null,t.tieu_de);a.href=t.link;a.target='_blank';a.rel='noopener';w.appendChild(a);w.appendChild(el('span','sr',t.nguon));li.appendChild(w);ul.appendChild(li);});
       bt.appendChild(ul);body.appendChild(bt);}
-    var ft=el('p','lv-note','Nguồn: bảng giá Vietcap, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể chậm). Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.');
-    ft.style.marginTop='var(--cds-gap-md)';body.appendChild(ft);
   }
   var busy=false;
   function load(){
@@ -345,33 +367,6 @@
   load();setInterval(load,60000);document.addEventListener('visibilitychange',load);
 })();
 </script>
-<section class="atl-sec" id="tieu-diem" role="tabpanel" aria-labelledby="tab-tieu-diem" hidden>
-<style>
-.tin-wrap{max-width:46rem;margin:0 auto;padding:var(--cds-pad-lg) 0}
-.tin-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-md);flex-wrap:wrap;margin-bottom:var(--cds-gap-md)}
-.tin-head h2{margin:0;font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title)}
-.tin-date{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
-.tin-item{padding:var(--cds-gap-md) 0;border-top:1px solid var(--color-border-line)}
-.tin-lab{font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted);margin:0 0 6px}
-.tin-title{display:block;font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.0625rem;line-height:1.35;color:inherit;text-decoration:none;margin:0 0 6px}
-.tin-title:hover{text-decoration:underline}
-.tin-cau{margin:0 0 8px;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);line-height:1.55}
-.tin-ul{margin:0 0 8px;padding:0;list-style:none;display:grid;gap:4px}
-.tin-ul li{position:relative;padding-left:16px;font-size:var(--cds-font-size-caption);line-height:1.5}
-.tin-ul li::before{content:"";position:absolute;left:3px;top:.6em;width:5px;height:5px;border-radius:50%;background:var(--color-fg-muted);opacity:.6}
-.tin-src{font-size:11px;color:var(--color-fg-muted)}
-.tin-view{margin-top:var(--cds-gap-md);padding:var(--cds-pad-md);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg)}
-.tin-view .tin-lab{margin-bottom:8px}
-.tin-view p{margin:0;font-size:var(--cds-font-size-body);line-height:1.6}
-.tin-foot{margin:var(--cds-gap-md) 0 0;font-size:11px;color:var(--color-fg-muted);line-height:1.5}
-</style>
-<div class="atl-card atl-wide"><div class="tin-wrap">
-  <div class="tin-head"><h2>Tiêu điểm hôm nay</h2><span class="tin-date" id="tin-date"></span></div>
-  <div id="tin-body"></div>
-  <div class="tin-view" id="tin-view" hidden><div class="tin-lab">Góc nhìn</div><p id="tin-gocnhin"></p></div>
-  <p class="tin-foot" id="tin-foot"></p>
-</div></div>
-</section>
 <script>
 (function(){
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
@@ -399,6 +394,7 @@
   }).catch(function(){body.appendChild(el('p','tin-cau','Chưa tải được tiêu điểm.'));});
 })();
 </script>
+
 <section class="atl-sec" id="hom-nay" role="tabpanel" aria-labelledby="tab-hom-nay">
     <div class="atl-grid" id="hn-nhiet-ke">
       <div class="atl-card" id="card-mua">
