@@ -1,0 +1,155 @@
+ma,nhom
+TCB,Ngân hàng
+SHB,Ngân hàng
+VPB,Ngân hàng
+HDB,Ngân hàng
+MBB,Ngân hàng
+CTG,Ngân hàng
+STB,Ngân hàng
+VCB,Ngân hàng
+MSB,Ngân hàng
+ACB,Ngân hàng
+TPB,Ngân hàng
+BID,Ngân hàng
+VIB,Ngân hàng
+LPB,Ngân hàng
+EIB,Ngân hàng
+SSB,Ngân hàng
+NAB,Ngân hàng
+BVB,Ngân hàng
+OCB,Ngân hàng
+VAB,Ngân hàng
+SSI,Chứng khoán
+VIX,Chứng khoán
+VCI,Chứng khoán
+VND,Chứng khoán
+TCX,Chứng khoán
+HCM,Chứng khoán
+VCK,Chứng khoán
+ORS,Chứng khoán
+CTS,Chứng khoán
+VPX,Chứng khoán
+EVF,Chứng khoán
+FTS,Chứng khoán
+LPS,Chứng khoán
+DSE,Chứng khoán
+BSI,Chứng khoán
+VDS,Chứng khoán
+BVH,Bảo hiểm
+VIC,Họ Vin
+VHM,Họ Vin
+VRE,Họ Vin
+VPL,Họ Vin
+NVL,BĐS
+DXG,BĐS
+VPI,BĐS
+KDH,BĐS
+TCH,BĐS
+PDR,BĐS
+DIG,BĐS
+NLG,BĐS
+HDC,BĐS
+KHG,BĐS
+DXS,BĐS
+TAL,BĐS
+SCR,BĐS
+NTL,BĐS
+HQC,BĐS
+HPX,BĐS
+HTN,BĐS
+KBC,BĐS KCN
+BCM,BĐS KCN
+IJC,BĐS KCN
+SZC,BĐS KCN
+SIP,BĐS KCN
+GVR,BĐS KCN
+PHR,BĐS KCN
+VGC,BĐS KCN
+DPR,BĐS KCN
+TRC,BĐS KCN
+CII,BĐS
+VCG,Xây dựng & Đầu tư công
+HHV,Xây dựng & Đầu tư công
+CTD,Xây dựng & Đầu tư công
+PC1,Xây dựng & Đầu tư công
+DPG,Xây dựng & Đầu tư công
+FCN,Xây dựng & Đầu tư công
+CDC,Xây dựng & Đầu tư công
+LCG,Xây dựng & Đầu tư công
+CTI,Xây dựng & Đầu tư công
+GEL,Xây dựng & Đầu tư công
+HT1,Vật liệu xây dựng
+BMP,Vật liệu xây dựng
+KSB,Vật liệu xây dựng
+PTB,Vật liệu xây dựng
+HPG,Thép
+NKG,Thép
+HSG,Thép
+HHP,Giấy & Bao bì
+DHC,Giấy & Bao bì
+MZG,Giấy & Bao bì
+TDP,Giấy & Bao bì
+BSR,Dầu khí
+PLX,Dầu khí
+PVD,Dầu khí
+PVT,Dầu khí
+PVP,Dầu khí
+GAS,Dầu khí
+VSC,Cảng biển & Logistics
+GMD,Cảng biển & Logistics
+HAH,Cảng biển & Logistics
+VOS,Cảng biển & Logistics
+VTO,Cảng biển & Logistics
+VTP,Cảng biển & Logistics
+VJC,Hàng không
+HVN,Hàng không
+SCS,Hàng không
+POW,Điện & Năng lượng
+NT2,Điện & Năng lượng
+REE,Điện & Năng lượng
+HDG,Điện & Năng lượng
+GEE,Điện & Năng lượng
+GEX,Điện & Năng lượng
+TV2,Điện & Năng lượng
+DCM,Phân bón & Hóa chất
+DPM,Phân bón & Hóa chất
+BFC,Phân bón & Hóa chất
+CSV,Phân bón & Hóa chất
+DGC,Phân bón & Hóa chất
+AAA,Phân bón & Hóa chất
+HII,Phân bón & Hóa chất
+MWG,Bán lẻ
+FRT,Bán lẻ
+DGW,Bán lẻ
+PET,Bán lẻ
+DMX,Bán lẻ
+PNJ,Bán lẻ
+MSN,Bán lẻ
+VNM,Bán lẻ
+MCH,Bán lẻ
+SAB,Bán lẻ
+KDC,Thực phẩm & Đồ uống
+SBT,Thực phẩm & Đồ uống
+PAN,Thực phẩm & Đồ uống
+BAF,Chăn nuôi & Nông nghiệp
+DBC,Chăn nuôi & Nông nghiệp
+HAG,Chăn nuôi & Nông nghiệp
+HSL,Chăn nuôi & Nông nghiệp
+NAF,Chăn nuôi & Nông nghiệp
+AAN,Chăn nuôi & Nông nghiệp
+ANV,Thủy sản
+VHC,Thủy sản
+FPT,Công nghệ & Viễn thông
+ELC,Công nghệ & Viễn thông
+CMG,Công nghệ & Viễn thông
+CTR,Công nghệ & Viễn thông
+TCM,Dệt may
+MSH,Dệt may
+TLG,Khác
+DCL,Khác
+YEG,Khác
+PAC,Khác
+SBG,Khác
+VVS,Khác
+HHS,BĐS
+CTF,Khác
