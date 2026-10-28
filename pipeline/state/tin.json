@@ -5,5 +5,12 @@
     "nha_cung_cap": "",
     "so_tin": 0,
     "loi": "groq: HTTP Error 403: Forbidden"
+  },
+  {
+    "ngay": "2026-10-28",
+    "trang_thai": "loi",
+    "nha_cung_cap": "",
+    "so_tin": 0,
+    "loi": "gemini: HTTP Error 404: Not Found | groq: HTTP Error 404: Not Found"
   }
 ]
