@@ -212,6 +212,20 @@ def main():
         if x["symbol"] in ("VNINDEX", "VN30", "HNXIndex") and x.get("price"):
             chi_so.append({"ma": x["symbol"], "gia": x["price"], "pct": round(x.get("changePercent") or 0, 2)})
 
+    # đường VN-Index theo từng phút trong ngày (toàn bộ phiên, không phụ thuộc lịch chạy)
+    vni_phut = []
+    try:
+        j = call(f"{BASE}/chart/OHLCChart/gap-chart",
+                 {"timeFrame": "ONE_MINUTE", "symbols": ["VNINDEX"], "to": int(now_utc.timestamp()) + 300, "countBack": 400})
+        it = j[0] if j else None
+        if it:
+            for t, c in zip(it["t"], it["c"]):
+                bar = dt.datetime.fromtimestamp(int(t), ICT)
+                if bar.date().isoformat() == today:
+                    vni_phut.append([bar.strftime("%H:%M"), round(float(c), 2)])
+    except Exception as e:
+        canh_bao.append(f"đường VN-Index theo phút: {str(e)[:80]}")
+
     tin_moi, tin_warn = headlines(now_utc)
     canh_bao += tin_warn
 
@@ -232,7 +246,7 @@ def main():
     label, live = phien(now)
     out = {"ngay": today, "cap_nhat": now_utc.isoformat(timespec="seconds"), "gio": gio,
            "phien": label, "dang_giao_dich": live,
-           "chi_so": chi_so,
+           "chi_so": chi_so, "vni_ref": vni.get("refPrice"), "vni_phut": vni_phut,
            "do_rong": {"tang": tang, "giam": giam, "dung": dung, "tran": tran, "san": san},
            "nhiet_ke": {"diem_tam": diem, "thanh_phan": tp, "trong_so_dung": w,
                         "hukt_tb_pct": None if hukt_n is None else round(hukt_n, 2),
