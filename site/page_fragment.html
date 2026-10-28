@@ -748,6 +748,24 @@
           .dg-sens th,.dg-sens td{padding:5px 10px;border:1px solid var(--color-border-line);text-align:right}
           .dg-sens th{font-weight:600;color:var(--color-fg-muted);background:var(--color-bg)}
           .dg-sens td.c{font-weight:700;background:var(--color-bg)}
+          .dg-ban{display:grid;gap:4px;padding:14px 16px;border-radius:10px;border:1px solid var(--color-border-line);border-left:5px solid var(--color-fg-muted);background:var(--color-bg);margin-bottom:var(--cds-gap-md,14px)}
+          .dg-ban.tot{border-left-color:var(--sem-up)} .dg-ban.xau{border-left-color:var(--sem-down)} .dg-ban.tb{border-left-color:#d9a400}
+          .dg-ban .big{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+          .dg-ban .sub{font-size:var(--cds-font-size-body);line-height:1.5}
+          .dg-sc{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+          .dg-sc th,.dg-sc td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);text-align:right}
+          .dg-sc th:first-child,.dg-sc td:first-child{text-align:left} .dg-sc th{color:var(--color-fg-muted);font-weight:600}
+          .dg-sc tr.m td{font-weight:700}
+          .dg-cl{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+          .dg-cl li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:baseline;font-size:var(--cds-font-size-body);padding:5px 0;border-bottom:1px solid var(--color-border-line)}
+          .dg-cl .ic{font-weight:700;text-align:center} .dg-cl .ic.y{color:var(--sem-up)} .dg-cl .ic.n{color:var(--sem-down)} .dg-cl .ic.u{color:var(--color-fg-muted)}
+          .dg-cl .gt{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums;text-align:right}
+          .dg-fl{display:grid;gap:8px;margin-top:6px}
+          .dg-fl div{padding:9px 12px;border-radius:8px;border:1px solid var(--color-border-line);border-left:4px solid #d9a400;font-size:var(--cds-font-size-body);line-height:1.5}
+          .dg-fl div.do{border-left-color:var(--sem-down)}
+          .dg-watch{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+          .dg-watch>div{padding:10px 12px;border:1px solid var(--color-border-line);border-radius:8px;font-size:var(--cds-font-size-caption);line-height:1.5}
+          .dg-watch b{display:block;font-size:11px;color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
           </style>
           <h2 class="atl-h">Chỉ tiêu theo ngành</h2>
           <p class="atl-note" id="dg-ind-sub" style="margin-bottom:8px">So với trung vị 5 năm của chính mã.</p>
@@ -755,9 +773,13 @@
           <div id="dg-ind"></div>
         </div>
         <div class="atl-card" id="card-hs-dg" hidden>
-          <h2 class="atl-h">Định giá 3 kịch bản</h2>
+          <h2 class="atl-h">Định giá</h2>
           <div id="dg-val"></div>
         </div>
+      </div>
+      <div class="atl-card atl-wide" id="card-hs-cl" hidden>
+        <h2 class="atl-h">Chất lượng &amp; cờ cảnh báo</h2>
+        <div id="dg-cl"></div>
       </div>
       <div class="atl-card atl-wide" id="card-hs-xh" hidden>
         <h2 class="atl-h">Xu hướng 12 quý</h2>
@@ -782,10 +804,13 @@
   var LOAI={ngan_hang:'ngân hàng',chung_khoan:'chứng khoán',bao_hiem:'bảo hiểm',doanh_nghiep:'doanh nghiệp'};
   function football(x){
     var dg=x.dinh_gia,P=x.gia,rows=[],kb=dg.kich_ban||[];
-    if(kb.length===3)rows.push({n:'Mô hình lợi nhuận',s:'thận trọng → lạc quan, vạch = cơ sở',lo:kb[0].gia,hi:kb[2].gia,md:kb[1].gia});
+    var v2=dg.v2;
+    if(v2){var k2=v2.kich_ban;rows.push({n:'Giá trị ước tính',s:'bảo thủ → lạc quan, vạch = bình quân có trọng số',lo:k2[0].gia,hi:k2[2].gia,md:v2.gia_tb});
+      rows.push({n:'Vùng biên an toàn 20%',s:'giá tối đa để còn biên an toàn 20%',pt:v2.vung_an_toan});}
+    else if(kb.length===3)rows.push({n:'Mô hình lợi nhuận',s:'thận trọng → lạc quan, vạch = cơ sở',lo:kb[0].gia,hi:kb[2].gia,md:kb[1].gia});
     (dg.dai||[]).forEach(function(b){rows.push({n:b.ten,s:'lịch sử bội số của chính mã, vạch = trung vị'+(b.bt_md!=null?' ('+n1(b.bt_md)+'×)':''),lo:b.thap,hi:b.cao,md:b.gia_tri});});
-    if(dg.san_khong_tang_truong)rows.push({n:'Sàn không tăng trưởng',s:'lợi nhuận giữ nguyên, COE 12%',pt:dg.san_khong_tang_truong});
-    if(dg.vci)rows.push({n:'Giá mục tiêu Vietcap',s:(dg.vci.khuyen_nghi||'')+' · '+(dg.vci.ngay||''),pt:dg.vci.gia});
+    if(dg.san_khong_tang_truong)rows.push({n:'Sàn không tăng trưởng',s:'lợi nhuận giữ nguyên mãi, chi phí vốn '+(v2?n1(v2.ke*100)+'%':'12%'),pt:v2&&dg.eps_dung?Math.round(dg.eps_dung/v2.ke):dg.san_khong_tang_truong});
+    if(dg.vci){if(v2&&v2.vci_hien_tai)rows.push({n:'Mục tiêu Vietcap, quy về hiện tại',s:'mục tiêu 12 tháng '+n0(dg.vci.gia)+' đ ('+(dg.vci.khuyen_nghi||'')+'), chiết khấu theo chi phí vốn',pt:v2.vci_hien_tai});else rows.push({n:'Giá mục tiêu Vietcap',s:(dg.vci.khuyen_nghi||'')+' · '+(dg.vci.ngay||''),pt:dg.vci.gia});}
     var vals=[P];rows.forEach(function(r){[r.lo,r.hi,r.pt].forEach(function(v){if(v!=null)vals.push(v);});});
     var mn=Math.min.apply(null,vals)*0.92,mx=Math.max.apply(null,vals)*1.05;
     function X(v){return ((v-mn)/(mx-mn)*100).toFixed(2)+'%';}
@@ -813,12 +838,50 @@
       var li=v.length-1;while(li>0&&v[li]==null)li--;var c=document.createElementNS(ns,'circle');c.setAttribute('cx',(li/(n-1)*W).toFixed(1));c.setAttribute('cy',Y(v[li]).toFixed(1));c.setAttribute('r','2.6');c.setAttribute('fill','currentColor');svg.appendChild(c);}
     return svg;}
   function hideAll(){
-    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;
+    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;$('card-hs-cl').hidden=true;
     setTimeout(function(){ // thẻ chỉ tiêu chỉ còn khi có ô "so với ngành" (VN100)
       var has=$('hs-cb-val').children.length>0;$('dg-ind').textContent='';
       $('card-hs-ind').hidden=!has;$('dg-row').hidden=!has;$('dg-sec').hidden=!has;
       if(has){$('dg-sub').textContent='Chưa có dữ liệu xu hướng và định giá cho mã này.';}
     },0);}
+  function renderV2(x,v){
+    var dg=x.dinh_gia,m=dg.v2,P=x.gia,fin=dg.mo_hinh==='pb_roe',d8=x.ngay.slice(8)+'/'+x.ngay.slice(5,7);
+    var ban=el('div','dg-ban '+m.muc);
+    ban.appendChild(el('div','sub','Giá trị ước tính (bình quân có trọng số 3 kịch bản)'));
+    ban.appendChild(el('div','big',n0(m.gia_tb)+' đ · biên an toàn '+sg(m.mos)));
+    ban.appendChild(el('div','sub',m.nhan+'. Giá '+d8+': '+n0(P)+' đ.'));
+    v.appendChild(ban);
+    var k=el('div','dg-kpis');
+    k.appendChild(kpi('Giá tối đa còn biên an toàn 20%',n0(m.vung_an_toan)+' đ',sg((m.vung_an_toan/P-1)*100)+' so với giá hiện tại'));
+    k.appendChild(kpi('Lời / lỗ giả định',m.rr!=null?('1 : '+n1(m.rr)):'—',(m.rr!=null?'Lên '+sg(m.len_pct)+' nếu lạc quan, xuống '+sg(m.xuong_pct)+' nếu bảo thủ':'Giá không cao hơn kịch bản bảo thủ (xuống '+sg(m.xuong_pct)+', lên '+sg(m.len_pct)+')')));
+    k.appendChild(kpi(fin?'P/B hiện tại':'P/E hiện tại',fin?(n2(dg.pb_hien)+'×'):(n1(dg.pe_hien)+'×'),'Phân vị '+(fin?dg.pb_phan_vi:dg.pe_phan_vi)+'% · trung vị 5 năm '+(fin?(n2(dg.pb_trung_vi)+'×'):(n1(dg.pe_trung_vi)+'×'))));
+    k.appendChild(kpi('Chi phí vốn Ke',n1(m.ke*100)+'%','= '+n2(m.rf*100)+'% + beta '+n2(m.beta_dung)+' × '+n1(m.erp*100)+'%'));
+    v.appendChild(k);
+    v.appendChild(h('Bản đồ định giá'));v.appendChild(football(x));
+    v.appendChild(h('Ba kịch bản · cách tính'));
+    var t=el('table','dg-sc'),hd=el('tr');['Kịch bản','Trọng số',fin?'ROE':'EPS',fin?'P/B hợp lý':'P/E hợp lý','Giá trị','So với giá'].forEach(function(a){hd.appendChild(el('th',null,a));});t.appendChild(hd);
+    m.kich_ban.forEach(function(kb){var r=el('tr');r.appendChild(el('td',null,kb.ten));r.appendChild(el('td',null,Math.round(kb.w*100)+'%'));r.appendChild(el('td',null,kb.dau_vao.replace(/^(EPS|ROE) /,'')));r.appendChild(el('td',null,(fin?n2(kb.he_so):n1(kb.he_so))+'×'));r.appendChild(el('td',null,n0(kb.gia)+' đ'));r.appendChild(el('td',cl((kb.gia/P-1)*100),sg((kb.gia/P-1)*100)));t.appendChild(r);});
+    var rt=el('tr','m');rt.appendChild(el('td',null,'Bình quân có trọng số'));rt.appendChild(el('td',null,'100%'));rt.appendChild(el('td'));rt.appendChild(el('td'));rt.appendChild(el('td',null,n0(m.gia_tb)+' đ'));rt.appendChild(el('td',cl(m.gia_tb/P-1),sg((m.gia_tb/P-1)*100)));t.appendChild(rt);
+    var w=el('div');w.style.overflowX='auto';w.appendChild(t);v.appendChild(w);
+    v.appendChild(el('p','dg-note','Doanh nghiệp được xếp vào nhóm "'+m.loai_ln_ten+'" ('+m.loai_ly_do+'), nên trọng số '+m.kich_ban.map(function(a){return Math.round(a.w*100);}).join('/')+'. '+(fin?'P/B hợp lý = (ROE − g) / (Ke − g).':'P/E hợp lý = (1 − g/ROE) / (Ke − g); kịch bản bảo thủ lấy biên lợi nhuận trung bình 5 năm × doanh thu 4 quý, cơ sở và lạc quan cộng thêm tăng trưởng gần đây (có trần).'))).style.marginTop='6px';
+    v.appendChild(h('Điều cần theo dõi'));
+    var wt=el('div','dg-watch');
+    function box(t1,t2){var d=el('div');d.appendChild(el('b',null,t1));d.appendChild(document.createTextNode(t2));wt.appendChild(d);}
+    if(m.moc_quy_toi)box('Mốc lợi nhuận quý tới','LNST quý tới cần ≥ '+n1(m.moc_quy_toi.giu_ttm_ty)+' tỷ (bằng '+m.moc_quy_toi.quy_cu+') để lợi nhuận 4 quý không giảm, và ≥ '+n1(m.moc_quy_toi.dat_co_so_ty)+' tỷ để đạt mức của kịch bản cơ sở.');
+    if(m.nhay)box('Độ nhạy theo biến ngành',m.nhay.ten+' làm giá trị thay đổi khoảng ±'+n0(m.nhay.dgia)+' đ/cp (±'+n1(m.nhay.pct)+'% so với giá).');
+    if(m.ep!=null)box('Lợi suất lợi nhuận so với lãi suất','E/P '+n2(m.ep)+'% so với trái phiếu 10 năm '+n2(m.rf*100)+(m.tiet_kiem?'% và tiết kiệm 12 tháng cao nhất '+n2(m.tiet_kiem*100)+'%':'%')+'. '+(m.ep/100>m.rf?'Cao hơn trái phiếu '+n1(m.ep-m.rf*100)+' điểm.':'Thấp hơn trái phiếu '+n1(m.rf*100-m.ep)+' điểm: thị trường đang trả giá cho kỳ vọng tăng trưởng.'));
+    if(dg.vci&&m.vci_hien_tai)box('Mục tiêu Vietcap cùng mốc thời gian','Mục tiêu 12 tháng '+n0(dg.vci.gia)+' đ tương đương '+n0(m.vci_hien_tai)+' đ ở hiện tại (sau cổ tức, chiết khấu Ke), so với '+n0(m.gia_tb)+' đ của mô hình này.');
+    v.appendChild(wt);
+    if(m.bang_quy&&m.bang_quy.length){v.appendChild(h('4 quý gần nhất · so với cùng kỳ'));
+      var t2=el('table','dg-sc'),h2=el('tr');['Quý',fin?'Thu nhập (tỷ)':'Doanh thu (tỷ)','So cùng kỳ','LNST mẹ (tỷ)','So cùng kỳ'].concat(fin?[]:['Biên ròng']).forEach(function(a){h2.appendChild(el('th',null,a));});t2.appendChild(h2);
+      m.bang_quy.forEach(function(q){var r=el('tr');r.appendChild(el('td',null,q.q));r.appendChild(el('td',null,n0(q.dt)));r.appendChild(el('td',cl(q.dt_yoy),q.dt_yoy==null?'—':sg(q.dt_yoy)));r.appendChild(el('td',null,n1(q.ln)));r.appendChild(el('td',cl(q.ln_yoy),q.ln_yoy==null?'—':sg(q.ln_yoy)));if(!fin)r.appendChild(el('td',null,q.bien==null?'—':n1(q.bien)+'%'));t2.appendChild(r);});
+      var w2=el('div');w2.style.overflowX='auto';w2.appendChild(t2);v.appendChild(w2);}
+    var lu=m.luoi;
+    v.appendChild(h('Bảng nhạy cảm · giá trị kịch bản cơ sở (đ)'));
+    var t3=el('table','dg-sens'),h3=el('tr');h3.appendChild(el('th',null,'g \\ Ke'));lu.ke.forEach(function(c){h3.appendChild(el('th',null,n1(c*100)+'%'));});t3.appendChild(h3);
+    lu.g.forEach(function(g,gi){var r=el('tr');r.appendChild(el('th',null,Math.round(g*100)+'%'));lu.gia[gi].forEach(function(a,ci){r.appendChild(el('td',(gi===1&&ci===1)?'c':'',n0(a)));});t3.appendChild(r);});
+    var w3=el('div');w3.style.overflowX='auto';w3.appendChild(t3);v.appendChild(w3);
+    var ft=el('p','dg-note','Chi phí vốn Ke = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro cổ phiếu. Lãi suất nhập tay ngày '+(m.macro_ngay||'—')+'; beta tính từ '+m.beta_phien+' phiên giá của chính mã so với VN-Index (điều chỉnh Blume). Mô hình do mình chọn, chưa kiểm định; kết quả là khoảng giá trị để đọc doanh nghiệp, không phải tín hiệu mua bán hay giá nên mua. Giá mục tiêu Vietcap là quan điểm của Vietcap, tách riêng.');ft.style.marginTop='var(--cds-gap-md)';v.appendChild(ft);}
   function render(x){
     var dg=x.dinh_gia,kb=dg.kich_ban||[],cs=kb[1],fin=dg.mo_hinh==='pb_roe',P=x.gia;
     $('dg-sec').hidden=false;$('dg-row').hidden=false;$('card-hs-ind').hidden=false;$('card-hs-dg').hidden=false;$('card-hs-xh').hidden=false;
@@ -833,6 +896,7 @@
     ind.appendChild(el('p','dg-note','Chấm tròn = vị trí hiện tại trong 5 năm của chính mã (trái = thấp nhất, phải = cao nhất). Xanh = tốt hơn thường lệ, đỏ = kém hơn, xám = bình thường; chiều "tốt" phụ thuộc chỉ tiêu (nợ, CIR, NPL, số ngày: thấp là tốt).')).style.marginTop='8px';
     // ---- định giá ----
     var v=$('dg-val');v.textContent='';
+    if(dg.v2){renderV2(x,v);}else{
     var k=el('div','dg-kpis');
     k.appendChild(kpi('Giá '+x.ngay.slice(8)+'/'+x.ngay.slice(5,7),n0(P)+' đ',x.cao_1n?('Đỉnh 1 năm '+n0(x.cao_1n)+' · '+sg((P/x.cao_1n-1)*100)):null));
     if(cs)k.appendChild(kpi('Giá trị cơ sở',n0(cs.gia)+' đ',sg(cs.vs_gia_pct)+' so với giá · khoảng '+n0(kb[0].gia)+'–'+n0(kb[2].gia),cl(cs.vs_gia_pct)));
@@ -848,7 +912,17 @@
       var w=el('div');w.style.overflowX='auto';w.appendChild(t);v.appendChild(w);}
     var ft=el('p','dg-note');ft.style.marginTop='var(--cds-gap-md)';
     ft.textContent=(fin?'Nhóm tài chính: giá trị = BVPS × (ROE − g) / (COE − g).':(dg.chuan_hoa?'Giá trị = EPS chuẩn hóa 8 quý × (1 + g) / (COE − g).':'Giá trị = EPS 4 quý × (1 + g) / (COE − g).'))+' Kịch bản thận trọng (COE 13%, g 3%), cơ sở (12%, 5%), lạc quan (11%, 6%). Giả định do mình chọn, chưa kiểm định. Giá mục tiêu là quan điểm của Vietcap, tách riêng khỏi mô hình. Chỉ mô tả để đọc doanh nghiệp, không phải tín hiệu mua bán.';
-    v.appendChild(ft);
+    v.appendChild(ft);}
+    // ---- chất lượng & cờ cảnh báo ----
+    var cq=x.chat_luong,cc=$('dg-cl');cc.textContent='';
+    if(cq){$('card-hs-cl').hidden=false;
+      var bn=el('div','dg-ban '+(cq.co.some(function(c){return c.muc==='do';})?'xau':(cq.co.length?'tb':'tot')));bn.appendChild(el('div','big',cq.nhan));bn.appendChild(el('div','sub','Số liệu báo cáo '+cq.ky+'. Đây là bộ câu hỏi để đọc doanh nghiệp, không phải điều kiện mua.'));cc.appendChild(bn);
+      var ul2=el('ul','dg-cl');cq.tieu_chi.forEach(function(t){var li=el('li'),ic=el('span','ic '+(t.dat==null?'u':(t.dat?'y':'n')),t.dat==null?'?':(t.dat?'✓':'✗'));li.appendChild(ic);li.appendChild(el('span',null,t.ten));li.appendChild(el('span','gt',t.gt));ul2.appendChild(li);});cc.appendChild(ul2);
+      cc.appendChild(h(cq.co.length?'Cờ cảnh báo · điều bất thường cần kiểm tra thêm':'Cờ cảnh báo'));
+      if(cq.co.length){var fl=el('div','dg-fl');cq.co.forEach(function(c){fl.appendChild(el('div',c.muc,(c.muc==='do'?'Cờ đỏ: ':'Lưu ý: ')+c.nd));});cc.appendChild(fl);}
+      else cc.appendChild(el('p','dg-note','Chưa thấy điều bất thường ở các mục kiểm tra: phải thu và tồn kho so với doanh thu, vay ngắn hạn so với dòng tiền, thu nhập khác, lãi liên kết, dòng tiền so với lợi nhuận, vốn góp, đòn bẩy.'));
+      cc.appendChild(el('p','dg-note','Cờ cảnh báo chỉ nêu dấu hiệu từ số liệu, không kết luận doanh nghiệp có vấn đề. Chưa áp dụng cho ngân hàng, chứng khoán, bảo hiểm.')).style.marginTop='8px';}
+    else{$('card-hs-cl').hidden=true;}
     // ---- xu hướng ----
     var tr=$('dg-trend');tr.textContent='';var tw=el('div','dg-trend'),Q=x.xu_huong.quy;
     x.xu_huong.chuoi.forEach(function(s){var d=el('div','dg-t'),a=el('div','a');a.appendChild(el('span',null,s.ten));if(s.yoy!=null)a.appendChild(el('span',cl(s.yoy),sg(s.yoy)+' cùng kỳ'));
