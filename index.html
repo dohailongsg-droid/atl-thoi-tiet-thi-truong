@@ -1,0 +1,1917 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thời tiết thị trường · ATL Investment</title>
+<meta name="description" content="Nhiệt kế cảm xúc, dòng tiền và hồ sơ mã của thị trường chứng khoán Việt Nam. Chỉ để tham khảo, không phải khuyến nghị đầu tư.">
+<style>
+:root{color-scheme:dark;
+  --color-bg:#14161a;--color-panel:#1c1c1c;--color-fg:#eeeeee;--color-fg-muted:#999999;--color-border-line:#333333;--color-ok:#4cc38a;--color-bad:#f0716b;--color-warn:#e0b04a;
+  --cds-radius:8px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-md:12px;--cds-pad-lg:16px;--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:12px;--cds-gap-lg:16px;
+  --cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:15px;--cds-font-size-title:26px;--cds-font-weight-medium:600;
+  --cds-surface-popover:#222222;--cds-border:#444444;--cds-chart-grid:#2c2c2c;--cds-chart-axis:#555555;--cds-chart-muted:#777777;--cds-chart-reference:#d8c35a;
+  --cds-text-secondary:#aaaaaa;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.45);--cds-dur-slow:300ms;
+  --font-anthropic-sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-anthropic-serif:Georgia,"Times New Roman",serif}
+@media (prefers-color-scheme:light){:root{color-scheme:light;
+  --color-bg:#f6f5f2;--color-panel:#ffffff;--color-fg:#1a1a1a;--color-fg-muted:#5c5c5c;--color-border-line:#dcdad4;--color-ok:#1a7f4b;--color-bad:#c0392b;--color-warn:#9a6b00;
+  --cds-surface-popover:#ffffff;--cds-border:#cfcdc6;--cds-chart-grid:#e8e6e0;--cds-chart-axis:#b5b2aa;--cds-chart-muted:#8a877f;--cds-chart-reference:#9a7b00;--cds-text-secondary:#555555;
+  --cds-shadow-popover:0 4px 16px rgba(0,0,0,.15)}}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
+#dash-root{max-width:1600px;margin:0 auto;padding:16px}
+.dash-skeleton{opacity:.55}
+</style>
+<script src="d3.min.js"></script>
+<script src="shim.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Serif:wght@400;500;600;700&display=swap&subset=vietnamese');
+
+/* Bảng điều khiển thời tiết thị trường: header tóm tắt → 4 tab (Hôm nay kèm nhiệt kế · Xếp hạng · Hồ sơ có đồng hồ · Dòng tiền & RRG), mỗi tab là lưới thẻ */
+.atl{--z1:#5b8db8;--z2:#9a8f7a;--z7:#7fb77e;--z3:#3f9a62;--z4:#d4a62a;--z5:#e07b39;--z6:#c9483b;
+  --q-lead:rgba(63,154,98,.10);--q-weak:rgba(212,166,42,.12);--q-lag:rgba(201,72,59,.09);--q-imp:rgba(91,141,184,.11);
+  font-family:var(--font-anthropic-sans);color:var(--color-fg);display:flex;flex-direction:column;gap:var(--cds-gap-lg)}
+.atl *{box-sizing:border-box}
+.atl-head{display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.atl-title{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.atl-take{margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);max-width:68ch;line-height:1.5}
+.atl-take b{color:var(--color-fg);font-weight:600}
+.atl-tabs{display:flex;gap:var(--cds-gap-xs);flex-wrap:wrap;border-bottom:1px solid var(--color-border-line)}
+.atl-tab{appearance:none;border:0;background:none;color:var(--color-fg-muted);font:inherit;font-size:var(--cds-font-size-body);
+  padding:var(--cds-pad-sm) var(--cds-pad-md);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.atl-tab[aria-selected="true"]{color:var(--color-fg);border-bottom-color:var(--color-fg);font-weight:600}
+.atl-tab:focus-visible,.atl-seg button:focus-visible,.atl select:focus-visible,.atl input:focus-visible,.atl th button:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+.atl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-md)}
+.atl-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);
+  display:flex;flex-direction:column;gap:var(--cds-gap-sm);min-width:0;position:relative}
+.atl-wide{grid-column:1/-1}
+.atl-h{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.atl-note{margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);line-height:1.45}
+.atl-big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);line-height:1.1;font-variant-numeric:tabular-nums}
+.atl-season{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--cds-gap-sm) var(--cds-gap-lg)}
+.atl-season-name{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-weight:400;line-height:1.15}
+.atl-kv{display:grid;grid-template-columns:auto 1fr;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-body);margin:0}
+.atl-kv dt{color:var(--color-fg-muted)} .atl-kv dd{margin:0;font-variant-numeric:tabular-nums}
+.atl-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:var(--cds-font-size-caption);
+  border:1px solid var(--color-border-line);white-space:nowrap}
+.atl-dot{width:.6rem;height:.6rem;border-radius:50%;display:inline-block;flex:none}
+.atl-chart{width:100%;min-height:10rem;position:relative}
+.atl-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.atl-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);
+  box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);line-height:1.5;
+  z-index:5;min-width:9rem;max-width:16rem;font-variant-numeric:tabular-nums}
+.atl-tip .t{color:var(--cds-text-secondary)}
+.atl-controls{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);align-items:center}
+.atl-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden}
+.atl-seg button{appearance:none;border:0;background:none;font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:6px 12px;cursor:pointer}
+.atl-seg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg)}
+.atl select,.atl input[type="search"]{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:var(--color-bg);
+  border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 8px;max-width:100%}
+.atl label.atl-lab{display:inline-flex;align-items:center;gap:6px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.atl-tablebox{overflow:auto;max-height:28rem}
+.atl table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.atl th{position:sticky;top:0;z-index:2;background:var(--color-panel);text-align:left;font-weight:600;color:var(--color-fg-muted);padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.atl th button{all:unset;cursor:pointer}
+.atl td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.atl td.num,.atl th.num{text-align:right}
+.atl tr[data-key]{cursor:pointer}
+.atl tr.on td{background:var(--cds-chart-grid)}
+.atl .pos{color:var(--color-ok)} .atl .neg{color:var(--color-bad)}
+.atl-bars{display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.atl-bar{display:grid;grid-template-columns:minmax(7rem,9rem) 1fr 2.6rem;gap:var(--cds-gap-sm);align-items:center;font-size:var(--cds-font-size-caption)}
+.atl-bar .track{height:10px;border-radius:5px;background:var(--cds-chart-grid);position:relative;overflow:hidden}
+.atl-bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.atl-bar .val{text-align:right;font-variant-numeric:tabular-nums}
+.atl-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.atl-legend span{display:inline-flex;align-items:center;gap:6px}
+.atl-sec[hidden]{display:none!important}
+.atl-subnav{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm) var(--cds-gap-md);padding:8px 0;margin-bottom:var(--cds-gap-sm);background:var(--color-bg)}
+.atl-subnav .atl-seg{flex-wrap:wrap;max-width:100%}
+.atl-dv{display:flex;flex-direction:column;gap:var(--cds-gap-md);scroll-margin-top:3.5rem}
+.atl-dv+.atl-dv{margin-top:var(--cds-gap-lg,24px)}
+.atl-dv[hidden]{display:none!important}
+.atl-dvh{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;padding-top:var(--cds-gap-sm);border-top:1px solid var(--color-border-line)}
+.atl [data-dash-source-state=empty]{color:transparent}
+.atl [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+.atl-fail{display:flex;align-items:center;justify-content:center;gap:8px;min-height:inherit;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.atl-fail::before{content:"";width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)}
+@media (max-width:520px){.atl-bar{grid-template-columns:6.5rem 1fr 2.4rem}}
+.atl-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:var(--cds-gap-md)}
+.atl-tile{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);display:flex;flex-direction:column;gap:4px;min-width:0}
+.atl-tile .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.atl-tile .v{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-weight:400;line-height:1.15;font-variant-numeric:tabular-nums}
+.atl-tile .s{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.4}
+.atl-stocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,19rem),1fr));gap:var(--cds-gap-md)}
+.atl-stock{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);display:flex;flex-direction:column;gap:var(--cds-gap-sm);background:var(--color-bg);min-width:0}
+.atl-stock-top{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cds-gap-sm);flex-wrap:wrap}
+.atl-ma{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-weight:400;line-height:1}
+.atl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.atl-kv2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--cds-gap-sm);font-size:var(--cds-font-size-caption)}
+.atl-kv2 div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.atl-kv2 .k{color:var(--color-fg-muted)} .atl-kv2 .v{font-variant-numeric:tabular-nums;font-size:var(--cds-font-size-body)}
+.atl-empty{border:1px dashed var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);color:var(--color-fg-muted);font-size:var(--cds-font-size-body);line-height:1.5}
+.atl-empty b{color:var(--color-fg)}
+.atl-steps{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:6px;font-size:var(--cds-font-size-body);line-height:1.5}
+.atl-sub{margin:0;font-size:var(--cds-font-size-body);font-weight:600}
+.atl-tm{position:relative;width:100%;min-height:30rem}
+.atl-tm svg{display:block;width:100%;height:auto}
+.atl-tm text{pointer-events:none}
+.atl-scale{display:flex;align-items:center;gap:6px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);flex-wrap:wrap}
+.atl-scale i{display:inline-block;width:18px;height:10px;border-radius:2px}
+.atl-xh-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:var(--cds-gap-md)}
+.atl-xh-panel{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.atl-xh-leg{background:var(--color-bg)}
+.atl-xh-row{display:grid;grid-template-columns:6.5rem 1fr;gap:8px;align-items:center;font-size:var(--cds-font-size-caption)}
+.atl-xh-k{font-weight:600;color:var(--color-fg)}
+.atl-xh-v{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;color:var(--color-fg-muted);min-width:0}
+.atl-xh-sep{color:var(--color-fg-muted);font-style:italic}
+.atl-tag{font-size:10px;font-weight:700;color:var(--z3);margin-left:2px}
+.atl-pri{margin:0;padding-left:1.1rem;display:grid;gap:2px}
+.atl-score{display:flex;align-items:center;gap:6px;min-width:6.5rem}
+.atl-score .bar{flex:1;height:8px;border-radius:4px;background:var(--cds-chart-grid);position:relative;overflow:hidden;min-width:3rem}
+.atl-score .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--z3)}
+.atl-score b{font-variant-numeric:tabular-nums;min-width:1.8rem;text-align:right}
+.atl-sm{color:var(--color-fg-muted);font-size:11px}
+.atl-chk{display:inline-flex;align-items:center;gap:6px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.atl-hs-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--cds-gap-md)}
+.atl-hs-ma{font-family:var(--font-anthropic-serif);font-size:2.4rem;line-height:1;font-weight:400}
+.atl-hs-price{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums}
+.atl-checks{display:flex;flex-direction:column}
+.atl-check{display:grid;grid-template-columns:5.6rem 1fr;gap:var(--cds-gap-sm) var(--cds-gap-md);padding:var(--cds-pad-sm) 0;border-bottom:1px solid var(--color-border-line);align-items:start}
+.atl-check:last-child{border-bottom:0}
+.atl-check .st{font-size:11px;font-weight:700;text-align:center;border-radius:999px;padding:3px 6px;border:1px solid var(--color-border-line)}
+.atl-check .st.ok{background:var(--z3);color:#fff;border-color:transparent}
+.atl-check .st.warn{background:var(--z6);color:#fff;border-color:transparent}
+.atl-check .st.mid{background:var(--z4);color:#fff;border-color:transparent}
+.atl-check .t{font-weight:600;font-size:var(--cds-font-size-body)}
+.atl-check .d{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);line-height:1.45}
+.atl-check .kd{font-size:var(--cds-font-size-caption);line-height:1.45;margin-top:2px}
+.atl-tt{display:grid;grid-template-columns:1.4rem 1fr auto;gap:6px var(--cds-gap-sm);font-size:var(--cds-font-size-caption);align-items:center}
+.atl-tt .y{color:var(--color-ok);font-weight:700} .atl-tt .n{color:var(--color-bad);font-weight:700}
+.atl-tt .v{font-variant-numeric:tabular-nums;color:var(--color-fg-muted);text-align:right}
+.atl-tt .m{color:var(--color-fg-muted);font-weight:700;text-align:center}
+.atl{position:relative}
+.atl-ttip{position:absolute;z-index:20;max-width:min(24rem,calc(100% - 8px));background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);line-height:1.5;color:var(--color-fg);pointer-events:none}
+.atl-ttip[hidden]{display:none}
+.atl-ttip div + div{color:var(--color-fg-muted)}
+.atl-ttip div:first-child{color:var(--color-fg);font-weight:600}
+[data-tip]{cursor:help}
+.atl-dial{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm) var(--cds-gap-md);padding:var(--cds-pad-sm) 0;border-top:1px solid var(--color-border-line);border-bottom:1px solid var(--color-border-line)}
+.atl-dial[hidden]{display:none}
+.atl-dial svg{flex:none;width:10.5rem;height:auto}
+.atl-dial-txt{flex:1 1 11rem;min-width:0;display:flex;flex-direction:column;gap:2px}
+.atl-dial-lab{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-weight:400;line-height:1.15}
+.atl-dial-why{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.45}
+.atl-dial-key{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px var(--cds-gap-md);font-size:11px;color:var(--color-fg-muted)}
+.atl-dial-key span{display:inline-flex;align-items:center;gap:5px}
+.atl-hs-sig{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm) var(--cds-gap-lg);padding:var(--cds-pad-sm) 0}
+.atl-hs-sig-r{flex:1 1 100%;min-width:0}
+.atl-hs-sig-r .atl-ticks{padding-top:0}
+.atl-hs-right{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:var(--cds-gap-sm) var(--cds-gap-lg)}
+.atl-hs-right .atl-dial{border:0;padding:0;flex:0 1 auto;flex-wrap:nowrap;gap:var(--cds-gap-sm)}
+.atl-hs-right .atl-dial svg{width:7rem}
+.atl-hs-right .atl-dial-txt{flex:0 1 auto;min-width:0;max-width:11rem}
+.atl-hs-right .atl-dial-key{display:none}
+.atl-hs-row{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr))}
+@media (min-width:1000px){.atl-hs-row{grid-template-columns:repeat(3,minmax(0,1fr))}.atl-hs-row #card-hs-cb{grid-column:1/-1}}
+@media (min-width:1500px){.atl-hs-row{grid-template-columns:1fr 1fr 1fr 1.7fr}.atl-hs-row #card-hs-cb{grid-column:auto}}
+.atl-ticks{display:flex;flex-wrap:wrap;gap:6px;padding:var(--cds-pad-sm) 0}
+.atl-ticks .atl-pill.neg{border-color:var(--z6);color:var(--z6)}
+.atl-more{margin-top:var(--cds-pad-sm)}
+.atl-more summary{cursor:pointer;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:var(--cds-pad-xs) 0}
+.atl-dial-key .on{color:var(--color-fg);font-weight:600}
+.atl-who{margin:0;font-size:var(--cds-font-size-caption);line-height:1.45;color:var(--color-fg);border-left:3px solid var(--color-border-line);padding-left:var(--cds-gap-sm)}
+/* ===== Thiết kế v62 · 四季 (bốn mùa) — chỉ lớp trình bày ===== */
+.atl{
+  --f-serif:'Noto Serif',var(--font-anthropic-serif),Georgia,serif;
+  --f-sans:'Noto Sans',var(--font-anthropic-sans),system-ui,sans-serif;
+  --t-xs:11px;--t-sm:12px;--t-md:14px;--t-lg:17px;--t-xl:20px;--t-2xl:28px;--t-3xl:40px;
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:40px;--sp-7:64px;
+  --r-card:10px;--r-in:6px;
+  --s1:#7d8da3;--s2:#9a9482;--s7:#b39a98;--s3:#c79f7c;--s4:#a58354;--s5:#b07857;--s6:#97846e;
+  --sem-up:var(--z3);--sem-down:var(--z6);--sem-ref:var(--z4);
+  --season:var(--s2);
+  font-family:var(--f-sans);font-variant-numeric:tabular-nums;gap:var(--sp-5)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .atl{--s1:#64768e;--s2:#787361;--s7:#8d6a68;--s3:#976941;--s4:#8d7048;--s5:#9a6748;--s6:#7a6a58;}}
+:root[data-theme="light"] .atl{--s1:#64768e;--s2:#787361;--s7:#8d6a68;--s3:#976941;--s4:#8d7048;--s5:#9a6748;--s6:#7a6a58;}
+.atl[data-season="1"]{--season:var(--s1)}.atl[data-season="2"]{--season:var(--s2)}.atl[data-season="7"]{--season:var(--s7)}
+.atl[data-season="3"]{--season:var(--s3)}.atl[data-season="4"]{--season:var(--s4)}.atl[data-season="5"]{--season:var(--s5)}.atl[data-season="6"]{--season:var(--s6)}
+/* chữ */
+.atl-head{gap:var(--sp-2)}
+.atl-titlebar{display:flex;align-items:center;gap:var(--sp-3)}
+.atl-title{font-family:var(--f-serif);font-weight:400;font-size:var(--t-2xl);letter-spacing:.01em;line-height:1.2}
+.atl-take{font-size:var(--t-md);line-height:1.6}
+.atl-h{font-family:var(--f-sans);font-size:var(--t-sm);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--color-fg-muted)}
+.atl-note{font-size:var(--t-sm);line-height:1.55}
+.atl-big{font-family:var(--f-serif);font-size:var(--t-2xl);font-weight:400}
+.atl-season-name{font-family:var(--f-serif);font-size:var(--t-xl);font-weight:500;color:var(--season)}
+.atl-kv{font-size:var(--t-md);gap:var(--sp-2) var(--sp-4)}
+.atl table,.atl-pill,.atl-legend,.atl-bar{font-size:var(--t-sm)}
+/* tab */
+.atl-tabs{gap:var(--sp-2)}
+.atl-tab{font-size:var(--t-md);padding:var(--sp-3) var(--sp-4);letter-spacing:.01em}
+.atl-tab[aria-selected="true"]{border-bottom-color:var(--season);font-weight:500}
+/* thẻ */
+.atl-grid{gap:var(--sp-5)}
+.atl-card{border-radius:var(--r-card);padding:var(--sp-5);gap:var(--sp-3);border-color:var(--color-border-line);box-shadow:none}
+.atl-card .atl-card{border:0;background:transparent;padding:0}
+#card-mua{border-left:3px solid var(--season)}
+.atl-seg,.atl select,.atl input[type="search"]{border-radius:var(--r-in)}
+.atl-bar .track{height:6px;border-radius:3px}.atl-bar .fill{border-radius:3px}
+.atl td,.atl th{padding:var(--sp-2) var(--sp-3)}
+/* icon mùa */
+.atl-ico{display:inline-flex;flex:none;color:var(--season);position:relative}
+.atl-ico-t{width:32px;height:32px}.atl-ico-c{width:48px;height:48px;align-self:center}
+.atl-ico .ico-w{display:none;width:100%;height:100%}
+.atl[data-season="1"] .ico-1,.atl[data-season="2"] .ico-2,.atl[data-season="7"] .ico-7,.atl[data-season="3"] .ico-3,.atl[data-season="4"] .ico-4,.atl[data-season="5"] .ico-5,.atl[data-season="6"] .ico-6{display:block}
+.atl:not([data-season]) .ico-2{display:block}
+@media (max-width:480px){.atl-title{font-size:var(--t-xl)}.atl-card{padding:var(--sp-4)}.atl-ico-c{width:40px;height:40px}}
+.atl-sec>*+*{margin-top:var(--sp-5)}
+.atl-sec>.atl-card+.atl-card,.atl-sec>.atl-grid+.atl-grid{margin-top:var(--sp-5)}
+.atl-tiles{gap:var(--sp-5)}
+.atl-tile{border-radius:var(--r-card);padding:var(--sp-4) var(--sp-5);gap:var(--sp-1)}
+.atl-tile .k{font-size:var(--t-sm);letter-spacing:.06em;text-transform:uppercase}
+.atl-tile .v{font-size:var(--t-2xl)}.atl-tile .s{font-size:var(--t-sm)}
+@media (max-width:480px){.atl-pill{white-space:normal}}
+
+</style>
+
+<div class="atl">
+  <header class="atl-head" id="tong-quan">
+    <div class="atl-titlebar"><span class="atl-ico atl-ico-t"><span class="ico-w ico-1"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12M16 20l-6-6M16 16l5-5M16 24l-5-4M16 22l6-5"/><path d="M6 6l1 2M26 5l-1 2M9 3v3M23 9v3M5 12h3"/></svg></span><span class="ico-w ico-2"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24M8 25c2-3 5-3 8-3s6 0 8 3"/><path d="M16 22v-5M16 19c-4-1-6-3-6-6M16 19c4-1 6-3 6-6"/></svg></span><span class="ico-w ico-7"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24"/><path d="M16 25V15"/><path d="M16 17c-5 0-7-3-7-7 5 0 7 3 7 7zM16 15c0-4 2-7 7-7 0 4-2 7-7 7z"/></svg></span><span class="ico-w ico-3"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 27c5-3 9-8 12-17"/><circle cx="18" cy="9" r="2"/><path d="M18 5v-2M22 9h2M12 9h-2M21 6l1-1M15 6l-1-1M21 12l1 1M15 12l-1 1"/><circle cx="10" cy="19" r="1.5"/><circle cx="23" cy="17" r="1.5"/></svg></span><span class="ico-w ico-4"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12"/><path d="M16 12c-1-4 1-7 5-8 0 4-1 7-5 8zM16 16c-4 0-7-2-8-6 4 0 7 2 8 6zM16 20c4 0 7-2 8-6-4 0-7 2-8 6zM16 24c-4 0-7-2-8-6 4 0 7 2 8 6z"/></svg></span><span class="ico-w ico-5"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 29V16M16 16l-10-5 3-4 3 1 1-5 3 3 3-3 1 5 3-1 3 4z"/><path d="M16 22l-4-3M16 25l5-4"/></svg></span><span class="ico-w ico-6"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4a9 9 0 1 0 7 13c-8 1-13-5-7-13z"/><path d="M4 26h24M7 26c0-4 2-7 4-8M14 26c0-4 1-6 3-8M21 26c0-3 1-5 3-6"/></svg></span></span><h1 class="atl-title">Thời tiết thị trường</h1></div>
+    <p class="atl-take dash-skeleton" id="take" data-source="nhiet_ke">—</p>
+  </header>
+
+  <nav class="atl-tabs" role="tablist" aria-label="Phần">
+    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="true">Hôm nay mua gì</button>
+    <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
+    <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
+    <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
+  </nav>
+
+  <!-- ============ HÔM NAY ============ -->
+  <section class="atl-sec" id="hom-nay" role="tabpanel" aria-labelledby="tab-hom-nay">
+    <div class="atl-grid" id="hn-nhiet-ke">
+      <div class="atl-card" id="card-mua">
+        <h2 class="atl-h">Mùa hiện tại</h2>
+        <div class="atl-season"><span class="atl-ico atl-ico-c"><span class="ico-w ico-1"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12M16 20l-6-6M16 16l5-5M16 24l-5-4M16 22l6-5"/><path d="M6 6l1 2M26 5l-1 2M9 3v3M23 9v3M5 12h3"/></svg></span><span class="ico-w ico-2"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24M8 25c2-3 5-3 8-3s6 0 8 3"/><path d="M16 22v-5M16 19c-4-1-6-3-6-6M16 19c4-1 6-3 6-6"/></svg></span><span class="ico-w ico-7"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24"/><path d="M16 25V15"/><path d="M16 17c-5 0-7-3-7-7 5 0 7 3 7 7zM16 15c0-4 2-7 7-7 0 4-2 7-7 7z"/></svg></span><span class="ico-w ico-3"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 27c5-3 9-8 12-17"/><circle cx="18" cy="9" r="2"/><path d="M18 5v-2M22 9h2M12 9h-2M21 6l1-1M15 6l-1-1M21 12l1 1M15 12l-1 1"/><circle cx="10" cy="19" r="1.5"/><circle cx="23" cy="17" r="1.5"/></svg></span><span class="ico-w ico-4"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12"/><path d="M16 12c-1-4 1-7 5-8 0 4-1 7-5 8zM16 16c-4 0-7-2-8-6 4 0 7 2 8 6zM16 20c4 0 7-2 8-6-4 0-7 2-8 6zM16 24c-4 0-7-2-8-6 4 0 7 2 8 6z"/></svg></span><span class="ico-w ico-5"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 29V16M16 16l-10-5 3-4 3 1 1-5 3 3 3-3 1 5 3-1 3 4z"/><path d="M16 22l-4-3M16 25l5-4"/></svg></span><span class="ico-w ico-6"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4a9 9 0 1 0 7 13c-8 1-13-5-7-13z"/><path d="M4 26h24M7 26c0-4 2-7 4-8M14 26c0-4 1-6 3-8M21 26c0-3 1-5 3-6"/></svg></span></span>
+          <span class="atl-season-name dash-skeleton" id="mua-ten">—</span>
+          <span class="atl-note" id="mua-tt">—</span>
+        </div>
+        <div class="atl-chart" id="thang-do" data-source="nhiet_ke" style="min-height:4.6rem"></div>
+        <dl class="atl-kv">
+          <dt>TB 7 phiên</dt><dd><span class="atl-big" id="mua-tb7" data-source="nhiet_ke" data-field="tb7">—</span></dd>
+          <dt>Điểm phiên</dt><dd id="mua-diem" data-source="nhiet_ke" data-field="diem">—</dd>
+          <dt>Xác nhận</dt><dd id="mua-xn">—</dd>
+          <dt>Gợi ý</dt><dd id="mua-ct" style="white-space:normal">—</dd>
+        </dl>
+        <p class="atl-note">Mùa chỉ đổi khi nhiệt kế ở vùng mới đủ lâu, tránh đổi mùa theo một vài phiên đột biến. Thanh màu là thang nhiệt 0–100; tam giác là nhiệt độ hiện tại (trung bình 7 phiên), vạch mảnh là điểm phiên gần nhất.</p>
+      </div>
+
+      <div class="atl-card" id="card-thanh-phan">
+        <h2 class="atl-h">Thành phần điểm phiên</h2>
+        <p class="atl-note" id="tp-ngay">—</p>
+        <div class="atl-bars" id="tp-bars" data-source="nhiet_ke"></div>
+        <p class="atl-note" id="tp-raw">—</p>
+      </div>
+
+    </div>
+
+    <div class="atl-tiles" id="hn-tiles">
+      <div class="atl-tile"><span class="k">Tín hiệu MUA</span><span class="v" id="hn-n-mua" data-source="dem_loai" data-field="so_ma" data-where="loai=MUA">—</span><span class="s" id="hn-n-mua-s">mã đạt điều kiện</span></div>
+      <div class="atl-tile"><span class="k">Đang giữ</span><span class="v" id="hn-n-giu" data-source="dem_loai" data-field="so_ma" data-where="loai=%C4%90ANG%20GI%E1%BB%AE">—</span><span class="s">lệnh chưa thoát theo quy tắc</span></div>
+      <div class="atl-tile"><span class="k">Chế độ Trứng rồng</span><span class="v" id="hn-bao">—</span><span class="s" id="hn-bao-s" data-source="che_do_bao">—</span></div>
+    </div>
+
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-mua-hom-nay">
+        <h2 class="atl-h">Hôm nay mua gì</h2>
+        <p class="atl-note" id="hn-mua-note">—</p>
+        <div id="hn-mua-list" data-source="hom_nay"></div>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-dang-giu">
+        <h2 class="atl-h">Đang giữ</h2>
+        <p class="atl-note">Mã đã có tín hiệu MUA, chưa chạm điểm bán hay cắt lỗ. Lãi/lỗ tính từ giá mua ATO phiên sau tín hiệu.</p>
+        <div id="hn-giu-list" data-source="hom_nay"></div>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-theo-doi">
+        <h2 class="atl-h">Theo dõi</h2>
+        <p class="atl-note">Mã mạnh đang điều chỉnh về gần vùng mua nhưng chưa đủ điều kiện. Chưa mua; mã sẽ chuyển sang MUA nếu đủ điều kiện ở các phiên tới. Mỗi mã được giữ trên danh sách 10 phiên kể từ lần theo dõi gần nhất. Vùng chờ là vùng đang canh, chưa phải vùng gom: chỉ mua khi đủ điều kiện mua ghi trên thẻ. Kết quả theo dõi tính theo giá lúc đưa vào danh sách.</p>
+        <div id="hn-td-list" data-source="hom_nay"></div>
+      </div>
+
+      <div class="atl-card" id="card-lenh-dai">
+        <h2 class="atl-h">Lệnh dài: Trứng rồng &amp; Vé số</h2>
+        <p class="atl-note">Trứng rồng: mã có khả năng dẫn dắt sóng mới sau những nhịp sụt mạnh của thị trường. Vé số: mã vừa chuyển biến tốt cả về kinh doanh lẫn xu hướng giá; tỷ trọng nhỏ, giữ dài.</p>
+        <div id="hn-dai-list" data-source="hom_nay"></div>
+        <p class="atl-sub">Nhật ký lệnh dài</p>
+        <p class="atl-note">Mọi tín hiệu Trứng rồng và Vé số đã phát, mua giá đóng cửa phiên sau tín hiệu; theo dõi đến khi chạm cắt lỗ hoặc thủng ngưỡng thoát.</p>
+        <div class="atl-tablebox" style="max-height:18rem">
+          <table id="tb-ld" data-source="lenh_dai" data-row-key="ngay,ma">
+            <thead><tr><th data-field="ngay">Ngày</th><th data-field="loai">Loại</th><th data-field="ma">Mã</th><th class="num" data-field="gia_mua">Giá mua</th><th class="num" data-field="gia_hien_tai">Giá hiện tại / bán</th><th class="num" data-field="lai_lo">Lãi/lỗ %</th><th class="num" data-field="nguong_thoat">Ngưỡng thoát</th><th data-field="trang_thai">Trạng thái</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="atl-card" id="card-tranh">
+        <h2 class="atl-h">Cần tránh: đang bị bán tháo</h2>
+        <p class="atl-note">Mã đang bị bán mạnh với thanh khoản lớn sau một nhịp giảm sâu. Thống kê cho thấy nhóm này thường tiếp tục yếu hơn thị trường trong vài tuần sau. Không bắt đáy.</p>
+        <div id="hn-tranh-list" data-source="hom_nay"></div>
+      </div>
+
+      <div class="atl-card" id="card-cach-dung">
+        <h2 class="atl-h">Cách vào lệnh</h2>
+        <ol class="atl-steps">
+          <li>Xem mùa và tỷ trọng tối đa ở trên: tổng vị thế không vượt mức này.</li>
+          <li>Mã MUA: đặt lệnh <b>ATO</b> phiên kế tiếp, trước 9:15.</li>
+          <li>Cắt lỗ khi giá đóng cửa thấp hơn giá mua 7%. Hàng về sau T+2.</li>
+          <li>Bán: theo mục tiêu 1 và mục tiêu 2 ghi trên thẻ của từng mã; tối đa khoảng 3 tuần.</li>
+        </ol>
+      </div>
+
+      <div class="atl-card" id="card-dcd">
+        <h2 class="atl-h">Long Đầu Chiến Pháp</h2>
+        <p class="atl-note">Ngành đang dẫn sóng (độ rộng, động lượng, dòng tiền) và các mã 🐉 long đầu, cùng cách xếp hạng với tab Xếp hạng. Sao = nhãn Tam tài của mã số 1. Dùng để ưu tiên, không phải tín hiệu mua.</p>
+        <div class="atl-tablebox" style="max-height:20rem">
+          <table id="tb-dcd" data-source="dong_chu_dao" data-row-key="nganh">
+            <thead><tr><th class="num" data-field="hang">#</th><th data-field="nganh">Ngành</th><th class="num" data-field="do_rong_ma20">Trên MA20</th><th data-field="long_dau">Long đầu</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-lich-su-loc">
+        <h2 class="atl-h">Lịch sử tín hiệu và kết quả</h2>
+        <p class="atl-note">Mọi tín hiệu bộ lọc đã phát. Lãi/lỗ của mã MUA tính từ giá ATO; mã THEO DÕI tính từ giá khuyến nghị để tham khảo, không có lệnh thật.</p>
+        <div class="atl-tablebox">
+          <table id="tb-ls" data-source="lich_su_loc" data-row-key="ngay,ma">
+            <thead><tr><th data-field="ngay">Ngày</th><th data-field="ma">Mã</th><th data-field="tin_hieu">Tín hiệu</th><th class="num" data-field="gia_khuyen_nghi">Giá KN</th><th class="num" data-field="gia_mua_ato">Giá ATO</th><th class="num" data-field="lai_t3">T+3 %</th><th class="num" data-field="lai_t10">T+10 %</th><th class="num" data-field="lai_quy_tac">Chốt</th><th data-field="ly_do_thoat">Lý do thoát</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-lich-su">
+        <h2 class="atl-h">VN-Index theo mùa và nhiệt kế TB7</h2>
+        <p class="atl-note">Nền màu là mùa đã xác nhận. Khung dưới: đường TB7, chấm mờ là điểm từng phiên, vạch đứt là ngưỡng 45 · 55 · 65 · 70 · 75.</p>
+        <div class="atl-legend" id="lg-mua"></div>
+        <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:22rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ XẾP HẠNG ============ -->
+  <section class="atl-sec" id="xep-hang" role="tabpanel" aria-labelledby="tab-xep-hang" hidden>
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-xep-hang">
+        <h2 class="atl-h" id="xh-h">Xếp hạng trong nhóm</h2>
+        <div class="atl-xh-top">
+          <div class="atl-xh-panel">
+            <div class="atl-xh-row"><span class="atl-xh-k">Nhóm</span><div class="atl-xh-v"><select id="xh-nhom" aria-label="Nhóm"></select></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">Lọc</span><div class="atl-xh-v">
+              <label class="atl-chk"><input type="checkbox" id="xh-50"> Chỉ mã trên MA50</label>
+              <label class="atl-chk"><input type="checkbox" id="xh-70"> Sức mạnh giá ≥ 70</label>
+              <label class="atl-chk"><input type="checkbox" id="xh-sig"> Chỉ mã có tín hiệu bộ lọc</label></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">Nhãn giá</span><div class="atl-xh-v">
+              <label class="atl-chk"><input type="checkbox" id="xh-cc"> Cạn cung</label>
+              <label class="atl-chk"><input type="checkbox" id="xh-tt"> Chống chịu, tăng tốc</label></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">Tam tài</span><div class="atl-xh-v" id="xh-rrg" role="radiogroup" aria-label="Tam tài">
+              <label class="atl-chk"><input type="radio" name="xh-rrg" value="" checked> Tất cả</label>
+              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s4"> ★★★★ (tốt nhất)</label>
+              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s3"> ★★★ trở lên</label>
+              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s2"> ★★ trở lên</label>
+              <label class="atl-chk"><input type="radio" name="xh-rrg" value="xa"> Hết thời + mã bị xả (để tránh)</label></div></div>
+          </div>
+          <div class="atl-xh-panel atl-xh-leg">
+            <div class="atl-xh-row"><span class="atl-xh-k">Hạng</span><div class="atl-xh-v">Trên MA50 → ★★★★ (mạnh + địa lợi) → Sức mạnh giá → Điểm long đầu</div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">🐉 Long đầu</span><div class="atl-xh-v">Top 3 nhóm · trên MA50 · đủ thanh khoản · không Hết thời</div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">Pha giá</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Chống chịu, tăng tốc</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Dao rơi</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Vừa sập mạnh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Bán tháo</span></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">Thanh khoản</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Cạn cung</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Thanh khoản giảm · giá tăng</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Thanh khoản tăng · giá tăng</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Thanh khoản tăng · giá giảm</span></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k" data-tip="Tam tài: thiên · địa · nhân&#10;Thiên thời: ngành của mã đang tốt (RRG tuần: Dẫn dắt hoặc Cải thiện).&#10;Nhân hòa: mã tự mạnh (trên MA50, sức mạnh giá từ 70).&#10;Địa lợi: giá tăng khi thanh khoản co. Chỉ thêm sao khi mã đã có cả hai tài trên.&#10;Càng đủ tài, sao càng nhiều. Không phải tín hiệu mua.">Tam tài</span><div class="atl-xh-v"><span class="atl-pill" data-tip="Đủ cả ba tài&#10;Ngành đang tốt, mã tự mạnh, và giá tăng êm khi thanh khoản co. Hạng cao nhất."><i class="atl-dot" style="background:var(--z3)"></i>★★★★ Thiên thời · Địa lợi · Nhân hòa</span><span class="atl-pill" data-tip="Có thời, có thế&#10;Ngành đang tốt và mã tự mạnh. Chưa có Địa lợi: giá chưa tăng êm khi thanh khoản co."><i class="atl-dot" style="background:var(--z3)"></i>★★★ Thiên thời · Nhân hòa</span><span class="atl-pill" data-tip="Có thời, chưa có thế&#10;Ngành đang tốt nhưng bản thân mã chưa tự mạnh (dưới MA50 hoặc sức mạnh giá dưới 70). Chờ mã tự khẳng định. Địa lợi (nếu có) chưa tính sao khi chưa có Nhân hòa."><i class="atl-dot" style="background:var(--z7)"></i>★★ Thiên thời</span><span class="atl-pill" data-tip="Mạnh một mình&#10;Mã tự mạnh (trên MA50, sức mạnh giá từ 70) nhưng ngành chưa tốt. Đi ngược ngành nên cần thận trọng hơn. Địa lợi (nếu có) chưa tính sao khi chưa có Thiên thời."><i class="atl-dot" style="background:var(--z7)"></i>★★ Nhân hòa</span><span class="atl-pill" data-tip="Không có thời&#10;Ngành đang yếu (Tụt hậu hoặc Suy yếu) và mã chưa đủ mạnh. Không ưu tiên."><i class="atl-dot" style="background:var(--z2)"></i>Nghịch thời</span><span class="atl-xh-sep">tránh</span><span class="atl-pill" data-tip="Tránh&#10;Ngành đang tốt nhưng mã đang bị xả: thanh khoản tăng mà giá giảm."><i class="atl-dot" style="background:var(--z6)"></i>Hết thời</span></div></div>
+            <div class="atl-xh-row"><span class="atl-xh-k">RRG nhóm</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Dẫn dắt</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Cải thiện</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z4)"></i>Suy yếu</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Tụt hậu</span></div></div>
+            <p class="atl-note" style="margin:0">Thiên thời = ngành (RRG) tốt · Nhân hòa = mã tự mạnh (trên MA50, sức mạnh giá ≥ 70) · Địa lợi = giá tăng khi thanh khoản co. Nhóm không có mã trên MA50 = chưa có mã dẫn dắt, bỏ qua. Không phải tín hiệu mua.</p>
+          </div>
+        </div>
+        <p class="atl-note" id="xh-none"></p>
+        <div class="atl-tablebox" style="max-height:34rem">
+          <table id="tb-xh" data-source="xep_hang" data-row-key="ma">
+            <thead><tr>
+              <th class="num" data-field="hang">#</th>
+              <th data-field="ma">Mã</th>
+              <th id="xh-th-nhom" data-field="nhom" hidden>Nhóm</th>
+              <th data-field="rs60">Sức mạnh giá</th>
+              <th data-field="tren_ma50">Trên MA50</th>
+              <th data-field="tk_gia">Thanh khoản · giá 10p</th>
+              <th data-field="rrg_nhom">Nhóm (RRG tuần)</th>
+              <th data-field="rrg_ma">Mã (RRG tuần)</th>
+              <th data-field="pha_gia">Pha giá</th>
+              <th class="num" data-field="p1t">% 1T</th>
+              <th class="num" data-field="p3t">% 3T</th>
+              <th class="num" data-field="p1n">% 1N</th>
+              <th class="num" data-field="gtgd20">GTGD (tỷ)</th>
+              <th class="num" data-field="diem">Điểm long đầu</th>
+              <th class="num" data-field="di_truoc">Đi trước</th>
+              <th class="num" data-field="pha_som">Bứt phá sớm</th>
+              <th class="num" data-field="chong_chiu">Chống chịu</th>
+              <th data-field="dong_tien" data-tip="Tam tài: thiên · địa · nhân&#10;Thiên thời: ngành của mã đang tốt (RRG tuần: Dẫn dắt hoặc Cải thiện).&#10;Nhân hòa: mã tự mạnh (trên MA50, sức mạnh giá từ 70).&#10;Địa lợi: giá tăng khi thanh khoản co. Chỉ thêm sao khi mã đã có cả hai tài trên.&#10;Càng đủ tài, sao càng nhiều. Không phải tín hiệu mua.">Tam tài</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="atl-note">Bấm một dòng để xem tốc độ giá 4 giai đoạn. Pha giá so tốc độ tăng/giảm mỗi tháng của từng giai đoạn với trung vị nhóm; chỉ mô tả xu hướng giá, không đánh giá doanh nghiệp.</p>
+      </div>
+      <div class="atl-card atl-wide" id="card-xh-chi-tiet">
+        <h2 class="atl-h" id="xh-ct-h">Tốc độ giá theo giai đoạn</h2>
+        <p class="atl-note" id="xh-ct-note">Chọn một mã trong bảng.</p>
+        <div class="atl-chart" id="ch-xh" data-source="xep_hang" style="min-height:12rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HỒ SƠ MÃ ============ -->
+  <section class="atl-sec" id="ho-so" role="tabpanel" aria-labelledby="tab-ho-so" hidden>
+    <div class="atl-controls">
+      <label class="atl-lab" for="hs-tim">Mã <input type="search" id="hs-tim" list="hs-ds" placeholder="VD: CTD" size="8" autocomplete="off"></label>
+      <datalist id="hs-ds"></datalist>
+      <div class="atl-chips" id="hs-nhanh"></div>
+    </div>
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-hs-dau">
+        <div class="atl-hs-head">
+          <div><div class="atl-hs-ma" id="hs-ma">—</div><div class="atl-note" id="hs-ten">Gõ mã để xem hồ sơ</div></div>
+          <div class="atl-hs-right">
+            <div class="atl-dial" id="dl-he" data-source="ho_so xep_hang hom_nay" hidden></div>
+            <div style="text-align:right"><div class="atl-hs-price" id="hs-gia" data-source="ho_so">—</div><div class="atl-note" id="hs-p1">—</div></div>
+          </div>
+        </div>
+        <div class="atl-hs-sig">
+          <div class="atl-hs-sig-r">
+            <div class="atl-ticks" id="hs-ticks" data-source="ho_so xep_hang hom_nay"></div>
+            <details class="atl-more"><summary>Kiểm định từng tín hiệu</summary>
+              <p class="atl-note">Kết quả kiểm định trên toàn HOSE, không phải trên riêng mã này.</p>
+              <div class="atl-checks" id="hs-checks" data-source="ho_so kiem_dinh xep_hang hom_nay"></div></details>
+          </div>
+        </div>
+        <div class="atl-chart" id="ch-hs" style="min-height:18rem"></div>
+        <div class="atl-legend" id="hs-lg"></div>
+      </div>
+      <div class="atl-wide atl-hs-row">
+      <div class="atl-card" id="card-hs-tt">
+        <h2 class="atl-h">Trend Template (Minervini)</h2>
+        <p class="atl-who"><b>Mark Minervini</b> · phương pháp SEPA (<i>Trade Like a Stock Market Wizard</i>). Góc nhìn: chỉ mua cổ phiếu đã ở Giai đoạn 2, tức xu hướng tăng đã được xác nhận; không bắt đáy, không mua khi giá dưới MA50.</p>
+        <div class="atl-dial" id="dl-tt" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-tt-sum">—</p>
+        <div class="atl-tt" id="hs-tt" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-tt-kd" data-source="kiem_dinh">—</p>
+      </div>
+      <div class="atl-card" id="card-hs-wy">
+        <h2 class="atl-h">Checklist Wyckoff</h2>
+        <p class="atl-who"><b>Richard D. Wyckoff</b> (1873–1934, Mỹ). Góc nhìn: giá do dòng tiền lớn dẫn dắt; đọc cung – cầu qua giá và khối lượng. Mỗi cổ phiếu đi qua bốn pha: tích luỹ → tăng giá → phân phối → giảm giá. Mua ở cuối tích luỹ, khi cung đã cạn và cầu bắt đầu thắng.</p>
+        <div class="atl-dial" id="dl-wy" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-wy-sum">—</p>
+        <div class="atl-tt" id="hs-wy" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-wy-kd">Quy tắc cố định theo khung ngày, chưa tối ưu. Đã kiểm định (27/10/2026, toàn HOSE): Cạn cung, Spring và nền thu hẹp biên độ không làm điểm mua 2 và 3 tốt hơn ở cả ba giai đoạn. Các mục còn lại chưa kiểm định. Trên chart đánh dấu SC, Spring và SOS theo ngày hệ thống ghi nhận (ST và LPS chưa có ngày trong dữ liệu nên chưa đánh dấu). Dùng để đọc pha, không phải tín hiệu mua.</p>
+      </div>
+      <div class="atl-card" id="card-hs-tl">
+        <h2 class="atl-h">Checklist Triền Luận</h2>
+        <p class="atl-who"><b>Triền Trung Thuyết Thiền</b> (缠中说禅, blog 2006–2008, Trung Quốc). Góc nhìn: mọi chuyển động giá có cấu trúc (bút → trung tâm); xu hướng cần từ hai trung tâm cùng chiều; điểm mua 1, 2, 3 do phân kỳ và vị trí so với trung tâm quyết định.</p>
+        <div class="atl-dial" id="dl-tl" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-tl-sum">—</p>
+        <div class="atl-tt" id="hs-tl" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-tl-kd">Cấu trúc dựng ở cấp bút, khung ngày. Đã kiểm định (27/10/2026, toàn HOSE): Mua 3 lỗ 2,2%/lệnh ở 7/2023–nay và thua bộ lọc Bollinger; Mua 1 có phân kỳ MACD lỗ 1,4%/lệnh; cắt lỗ theo ZG không hơn −7%. Dùng để đọc cấu trúc, không phải tín hiệu mua.</p>
+      </div>
+      <div class="atl-card" id="card-hs-cb">
+        <h2 class="atl-h">Sức khỏe doanh nghiệp</h2>
+        <p class="atl-who"><b>Minervini (SEPA) và O'Neil (CANSLIM)</b> cho phần tăng trưởng: lợi nhuận và doanh thu tăng, đang tăng tốc, ROE cao. <b>Munger</b> cho hai ô chất lượng: nợ vừa phải và lãi phải đi kèm dòng tiền. Chỉ mô tả sức khỏe từ báo cáo tài chính quý, không ra quyết định mua bán.</p>
+        <div class="atl-dial" id="dl-cb" data-source="co_ban" hidden></div>
+        <p class="atl-note" id="hs-cb-sum" data-source="co_ban">—</p>
+        <div class="atl-ticks" id="hs-cb-val" data-source="co_ban ho_so"></div>
+        <div class="atl-tt" id="hs-cb" data-source="co_ban"></div>
+        <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong VN100. Ô thứ 6 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Dữ liệu từ báo cáo quý đã công bố của VN100, cập nhật mỗi quý.</p>
+      </div>
+      </div>
+      <div class="atl-card atl-wide" id="card-hs-toc-do">
+        <h2 class="atl-h">Tốc độ giá theo giai đoạn</h2>
+        <p class="atl-note" id="hs-td-note">—</p>
+        <div class="atl-chart" id="ch-hs-td" data-source="xep_hang" style="min-height:12rem"></div>
+      </div>
+    </div>
+    <p class="atl-note">Ba góc nhìn về cùng một cổ phiếu: Minervini hỏi "xu hướng tăng đã được xác nhận chưa?", Wyckoff hỏi "dòng tiền lớn đang tích luỹ hay phân phối?", Triền Luận hỏi "giá đang ở đâu trong cấu trúc của nó?". Điểm mua của hệ thống vẫn chỉ lấy từ bộ lọc Bollinger + RS > 80 theo vùng nhiệt kế; ba checklist chỉ để đọc cổ phiếu. Đồng hồ trong mỗi thẻ chỉ mô tả trạng thái cấu trúc giá theo logic riêng của từng trường phái (Xu hướng giảm · Đi ngang · Chớm tăng · Xu hướng tăng · Tăng suy yếu), không phải lời khuyên mua bán hay tín hiệu của hệ thống; ba đồng hồ có thể chỉ về các hướng khác nhau.</p>
+  </section>
+
+  <!-- ============ DÒNG TIỀN ============ -->
+  <section class="atl-sec" id="dong-tien" role="tabpanel" aria-labelledby="tab-dong-tien" hidden>
+    <div class="atl-subnav" role="group" aria-label="Phần xem">
+      <div class="atl-seg">
+        <button type="button" data-v="all" aria-pressed="true">Xem tất cả</button>
+        <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
+        <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
+        <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
+      </div>
+      <span class="atl-note" id="dv-hint">Cuộn xuống để xem lần lượt, hoặc bấm một mục để chỉ xem mục đó.</span>
+    </div>
+    <div class="atl-dv" data-view="tm">
+    <div class="atl-card" id="card-ban-do">
+      <h2 class="atl-h">Bản đồ nhiệt HOSE</h2>
+      <p class="atl-note" id="tm-note">Mỗi ô là một mã có GTGD trung bình 20 phiên ≥ 3 tỷ, nhóm theo ngành ICB. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Chạm vào ô để xem chi tiết.</p>
+      <div class="atl-controls">
+        <label class="atl-lab">Khung</label>
+        <div class="atl-seg" role="group" aria-label="Khung thời gian">
+          <button type="button" id="tm-w1" aria-pressed="false">1 phiên</button>
+          <button type="button" id="tm-w10" aria-pressed="true">10 phiên</button>
+          <button type="button" id="tm-w20" aria-pressed="false">20 phiên</button>
+        </div>
+        <label class="atl-lab">Màu theo</label>
+        <div class="atl-seg" role="group" aria-label="Màu theo">
+          <button type="button" id="tm-mg" aria-pressed="true">% giá</button>
+          <button type="button" id="tm-ctk" aria-pressed="false">Thanh khoản</button>
+        </div>
+        <div class="atl-seg" role="group" aria-label="Xem theo">
+          <button type="button" id="tm-bm" aria-pressed="true">Theo mã</button>
+          <button type="button" id="tm-bn" aria-pressed="false">Theo ngành</button>
+        </div>
+      </div>
+      <div class="atl-scale" id="tm-scale"></div>
+      <div class="atl-tm" id="ch-tm" data-source="ban_do_nhiet hom_nay xep_hang"></div>
+      <p class="atl-note">Nhãn góc ô: <b>MUA</b> · <b>GIỮ</b> · <b>TD</b> (theo dõi) theo bộ lọc; <b>CC</b> cạn cung; <b>BT</b> bán tháo (khung 10 phiên).</p>
+    </div>
+    </div>
+    <div class="atl-dv" data-view="rrg">
+      <h2 class="atl-dvh">Vòng quay ngành (RRG)</h2>
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-rrg">
+        <h2 class="atl-h" id="rrg-h">RRG ngành so với VN-Index</h2>
+        <p class="atl-note">Khung tuần mượt, hợp lệnh giữ vài tuần; khung ngày nhanh nhưng nhiễu. Trục ngang RS-Ratio: mạnh hơn (&gt;100) hay yếu hơn chuẩn so sánh. Trục dọc RS-Momentum: sức mạnh đó đang tăng hay giảm. Vòng thường đi Cải thiện → Dẫn dắt → Suy yếu → Tụt hậu.</p>
+        <div class="atl-controls">
+          <div class="atl-seg" role="group" aria-label="Xem">
+            <button type="button" id="rrg-m-nganh" aria-pressed="true">Ngành</button>
+            <button type="button" id="rrg-m-ma" aria-pressed="false">Mã trong ngành</button>
+          </div>
+          <div class="atl-seg" role="group" aria-label="Khung thời gian">
+            <button type="button" id="rrg-k-tuan" aria-pressed="true">Tuần</button>
+            <button type="button" id="rrg-k-ngay" aria-pressed="false">Ngày</button>
+          </div>
+          <div class="atl-seg" role="group" aria-label="Độ dài đuôi">
+            <button type="button" id="rrg-t4" aria-pressed="true">Đuôi 4</button>
+            <button type="button" id="rrg-t8" aria-pressed="false">Đuôi 8</button>
+          </div>
+          <label class="atl-lab" for="rrg-nganh" id="rrg-nganh-lab" hidden>Ngành <select id="rrg-nganh"></select></label>
+          <label class="atl-lab" for="rrg-ben" id="rrg-ben-lab" hidden>So với <select id="rrg-ben"><option value="VN-Index">VN-Index</option><option value="Ngành">Chỉ số ngành</option></select></label>
+          <label class="atl-lab" for="rrg-tim">Tìm mã <input type="search" id="rrg-tim" list="rrg-ds" placeholder="VD: CII" size="7" autocomplete="off"></label>
+          <datalist id="rrg-ds"></datalist>
+        </div>
+        <div class="atl-chart" id="ch-rrg" data-source="rrg_nganh rrg_ma" style="min-height:20rem"></div>
+        <p class="atl-note" id="rrg-foot">—</p>
+      </div>
+      <div class="atl-card atl-wide" id="card-rrg-bang">
+        <h2 class="atl-h">Vị trí tuần này</h2>
+        <p class="atl-note">Bấm một dòng để làm nổi bật đường trên biểu đồ.</p>
+        <div class="atl-tablebox">
+          <table id="tb-rrg-nganh" data-source="rrg_nganh" data-row-key="khung,nganh,tuan">
+            <thead><tr><th data-field="nganh">Ngành</th><th data-source="goc_nganh" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <table id="tb-rrg-ma" data-source="rrg_ma" data-row-key="khung,ma,so_voi,tuan" hidden>
+            <thead><tr><th data-field="ma">Mã</th><th data-source="goc_ma" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="atl-dv" data-view="tk">
+      <h2 class="atl-dvh">Thanh khoản &amp; giá</h2>
+    <div class="atl-controls">
+      <div class="atl-seg" role="group" aria-label="Khung thời gian">
+        <button type="button" id="dt-10" aria-pressed="true">10 phiên</button>
+        <button type="button" id="dt-20" aria-pressed="false">20 phiên</button>
+      </div>
+      <div class="atl-seg" role="group" aria-label="Xem theo">
+        <button type="button" id="dt-bn" aria-pressed="true">Theo ngành</button>
+        <button type="button" id="dt-bm" aria-pressed="false">Theo mã</button>
+      </div>
+      <span class="atl-note">So với giá trị giao dịch trung bình 60 phiên.</span>
+    </div>
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-tien-gia">
+        <h2 class="atl-h">Thanh khoản và giá</h2>
+        <p class="atl-note" id="tien-note">80 mã thanh khoản lớn nhất HOSE. Ngang: thanh khoản so với bình thường (1× = bình thường). Dọc: % giá trong kỳ. Bong bóng to = tiền giao dịch lớn. Viền đậm = <b>Cạn cung</b>: giá đi lên êm khi lực bán đã cạn.</p>
+        <div class="atl-chart" id="ch-tien" data-source="dong_tien_ma" style="min-height:22rem"></div>
+      </div>
+      <div class="atl-card atl-wide" id="card-nganh">
+        <h2 class="atl-h">Thanh khoản theo ngành</h2>
+        <p class="atl-note">Tỷ trọng: phần trăm tiền giao dịch toàn HOSE của nhóm, kèm thay đổi so với bình thường (xanh = được chia phần nhiều hơn). Thanh khoản nhóm: so với mức bình thường của chính nhóm. Nhãn <b>Cạn cung</b>: nhóm đi lên êm khi lực bán đã cạn; dấu hiệu để chú ý, không phải tín hiệu mua.</p>
+        <div class="atl-tablebox">
+          <table id="tb-nganh" data-source="dong_tien_nganh" data-row-key="nganh">
+            <thead><tr>
+              <th data-field="nganh">Ngành</th>
+              <th class="num" data-field="ty_trong20">Tỷ trọng 20p</th>
+              <th class="num" data-field="thay_doi">Thay đổi</th>
+              <th class="num" data-field="tk_nganh">Thanh khoản ngành</th>
+              <th class="num" data-field="gia20">% giá 20p</th>
+              <th data-field="trang_thai">Trạng thái</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="atl-card atl-wide" id="card-top">
+        <h2 class="atl-h">Top 20 mã thanh khoản lớn nhất (GTGD trung bình 20 phiên)</h2>
+        <div class="atl-tablebox">
+          <table id="tb-top" data-source="dong_tien_ma" data-row-key="ma">
+            <thead><tr>
+              <th data-field="ma"><button data-k="ma">Mã</button></th>
+              <th data-field="nganh"><button data-k="nganh">Ngành</button></th>
+              <th class="num" data-field="gia"><button data-k="gia">Giá</button></th>
+              <th class="num" data-field="gtgd20"><button data-k="gtgd20">GTGD TB20 (tỷ)</button></th>
+              <th class="num" id="th-tien" data-field="tien10"><button data-k="tien">Thanh khoản (lần)</button></th>
+              <th class="num" id="th-gia" data-field="gia10"><button data-k="pgia">% giá</button></th>
+              <th id="th-nd" data-field="trang_thai10">Trạng thái</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+  <p class="atl-note" id="nguon">Nguồn: giá ngày HOSE từ bảng giá Vietcap, tính theo quy tắc nhiệt kế ATL v1.2 · v1.4. Tham khảo, không phải khuyến nghị đầu tư.</p>
+  <div class="atl-ttip" id="atl-ttip" role="tooltip" hidden></div>
+</div>
+
+<script>
+(() => {
+  const Z = {
+    1: { tag: 'Thị trường lạnh, ít cơ hội nhưng rủi ro đã giảm.', ten: 'Nghỉ đông', vung: '< 45', tt: '10–30%', ct: 'Giữ tiền là chính; chỉ thăm dò nhỏ với mã thật mạnh.', c: 'var(--s1)' },
+    2: { tag: 'Mùa khó kiếm tiền nhất trong năm.', ten: 'Giáp hạt · Hỗn độn', vung: '45–55, đi xuống', tt: 'Tối đa 30%', ct: 'Phòng thủ; chỉ mua mã mạnh ở nhịp điều chỉnh sâu, chốt lời nhanh.', c: 'var(--s2)' },
+    7: { tag: 'Thị trường bắt đầu ấm lên, thời điểm gieo hạt.', ten: 'Đầu xuân · Gieo hạt', vung: '45–55, đi lên', tt: 'Tối đa 30%', ct: 'Bắt đầu gieo hạt từ từ vào các mã mạnh nhất của ngành dẫn sóng.', c: 'var(--s7)' },
+    3: { tag: 'Mùa thuận lợi, hiệu ứng kiếm tiền lan rộng.', ten: 'Ra hoa', vung: '55–65', tt: 'Tối đa 50%', ct: 'Có thể tăng dần vị thế; ưu tiên mã dẫn dắt ở nhịp điều chỉnh.', c: 'var(--s3)' },
+    4: { tag: 'Mùa kiếm tiền tốt nhất trong năm.', ten: 'Đầu hạ · Lúa chín', vung: '65–70', tt: '80–100%, không margin', ct: 'Nắm giữ là chính; không mua đuổi, không dùng margin.', c: 'var(--s4)' },
+    5: { tag: 'Thị trường nóng, giữ thành quả là chính.', ten: 'Đầu thu · Thân cá', vung: '70–75', tt: 'Giữ, không mở rộng', ct: 'Giữ lệnh, không mở rộng vị thế.', c: 'var(--s5)' },
+    6: { tag: 'Hưng phấn cao độ, mùa thu hoạch.', ten: 'Cuối thu · Thu hoạch', vung: '≥ 75', tt: 'Hạ về ~40%', ct: 'Không mua mới; chốt lời từng phần.', c: 'var(--s6)' },
+  };
+  const RAWNAME = { 1: 'Nghỉ đông', 2: 'vùng 45–55', 3: 'Ra hoa', 4: 'Lúa chín', 5: 'Thân cá', 6: 'Thu hoạch' };
+  const BANDS = [[0, 45, 1], [45, 55, 2], [55, 65, 3], [65, 70, 4], [70, 75, 5], [75, 100, 6]];
+  window.atlZ = Z;
+  const f1 = d3.format('.1f'), f0 = d3.format(',.0f');
+  const dm = d3.utcFormat('%d/%m'), dmy = d3.utcFormat('%d/%m/%Y');
+  const P = (s) => new Date(s + 'T00:00:00Z');
+
+  /* ---------- tabs ---------- */
+  const tabs = [...document.querySelectorAll('.atl-tab')];
+  window.atlShow = (id) => {
+    if (id === 'nhiet-ke') id = 'hom-nay';
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.sec === id)));
+    document.querySelectorAll('.atl-sec').forEach((s) => (s.hidden = s.id !== id));
+    window.atlTab = id;
+    if (window.atlRedraw) window.atlRedraw();
+  };
+  tabs.forEach((t) => t.addEventListener('click', () => { window.atlShow(t.dataset.sec); dash.setLink(t.dataset.sec); }));
+  window.atlTab = 'hom-nay';
+  let dvView = 'all';
+  try { dvView = localStorage.getItem('atl-dv') || 'all'; } catch (e) {}
+  window.atlVis = (v) => window.atlTab === 'dong-tien' && (dvView === 'all' || dvView === v);
+  const dvBtns = [...document.querySelectorAll('.atl-subnav button[data-v]')];
+  window.atlDV = (v, scroll) => {
+    dvView = v;
+    dvBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    document.querySelectorAll('.atl-dv').forEach((d) => (d.hidden = !(v === 'all' || d.dataset.view === v)));
+    try { localStorage.setItem('atl-dv', v); } catch (e) {}
+    if (window.atlRedraw) window.atlRedraw();
+    if (scroll) { const sub = document.querySelector('.atl-subnav'); if (sub) sub.scrollIntoView({ block: 'start' }); }
+  };
+  dvBtns.forEach((b) => b.addEventListener('click', () => window.atlDV(b.dataset.v, true)));
+  window.atlDV(dvView, false);
+
+  const tip = (box) => {
+    let el = box.querySelector('.atl-tip');
+    if (!el) { el = document.createElement('div'); el.className = 'atl-tip'; el.hidden = true; box.appendChild(el); }
+    return el;
+  };
+  window.atlTip = tip;
+  const placeTip = (el, box, x, y) => {
+    el.hidden = false;
+    const bw = box.clientWidth, w = el.offsetWidth, h = el.offsetHeight;
+    let left = x + 14; if (left + w > bw) left = x - w - 14; if (left < 0) left = 0;
+    let top = y - h - 10; if (top < 0) top = y + 14;
+    el.style.left = left + 'px'; el.style.top = top + 'px';
+  };
+  window.atlPlaceTip = placeTip;
+  const failLine = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'atl-fail'; d.textContent = 'Failed to load'; el.appendChild(d); };
+  window.atlFail = failLine;
+
+  function draw() {
+    const nk = dash.data('nhiet_ke');
+    const take = document.getElementById('take');
+    if (nk.status !== 'ok' || !nk.data.length) {
+      if (nk.status === 'error') { take.classList.remove('dash-skeleton'); take.textContent = 'Không tải được dữ liệu nhiệt kế.'; }
+      ['thang-do', 'tp-bars', 'ch-lich-su'].forEach((id) => { const e = document.getElementById(id); if (nk.status === 'error') failLine(e); else e.replaceChildren(); });
+      return;
+    }
+    const rows = nk.data.map((r) => ({ ...r, d: P(r.ngay), vung: +r.vung, tho: +r.tho, tb7: +r.tb7, diem: r.diem == null ? null : +r.diem, vni: +r.vni }));
+    const last = rows[rows.length - 1];
+    const z = Z[last.vung];
+    // dem phien lien tiep o vung tho hien tai
+    let n = 0; for (let i = rows.length - 1; i >= 0 && rows[i].tho === last.tho; i--) n++;
+    const confirmed = (last.vung === 7 ? 2 : last.vung) === last.tho;
+    const where = 'ngay=' + encodeURIComponent(last.ngay);
+
+    /* takeaway */
+    take.classList.remove('dash-skeleton');
+    take.replaceChildren();
+    const add = (t, b, field) => {
+      const s = document.createElement(b ? 'b' : 'span'); s.textContent = t;
+      if (field) { s.dataset.source = 'nhiet_ke'; s.dataset.field = field; s.dataset.where = where; }
+      take.appendChild(s);
+    };
+    add(dmy(last.d) + ': mùa '); add(z.ten, true); add(', TB7 '); add(f1(last.tb7), true, 'tb7'); add('. ' + z.tag);
+
+    /* mua hien tai */
+    const mt = document.getElementById('mua-ten'); mt.classList.remove('dash-skeleton'); mt.textContent = z.ten; mt.style.color = ''; document.querySelector('.atl').dataset.season = String(last.vung);
+    document.getElementById('mua-tt').textContent = z.tag;
+    const tbEl = document.getElementById('mua-tb7'); tbEl.textContent = f1(last.tb7); tbEl.dataset.where = where;
+    const dEl = document.getElementById('mua-diem'); dEl.textContent = last.diem == null ? '—' : f0(last.diem); dEl.dataset.where = where;
+    document.getElementById('mua-xn').textContent = confirmed ? 'Ổn định' : 'Đang chuyển dần sang ' + RAWNAME[last.tho] + ', chưa đổi mùa';
+    document.getElementById('mua-ct').textContent = z.ct;
+    drawScale(document.getElementById('thang-do'), last);
+
+    /* thanh phan */
+    document.getElementById('tp-ngay').textContent = 'Phiên ' + dmy(last.d) + ' · thang 0–100, 50 là trung tính';
+    const tb = document.getElementById('tp-bars'); tb.replaceChildren();
+    [['do_rong', 'Độ rộng', 25], ['hukt', 'Hiệu ứng kiếm tiền', 25], ['tran_san', 'Trần − sàn', 20], ['thanh_khoan', 'Thanh khoản', 15]].forEach(([k, lab, w]) => {
+      const v = last[k] == null ? null : +last[k];
+      const row = document.createElement('div'); row.className = 'atl-bar';
+      const l = document.createElement('span'); l.textContent = lab;
+      const tr = document.createElement('div'); tr.className = 'track';
+      const fi = document.createElement('div'); fi.className = 'fill'; fi.style.width = (v == null ? 0 : Math.max(0, Math.min(100, v))) + '%';
+      fi.style.background = v == null ? 'transparent' : v >= 55 ? 'var(--z3)' : v < 45 ? 'var(--z6)' : 'var(--z2)';
+      tr.appendChild(fi);
+      const val = document.createElement('span'); val.className = 'val'; val.textContent = v == null ? '—' : f0(v);
+      val.dataset.source = 'nhiet_ke'; val.dataset.field = k; val.dataset.where = where;
+      row.append(l, tr, val); tb.appendChild(row);
+    });
+    const raw = document.getElementById('tp-raw'); raw.replaceChildren();
+    const sp = (t, f) => { const s = document.createElement('span'); s.textContent = t; if (f) { s.dataset.source = 'nhiet_ke'; s.dataset.field = f; s.dataset.where = where; } raw.appendChild(s); };
+    sp(f0(last.tang), 'tang'); sp(' mã tăng / '); sp(f0(last.giam), 'giam'); sp(' giảm · '); sp(f0(last.tran), 'tran'); sp(' trần / '); sp(f0(last.san), 'san'); sp(' sàn · GTGD khớp ước tính '); sp(f0(last.gtgd), 'gtgd'); sp(' tỷ · VN-Index '); sp(d3.format(',.2f')(last.vni), 'vni');
+
+    /* legend + lich su */
+    const lg = document.getElementById('lg-mua'); lg.replaceChildren();
+    [1, 2, 7, 3, 4, 5, 6].forEach((k) => { const s = document.createElement('span'); const d = document.createElement('i'); d.className = 'atl-dot'; d.style.background = Z[k].c; s.append(d, document.createTextNode(Z[k].ten)); lg.appendChild(s); });
+    if (window.atlTab === 'hom-nay') drawHistory(document.getElementById('ch-lich-su'), rows);
+  }
+
+  function drawScale(box, last) {
+    const W = Math.max(260, box.clientWidth), H = 74, m = { l: 4, r: 4 };
+    const x = d3.scaleLinear([20, 90], [m.l, W - m.r]).clamp(true);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img')
+      .attr('aria-label', 'Thang nhiệt kế, TB7 ' + f1(last.tb7));
+    const g = svg.append('g').attr('transform', 'translate(0,30)');
+    BANDS.forEach(([a, b, k]) => {
+      g.append('rect').attr('x', x(Math.max(a, 20))).attr('width', x(Math.min(b, 90)) - x(Math.max(a, 20)) - 1).attr('y', 0).attr('height', 12)
+        .attr('rx', 3).attr('fill', Z[k].c).attr('opacity', k === (last.vung === 7 ? 2 : last.vung) ? 1 : 0.35);
+    });
+    [45, 55, 65, 70, 75].forEach((t) => g.append('text').attr('x', x(t)).attr('y', 30).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)')
+      .style('font-size', '11px').text(t));
+    if (last.diem != null) g.append('line').attr('x1', x(last.diem)).attr('x2', x(last.diem)).attr('y1', -4).attr('y2', 16).attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 1.5);
+    const tx = x(last.tb7);
+    g.append('path').attr('d', `M${tx - 7},-14 L${tx + 7},-14 L${tx},-3 Z`).attr('fill', 'var(--color-fg)');
+    g.append('text').attr('y', -17).attr('fill', 'var(--color-fg)').style('font-size', '12px').style('font-weight', 600).text('TB7 ' + f1(last.tb7))
+      .attr('x', Math.min(Math.max(tx, 37), W - 37)).attr('text-anchor', 'middle');
+    box.replaceChildren(svg.node());
+  }
+
+  function drawHistory(box, rows) {
+    const W = Math.max(300, box.clientWidth), H = W < 520 ? 400 : 360;
+    const m = { l: 8, r: 8, t: 10, b: 24 }, gap = 26;
+    const h1 = Math.round((H - m.t - m.b - gap) * 0.55), h2 = H - m.t - m.b - gap - h1;
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'VN-Index và nhiệt kế TB7 theo thời gian');
+    const yV = d3.scaleLinear(d3.extent(rows, (r) => r.vni), [m.t + h1, m.t]).nice();
+    const yT = d3.scaleLinear([25, 90], [m.t + h1 + gap + h2, m.t + h1 + gap]);
+    // do rong nhan truc y
+    const lw = f0(yV.domain()[1]).length * 6.8;
+    const L = m.l + lw + 8;
+    const x = d3.scaleUtc(d3.extent(rows, (r) => r.d), [L, W - m.r]);
+    const step = (W - m.r - L) / Math.max(1, rows.length - 1);
+    // nen mua
+    let s = 0;
+    for (let i = 1; i <= rows.length; i++) {
+      if (i === rows.length || rows[i].vung !== rows[s].vung) {
+        const x0 = x(rows[s].d) - step / 2, x1 = (i === rows.length ? x(rows[i - 1].d) : x(rows[i].d)) - step / 2 + (i === rows.length ? step : 0);
+        [[m.t, h1], [m.t + h1 + gap, h2]].forEach(([y0, hh]) => svg.append('rect').attr('x', Math.max(L, x0)).attr('width', Math.max(0, Math.min(W - m.r, x1) - Math.max(L, x0)))
+          .attr('y', y0).attr('height', hh).attr('fill', Z[rows[s].vung].c).attr('opacity', 0.18));
+        s = i;
+      }
+    }
+    // luoi + truc
+    yV.ticks(4).forEach((t) => {
+      svg.append('line').attr('x1', L).attr('x2', W - m.r).attr('y1', yV(t)).attr('y2', yV(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', L - 6).attr('y', yV(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(f0(t));
+    });
+    [45, 55, 65, 70, 75].forEach((t) => {
+      svg.append('line').attr('x1', L).attr('x2', W - m.r).attr('y1', yT(t)).attr('y2', yT(t)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '3 3');
+      if (t !== 70) svg.append('text').attr('x', L - 6).attr('y', yT(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(t); // 70 sát 65 và 75, bỏ nhãn để không chồng, vẫn giữ vạch đứt
+    });
+    svg.append('text').attr('x', L + 4).attr('y', m.t + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('VN-Index');
+    svg.append('text').attr('x', L + 4).attr('y', m.t + h1 + gap - 6).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('Nhiệt kế (TB7 và điểm phiên)');
+    // truc x theo thang
+    const xt = x.ticks(W < 520 ? 4 : 8);
+    xt.forEach((t) => svg.append('text').attr('x', x(t)).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(d3.utcFormat('%m/%Y')(t)));
+    svg.append('line').attr('x1', L).attr('x2', W - m.r).attr('y1', m.t + h1).attr('y2', m.t + h1).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('line').attr('x1', L).attr('x2', W - m.r).attr('y1', m.t + h1 + gap + h2).attr('y2', m.t + h1 + gap + h2).attr('stroke', 'var(--cds-chart-axis)');
+    // duong
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.6).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
+      .attr('d', d3.line((r) => x(r.d), (r) => yV(r.vni)));
+    svg.append('g').selectAll('circle').data(rows.filter((r) => r.diem != null)).join('circle').attr('cx', (r) => x(r.d)).attr('cy', (r) => yT(Math.max(25, Math.min(90, r.diem))))
+      .attr('r', 1.6).attr('fill', 'var(--cds-chart-muted)').attr('opacity', 0.8);
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
+      .attr('d', d3.line((r) => x(r.d), (r) => yT(r.tb7)));
+    const last = rows[rows.length - 1];
+    svg.append('circle').attr('cx', x(last.d)).attr('cy', yT(last.tb7)).attr('r', 3.5).attr('fill', dash.colors[0]);
+    svg.append('circle').attr('cx', x(last.d)).attr('cy', yV(last.vni)).attr('r', 3.5).attr('fill', 'var(--color-fg)');
+    // hover
+    const hl = svg.append('line').attr('y1', m.t).attr('y2', m.t + h1 + gap + h2).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0);
+    const el = tip(box);
+    const bis = d3.bisector((r) => r.d).center;
+    svg.append('rect').attr('x', L).attr('y', m.t).attr('width', W - m.r - L).attr('height', h1 + gap + h2).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev); const r = rows[bis(rows, x.invert(px))]; if (!r) return;
+        hl.attr('x1', x(r.d)).attr('x2', x(r.d)).attr('opacity', 1);
+        el.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = dmy(r.d) + ' · ' + Z[r.vung].ten; el.appendChild(t);
+        [['VN-Index', d3.format(',.2f')(r.vni)], ['TB7', f1(r.tb7)], ['Điểm phiên', r.diem == null ? '—' : f0(r.diem)]].forEach(([a, b]) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; el.appendChild(d); });
+        const sc = box.clientWidth / W; placeTip(el, box, x(r.d) * sc, (m.t + 30) * sc);
+      })
+      .on('pointerleave', () => { hl.attr('opacity', 0); el.hidden = true; });
+    box.replaceChildren(svg.node(), el);
+  }
+
+  window.atlDrawNK = draw;
+  dash.onData(() => { if (window.atlRedraw) window.atlRedraw(); else draw(); });
+})();
+</script>
+
+<script>
+(() => {
+  const f2 = d3.format('.2f');
+  const QN = { lead: 'Dẫn dắt', weak: 'Suy yếu', lag: 'Tụt hậu', imp: 'Cải thiện' };
+  const quad = (r, m) => (r >= 100 ? (m >= 100 ? 'lead' : 'weak') : (m >= 100 ? 'imp' : 'lag'));
+  const QC = { lead: 'var(--z3)', weak: 'var(--z4)', lag: 'var(--z6)', imp: 'var(--z1)' };
+  const enc = (s) => encodeURIComponent(String(s));
+
+  dash.calc('goc_nganh', {
+    title: 'Góc RRG của ngành', description: 'Góc phần tư theo RS-Ratio và RS-Momentum so với 100.',
+    inputs: ['rrg_nganh'],
+    fn: (rrg_nganh) => rrg_nganh.map((r) => ({ khung: r.khung, nganh: r.nganh, tuan: r.tuan, goc: r.ratio >= 100 ? (r.mom >= 100 ? 'Dẫn dắt' : 'Suy yếu') : (r.mom >= 100 ? 'Cải thiện' : 'Tụt hậu') })),
+  });
+  dash.calc('goc_ma', {
+    title: 'Góc RRG của mã', description: 'Góc phần tư theo RS-Ratio và RS-Momentum so với 100.',
+    inputs: ['rrg_ma'],
+    fn: (rrg_ma) => rrg_ma.map((r) => ({ khung: r.khung, ma: r.ma, so_voi: r.so_voi, tuan: r.tuan, goc: r.ratio >= 100 ? (r.mom >= 100 ? 'Dẫn dắt' : 'Suy yếu') : (r.mom >= 100 ? 'Cải thiện' : 'Tụt hậu') })),
+  });
+
+  const st = { mode: 'nganh', nganh: null, ben: 'VN-Index', hl: null, khung: 'Tuần', tail: 4 };
+  const $ = (id) => document.getElementById(id);
+  const bN = $('rrg-m-nganh'), bM = $('rrg-m-ma'), selN = $('rrg-nganh'), selB = $('rrg-ben'), tim = $('rrg-tim');
+  const setMode = (m) => { st.mode = m; st.hl = null; window.atlRedraw(); };
+  $('rrg-k-tuan').addEventListener('click', () => { st.khung = 'Tuần'; window.atlRedraw(); });
+  $('rrg-k-ngay').addEventListener('click', () => { st.khung = 'Ngày'; window.atlRedraw(); });
+  $('rrg-t4').addEventListener('click', () => { st.tail = 4; window.atlRedraw(); });
+  $('rrg-t8').addEventListener('click', () => { st.tail = 8; window.atlRedraw(); });
+  bN.addEventListener('click', () => setMode('nganh'));
+  bM.addEventListener('click', () => setMode('ma'));
+  selN.addEventListener('change', () => { st.nganh = selN.value; st.hl = null; window.atlRedraw(); });
+  selB.addEventListener('change', () => { st.ben = selB.value; window.atlRedraw(); });
+  tim.addEventListener('change', () => {
+    const v = tim.value.trim().toUpperCase(); const d = dash.data('rrg_ma');
+    if (d.status !== 'ok') return;
+    const r = d.data.find((x) => x.ma === v && x.khung === st.khung);
+    if (r) { st.mode = 'ma'; st.nganh = r.nganh; st.hl = v; window.atlRedraw(); }
+  });
+
+  function series(rows, key) {
+    const g = d3.group(rows, (r) => r[key]);
+    return [...g].map(([name, pts]) => ({ name, pts: pts.slice().sort((a, b) => a.tuan - b.tuan).slice(-st.tail).map((p) => ({ ...p, ratio: +p.ratio, mom: +p.mom })) }));
+  }
+
+  function draw() {
+    const A = dash.data('rrg_nganh'), B = dash.data('rrg_ma');
+    const box = $('ch-rrg');
+    bN.setAttribute('aria-pressed', String(st.mode === 'nganh')); bM.setAttribute('aria-pressed', String(st.mode === 'ma'));
+    $('rrg-nganh-lab').hidden = st.mode !== 'ma'; $('rrg-ben-lab').hidden = st.mode !== 'ma';
+    $('tb-rrg-nganh').hidden = st.mode !== 'nganh'; $('tb-rrg-ma').hidden = st.mode !== 'ma';
+    if (A.status !== 'ok' || B.status !== 'ok') { if (A.status === 'error' || B.status === 'error') window.atlFail(box); else box.replaceChildren(); return; }
+    ['rrg-k-tuan', 'rrg-k-ngay'].forEach((id) => $(id).setAttribute('aria-pressed', String((id === 'rrg-k-tuan') === (st.khung === 'Tuần'))));
+    $('rrg-t4').setAttribute('aria-pressed', String(st.tail === 4)); $('rrg-t8').setAttribute('aria-pressed', String(st.tail === 8));
+    const AD = A.data.filter((r) => r.khung === st.khung), BD = B.data.filter((r) => r.khung === st.khung);
+    const secs = series(AD, 'nganh');
+    const lastW = d3.max(AD, (r) => +r.tuan);
+    const weekRow = AD.find((r) => +r.tuan === lastW) || {};
+    // danh sach nganh: xep theo RS-Ratio tuan cuoi
+    const order = secs.slice().sort((a, b) => b.pts[b.pts.length - 1].ratio - a.pts[a.pts.length - 1].ratio).map((s) => s.name);
+    if (!st.nganh) st.nganh = order[0];
+    if (selN.options.length !== order.length) selN.replaceChildren(...order.map((n) => new Option(n, n)));
+    selN.value = st.nganh; selB.value = st.ben;
+    const dl = $('rrg-ds'); if (!dl.options.length) dl.replaceChildren(...[...new Set(BD.map((r) => r.ma))].sort().map((m) => new Option(m)));
+
+    let items, title, foot;
+    if (st.mode === 'nganh') {
+      items = secs.map((s, i) => ({ ...s, color: dash.colors[i % dash.colors.length] }));
+      title = 'RRG ngành so với VN-Index · khung ' + st.khung.toLowerCase();
+      foot = 'Chỉ số ngành = bình quân đều lợi suất các mã có GTGD TB20 ≥ 3 tỷ. Điểm cuối tính tới phiên ' + (weekRow.ngay ? d3.utcFormat('%d/%m')(new Date(weekRow.ngay + 'T00:00:00Z')) : '—') + ', đuôi ' + st.tail + (st.khung === 'Tuần' ? ' tuần.' : ' phiên.');
+    } else {
+      const ms = series(BD.filter((r) => r.nganh === st.nganh && r.so_voi === st.ben), 'ma');
+      items = ms.map((s, i) => ({ ...s, color: dash.colors[i % dash.colors.length] }));
+      if (st.ben === 'VN-Index') { const sec = secs.find((s) => s.name === st.nganh); if (sec) items.push({ ...sec, name: 'Ngành: ' + st.nganh, color: 'var(--color-fg)', isSec: true }); }
+      title = 'RRG mã ngành ' + st.nganh + (st.ben === 'VN-Index' ? ' so với VN-Index' : ' so với chỉ số ngành') + ' · khung ' + st.khung.toLowerCase();
+      foot = st.ben === 'VN-Index' ? 'Đường đen đậm là cả ngành: mã đi cùng hướng với đường đen là đang theo ngành. Mã có GTGD TB20 ≥ 5 tỷ.' : 'Tâm (100, 100) chính là ngành: mã bên phải mạnh hơn ngành, bên trái yếu hơn ngành.';
+    }
+    $('rrg-h').textContent = title; $('rrg-foot').textContent = foot;
+    if (window.atlVis('rrg')) chart(box, items);
+    table(items);
+  }
+
+  function chart(box, items) {
+    const W = Math.max(300, box.clientWidth), H = Math.min(Math.max(320, W * 0.72), 560);
+    const m = { l: 40, r: 14, t: 12, b: 34 };
+    const all = items.flatMap((s) => s.pts);
+    let ex = d3.max(all, (p) => Math.max(Math.abs(p.ratio - 100), Math.abs(p.mom - 100))) || 1;
+    ex = Math.max(1.5, ex * 1.12);
+    const x = d3.scaleLinear([100 - ex, 100 + ex], [m.l, W - m.r]), y = d3.scaleLinear([100 - ex, 100 + ex], [H - m.b, m.t]);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Biểu đồ RRG');
+    const qd = [['imp', m.l, m.t, x(100) - m.l, y(100) - m.t], ['lead', x(100), m.t, W - m.r - x(100), y(100) - m.t], ['lag', m.l, y(100), x(100) - m.l, H - m.b - y(100)], ['weak', x(100), y(100), W - m.r - x(100), H - m.b - y(100)]];
+    const QF = { lead: 'var(--q-lead)', weak: 'var(--q-weak)', lag: 'var(--q-lag)', imp: 'var(--q-imp)' };
+    qd.forEach(([k, a, b, w, h]) => svg.append('rect').attr('x', a).attr('y', b).attr('width', w).attr('height', h).attr('fill', QF[k]));
+    [['Cải thiện', m.l + 6, m.t + 14, 'start'], ['Dẫn dắt', W - m.r - 6, m.t + 14, 'end'], ['Tụt hậu', m.l + 6, H - m.b - 6, 'start'], ['Suy yếu', W - m.r - 6, H - m.b - 6, 'end']]
+      .forEach(([t, a, b, an]) => svg.append('text').attr('x', a).attr('y', b).attr('text-anchor', an).attr('fill', 'var(--color-fg-muted)').style('font-size', '12px').style('font-weight', 600).text(t));
+    svg.append('line').attr('x1', x(100)).attr('x2', x(100)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(100)).attr('y2', y(100)).attr('stroke', 'var(--cds-chart-axis)');
+    x.ticks(5).forEach((t) => svg.append('text').attr('x', x(t)).attr('y', H - m.b + 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(t));
+    y.ticks(5).forEach((t) => svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(t));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('RS-Ratio →');
+    svg.append('text').attr('transform', `translate(11,${m.t + 4}) rotate(90)`).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('RS-Momentum →');
+    const el = window.atlTip(box);
+    const ln = d3.line((p) => x(p.ratio), (p) => y(p.mom));
+    const any = !!st.hl;
+    items.forEach((s) => {
+      const on = !any || st.hl === s.name || (s.isSec && st.hl === s.name);
+      const g = svg.append('g').attr('opacity', on ? 1 : 0.18).style('cursor', 'pointer');
+      g.append('path').attr('d', ln(s.pts)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', s.isSec ? 3 : 1.6)
+        .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('opacity', 0.75);
+      s.pts.forEach((p, i) => { if (i < s.pts.length - 1) g.append('circle').attr('cx', x(p.ratio)).attr('cy', y(p.mom)).attr('r', 1.8).attr('fill', s.color).attr('opacity', 0.4 + 0.6 * i / s.pts.length); });
+      const h = s.pts[s.pts.length - 1];
+      g.append('circle').attr('cx', x(h.ratio)).attr('cy', y(h.mom)).attr('r', s.isSec ? 6 : 5).attr('fill', s.color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
+      const short = s.isSec ? 'Ngành' : (s.name.length > 14 ? s.name.slice(0, 13) + '…' : s.name);
+      const tx = x(h.ratio) + 8 > W - 60 ? x(h.ratio) - 8 : x(h.ratio) + 8;
+      g.append('text').attr('x', tx).attr('y', y(h.mom) + 4).attr('text-anchor', x(h.ratio) + 8 > W - 60 ? 'end' : 'start').attr('fill', 'var(--color-fg)').style('font-size', '11px').text(short);
+      g.on('pointerenter', (ev) => {
+        el.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = s.name; el.appendChild(t);
+        const q = quad(h.ratio, h.mom);
+        [['Góc', QN[q]], ['RS-Ratio', f2(h.ratio)], ['RS-Momentum', f2(h.mom)], ['Đầu đuôi (' + s.pts[0].ngay.slice(8, 10) + '/' + s.pts[0].ngay.slice(5, 7) + ')', f2(s.pts[0].ratio) + ' / ' + f2(s.pts[0].mom)]].forEach(([a, b]) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; el.appendChild(d); });
+        const sc = box.clientWidth / W; window.atlPlaceTip(el, box, x(h.ratio) * sc, y(h.mom) * sc);
+      }).on('pointerleave', () => { el.hidden = true; })
+        .on('click', () => { st.hl = st.hl === s.name ? null : s.name; window.atlRedraw(); });
+    });
+    box.replaceChildren(svg.node(), el);
+  }
+
+  function table(items) {
+    const isN = st.mode === 'nganh';
+    const tb = document.querySelector(isN ? '#tb-rrg-nganh tbody' : '#tb-rrg-ma tbody');
+    const rows = items.filter((s) => !s.isSec).map((s) => ({ s, h: s.pts[s.pts.length - 1] }));
+    const rank = { lead: 0, imp: 1, weak: 2, lag: 3 };
+    rows.sort((a, b) => rank[quad(a.h.ratio, a.h.mom)] - rank[quad(b.h.ratio, b.h.mom)] || b.h.ratio - a.h.ratio);
+    tb.replaceChildren(...rows.map(({ s, h }) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = isN ? enc(h.khung) + ',' + enc(h.nganh) + ',' + enc(h.tuan) : enc(h.khung) + ',' + enc(h.ma) + ',' + enc(h.so_voi) + ',' + enc(h.tuan);
+      if (st.hl === s.name) tr.className = 'on';
+      const q = quad(h.ratio, h.mom);
+      const c1 = document.createElement('td'); c1.textContent = isN ? h.nganh : h.ma;
+      const c2 = document.createElement('td'); const pill = document.createElement('span'); pill.className = 'atl-pill';
+      const dt = document.createElement('i'); dt.className = 'atl-dot'; dt.style.background = QC[q]; pill.append(dt, document.createTextNode(QN[q])); c2.appendChild(pill);
+      const c3 = document.createElement('td'); c3.className = 'num'; c3.textContent = f2(h.ratio);
+      const c4 = document.createElement('td'); c4.className = 'num'; c4.textContent = f2(h.mom);
+      tr.append(c1, c2, c3, c4);
+      tr.addEventListener('click', () => { st.hl = st.hl === s.name ? null : s.name; window.atlRedraw(); });
+      return tr;
+    }));
+  }
+  window.atlDrawRRG = draw;
+})();
+</script>
+
+<script>
+(() => {
+  const st = { k: 10, sort: 'gtgd20', dir: -1, by: 'nganh' };
+  const $ = (id) => document.getElementById(id);
+  const fp = d3.format('+.1f'), f2 = d3.format('.2f'), f0 = d3.format(',.0f'), f1 = d3.format(',.1f');
+  const ND = (t, p, r) => r['trang_thai' + st.k] || ((t >= 1 ? 'Thanh khoản tăng' : 'Thanh khoản giảm') + ' · giá ' + (p >= 0 ? 'tăng' : 'giảm'));
+  const CC = (t, p, r) => ND(t, p, r) === 'Cạn cung';
+  const NC = { 'Thanh khoản tăng · giá tăng': 'var(--z3)', 'Thanh khoản tăng · giá giảm': 'var(--z6)', 'Thanh khoản giảm · giá tăng': 'var(--z4)', 'Thanh khoản giảm · giá giảm': 'var(--z2)', 'Cạn cung': 'var(--z4)' };
+  const set = (k) => { st.k = k; window.atlRedraw(); };
+  $('dt-10').addEventListener('click', () => set(10));
+  $('dt-20').addEventListener('click', () => set(20));
+  $('dt-bn').addEventListener('click', () => { st.by = 'nganh'; window.atlRedraw(); });
+  $('dt-bm').addEventListener('click', () => { st.by = 'ma'; window.atlRedraw(); });
+  const NOTE_MA = 'Ngang: thanh khoản so với bình thường (1× = bình thường). Dọc: % giá trong kỳ. Bong bóng to = tiền giao dịch lớn. Viền đậm = <b>Cạn cung</b>: giá đi lên êm khi lực bán đã cạn.';
+  document.querySelectorAll('#tb-top th button').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.k; st.dir = st.sort === k ? -st.dir : (k === 'ma' || k === 'nganh' ? 1 : -1); st.sort = k; window.atlRedraw();
+  }));
+
+  function draw() {
+    $('dt-10').setAttribute('aria-pressed', String(st.k === 10)); $('dt-20').setAttribute('aria-pressed', String(st.k === 20));
+    const T = 'tien' + st.k, G = 'gia' + st.k;
+    $('th-tien').dataset.field = T; $('th-gia').dataset.field = G; $('th-nd').dataset.field = 'trang_thai' + st.k;
+    $('th-tien').querySelector('button').textContent = 'Thanh khoản ' + st.k + 'p (lần)';
+    $('th-gia').querySelector('button').textContent = '% giá ' + st.k + 'p';
+    const D = dash.data('dong_tien_ma'), S = dash.data('dong_tien_nganh');
+    const box = $('ch-tien'), tb = document.querySelector('#tb-top tbody'), nb = document.querySelector('#tb-nganh tbody');
+    if (D.status !== 'ok') { if (D.status === 'error') window.atlFail(box); else box.replaceChildren(); tb.replaceChildren(); }
+    else {
+      const rows = D.data.map((r) => ({ ...r, gia: +r.gia, gtgd20: +r.gtgd20, t: +r[T], p: +r[G] })).map((r) => ({ ...r, cc: CC(r.t, r.p, r) }));
+      $('dt-bn').setAttribute('aria-pressed', String(st.by === 'nganh')); $('dt-bm').setAttribute('aria-pressed', String(st.by === 'ma'));
+      if (st.by === 'ma') {
+        $('tien-note').innerHTML = '80 mã thanh khoản lớn nhất HOSE. ' + NOTE_MA;
+        if (window.atlVis('tk')) scatter(box, rows.map((r) => ({ ...r, lb: r.ma })));
+      } else {
+        $('tien-note').innerHTML = 'Mỗi bong bóng là một ngành (gộp các mã trong ngành). ' + NOTE_MA;
+        const sr = S.status === 'ok' ? S.data.map((r) => {
+          const t = +(r['tk' + st.k] ?? r.tk_nganh), p = +(r['gia' + st.k] ?? r.gia20);
+          const o = { ...r, lb: r.nganh, nganhRow: true, t, p, gtgd20: +r.gtgd20_tb, ['trang_thai' + st.k]: r['trang_thai' + st.k] || r.trang_thai };
+          return { ...o, cc: CC(t, p, o) };
+        }).filter((r) => isFinite(r.t) && isFinite(r.p)) : [];
+        if (window.atlVis('tk')) { if (sr.length) scatter(box, sr); else box.replaceChildren(); }
+      }
+      const top = rows.slice().sort((a, b) => b.gtgd20 - a.gtgd20).slice(0, 20);
+      const key = { ma: (r) => r.ma, nganh: (r) => r.nganh, gia: (r) => r.gia, gtgd20: (r) => r.gtgd20, tien: (r) => r.t, pgia: (r) => r.p }[st.sort];
+      top.sort((a, b) => { const A = key(a), B = key(b); return (typeof A === 'string' ? A.localeCompare(B, 'vi') : A - B) * st.dir; });
+      document.querySelectorAll('#tb-top th').forEach((th) => { const b = th.querySelector('button'); th.removeAttribute('aria-sort'); if (b && b.dataset.k === st.sort) th.setAttribute('aria-sort', st.dir > 0 ? 'ascending' : 'descending'); });
+      tb.replaceChildren(...top.map((r) => {
+        const tr = document.createElement('tr'); tr.dataset.key = encodeURIComponent(r.ma);
+        const nd = ND(r.t, r.p, r);
+        const cells = [r.ma, r.nganh, f2(r.gia), f1(r.gtgd20), f2(r.t), fp(r.p)];
+        cells.forEach((v, i) => { const td = document.createElement('td'); td.textContent = v; if (i >= 2) td.className = 'num'; if (i === 5) td.classList.add(r.p >= 0 ? 'pos' : 'neg'); tr.appendChild(td); });
+        const td = document.createElement('td'); const pill = document.createElement('span'); pill.className = 'atl-pill';
+        const dt = document.createElement('i'); dt.className = 'atl-dot'; dt.style.background = NC[nd]; pill.append(dt, document.createTextNode(nd)); td.appendChild(pill); tr.appendChild(td);
+        return tr;
+      }));
+    }
+    if (S.status !== 'ok') { nb.replaceChildren(); }
+    else {
+      const fs = d3.format('+.1f');
+      nb.replaceChildren(...S.data.map((r) => {
+        const tr = document.createElement('tr'); tr.dataset.key = encodeURIComponent(r.nganh);
+        const up = r.tren_ma50 === true || r.tren_ma50 === 'true';
+        const st_ = r.trang_thai;
+        const vals = [[r.nganh, ''], [f1(+r.ty_trong20) + '%', 'num'], [fs(+r.thay_doi), 'num ' + (+r.thay_doi >= 0 ? 'pos' : 'neg')], [f2(+r.tk_nganh) + '×', 'num'], [fp(+r.gia20) + '%', 'num ' + (+r.gia20 >= 0 ? 'pos' : 'neg')]];
+        vals.forEach(([v, c]) => { const td = document.createElement('td'); td.textContent = v; if (c) td.className = c; tr.appendChild(td); });
+        const td = document.createElement('td'); const pill = document.createElement('span'); pill.className = 'atl-pill';
+        const dt = document.createElement('i'); dt.className = 'atl-dot'; dt.style.background = NC[st_]; pill.append(dt, document.createTextNode(st_));
+        if (st_ === 'Cạn cung') pill.style.fontWeight = '600';
+        td.appendChild(pill); tr.appendChild(td); return tr;
+      }));
+    }
+  }
+
+  function scatter(box, rows) {
+    const W = Math.max(300, box.clientWidth), H = W < 520 ? 380 : 400, m = { l: 44, r: 14, t: 14, b: 34 };
+    const tx = d3.extent(rows, (r) => r.t), py = d3.extent(rows, (r) => r.p);
+    const x = d3.scaleLog([Math.min(0.5, tx[0] * 0.92), Math.max(2, tx[1] * 1.08)], [m.l, W - m.r]);
+    const ya = Math.max(Math.abs(py[0]), Math.abs(py[1]), 5) * 1.1;
+    const y = d3.scaleLinear([-ya, ya], [H - m.b, m.t]);
+    const r = d3.scaleSqrt([0, d3.max(rows, (d) => d.gtgd20)], [2.5, W < 520 ? 14 : 20]);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Thanh khoản so với % giá');
+    const qs = [['Thanh khoản giảm · giá tăng', m.l, m.t, x(1) - m.l, y(0) - m.t], ['Thanh khoản tăng · giá tăng', x(1), m.t, W - m.r - x(1), y(0) - m.t], ['Thanh khoản giảm · giá giảm', m.l, y(0), x(1) - m.l, H - m.b - y(0)], ['Thanh khoản tăng · giá giảm', x(1), y(0), W - m.r - x(1), H - m.b - y(0)]];
+    qs.forEach(([k, a, b, w, h]) => svg.append('rect').attr('x', a).attr('y', b).attr('width', w).attr('height', h).attr('fill', NC[k]).attr('opacity', 0.08));
+    [['Thanh khoản giảm · giá tăng', m.l + 6, m.t + 14, 'start'], ['Thanh khoản tăng · giá tăng', W - m.r - 6, m.t + 14, 'end'], ['Thanh khoản giảm · giá giảm', m.l + 6, H - m.b - 6, 'start'], ['Thanh khoản tăng · giá giảm', W - m.r - 6, H - m.b - 6, 'end']]
+      .forEach(([t, a, b, an]) => svg.append('text').attr('x', a).attr('y', b).attr('text-anchor', an).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').style('font-weight', 600).text(t));
+    svg.append('line').attr('x1', x(1)).attr('x2', x(1)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    [0.5, 0.75, 1, 1.5, 2, 3].filter((t) => t >= x.domain()[0] && t <= x.domain()[1]).forEach((t) => svg.append('text').attr('x', x(t)).attr('y', H - m.b + 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(t + '×'));
+    y.ticks(6).forEach((t) => svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text((t > 0 ? '+' : '') + t + '%'));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('Thanh khoản (lần trung bình 60 phiên) →');
+    const el = window.atlTip(box);
+    const big = rows.slice().sort((a, b) => b.gtgd20 - a.gtgd20).slice(0, rows[0] && rows[0].nganhRow ? 99 : 12).map((d) => d.lb);
+    const sorted = rows.slice().sort((a, b) => b.gtgd20 - a.gtgd20);
+    sorted.forEach((d) => {
+      const k = ND(d.t, d.p, d);
+      const c = svg.append('circle').attr('cx', x(Math.max(x.domain()[0], d.t))).attr('cy', y(d.p)).attr('r', r(d.gtgd20)).attr('fill', NC[k]).attr('fill-opacity', 0.55)
+        .attr('stroke', d.cc ? 'var(--color-fg)' : NC[k]).attr('stroke-width', d.cc ? 2.5 : 1).style('cursor', 'default');
+      c.on('pointerenter', () => {
+        el.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = d.nganhRow ? d.nganh + (d.so_ma ? ' · ' + d.so_ma + ' mã' : '') : d.ma + ' · ' + d.nganh; el.appendChild(t);
+        (d.nganhRow ? [['GTGD TB20 cả ngành', f0(d.gtgd20) + ' tỷ'], ['Tỷ trọng 20p', f1(+d.ty_trong20) + '% toàn HOSE'], ['Thanh khoản ' + st.k + 'p', f2(d.t) + '×'], ['% giá ' + st.k + 'p', fp(d.p) + '%'], ['Trạng thái', k]] : [['GTGD TB20', f1(d.gtgd20) + ' tỷ'], ['Thanh khoản ' + st.k + 'p', f2(d.t) + '×'], ['% giá ' + st.k + 'p', fp(d.p) + '%'], ['Cách đỉnh 60p', fp(+d.cach_dinh60) + '%'], ['Trạng thái', k]]).forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el.appendChild(e); });
+        const sc = box.clientWidth / W; window.atlPlaceTip(el, box, x(Math.max(x.domain()[0], d.t)) * sc, y(d.p) * sc);
+      }).on('pointerleave', () => { el.hidden = true; });
+    });
+    const placed = [];
+    const hit = (a) => placed.some((b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0);
+    rows.filter((d) => d.cc || big.includes(d.lb)).sort((a, b) => (b.cc - a.cc) || (b.gtgd20 - a.gtgd20)).forEach((d) => {
+      const cx = x(Math.max(x.domain()[0], d.t)), cy = y(d.p), w = d.lb.length * 6 + 2, rr = r(d.gtgd20);
+      for (const [dx, dy] of [[0, 0], [0, -rr - 7], [0, rr + 9], [rr + w / 2 + 3, 0], [-rr - w / 2 - 3, 0]]) {
+        const bx = { x0: cx + dx - w / 2, x1: cx + dx + w / 2, y0: cy + dy - 6, y1: cy + dy + 6 };
+        if (bx.x0 < m.l || bx.x1 > W - m.r || bx.y0 < m.t || bx.y1 > H - m.b || hit(bx)) continue;
+        placed.push(bx);
+        svg.append('text').attr('x', cx + dx).attr('y', cy + dy + 4).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)')
+          .style('font-size', '10px').style('font-weight', 600).style('pointer-events', 'none').text(d.lb);
+        break;
+      }
+    });
+    box.replaceChildren(svg.node(), el);
+  }
+  window.atlDrawDT = draw;
+})();
+</script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const f2 = d3.format('.2f'), fp = d3.format('+.2f'), f0 = d3.format(',.0f');
+  const dmy = (s) => s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '—';
+  const enc = (s) => encodeURIComponent(String(s));
+  dash.calc('dem_loai', {
+    title: 'Số mã theo loại tín hiệu', description: 'Đếm số mã của từng loại trong danh sách hôm nay.',
+    inputs: ['hom_nay'],
+    fn: (hom_nay) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ', 'VÉ SỐ', 'TRỨNG RỒNG', 'BÁN THÁO'].map((loai) => ({ loai, so_ma: hom_nay.filter((r) => r.loai === loai).length })),
+  });
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const mark = (e, r, field) => { e.dataset.source = 'hom_nay'; e.dataset.field = field; e.dataset.where = 'ma=' + enc(r.ma) + '&loai=' + enc(r.loai); return e; };
+  const num = (v) => (v == null || v === '' ? null : +v);
+  const chip = (t, color, bold) => { const p = el('span', 'atl-pill'); if (color) { const d = el('i', 'atl-dot'); d.style.background = color; p.appendChild(d); } p.appendChild(document.createTextNode(t)); if (bold) p.style.fontWeight = '600'; return p; };
+
+  function ladder(r) {
+    // thang gia: cat lo, dai duoi, gia mua, gia hien tai, MA20, dai tren
+    const pts = [['Cắt lỗ', num(r.cat_lo), 'var(--color-bad)'], ['Vùng mua', num(r.dai_duoi), 'var(--cds-chart-muted)'], ['Mục tiêu 1', num(r.muc_tieu_1), 'var(--z3)'], ['Mục tiêu 2', num(r.muc_tieu_2), 'var(--z3)']].filter((p) => p[1] != null);
+    const cur = num(r.gia_hien_tai), buy = num(r.gia_mua);
+    const vals = pts.map((p) => p[1]).concat([cur, buy].filter((v) => v != null));
+    if (vals.length < 2) return null;
+    const lo = d3.min(vals), hi = d3.max(vals), pad = (hi - lo) * 0.06 || 1;
+    const W = 300, H = 50, x = d3.scaleLinear([lo - pad, hi + pad], [8, W - 8]);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Thang giá ' + r.ma);
+    svg.append('line').attr('x1', 8).attr('x2', W - 8).attr('y1', 22).attr('y2', 22).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 6).attr('stroke-linecap', 'round');
+    if (num(r.cat_lo) != null && num(r.muc_tieu_1) != null) {
+      svg.append('line').attr('x1', x(num(r.cat_lo))).attr('x2', x(buy ?? cur)).attr('y1', 22).attr('y2', 22).attr('stroke', 'var(--color-bad)').attr('stroke-opacity', .35).attr('stroke-width', 6);
+      svg.append('line').attr('x1', x(buy ?? cur)).attr('x2', x(num(r.muc_tieu_2) ?? num(r.muc_tieu_1))).attr('y1', 22).attr('y2', 22).attr('stroke', 'var(--z3)').attr('stroke-opacity', .35).attr('stroke-width', 6);
+    }
+    let lastX = -99, row = 0;
+    pts.sort((a, b) => a[1] - b[1]).forEach(([lab, v, c]) => {
+      const px = x(v);
+      svg.append('line').attr('x1', px).attr('x2', px).attr('y1', 15).attr('y2', 29).attr('stroke', c).attr('stroke-width', 2);
+      row = px - lastX < 46 ? 1 - row : 0; lastX = px;
+      svg.append('text').attr('x', px).attr('y', row ? 8 : 42).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '9.5px').text(lab);
+    });
+    if (buy != null) svg.append('circle').attr('cx', x(buy)).attr('cy', 22).attr('r', 4).attr('fill', 'var(--color-bg)').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5);
+    if (cur != null) svg.append('circle').attr('cx', x(cur)).attr('cy', 22).attr('r', 5).attr('fill', 'var(--color-fg)');
+    return svg.node();
+  }
+
+  function card(r) {
+    const c = el('div', 'atl-stock'); c.id = 'ma-' + r.ma + '-' + r.loai.replace(/\s/g, '');
+    const top = el('div', 'atl-stock-top');
+    const name = el('span', 'atl-ma', r.ma); mark(name, r, 'ma'); name.style.cursor = 'pointer'; name.title = 'Mở hồ sơ ' + r.ma; name.addEventListener('click', () => window.atlOpenProfile && window.atlOpenProfile(r.ma));
+    const chips = el('div', 'atl-chips');
+    if (r.nganh) chips.appendChild(chip(r.nganh + (r.hang_nganh ? ' · hạng ' + r.hang_nganh : '')));
+    if (r.long_dau === true || r.long_dau === 'true') chips.appendChild(chip('Long đầu ngành', 'var(--z4)', true));
+    top.append(name, chips); c.appendChild(top);
+    const lad = ladder(r); if (lad) c.appendChild(lad);
+    const kv = el('div', 'atl-kv2');
+    const add = (k, v, field, cls) => { const d = el('div'); d.appendChild(el('span', 'k', k)); const s = el('span', 'v' + (cls ? ' ' + cls : ''), v); if (field) mark(s, r, field); d.appendChild(s); kv.appendChild(d); };
+    if (r.loai === 'ĐANG GIỮ') {
+      add('Giá mua ATO', f2(num(r.gia_mua)), 'gia_mua');
+      add('Giá hiện tại', f2(num(r.gia_hien_tai)), 'gia_hien_tai');
+      add('Lãi/lỗ', fp(num(r.lai_lo_pct)) + '%', 'lai_lo_pct', num(r.lai_lo_pct) >= 0 ? 'pos' : 'neg');
+      add('Mục tiêu 1', f2(num(r.muc_tieu_1)), 'muc_tieu_1');
+      add('Mục tiêu 2', f2(num(r.muc_tieu_2)), 'muc_tieu_2');
+      add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
+    } else if (r.loai === 'VÉ SỐ' || r.loai === 'TRỨNG RỒNG') {
+      add('Giá', f2(num(r.gia_khuyen_nghi)), 'gia_khuyen_nghi');
+      add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
+      add('Ngưỡng thoát', r.st_tuan == null ? '—' : f2(num(r.st_tuan)), 'st_tuan');
+      add('Sức mạnh giá', r.rs == null ? '—' : f0(num(r.rs)), 'rs');
+      add('Tỷ trọng', r.ty_trong || '—', 'ty_trong');
+      add('Lý do', r.tin_hieu.split(' · ').slice(1).join(' · ') || '—');
+    } else if (r.loai === 'THEO DÕI') {
+      const lo = Math.min(num(r.dai_duoi), num(r.gia_khuyen_nghi)), hi = Math.max(num(r.dai_duoi), num(r.gia_khuyen_nghi));
+      const d = el('div'); d.appendChild(el('span', 'k', 'Vùng chờ'));
+      const v = el('span', 'v'); v.append(mark(el('span', '', f2(lo)), r, lo === num(r.dai_duoi) ? 'dai_duoi' : 'gia_khuyen_nghi'), document.createTextNode(' – '), mark(el('span', '', f2(hi)), r, hi === num(r.gia_khuyen_nghi) ? 'gia_khuyen_nghi' : 'dai_duoi'));
+      d.appendChild(v); kv.appendChild(d);
+      add('Mục tiêu 1', f2(num(r.muc_tieu_1)), 'muc_tieu_1');
+      add('Mục tiêu 2', f2(num(r.muc_tieu_2)), 'muc_tieu_2');
+      add('Cắt lỗ −7%', f2(num(r.cat_lo)), 'cat_lo');
+      add('Sức mạnh giá', f0(num(r.rs)), 'rs');
+      add('Thanh khoản (tỷ)', r.gtgd_tb20 == null ? '—' : f0(num(r.gtgd_tb20)), 'gtgd_tb20');
+    } else {
+      add('Giá khuyến nghị', f2(num(r.gia_khuyen_nghi)), 'gia_khuyen_nghi');
+      add('Mục tiêu 1', f2(num(r.muc_tieu_1)), 'muc_tieu_1');
+      add('Mục tiêu 2', f2(num(r.muc_tieu_2)), 'muc_tieu_2');
+      add('Cắt lỗ −7%', f2(num(r.cat_lo)), 'cat_lo');
+      add('Sức mạnh giá', f0(num(r.rs)), 'rs');
+      add('Thanh khoản (tỷ)', r.gtgd_tb20 == null ? '—' : f0(num(r.gtgd_tb20)), 'gtgd_tb20');
+    }
+    c.appendChild(kv);
+    if (r.loai === 'THEO DÕI' && num(r.dai_duoi) != null) {
+      const top = Math.max(num(r.dai_duoi), num(r.gia_khuyen_nghi)), cur = num(r.gia_hien_tai);
+      c.appendChild(el('p', 'atl-note', 'Theo dõi từ ' + dmy(r.ngay_tin_hieu) + ' · giá hiện tại ' + f2(cur) + (cur <= top ? ', đang nằm trong vùng chờ.' : ', cao hơn vùng chờ ' + d3.format('.1f')((cur / top - 1) * 100) + '%.')));
+      const dk = el('p', 'atl-note'); dk.appendChild(el('strong', '', 'Điều kiện mua: ')); dk.appendChild(document.createTextNode('đóng cửa dưới ')); dk.appendChild(mark(el('span', '', f2(num(r.dai_duoi))), r, 'dai_duoi')); dk.appendChild(document.createTextNode(' thì mua ATO phiên sau.')); c.appendChild(dk);
+    }
+    if (r.loai === 'MUA') c.appendChild(el('p', 'atl-note', 'Mua ATO phiên kế tiếp. Lãi/lỗ và cắt lỗ sẽ tính lại theo giá ATO thực tế.'));
+    return c;
+  }
+
+  function list(box, rows, empty) {
+    box.replaceChildren();
+    if (!rows.length) { const e = el('div', 'atl-empty'); e.textContent = empty; box.appendChild(e); return; }
+    const g = el('div', 'atl-stocks'); rows.forEach((r) => g.appendChild(card(r))); box.appendChild(g);
+  }
+
+  function draw() {
+    const H = dash.data('hom_nay'), N = dash.data('nhiet_ke'), B = dash.data('che_do_bao'), L = dash.data('lich_su_loc'), DC = dash.data('dong_chu_dao');
+    const Z = window.atlZ;
+    if (B.status === 'ok' && B.data.length) {
+      const r = B.data[0]; const on = r.bao_bat === true || r.bao_bat === 'true';
+      $('hn-bao').textContent = on ? 'Bật' : 'Tắt';
+      const s = $('hn-bao-s'); s.replaceChildren(document.createTextNode('VN-Index sụt sâu nhất 60 phiên '));
+      const v = el('span', null, d3.format('.1f')(+r.vni_sut_60p) + '%'); v.dataset.source = 'che_do_bao'; v.dataset.field = 'vni_sut_60p'; s.appendChild(v);
+      s.appendChild(document.createTextNode(on ? ' · bão ' + r.cap_bao : ' · cần ≤ −15% để bật'));
+    }
+    const D = dash.data('dem_loai');
+    if (D.status === 'ok') { const g = (k) => (D.data.find((x) => x.loai === k) || {}).so_ma ?? 0; $('hn-n-mua').textContent = g('MUA'); $('hn-n-giu').textContent = g('ĐANG GIỮ'); }
+    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list', 'hn-dai-list', 'hn-tranh-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
+    else {
+      const rows = H.data, by = (k) => rows.filter((r) => r.loai === k);
+      const ngay = (rows[0] && rows.find((r) => r.loai !== 'ĐANG GIỮ') || {}).ngay_tin_hieu || (N.status === 'ok' ? N.data[N.data.length - 1].ngay : '');
+      $('hn-mua-note').textContent = 'Tín hiệu tính trên giá đóng cửa phiên ' + dmy(ngay) + '; vào lệnh ATO phiên giao dịch kế tiếp.';
+      const zt = N.status === 'ok' && Z ? Z[+N.data[N.data.length - 1].vung] : null;
+      list($('hn-mua-list'), by('MUA'), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
+      list($('hn-giu-list'), by('ĐANG GIỮ'), 'Chưa có lệnh nào đang giữ.');
+      list($('hn-td-list'), by('THEO DÕI'), 'Không có mã nào sát dải dưới.');
+      list($('hn-dai-list'), by('TRỨNG RỒNG').concat(by('VÉ SỐ')), 'Không có tín hiệu lệnh dài.');
+      const LD = dash.data('lenh_dai'), tld = document.querySelector('#tb-ld tbody');
+      if (LD.status === 'ok') tld.replaceChildren(...(LD.data.length ? LD.data.map((r) => {
+        const t = el('tr'); t.dataset.key = encodeURIComponent(r.ngay) + ',' + encodeURIComponent(r.ma);
+        const v = (x) => (x == null || x === '' ? '—' : f2(+x));
+        [[r.ngay, ''], [r.loai, ''], [r.ma, ''], [v(r.gia_mua), 'num'], [v(r.gia_hien_tai), 'num'],
+         [r.lai_lo == null ? '—' : d3.format('+.2f')(+r.lai_lo), 'num ' + (r.lai_lo == null ? '' : +r.lai_lo >= 0 ? 'pos' : 'neg')], [v(r.nguong_thoat), 'num'], [r.trang_thai, '']]
+          .forEach(([x, c], i) => { const td = el('td', c, String(x)); if (i === 7 && String(x).startsWith('Đang')) td.style.fontWeight = '600'; t.appendChild(td); });
+        return t; }) : [(() => { const t = el('tr'); const td = el('td', null, 'Chưa có lệnh dài nào.'); td.colSpan = 8; t.appendChild(td); return t; })()]));
+      else tld.replaceChildren();
+      const tr = by('BÁN THÁO'), tb = $('hn-tranh-list'); tb.replaceChildren();
+      if (!tr.length) tb.appendChild(el('div', 'atl-empty', 'Phiên ' + dmy(ngay) + ' không có mã thanh khoản ≥ 10 tỷ nào bị bán tháo.'));
+      else { const w = el('div', 'atl-chips'); tr.forEach((r) => { const p = chip(r.ma, 'var(--z6)', true); p.title = r.tin_hieu; mark(p, r, 'ma'); w.appendChild(p); }); tb.appendChild(w); }
+    }
+    const tbd = document.querySelector('#tb-dcd tbody');
+    if (DC.status === 'ok') tbd.replaceChildren(...DC.data.slice(0, 8).map((r) => {
+      const t = el('tr'); t.dataset.key = enc(r.nganh);
+      [[r.hang, 'num'], [r.nganh, ''], [f0(+r.do_rong_ma20) + '%', 'num'], [((String(r.nhan_so1 || '').match(/^★+/) || [''])[0] + ' ' + (r.long_dau || '—')).trim(), '']].forEach(([v, c]) => t.appendChild(el('td', c, String(v))));
+      return t;
+    })); else tbd.replaceChildren();
+    const tls = document.querySelector('#tb-ls tbody');
+    if (L.status === 'ok') {
+      const rows = dotTheoDoi(L.data).sort((a, b) => (a.ngay < b.ngay ? 1 : -1));
+      const pct = (v) => (v == null || v === '' ? '—' : d3.format('+.2f')(+v));
+      tls.replaceChildren(...rows.map((r) => {
+        const t = el('tr'); t.dataset.key = enc(r.ngay) + ',' + enc(r.ma);
+        const mua = String(r.tin_hieu).startsWith('MUA');
+        const cells = [[r.ngay, ''], [r.ma, ''], [r.so_phien > 1 ? r.tin_hieu + ' (' + r.so_phien + ' phiên, đến ' + r.den_ngay.slice(8, 10) + '/' + r.den_ngay.slice(5, 7) + ')' : r.tin_hieu, ''], [r.gia_khuyen_nghi == null ? '—' : f2(+r.gia_khuyen_nghi), 'num'], [r.gia_mua_ato == null ? '—' : f2(+r.gia_mua_ato), 'num'],
+          [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [pct(r.lai_quy_tac), 'num'], [r.ly_do_thoat ? r.ly_do_thoat + (r.ngay_thoat ? ' (' + r.ngay_thoat.slice(8, 10) + '/' + r.ngay_thoat.slice(5, 7) + ')' : '') : (mua ? 'Đang giữ' : '—'), '']];
+        cells.forEach(([v, c], i) => { const td = el('td', c, String(v)); if (i >= 5 && i <= 7 && v !== '—') td.classList.add(+v >= 0 ? 'pos' : 'neg'); if (i === 2) td.style.fontWeight = mua ? '600' : ''; t.appendChild(td); });
+        return t;
+      }));
+    } else tls.replaceChildren();
+  }
+  // Gop cac phien theo doi lien tiep cua cung 1 ma thanh 1 dot (dot moi neu cach > 14 ngay hoac da co MUA xen giua)
+  const dotTheoDoi = (rows) => { const out = [], last = {}; rows.slice().sort((a, b) => (a.ngay < b.ngay ? -1 : a.ngay > b.ngay ? 1 : 0)).forEach((r) => {
+    const td = String(r.tin_hieu).startsWith('THEO'); if (!td) { delete last[r.ma]; out.push(r); return; }
+    const l = last[r.ma]; if (l && (new Date(r.ngay) - new Date(l.den_ngay)) / 864e5 <= 14) { l.den_ngay = r.ngay; l.so_phien += 1; return; }
+    const e = Object.assign({}, r, { den_ngay: r.ngay, so_phien: 1 }); last[r.ma] = e; out.push(e); }); return out; };
+  window.atlDrawHN = draw;
+})();
+</script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const st = { w: 10, m: 'gia', c: 'gia10', s: 'gtgd10', by: 'ma' };
+  const sync = () => { st.c = (st.m === 'gia' ? 'gia' : 'tk') + st.w; st.s = 'gtgd' + st.w; };
+  const C = { neg2: '#b5403a', neg1: '#6e3a37', zero: '#6b5f2e', pos1: '#2d6a4d', pos2: '#25a066', lo2: '#3c6f9c', lo1: '#3b5266', hi1: '#7a5a2c', hi2: '#c9862f' };
+  const modes = {
+    gia1: { lab: '% giá 1 phiên', dom: [-4, -1, 0, 1, 4], rng: [C.neg2, C.neg1, C.zero, C.pos1, C.pos2], fmt: (v) => d3.format('+.2f')(v) + '%' },
+    gia10: { lab: '% giá 10 phiên', dom: [-12, -3, 0, 3, 12], rng: [C.neg2, C.neg1, C.zero, C.pos1, C.pos2], fmt: (v) => d3.format('+.1f')(v) + '%' },
+    gia20: { lab: '% giá 20 phiên', dom: [-15, -4, 0, 4, 15], rng: [C.neg2, C.neg1, C.zero, C.pos1, C.pos2], fmt: (v) => d3.format('+.1f')(v) + '%' },
+    tk1: { lab: 'Thanh khoản phiên so với TB 60 phiên', dom: [0.4, 0.7, 1, 1.5, 3], rng: [C.lo2, C.lo1, '#55534d', C.hi1, C.hi2], fmt: (v) => d3.format('.2f')(v) + '×' },
+    tk10: { lab: 'Thanh khoản 10 phiên so với 60 phiên', dom: [0.5, 0.8, 1, 1.25, 2], rng: [C.lo2, C.lo1, '#55534d', C.hi1, C.hi2], fmt: (v) => d3.format('.2f')(v) + '×' },
+    tk20: { lab: 'Thanh khoản 20 phiên so với 60 phiên', dom: [0.5, 0.8, 1, 1.25, 2], rng: [C.lo2, C.lo1, '#55534d', C.hi1, C.hi2], fmt: (v) => d3.format('.2f')(v) + '×' },
+  };
+  [[1, 'tm-w1'], [10, 'tm-w10'], [20, 'tm-w20']].forEach(([k, id]) => $(id).addEventListener('click', () => { st.w = k; sync(); window.atlRedraw(); }));
+  $('tm-mg').addEventListener('click', () => { st.m = 'gia'; sync(); window.atlRedraw(); });
+  $('tm-ctk').addEventListener('click', () => { st.m = 'tk'; sync(); window.atlRedraw(); });
+  $('tm-bm').addEventListener('click', () => { st.by = 'ma'; window.atlRedraw(); });
+  $('tm-bn').addEventListener('click', () => { st.by = 'nganh'; window.atlRedraw(); });
+
+  function draw() {
+    [[1, 'tm-w1'], [10, 'tm-w10'], [20, 'tm-w20']].forEach(([k, id]) => $(id).setAttribute('aria-pressed', String(st.w === k)));
+    $('tm-mg').setAttribute('aria-pressed', String(st.m === 'gia')); $('tm-ctk').setAttribute('aria-pressed', String(st.m === 'tk'));
+    $('tm-bm').setAttribute('aria-pressed', String(st.by === 'ma')); $('tm-bn').setAttribute('aria-pressed', String(st.by === 'nganh'));
+    $('tm-note').textContent = st.by === 'ma' ? 'Mỗi ô là một mã có GTGD trung bình 20 phiên ≥ 3 tỷ, nhóm theo ngành. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Chạm vào ô để xem chi tiết.'
+      : 'Mỗi ô là một ngành, gộp các mã có GTGD trung bình 20 phiên ≥ 3 tỷ. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Màu = bình quân theo GTGD (mã lớn nặng ký hơn), nên có thể khác % giá bình quân đều ở bảng Thanh khoản theo ngành. Dòng mã dưới mỗi ngành: 3 mã thanh khoản lớn nhất (trung quân); 🐉 = long đầu theo bảng Xếp hạng. Chạm vào ô để xem chi tiết.';
+    const M = modes[st.c];
+    const sc = $('tm-scale'); sc.replaceChildren(document.createTextNode(M.lab + ':'));
+    M.dom.forEach((v, i) => { const sw = document.createElement('i'); sw.style.background = M.rng[i]; sc.append(' ', sw, ' ' + M.fmt(v)); });
+    const D = dash.data('ban_do_nhiet'), H = dash.data('hom_nay'), box = $('ch-tm');
+    if (D.status !== 'ok') { if (D.status === 'error') window.atlFail(box); else box.replaceChildren(); return; }
+    if (!window.atlVis('tm')) return;
+    const tag = {};
+    if (H.status === 'ok') H.data.forEach((r) => { const t = { 'MUA': 'MUA', 'ĐANG GIỮ': 'GIỮ', 'THEO DÕI': 'TD', 'BÁN THÁO': 'BT' }[r.loai]; if (t && !tag[r.ma]) tag[r.ma] = t; });
+    const isT = (v) => v === true || v === 'true';
+    const rows = D.data.map((r) => ({ ...r, val: Math.max(+r[st.s], 0.01), cv: +r[st.c], tg: tag[r.ma] || (isT(r.ban_thao) ? 'BT' : isT(r.can_cung) ? 'CC' : '') }));
+    const color = d3.scaleLinear(M.dom, M.rng).interpolate(d3.interpolateRgb).clamp(true);
+    const W = Math.max(300, box.clientWidth), Ht = W < 520 ? Math.round(W * 1.55) : Math.round(Math.min(720, W * 0.68));
+    if (st.by === 'nganh') {
+      const wavg = (ch, k) => { let a = 0, w = 0; ch.forEach((r) => { const v = +r[k], q = +r.gtgd20; if (isFinite(v) && isFinite(q)) { a += v * q; w += q; } }); return w ? a / w : NaN; };
+      const secs = d3.groups(rows, (r) => r.nganh).map(([name, ch]) => ({ name, ch: ch.slice().sort((a, b) => b.gtgd20 - a.gtgd20), val: d3.sum(ch, (r) => r.val), cv: wavg(ch, st.c),
+        g1: wavg(ch, 'gia1'), g10: wavg(ch, 'gia10'), g20: wavg(ch, 'gia20'), t10: wavg(ch, 'tk10'), gt20: d3.sum(ch, (r) => +r.gtgd20), gt1: d3.sum(ch, (r) => +r.gtgd1), nCC: ch.filter((r) => r.tg === 'CC').length }));
+      const XH = dash.data('xep_hang'), LDm = {};
+      if (XH.status === 'ok') XH.data.slice().sort((a, b) => +a.hang - +b.hang).forEach((r) => { if (!LDm[r.nhom] && +r.hang <= 3 && isT(r.tren_ma50) && r.rs60 != null && r.dong_tien !== 'Hết thời') LDm[r.nhom] = r.ma; });
+      secs.forEach((d) => { d.ld = LDm[d.name] || null; const t3 = d.ch.slice(0, 3).map((r) => r.ma); d.lab = t3.map((m) => (m === d.ld ? m + ' 🐉' : m)).join(' · ') + (d.ld && !t3.includes(d.ld) ? '  |  🐉 ' + d.ld : ''); });
+      const rt = d3.hierarchy({ children: secs }).sum((d) => d.val || 0).sort((a, b) => b.value - a.value);
+      d3.treemap().size([W, Ht]).tile(d3.treemapSquarify.ratio(1.2)).paddingInner(2).round(true)(rt);
+      const svg = d3.create('svg').attr('viewBox', [0, 0, W, Ht]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Bản đồ nhiệt HOSE gộp theo ngành');
+      const el = window.atlTip(box);
+      rt.leaves().forEach((n) => {
+        const d = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0, gg = svg.append('g').style('cursor', 'pointer');
+        gg.append('rect').attr('x', n.x0).attr('y', n.y0).attr('width', Math.max(0, w)).attr('height', Math.max(0, h)).attr('rx', 3).attr('fill', isFinite(d.cv) ? color(d.cv) : '#444');
+        if (w > 40 && h > 22) {
+          const fs = Math.max(10, Math.min(20, w / 9, h / 3.2)); let name = d.name; const max = Math.floor(w / (fs * 0.58));
+          if (name.length > max) name = name.slice(0, Math.max(3, max - 1)) + '…';
+          const cy = n.y0 + h / 2 - (h > 40 ? fs * 0.2 : -fs * 0.35);
+          gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy).attr('text-anchor', 'middle').attr('fill', '#fff').style('font-size', fs + 'px').style('font-weight', 700).text(name);
+          if (h > 40) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.05).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.7) + 'px').style('font-weight', 600).text(isFinite(d.cv) ? M.fmt(d.cv) : '—');
+          if (h > 70 && w > 90) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.9).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.7)').style('font-size', '10px').text(d.lab);
+        }
+        const show = () => {
+          el.replaceChildren();
+          const t = document.createElement('div'); t.className = 't'; t.textContent = d.name + ' · ' + d.ch.length + ' mã'; el.appendChild(t);
+          [['% giá 1 / 10 / 20 phiên (theo GTGD)', d3.format('+.2f')(d.g1) + '% / ' + d3.format('+.1f')(d.g10) + '% / ' + d3.format('+.1f')(d.g20) + '%'],
+           ['GTGD phiên / TB20', d3.format(',.0f')(d.gt1) + ' / ' + d3.format(',.0f')(d.gt20) + ' tỷ'], ['Thanh khoản 10p', d3.format('.2f')(d.t10) + '×'], ['Mã cạn cung', String(d.nCC)]]
+            .forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el.appendChild(e); });
+          { const e = document.createElement('div'); e.style.fontWeight = '600'; e.textContent = d.ld ? '🐉 Long đầu: ' + d.ld + (d.ch.find((r) => r.ma === d.ld) ? ' ' + M.fmt(d.ch.find((r) => r.ma === d.ld).cv) : '') : '🐉 Chưa có mã dẫn dắt'; el.appendChild(e); }
+          { const e = document.createElement('div'); e.style.fontWeight = '600'; e.textContent = 'Trung quân (thanh khoản lớn nhất):'; el.appendChild(e); }
+          d.ch.slice(0, 5).forEach((r) => { const e = document.createElement('div'); e.textContent = r.ma + (r.ma === d.ld ? ' 🐉' : '') + ' ' + M.fmt(r.cv) + ' · ' + d3.format(',.0f')(+r.gtgd20) + ' tỷ'; el.appendChild(e); });
+          const k = box.clientWidth / W; window.atlPlaceTip(el, box, (n.x0 + w / 2) * k, n.y0 * k + 6);
+        };
+        gg.on('pointerenter', show).on('click', show).on('pointerleave', () => { el.hidden = true; });
+      });
+      box.replaceChildren(svg.node(), el); return;
+    }
+    const groups = d3.groups(rows, (r) => r.nganh).map(([name, ch]) => ({ name, children: ch }));
+    const root = d3.hierarchy({ name: 'HOSE', children: groups }).sum((d) => d.val || 0).sort((a, b) => b.value - a.value);
+    d3.treemap().size([W, Ht]).tile(d3.treemapSquarify.ratio(1.2)).paddingOuter(2).paddingTop(18).paddingInner(1.5).round(true)(root);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, Ht]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Bản đồ nhiệt HOSE theo ngành');
+    const el = window.atlTip(box);
+    root.children.forEach((g) => {
+      svg.append('rect').attr('x', g.x0).attr('y', g.y0).attr('width', g.x1 - g.x0).attr('height', g.y1 - g.y0).attr('rx', 4).attr('fill', 'var(--color-panel)').attr('stroke', 'var(--color-border-line)');
+      const w = g.x1 - g.x0 - 8;
+      if (w > 24) {
+        let name = g.data.name.toUpperCase(); const max = Math.floor(w / 6.4);
+        if (name.length > max) name = name.slice(0, Math.max(2, max - 1)) + '…';
+        svg.append('text').attr('x', g.x0 + 5).attr('y', g.y0 + 13).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').style('font-weight', 600).style('letter-spacing', '.03em').text(name);
+      }
+    });
+    root.leaves().forEach((n) => {
+      const d = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0;
+      const gg = svg.append('g').style('cursor', 'pointer');
+      gg.append('rect').attr('x', n.x0).attr('y', n.y0).attr('width', Math.max(0, w)).attr('height', Math.max(0, h)).attr('rx', 2).attr('fill', color(d.cv));
+      const big = w > 90 && h > 60, mid = w > 40 && h > 30;
+      if (w > 26 && h > 14) {
+        const fs = big ? Math.min(22, Math.max(14, w / 6)) : mid ? 12 : 10;
+        const cy = n.y0 + h / 2 + (mid ? -fs * 0.15 : fs * 0.35);
+        gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy).attr('text-anchor', 'middle').attr('fill', '#fff').style('font-size', fs + 'px').style('font-weight', 700).text(d.ma);
+        if (mid) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 0.95).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.62) + 'px').style('font-weight', 600).text(M.fmt(d.cv));
+        if (big && h > 90) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.75).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.7)').style('font-size', '10px').text(String(d.ten).slice(0, Math.floor(w / 6)));
+      }
+      if (d.tg && w > 30 && h > 26) {
+        const tw = d.tg.length * 6.5 + 6;
+        gg.append('rect').attr('x', n.x1 - tw - 2).attr('y', n.y0 + 2).attr('width', tw).attr('height', 13).attr('rx', 3).attr('fill', d.tg === 'BT' ? '#000' : '#fff').attr('opacity', 0.85);
+        gg.append('text').attr('x', n.x1 - tw / 2 - 2).attr('y', n.y0 + 12).attr('text-anchor', 'middle').attr('fill', d.tg === 'BT' ? '#fff' : '#111').style('font-size', '9px').style('font-weight', 700).text(d.tg);
+      }
+      const show = (ev) => {
+        el.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = d.ma + ' · ' + d.ten + ' · ' + d.nganh; el.appendChild(t);
+        [['Giá', d3.format('.2f')(+d.gia)], ['% giá 1 / 10 / 20 phiên', d3.format('+.2f')(+d.gia1) + '% / ' + d3.format('+.1f')(+d.gia10) + '% / ' + d3.format('+.1f')(+d.gia20) + '%'],
+         ['GTGD phiên / TB20', d3.format(',.1f')(+d.gtgd1) + ' / ' + d3.format(',.1f')(+d.gtgd20) + ' tỷ'], ['Thanh khoản 10p', d3.format('.2f')(+d.tk10) + '×'],
+         ['Cách đỉnh 60 phiên', d3.format('+.1f')(+d.cach_dinh60) + '%' + (isT(d.tren_ma50) ? ' · trên MA50' : ' · dưới MA50')]].forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el.appendChild(e); });
+        if (d.tg) { const e = document.createElement('div'); e.style.fontWeight = '600'; e.textContent = { MUA: 'Bộ lọc: MUA', 'GIỮ': 'Bộ lọc: đang giữ', TD: 'Bộ lọc: theo dõi', CC: 'Cạn cung', BT: 'Đang bị bán tháo' }[d.tg]; el.appendChild(e); }
+        const k = box.clientWidth / W; window.atlPlaceTip(el, box, (n.x0 + w / 2) * k, n.y0 * k + 6);
+      };
+      gg.on('pointerenter', show).on('click', show).on('pointerleave', () => { el.hidden = true; });
+    });
+    box.replaceChildren(svg.node(), el);
+  }
+  window.atlDrawTM = draw;
+})();
+</script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const st = { nhom: null, sel: null };
+  const isT = (v) => v === true || v === 'true';
+ const TR = (r) => { const d = String(r.dong_tien || ''); return d.startsWith('★★★★') ? 5 : d.startsWith('★★★') ? 4 : d.startsWith('★★') ? 3 : (d === 'Nghịch thiên' || d === 'Nghịch thời') ? 2 : d === 'Hết thời' ? 1 : 0; };
+ const FC = { '★★★★ Thiên thời · Địa lợi · Nhân hòa': 'var(--z3)', '★★★ Thiên thời · Nhân hòa': 'var(--z3)', '★★ Thiên thời': 'var(--z7)', '★★ Nhân hòa': 'var(--z7)', 'Nghịch thiên': 'var(--z2)', 'Nghịch thời': 'var(--z2)', 'Hết thời': 'var(--z6)', 'Dẫn dắt': 'var(--z3)', 'Cải thiện': 'var(--z7)', 'Suy yếu': 'var(--z4)', 'Tụt hậu': 'var(--z6)', 'Cạn cung': 'var(--z3)', 'TK giảm · giá tăng': 'var(--z7)', 'TK tăng · giá tăng': 'var(--z7)', 'TK giảm · giá giảm': 'var(--z2)', 'TK tăng · giá giảm': 'var(--z6)' };
+  const PC = { 'Chống chịu, tăng tốc': 'var(--z3)', 'Nâng đáy': 'var(--z7)', 'Chống chịu, đang yếu đi': 'var(--z4)', 'Hồi rồi chậm lại': 'var(--z4)', 'Quá bán, đang chững': 'var(--z2)', 'Quá bán, đi ngang': 'var(--z2)', 'Trung tính': 'var(--cds-chart-muted)', 'Dao rơi': 'var(--z6)', 'Vừa sập mạnh': 'var(--z6)', 'Bán tháo': 'var(--z6)' };
+  dash.calc('co_xep_hang', {
+    title: 'Cờ của mã', description: 'Tín hiệu bộ lọc (MUA, THEO DÕI, ĐANG GIỮ, VÉ SỐ), cạn cung, dưới MA200.',
+    inputs: ['xep_hang'],
+    fn: (xep_hang) => xep_hang.map((r) => ({ ma: r.ma, co: [r.tin_hieu, (r.can_cung === true || r.can_cung === 'true') ? 'Cạn cung' : '', (r.tren_ma200 === false || r.tren_ma200 === 'false') ? 'Dưới MA200' : ''].filter(Boolean).join(' · ') })),
+  });
+  document.querySelectorAll('input[name="xh-rrg"]').forEach((x) => x.addEventListener('change', () => window.atlRedraw()));
+  ['xh-nhom', 'xh-sig', 'xh-50', 'xh-70', 'xh-cc', 'xh-tt'].forEach((id) => $(id).addEventListener('change', () => { if (id === 'xh-nhom') { st.nhom = $(id).value; st.sel = null; } window.atlRedraw(); }));
+  const fp = (v) => (v == null || v === '' ? '—' : d3.format('+.1f')(+v));
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+
+  function draw() {
+    const D = dash.data('xep_hang'), tb = document.querySelector('#tb-xh tbody');
+    if (D.status !== 'ok') { tb.replaceChildren(); if (D.status === 'error') window.atlFail($('ch-xh')); return; }
+    const all = D.data;
+    const grp = d3.rollups(all, (v) => ({ n: v.length, p: d3.median(v, (r) => +r.p1t) }), (r) => r.nhom).sort((a, b) => b[1].p - a[1].p);
+    const sel = $('xh-nhom');
+    if (sel.options.length !== grp.length + 1) {
+      sel.replaceChildren(new Option('Mã số 1 của mỗi nhóm', '__top'), ...grp.map(([g, o]) => new Option(g + ' · ' + o.n + ' mã · 1T ' + d3.format('+.1f')(o.p) + '%', g)));
+    }
+    if (!st.nhom) st.nhom = '__top';
+    sel.value = st.nhom;
+    const top = st.nhom === '__top';
+    $('xh-th-nhom').hidden = !top;
+    $('xh-h').textContent = top ? 'Mã đứng đầu mỗi nhóm' : 'Xếp hạng trong nhóm ' + st.nhom;
+    let rows = top ? all.filter((r) => +r.hang === 1) : all.filter((r) => r.nhom === st.nhom);
+    if ($('xh-sig').checked) rows = rows.filter((r) => r.tin_hieu);
+    if (top) rows = rows.filter((r) => isT(r.nhom_co_dan_dat));
+    if ($('xh-50').checked) rows = rows.filter((r) => isT(r.tren_ma50));
+    if ($('xh-70').checked) rows = rows.filter((r) => r.rs60 != null && +r.rs60 >= 70);
+    const wc = $('xh-cc').checked, wt = $('xh-tt').checked;
+    if (wc || wt) rows = rows.filter((r) => (wc && isT(r.can_cung)) || (wt && r.pha_gia === 'Chống chịu, tăng tốc'));
+    const none = [...new Set(all.filter((r) => !isT(r.nhom_co_dan_dat)).map((r) => r.nhom))];
+    $('xh-none').textContent = top && none.length ? 'Nhóm chưa có mã dẫn dắt: ' + none.join(', ') + '.' : (!top && all.some((r) => r.nhom === st.nhom && !isT(r.nhom_co_dan_dat)) ? 'Nhóm này chưa có mã dẫn dắt: không có mã đủ thanh khoản nào đang trên MA50. Nên bỏ qua nhóm, chờ mã đầu tiên vượt lại MA50.' : '');
+    const fr = (document.querySelector('input[name="xh-rrg"]:checked') || {}).value || '', gn = (r) => r.rrg_nhom === 'Cải thiện' || r.rrg_nhom === 'Dẫn dắt';
+    if (fr === 's4') rows = rows.filter((r) => String(r.dong_tien || '').startsWith('★★★★'));
+    if (fr === 's3') rows = rows.filter((r) => String(r.dong_tien || '').startsWith('★★★'));
+    if (fr === 's2') rows = rows.filter((r) => String(r.dong_tien || '').startsWith('★★'));
+    if (fr === 'xa') rows = rows.filter((r) => r.tk_gia === 'TK tăng · giá giảm');
+    rows = rows.slice().sort((a, b) => (top ? TR(b) - TR(a) || (+b.rs60 || 0) - (+a.rs60 || 0) || b.diem - a.diem : a.hang - b.hang));
+    if (!rows.length) { tb.replaceChildren(); const tr = el('tr'); const td = el('td', null, 'Không có mã nào khớp bộ lọc.'); td.colSpan = 18; tr.appendChild(td); tb.appendChild(tr); }
+    else tb.replaceChildren(...rows.map((r) => {
+      const tr = el('tr'); tr.dataset.key = encodeURIComponent(r.ma); if (st.sel === r.ma) tr.className = 'on';
+      tr.appendChild(el('td', 'num', String(r.hang)));
+      const tm = el('td'); const b = el('b', null, r.ma); b.title = 'Mở hồ sơ ' + r.ma; b.style.cursor = 'pointer'; b.style.textDecoration = 'underline dotted'; b.addEventListener('click', (ev) => { ev.stopPropagation(); window.atlOpenProfile && window.atlOpenProfile(r.ma); }); tm.appendChild(b); if (r.tin_hieu) { const sg = el('span', 'atl-tag', ' ' + ({ 'THEO DÕI': 'TD', 'ĐANG GIỮ': 'GIỮ' }[r.tin_hieu] || r.tin_hieu)); sg.title = 'Tín hiệu hệ thống: ' + r.tin_hieu; tm.appendChild(sg); } if (+r.hang <= 3 && isT(r.tren_ma50) && r.rs60 != null && r.dong_tien !== 'Hết thời') { const dg = el('span', null, ' 🐉'); dg.title = 'Long đầu nhóm (top 3, trên MA50, đủ thanh khoản)'; dg.setAttribute('aria-label', 'Long đầu'); tm.appendChild(dg); } tr.appendChild(tm);
+      const tg = el('td', null, r.nhom); tg.hidden = !top; tr.appendChild(tg);
+      const ts = el('td'); const sc = el('div', 'atl-score'); const bar = el('span', 'bar'); const fi = el('i'); const rv = r.rs60 == null ? 0 : +r.rs60; fi.style.width = rv + '%';
+      fi.style.background = rv >= 80 ? 'var(--z3)' : rv >= 70 ? 'var(--z4)' : 'var(--cds-chart-muted)';
+      bar.appendChild(fi); sc.append(bar, el('b', null, r.rs60 == null ? '—' : String(r.rs60))); ts.appendChild(sc); tr.appendChild(ts);
+      const t50 = el('td', isT(r.tren_ma50) ? 'pos' : 'neg', isT(r.tren_ma50) ? '✓' : '✕'); tr.appendChild(t50);
+      ['tk_gia', 'rrg_nhom', 'rrg_ma'].forEach((k) => { const c = el('td'); if (r[k]) { const q = el('span', 'atl-pill'); const dt = el('i', 'atl-dot'); dt.style.background = FC[r[k]] || 'var(--cds-chart-muted)'; q.append(dt, document.createTextNode(String(r[k]).replace(/^TK /, 'Thanh khoản '))); c.appendChild(q); } else c.textContent = '—'; tr.appendChild(c); });
+      const tp = el('td'); const p = el('span', 'atl-pill'); const d = el('i', 'atl-dot'); d.style.background = PC[r.pha_gia] || 'var(--cds-chart-muted)'; p.append(d, document.createTextNode(r.pha_gia)); tp.appendChild(p); tr.appendChild(tp);
+      ['p1t', 'p3t', 'p1n'].forEach((k) => { const c = el('td', 'num ' + (+r[k] >= 0 ? 'pos' : 'neg'), fp(r[k])); tr.appendChild(c); });
+      tr.appendChild(el('td', 'num', d3.format(',.1f')(+r.gtgd20)));
+      tr.appendChild(el('td', 'num', String(r.diem)));
+      ['di_truoc', 'pha_som', 'chong_chiu'].forEach((k) => tr.appendChild(el('td', 'num atl-sm', r[k] == null ? '—' : String(r[k]))));
+      const tc = el('td'); if (r.dong_tien) { const q = el('span', 'atl-pill'); const dt = el('i', 'atl-dot'); dt.style.background = FC[r.dong_tien] || 'var(--cds-chart-muted)'; q.append(dt, document.createTextNode(r.dong_tien === 'Nghịch thiên' ? 'Nghịch thời' : r.dong_tien)); if (window.atlTamTaiTip) q.dataset.tip = window.atlTamTaiTip(r); if (r.dong_tien.startsWith('★★★')) q.style.fontWeight = '600'; tc.appendChild(q); } else tc.textContent = '—'; tr.appendChild(tc);
+      tr.addEventListener('click', () => { st.sel = r.ma; window.atlRedraw(); });
+      return tr;
+    }));
+    if (!st.sel && rows.length) st.sel = rows[0].ma;
+    detail(all.find((r) => r.ma === st.sel), all);
+  }
+
+  function detail(r, all) {
+    const box = $('ch-xh');
+    if (!r || window.atlTab !== 'xep-hang') { if (!r) box.replaceChildren(); return; }
+    $('xh-ct-h').textContent = r.ma + ' · ' + r.nhom + ' · hạng ' + r.hang + '/' + r.so_ma_nhom;
+    $('xh-ct-note').textContent = 'Tốc độ giá mỗi tháng của từng giai đoạn (cột màu) so với trung vị nhóm (vạch đen). Pha giá: ' + r.pha_gia + '. % giá 1 năm ' + fp(r.p1n) + '%, cách đỉnh 60 phiên ' + fp(r.cach_dinh60) + '%.';
+    detailTo(box, r, all);
+  }
+  function detailTo(box, r, all) {
+    const peers = all.filter((x) => x.nhom === r.nhom);
+    const keys = [['v_7_12t', '7–12 tháng trước'], ['v_4_6t', '4–6 tháng trước'], ['v_2_3t', '2–3 tháng trước'], ['v_thang', 'Tháng gần nhất']];
+    const vals = keys.map(([k, lab]) => ({ lab, v: r[k] == null ? null : +r[k], m: d3.median(peers, (x) => (x[k] == null ? null : +x[k])) }));
+    const W = Math.max(300, box.clientWidth), H = 200, m = { l: 40, r: 10, t: 14, b: 30 };
+    const ext = d3.max(vals.flatMap((d) => [Math.abs(d.v ?? 0), Math.abs(d.m ?? 0)])) || 1;
+    const y = d3.scaleLinear([-ext * 1.15, ext * 1.15], [H - m.b, m.t]);
+    const x = d3.scaleBand(vals.map((d) => d.lab), [m.l, W - m.r]).padding(0.35);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Tốc độ giá 4 giai đoạn ' + r.ma);
+    y.ticks(4).forEach((t) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text((t > 0 ? '+' : '') + t + '%'); });
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    vals.forEach((d) => {
+      if (d.v != null) svg.append('rect').attr('x', x(d.lab)).attr('width', x.bandwidth()).attr('y', Math.min(y(0), y(d.v))).attr('height', Math.abs(y(d.v) - y(0))).attr('rx', 3)
+        .attr('fill', d.v >= 0 ? 'var(--z3)' : 'var(--z6)').attr('opacity', 0.85);
+      if (d.m != null) svg.append('line').attr('x1', x(d.lab) - 4).attr('x2', x(d.lab) + x.bandwidth() + 4).attr('y1', y(d.m)).attr('y2', y(d.m)).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
+      if (d.v != null) svg.append('text').attr('x', x(d.lab) + x.bandwidth() / 2).attr('y', d.v >= 0 ? y(d.v) - 4 : y(d.v) + 12).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', '11px').text(d3.format('+.1f')(d.v) + '%');
+      svg.append('text').attr('x', x(d.lab) + x.bandwidth() / 2).attr('y', H - 10).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(d.lab);
+    });
+    box.replaceChildren(svg.node());
+  }
+  window.atlDrawXH = draw;
+  window.atlSpeedChart = (box, r, all) => { const keep = $('ch-xh'); detailTo(box, r, all); };
+})();
+</script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const st = { ma: null, gia: false };
+  const isT = (v) => v === true || v === 'true';
+  const f2 = d3.format('.2f'), fp = (v, d = 1) => (v == null ? '—' : d3.format('+.' + d + 'f')(+v));
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+  const enc = encodeURIComponent;
+  const pick = (v) => { const m = String(v || '').trim().toUpperCase(); const D = dash.data('ho_so'); if (D.status === 'ok' && D.data.some((r) => r.ma === m)) { st.ma = m; $('hs-tim').value = m; window.atlRedraw(); } };
+  $('hs-tim').addEventListener('change', (e) => pick(e.target.value));
+  window.atlOpenProfile = (m) => { window.atlShow('ho-so'); dash.setLink('ho-so'); pick(m); };
+  const mark = (e, src, field, where) => { e.dataset.source = src; e.dataset.field = field; if (where) e.dataset.where = where; return e; };
+
+  function draw() {
+    const D = dash.data('ho_so'), K = dash.data('kiem_dinh'), X = dash.data('xep_hang'), HN = dash.data('hom_nay'), N = dash.data('nhiet_ke');
+    if (D.status !== 'ok') return;
+    const dl = $('hs-ds'); if (!dl.options.length) dl.replaceChildren(...D.data.map((r) => new Option(r.ma + ' · ' + r.ten, r.ma)));
+    const hn = HN.status === 'ok' ? HN.data : [];
+    const quick = [...new Set(hn.filter((r) => r.loai !== 'BÁN THÁO').map((r) => r.ma))];
+    const qn = $('hs-nhanh'); qn.replaceChildren(...quick.map((m) => { const b = el('button', 'atl-pill', m + ' · ' + hn.find((r) => r.ma === m).loai.toLowerCase()); b.type = 'button'; b.style.cursor = 'pointer'; b.style.background = 'none'; b.addEventListener('click', () => pick(m)); return b; }));
+    if (!st.ma) st.ma = quick[0] || D.data[0].ma;
+    if (window.atlTab !== 'ho-so') return;
+    $('hs-tim').placeholder = st.ma;
+    const r = D.data.find((x) => x.ma === st.ma); if (!r) return;
+    const w = 'ma=' + enc(r.ma);
+    const xr = X.status === 'ok' ? X.data.find((x) => x.ma === r.ma) : null;
+    const sig = hn.filter((x) => x.ma === r.ma);
+    $('hs-ma').textContent = r.ma;
+    $('hs-ten').textContent = r.ten + (xr ? ' · ' + xr.nhom + ' · hạng ' + xr.hang + '/' + xr.so_ma_nhom + ' trong nhóm' : '');
+    const g = $('hs-gia'); g.textContent = f2(r.gia); mark(g, 'ho_so', 'gia', w);
+    const p1 = $('hs-p1'); p1.replaceChildren(); const pv = mark(el('span', +r.p1 >= 0 ? 'pos' : 'neg', fp(r.p1, 2) + '%'), 'ho_so', 'p1', w); p1.append(pv, document.createTextNode(' phiên gần nhất'));
+
+    if (!st.gia) { $('ch-hs').dataset.source = 'gia_ngay'; st.gia = true; }
+    const G = dash.data('gia_ngay');
+    if (G.status === 'ok') chart(G.data.filter((x) => x.ma === r.ma), r, sig.find((s) => s.loai === 'MUA' || s.loai === 'ĐANG GIỮ' || s.loai === 'THEO DÕI'));
+    else if (G.status === 'error') window.atlFail($('ch-hs'));
+
+    // tin hieu he thong
+    const kd = (id) => (K.status === 'ok' ? K.data.find((x) => x.ma_kd === id) : null);
+    const zone = N.status === 'ok' ? +N.data[N.data.length - 1].vung : 2;
+    const box = $('hs-checks'); box.replaceChildren();
+    const row = (state, cls, title, desc, k) => {
+      const d = el('div', 'atl-check'); d.appendChild(el('span', 'st ' + cls, state));
+      const b = el('div'); b.appendChild(el('div', 't', title)); b.appendChild(el('div', 'd', desc));
+      if (k) { const t = el('div', 'kd'); const s = el('span', null, k.lai_tb == null ? 'Kiểm định: ' : 'Kiểm định: ' + d3.format('+.1f')(k.lai_tb) + '%/lệnh' + (k.thang ? ', thắng ' + k.thang + '%' : '') + '. ');
+        mark(s, 'kiem_dinh', 'lai_tb', 'ma_kd=' + enc(k.ma_kd)); t.append(s, document.createTextNode(k.giai_doan)); b.appendChild(t); }
+      d.appendChild(b); box.appendChild(d);
+    };
+    const below = +r.gia < +r.bb_duoi, rs = xr ? +xr.rs60 : null, s1 = sig.find((x) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ'].includes(x.loai));
+    row(s1 ? s1.loai : 'Chưa', s1 ? (s1.loai === 'THEO DÕI' ? 'mid' : 'ok') : '', 'Bộ lọc mua nhịp điều chỉnh',
+      'Sức mạnh giá ' + (rs == null ? '—' : rs) + '/100. ' + (s1 ? 'Mã đang ở danh sách ' + s1.loai + ' của hệ thống.' : 'Mã chưa đủ điều kiện kỹ thuật để vào danh sách mua hoặc theo dõi.'),
+      kd(zone === 3 ? 'bb_vung3' : 'bb_vung2'));
+    if (xr) {
+      const cc = isT(xr.can_cung), btb = isT(xr.ban_thao);
+      row(cc ? 'Cạn cung' : 'Không', cc ? 'ok' : '', 'Cạn cung', cc ? 'Giá đi lên êm khi lực bán đã cạn.' : 'Chưa có dấu hiệu cạn cung.', kd('can_cung'));
+      row(btb ? 'Bán tháo' : 'Không', btb ? 'warn' : '', 'Bán tháo', btb ? 'Tránh bắt đáy.' : 'Không bị bán tháo.', kd('ban_thao'));
+      const tot = (xr.rrg_nhom === 'Cải thiện' || xr.rrg_nhom === 'Dẫn dắt'), xau = xr.tk_gia === 'TK tăng · giá giảm';
+      const tp = window.atlTamTaiParts ? window.atlTamTaiParts(xr) : null, dtn = xr.dong_tien || '';
+      row(dtn === 'Nghịch thiên' ? 'Nghịch thời' : (dtn || '—'), xau ? 'warn' : /^★★★/.test(dtn) ? 'ok' : /^★★/.test(dtn) ? 'mid' : '', 'Tam tài: thiên thời · nhân hòa · địa lợi',
+        tp ? ('Thiên thời ' + (tp.tt ? '✓' : '✗') + ' ' + tp.ttTxt + ' · Nhân hòa ' + (tp.nh ? '✓' : '✗') + ' ' + tp.nhTxt + ' · Địa lợi ' + (tp.dl ? '✓' : '✗') + ' ' + tp.dlTxt + '. '
+          + (tp.dl && !(tp.tt && tp.nh) ? 'Địa lợi chỉ thêm sao khi đã đủ Thiên thời và Nhân hòa. ' : '')
+          + 'Mã so với VN-Index: ' + (xr.rrg_ma ? xr.rrg_ma.toLowerCase() : 'chưa đủ dữ liệu') + ' (RRG tuần).'
+          + (xau ? ' Tiền vào nhiều mà giá giảm: có lực bán, thận trọng.' : '')) : '—', kd('dong_tien'));
+      row(xr.hang === 1 ? '#1' : '#' + xr.hang, xr.hang <= 3 && isT(xr.tren_ma50) ? 'ok' : '', 'Xếp hạng trong nhóm ' + xr.nhom, (isT(xr.nhom_co_dan_dat) ? '' : 'Nhóm chưa có mã dẫn dắt. ') + 'Hạng ' + xr.hang + '/' + xr.so_ma_nhom + (isT(xr.tren_ma50) ? ', đang trên MA50' : ', đang dưới MA50') + ', sức mạnh giá ' + (xr.rs60 ?? '—') + '. Điểm long đầu ' + xr.diem + ' (đi trước nhóm ' + (xr.di_truoc ?? '—') + ' · bứt phá sớm ' + (xr.pha_som ?? '—') + ' · chống chịu ' + (xr.chong_chiu ?? '—') + ').', kd('xep_hang'));
+    }
+    const up2 = isT(r.st_ngay_len) && isT(r.tren_st_tuan);
+    row(up2 ? 'Tăng cả hai' : isT(r.st_ngay_len) ? 'Tăng ngắn hạn' : 'Giảm', up2 ? 'mid' : '', 'Xu hướng ngắn hạn và trung hạn', up2 ? 'Xu hướng ngày và tuần đều đang tăng.' : isT(r.st_ngay_len) ? 'Xu hướng ngày tăng, xu hướng tuần chưa xác nhận.' : 'Xu hướng ngày đang giảm.', kd('supertrend'));
+    const B = dash.data('che_do_bao'); const on = B.status === 'ok' && B.data[0] && isT(B.data[0].bao_bat);
+    row(on ? 'Bật' : 'Không áp dụng', on ? 'ok' : '', 'Trứng rồng', on ? 'Chế độ săn trứng rồng đang bật.' : 'Chế độ săn trứng rồng đang tắt; chỉ bật sau những nhịp sụt mạnh của thị trường.', kd('trung_rong'));
+
+    // dong ho he thong: dem dong thuan cua cac tin hieu dang bat
+    { const S = [];
+      const add = (lab, s, txt) => S.push({ lab, s, txt });
+      if (xr) {
+        const rs6 = +xr.rs60; if (!isNaN(rs6)) add('Sức mạnh giá', rs6 >= 70 ? 1 : rs6 < 40 ? -1 : 0, 'Sức mạnh giá ' + rs6);
+        add('RRG nhóm', (xr.rrg_nhom === 'Dẫn dắt' || xr.rrg_nhom === 'Cải thiện') ? 1 : -1, 'Nhóm ' + String(xr.rrg_nhom || '').toLowerCase());
+        if (xr.rrg_ma) add('RRG mã', (xr.rrg_ma === 'Dẫn dắt' || xr.rrg_ma === 'Cải thiện') ? 1 : -1, 'Mã ' + xr.rrg_ma.toLowerCase());
+        if (xr.pha_gia) add('Pha giá', (xr.pha_gia === 'Nâng đáy' || xr.pha_gia === 'Chống chịu, tăng tốc') ? 1 : xr.pha_gia === 'Dao rơi' ? -1 : 0, 'Pha giá: ' + xr.pha_gia);
+        add('MA50', isT(xr.tren_ma50) ? 1 : -1, isT(xr.tren_ma50) ? 'Trên MA50' : 'Dưới MA50');
+        const dt = xr.dong_tien || ''; if (dt) add('Tam tài', /^★★★/.test(dt) ? 1 : (/^★★/.test(dt) ? 0 : -1), dt === 'Nghịch thiên' ? 'Nghịch thời' : dt);
+        if (xr.hang != null && xr.so_ma_nhom) add('Hạng', xr.hang <= 3 ? 1 : xr.hang > xr.so_ma_nhom / 2 ? -1 : 0, 'Hạng ' + xr.hang + '/' + xr.so_ma_nhom + ' nhóm');
+        if (isT(xr.can_cung)) add('Cạn cung', 1, 'Cạn cung');
+        if (isT(xr.ban_thao)) add('Bán tháo', -1, 'Bán tháo');
+      }
+      add('Supertrend', isT(r.st_ngay_len) && isT(r.tren_st_tuan) ? 1 : isT(r.st_ngay_len) ? 0 : -1, isT(r.st_ngay_len) && isT(r.tren_st_tuan) ? 'Xu hướng ngày + tuần tăng' : isT(r.st_ngay_len) ? 'Xu hướng ngày tăng' : 'Xu hướng ngày giảm');
+      const sf = sig.find((x) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ', 'BÁN THÁO'].includes(x.loai)); if (sf) add('Bộ lọc', sf.loai === 'BÁN THÁO' ? -1 : 1, 'Bộ lọc: ' + sf.loai.toLowerCase());
+      const tk = $('hs-ticks'); tk.replaceChildren();
+      const n = S.length, pts = S.reduce((a, q) => a + (q.s + 1) / 2, 0), pc = n ? Math.round(100 * pts / n) : 0;
+      const xauT = xr && (xr.dong_tien === 'Hết thời' || xr.tk_gia === 'TK tăng · giá giảm');
+      S.filter((q) => q.s !== 0).forEach((q) => { const p = el('span', 'atl-pill' + (q.s < 0 ? ' neg' : ''), (q.s > 0 ? '✓ ' : '✕ ') + q.txt); tk.appendChild(p); });
+      const z = pc < 30 ? 0 : pc < 50 ? 1 : pc < 70 ? 2 : 3;
+      const hz = xauT && pc >= 50 ? 4 : z;
+      const LBH = ['Yếu', 'Trung bình', 'Khá', 'Mạnh', 'Cảnh báo'];
+      const qd = sf ? (sf.loai === 'BÁN THÁO' ? 'Bán tháo' : sf.loai === 'THEO DÕI' ? 'Theo dõi' : sf.loai === 'ĐANG GIỮ' ? 'Đang giữ' : 'Mua') : 'chưa có tín hiệu';
+      const why = 'Đồng thuận ' + pc + '% · ' + S.filter((q) => q.s > 0).length + ' tốt, ' + S.filter((q) => q.s === 0).length + ' trung tính, ' + S.filter((q) => q.s < 0).length + ' xấu' + (hz === 4 ? ' · có lực bán' : '');
+      dial($('dl-he'), 'he', n >= 3 ? hz : null, why, 'hệ thống', LBH); }
+
+    // suc khoe doanh nghiep (bao cao tai chinh quy, VN100)
+    { const CB = dash.data('co_ban'), bx = $('hs-cb'), sm = $('hs-cb-sum'), dl = $('dl-cb'), vb = $('hs-cb-val'); bx.replaceChildren(); vb.replaceChildren();
+      const cr = CB.status === 'ok' ? CB.data.find((x) => x.ma === r.ma) : null;
+      if (!cr) { dl.replaceChildren(); dl.hidden = true; delete dl.dataset.tip; sm.textContent = CB.status === 'ok' ? 'Chưa có dữ liệu báo cáo tài chính cho mã này (hiện chỉ có VN100).' : 'Đang tải dữ liệu báo cáo tài chính…'; }
+      else {
+        const cl = ['Lợi nhuận quý tăng từ 20% so với cùng kỳ', 'Lợi nhuận đang tăng tốc (nhanh hơn quý trước)', cr.loai === 'Ngân hàng' ? 'Thu nhập hoạt động quý tăng từ 15% so với cùng kỳ' : 'Doanh thu quý tăng từ 15% so với cùng kỳ', 'Biên lợi nhuận ròng không thấp hơn cùng kỳ', 'ROE 4 quý gần nhất từ 15%', 'Lợi nhuận 4 quý tăng liên tục 2 năm', cr.loai === 'Ngân hàng' ? 'Nợ xấu (NPL) không quá 2%' : 'Nợ phải trả không quá 2 lần vốn chủ', 'Dòng tiền kinh doanh bằng ít nhất 70% lợi nhuận'];
+        cl.forEach((lab, i) => { const v = cr['c' + (i + 1)]; const ok = v === true || v === 'true', na = v == null;
+          bx.append(el('span', na ? 'm' : ok ? 'y' : 'n', na ? '–' : ok ? '✓' : '✕'), el('span', null, lab), mark(el('span', 'v', cr['c' + (i + 1) + '_gt'] || '—'), 'co_ban', 'c' + (i + 1) + '_gt', 'ma=' + enc(cr.ma))); });
+        const pc = cr.pct, z = pc == null ? null : pc < 35 ? 0 : pc < 55 ? 1 : pc < 75 ? 2 : pc < 90 ? 3 : 4;
+        sm.replaceChildren(); sm.append(mark(el('b', null, cr.diem + '/' + cr.n), 'co_ban', 'diem', 'ma=' + enc(cr.ma)), document.createTextNode(' ô đạt · ' + cr.loai + ' · báo cáo ' + cr.quy + ' · ROE 4 quý ' + (cr.roe_ttm == null ? '—' : cr.roe_ttm + '%')
+          + (cr.ln_ttm_ty == null ? '' : ' · lợi nhuận 4 quý ' + d3.format(',.0f')(cr.ln_ttm_ty) + ' tỷ')));
+
+        { const px = new Map(D.data.map((q) => [q.ma, +q.gia])); const nh = new Map((X.status === 'ok' ? X.data : []).map((q) => [q.ma, q.nhom]));
+          const med = (a) => { a = a.filter((x) => x != null && isFinite(x)).sort((u, v) => u - v); return a.length ? a[Math.floor(a.length / 2)] : null; };
+          const mc = (q) => (px.get(q.ma) > 0 && q.cp_trieu ? px.get(q.ma) * q.cp_trieu : null); // ty dong (gia nghin dong x trieu cp)
+          const pe = (q) => { const m = mc(q); return m && q.ln_ttm_ty > 0 ? m / q.ln_ttm_ty : null; }, pb = (q) => { const m = mc(q); return m && q.von_chu_ty > 0 ? m / q.von_chu_ty : null; };
+          const ng = nh.get(cr.ma); let same = ng ? CB.data.filter((q) => nh.get(q.ma) === ng) : [], so = ng ? 'ngành ' + ng : '';
+          if (same.length < 3) { same = CB.data.filter((q) => q.loai === cr.loai); so = 'loại hình ' + cr.loai.toLowerCase(); }
+          const tv = ' · trung vị ngành'; const tt_ = (s) => s + '\nTrung vị so với ' + (same.length) + ' mã VN100 thuộc ' + so + ' (gồm cả mã này).';
+          const add = (txt, tip) => { const p = el('span', 'atl-pill', txt); p.dataset.tip = tip; vb.appendChild(p); };
+          const p1 = pe(cr), p2 = pb(cr), m1 = mc(cr), mpe = med(same.map(pe)), mpb = med(same.map(pb));
+          if (m1 != null) add('Vốn hóa ' + d3.format(',.0f')(m1) + ' tỷ', 'Vốn hóa = giá hiện tại × số cổ phiếu (vốn điều lệ chia mệnh giá 10.000đ)');
+          if (cr.ln_ttm_ty != null && cr.cp_trieu) { const eps = cr.ln_ttm_ty * 1000 / cr.cp_trieu; add('EPS 4 quý ' + d3.format(',.0f')(eps) + ' đ', 'EPS = lợi nhuận 4 quý gần nhất chia số cổ phiếu hiện tại\nTính theo số cổ phiếu hiện tại nên đã bao gồm cổ phiếu thưởng và phát hành thêm, có thể lệch nhẹ so với EPS công bố.'); }
+          add('P/E ' + (p1 != null ? p1.toFixed(1) : (cr.ln_ttm_ty != null && cr.ln_ttm_ty <= 0 ? 'lỗ' : '—')) + (mpe != null ? tv + ' ' + mpe.toFixed(1) : ''), tt_('P/E = vốn hóa chia lợi nhuận 4 quý gần nhất.'));
+          add('P/B ' + (p2 != null ? p2.toFixed(2) : '—') + (mpb != null ? tv + ' ' + mpb.toFixed(2) : ''), tt_('P/B = vốn hóa chia vốn chủ sở hữu quý gần nhất.'));
+          if (cr.nim != null) { const mn = med(same.map((q) => q.nim)); add('NIM ' + cr.nim.toFixed(2) + '%' + (mn != null ? tv + ' ' + mn.toFixed(2) + '%' : ''), tt_('NIM = biên lãi thuần, theo số công bố trên Vietcap.')); }
+          if (cr.ldr != null) { const ml = med(same.map((q) => q.ldr)); add('LDR ' + cr.ldr + '%' + (ml != null ? tv + ' ' + Math.round(ml) + '%' : ''), tt_('LDR = dư nợ cho vay chia tiền gửi của khách hàng. Không phải LDR theo quy định của NHNN (tối đa 85%), vốn tính cả giấy tờ có giá và tiền gửi liên ngân hàng nên thấp hơn.')); } }
+        const LBC = ['Yếu', 'Trung bình', 'Khá', 'Tốt', 'Rất tốt'], CC = ['var(--z6)', 'var(--z2)', 'var(--z4)', 'var(--z7)', 'var(--z3)'];
+        dial(dl, 'cb', z, 'Đạt ' + cr.diem + '/' + cr.n + ' ô của báo cáo ' + cr.quy + '. Chỉ mô tả sức khỏe doanh nghiệp, không phải tín hiệu mua bán.', 'sức khỏe doanh nghiệp', LBC, CC);
+      } }
+
+    // trend template
+    const tt = $('hs-tt'); tt.replaceChildren();
+    const labs = ['Giá > MA150 và > MA200', 'MA150 > MA200', 'MA200 dốc lên ≥ 1 tháng', 'MA50 > MA150 > MA200', 'Giá > MA50', 'Giá ≥ 30% trên đáy 52 tuần', 'Giá trong 25% dưới đỉnh 52 tuần', 'Mạnh hơn VN-Index 6 tháng'];
+    labs.forEach((lab, i) => { const ok = isT(r['tt' + (i + 1)]); tt.append(el('span', ok ? 'y' : 'n', ok ? '✓' : '✕'), el('span', null, lab), mark(el('span', 'v', r['tt' + (i + 1) + '_gt']), 'ho_so', 'tt' + (i + 1) + '_gt', w)); });
+    const sum = $('hs-tt-sum'); sum.replaceChildren(); const n = mark(el('b', null, String(r.tt_diem)), 'ho_so', 'tt_diem', w);
+    sum.append(n, document.createTextNode('/8 tiêu chí · ' + (r.tt_diem === 8 ? 'đủ điều kiện xu hướng tăng (Stage 2)' : r.tt_diem >= 6 ? 'gần đủ' : 'chưa ở xu hướng tăng')));
+    const k8 = kd('trend_template'); $('hs-tt-kd').textContent = k8 ? 'Kiểm định trên HOSE: ' + k8.giai_doan + '. Từ 2020, đạt 8/8 không còn vượt thị trường; chỉ dùng để mô tả xu hướng.' : '';
+
+    // wyckoff
+    { const box2 = $('hs-wy'); box2.replaceChildren();
+      if (r.wy_pha == null) { $('hs-wy-sum').textContent = 'Chưa đủ dữ liệu lịch sử cho mã này.'; }
+      else {
+        const wl = ['Có nhịp giảm lớn trước đó', 'Selling Climax: bán tháo cực đại', 'Vùng đi ngang (Trading Range)', 'Thử lại cạn cung (Secondary Test)', 'Spring: thủng đáy rồi lấy lại', 'Sign of Strength: lực cầu xuất hiện', 'Last Point of Support: đáy cao hơn', 'Vượt đỉnh vùng, vào Mark-up'];
+        wl.forEach((lab, i) => { const ok = isT(r['wy' + (i + 1)]); box2.append(el('span', ok ? 'y' : 'n', ok ? '✓' : '✕'), el('span', null, lab), mark(el('span', 'v', r['wy' + (i + 1) + '_gt']), 'ho_so', 'wy' + (i + 1) + '_gt', w)); });
+        const s2 = $('hs-wy-sum'); s2.replaceChildren(); s2.append(mark(el('b', null, String(r.wy_diem)), 'ho_so', 'wy_diem', w), document.createTextNode('/8 mục · Pha: ' + r.wy_pha));
+      } }
+    // trien luan
+    { const bx = $('hs-tl'); bx.replaceChildren(); const sm = $('hs-tl-sum');
+      if (r.tl_zd == null) { sm.textContent = 'Chưa dựng được trung tâm (chưa đủ ba nhịp chồng lấn).'; }
+      else {
+        const c = +r.gia, zg = +r.tl_zg, zd = +r.tl_zd, f2_ = d3.format('.2f'), dm = (t) => (t ? t.slice(8, 10) + '/' + t.slice(5, 7) : '');
+        const vt = c > zg ? 'trên ZG' : c < zd ? 'dưới ZD' : 'trong trung tâm';
+        const hx = r.tl_huong === 'tăng' ? 'xu hướng tăng' : r.tl_huong === 'giảm' ? 'xu hướng giảm' : 'đi ngang';
+        const it = [
+          [true, 'Trung tâm gần nhất (3 nhịp chồng lấn)', 'ZD ' + f2_(zd) + ' – ZG ' + f2_(zg)],
+          [c > zg, 'Giá trên ZG (đã thoát lên khỏi trung tâm)', f2_(c) + ' / ' + f2_(zg)],
+          [r.tl_huong === 'tăng' && r.tl_so_tt >= 2, 'Từ 2 trung tâm cùng chiều tăng (xu hướng tăng)', hx + (r.tl_huong !== 'ngang' ? ' · ' + r.tl_so_tt + ' trung tâm' : '')],
+          [r.tl_but === 'lên', 'Bút gần nhất đang đi lên', 'bút ' + r.tl_but + ' đến ' + dm(r.tl_but_ngay) + ' (' + f2_(+r.tl_but_gia) + ')'],
+          [r.tl_pk != null, 'Phân kỳ MACD ở nhịp cuối', r.tl_pk ? 'phân kỳ ' + r.tl_pk + ' · lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước' : (r.tl_pk_ti_le != null ? 'lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước, chưa phân kỳ' : 'chưa có đỉnh/đáy mới')],
+          [r.tl_m1_ngay != null, 'Mua 1 (2 trung tâm giảm + phân kỳ), 10 phiên', r.tl_m1_ngay ? dm(r.tl_m1_ngay) + ' · cắt lỗ dưới ' + f2_(+r.tl_m1_cat) : 'không'],
+          [r.tl_m2_ngay != null, 'Mua 2 (đáy cao hơn đáy Mua 1), 10 phiên', r.tl_m2_ngay ? dm(r.tl_m2_ngay) + ' · cắt lỗ dưới ' + f2_(+r.tl_m2_cat) : 'không'],
+          [r.tl_m3_ngay != null, 'Mua 3 (nhịp chỉnh giữ trên ZG), 10 phiên', r.tl_m3_ngay ? dm(r.tl_m3_ngay) + ' · vô hiệu nếu đóng cửa dưới ' + f2_(+r.tl_m3_zg) : 'không'],
+        ];
+        it.forEach(([ok, lab, val]) => bx.append(el('span', ok ? 'y' : 'm', ok ? '✓' : '–'), el('span', null, lab), el('span', 'v', val)));
+        sm.textContent = 'Giá ' + vt + ' · ' + hx + (r.tl_roi ? ' · trung tâm gần nhất đã rời ' + r.tl_roi : ' · trung tâm gần nhất còn mở') + '.';
+      } }
+
+    // đồng hồ tham khảo
+    { const dp = window.atlDialPos(r);
+      [['tt', 'Minervini'], ['wy', 'Wyckoff'], ['tl', 'Triền Luận']].forEach(([k, who]) => dial($('dl-' + k), k, dp[k] ? dp[k][0] : null, dp[k] ? dp[k][1] : '', who, DL)); }
+
+    // toc do
+    if (xr && X.status === 'ok') { $('hs-td-note').textContent = 'Tốc độ giá mỗi tháng của từng giai đoạn (cột màu) so với trung vị nhóm ' + xr.nhom + ' (vạch đen). Pha giá: ' + xr.pha_gia + '.'; window.atlSpeedChart($('ch-hs-td'), xr, X.data); }
+  }
+
+  /* ---------- đồng hồ trạng thái cho ba checklist: Xu hướng giảm · Đi ngang · Chớm tăng · Xu hướng tăng · Tăng suy yếu ---------- */
+  const DZ = [['Tránh', 'var(--z6)'], ['Chờ', 'var(--z2)'], ['Mua', 'var(--z7)'], ['Nắm giữ', 'var(--z3)'], ['Chốt / giảm', 'var(--z5)']];
+  const DL = ['Xu hướng giảm', 'Đi ngang', 'Chớm tăng', 'Xu hướng tăng', 'Tăng suy yếu'];
+  const DTIP = {
+    cb: 'Sức khỏe doanh nghiệp (từ báo cáo tài chính quý)\nĐếm số ô đạt trên số ô áp dụng với loại hình (doanh nghiệp 8 ô, ngân hàng 6 ô, chứng khoán 5 ô).\nDưới 35%: Yếu · 35–55%: Trung bình · 55–75%: Khá · 75–90%: Tốt · từ 90%: Rất tốt\nChỉ để mô tả sức khỏe doanh nghiệp, không phải tín hiệu mua bán và chưa chứng minh được vượt thị trường.',
+    he: 'Mức đồng thuận của hệ thống (chỉ để mô tả)\nĐếm các tín hiệu đang bật của mã: sức mạnh giá, RRG nhóm và mã, pha giá, MA50, Tam tài, hạng trong nhóm, Supertrend, bộ lọc, cạn cung.\nDưới 30%: Yếu · 30–50%: Trung bình · 50–70%: Khá · từ 70%: Mạnh · Có lực bán: Cảnh báo\nKhông phải tín hiệu giao dịch: thử trên giá 2020–nay, điểm này không cho mã vượt thị trường sau 20 phiên.\nQuyết định Mua, Theo dõi hoặc Bán nằm ở Bộ lọc RS + Bollinger.',
+    tt: 'Theo Minervini (Trend Template)\nĐếm 5 tiêu chí xu hướng đầu (giá và các đường MA150, MA200, MA50).\n5/5: Xu hướng tăng · 4/5 mà chỉ thiếu giá trên MA50: Tăng suy yếu · 4/5: Chớm tăng · 2–3/5: Đi ngang · 0–1/5: Xu hướng giảm\n3 tiêu chí còn lại (cách đáy, cách đỉnh, sức mạnh so với VN-Index) chỉ đánh giá độ mạnh, không đổi trạng thái.',
+    wy: 'Theo Wyckoff (pha của thị trường)\nGiảm giá: Xu hướng giảm · Tăng giá: Xu hướng tăng · Phân phối: Tăng suy yếu\nTích luỹ từ 5/8 mục: Chớm tăng · Tích luỹ dưới 5/8 mục hoặc chưa rõ pha: Đi ngang\nPha tăng giá = giá trên MA50 đang dốc lên và trên MA200.',
+    tl: 'Theo Triền Luận (vị trí giá so với trung tâm gần nhất)\nGiá trên ZG: Xu hướng tăng nếu từ 2 trung tâm cùng chiều tăng, còn lại là Chớm tăng\nGiá trong trung tâm: Xu hướng giảm nếu từ 2 trung tâm cùng chiều giảm, còn lại là Đi ngang\nGiá dưới ZD: Tăng suy yếu nếu đang là xu hướng tăng, còn lại là Xu hướng giảm\nPhân kỳ MACD ở đỉnh (khi chưa ở xu hướng giảm): Tăng suy yếu\nĐiểm Mua 1, 2, 3 chỉ là sự kiện, hiện ở dòng mô tả, không đổi trạng thái.',
+  };
+  function dial(box, key, z, why, who, labs, cols) {
+    const CL = cols || DZ.map((q) => q[1]);
+    const LB = labs || DZ.map((q) => q[0]);
+    box.replaceChildren();
+    if (z == null) { box.hidden = true; delete box.dataset.tip; return; }
+    box.hidden = false; box.dataset.tip = DTIP[key] + '\nChỉ để tham khảo, không phải tín hiệu của hệ thống.';
+    const W = 200, H = 108, cx = 100, cy = 96, n = DZ.length;
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('role', 'img').attr('aria-label', 'Đồng hồ theo ' + who + ': ' + LB[z]);
+    const arc = d3.arc().innerRadius(54).outerRadius(84).padAngle(0.025).cornerRadius(3);
+    DZ.forEach((_q, i) => svg.append('path').attr('transform', 'translate(' + cx + ',' + cy + ')')
+      .attr('d', arc({ startAngle: -Math.PI / 2 + (i * Math.PI) / n, endAngle: -Math.PI / 2 + ((i + 1) * Math.PI) / n })).attr('fill', CL[i]).attr('opacity', i === z ? 1 : 0.28));
+    const a = -Math.PI / 2 + ((z + 0.5) * Math.PI) / n;
+    svg.append('line').attr('x1', cx).attr('y1', cy).attr('x2', cx + 70 * Math.sin(a)).attr('y2', cy - 70 * Math.cos(a)).attr('stroke', 'var(--color-fg)').attr('stroke-width', 3).attr('stroke-linecap', 'round');
+    svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 6).attr('fill', 'var(--color-fg)');
+    const txt = el('div', 'atl-dial-txt'); txt.append(el('span', 'atl-dial-lab', LB[z]), el('span', 'atl-dial-why', why));
+    const kb = el('div', 'atl-dial-key');
+    DZ.forEach((_q, i) => { const lab = LB[i]; const s = el('span', i === z ? 'on' : null); const d = el('i', 'atl-dot'); d.style.background = CL[i]; s.append(d, document.createTextNode(lab)); kb.appendChild(s); });
+    box.append(svg.node(), txt, kb);
+  }
+  // mỗi trường phái đọc checklist của riêng mình; nhãn mô tả trạng thái (0 giảm · 1 đi ngang · 2 chớm tăng · 3 tăng · 4 tăng suy yếu), không phát lệnh mua bán
+  window.atlDialPos = (r) => {
+    const out = { tt: null, wy: null, tl: null };
+    const tt = +r.tt_diem, g = (i) => isT(r['tt' + i]);
+    if (r.tt_diem != null) {
+      const k = [1, 2, 3, 4, 5].filter(g).length;
+      out.tt = k === 5 ? [3, '5/5 tiêu chí xu hướng (' + tt + '/8 tiêu chí): Stage 2 được xác nhận' + (tt < 8 ? ', còn ' + (8 - tt) + ' tiêu chí về độ mạnh' : '') + '.']
+        : !g(5) && g(1) && g(2) && g(3) && g(4) ? [4, 'Xu hướng dài hạn vẫn tăng nhưng giá đã dưới MA50: Stage 2 đang gãy.']
+        : k === 4 ? [2, '4/5 tiêu chí xu hướng: đang hình thành, chưa đủ Stage 2.']
+        : k >= 2 ? [1, k + '/5 tiêu chí xu hướng: chưa rõ xu hướng.']
+        : [0, k + '/5 tiêu chí xu hướng: giá dưới các đường trung bình dài.'];
+    }
+    const ph = String(r.wy_pha || '');
+    if (ph) {
+      out.wy = ph.startsWith('Giảm giá') ? [0, 'Pha giảm giá (Mark-down): giá dưới MA50 đang dốc xuống và dưới MA200.']
+        : ph.startsWith('Phân phối') ? [4, 'Nghi ngờ phân phối: giá ở vùng cao, đi ngang với thanh khoản tăng.']
+        : ph.startsWith('Tăng giá') ? [3, 'Pha tăng giá (Mark-up): giá trên MA50 đang dốc lên và trên MA200.']
+        : ph.startsWith('Tích luỹ') ? (r.wy_diem >= 5 ? [2, 'Tích luỹ gần hoàn tất (' + r.wy_diem + '/8 mục): có thể chuyển sang pha tăng.'] : [1, 'Đang tích luỹ (' + r.wy_diem + '/8 mục): đi ngang, chưa đủ dấu hiệu chuyển pha.'])
+        : [1, 'Chưa rõ pha: chưa có cấu trúc tích luỹ hay xu hướng rõ ràng.'];
+    }
+    if (r.tl_zd != null) {
+      const c = +r.gia, zg = +r.tl_zg, zd = +r.tl_zd, dmy_ = (t) => (t ? t.slice(8, 10) + '/' + t.slice(5, 7) : '');
+      const n = +r.tl_so_tt || 1, upT = r.tl_huong === 'tăng' && n >= 2, dnT = r.tl_huong === 'giảm' && n >= 2;
+      let z, why;
+      if (r.tl_pk === 'đỉnh' && c >= zd && !dnT) { z = 4; why = 'Phân kỳ MACD ở đỉnh: lực nhịp tăng cuối yếu hơn nhịp trước.'; }
+      else if (c > zg) { z = upT ? 3 : 2; why = upT ? 'Giá trên ZG ' + f2(zg) + ', ' + n + ' trung tâm cùng chiều tăng.' : 'Giá đã thoát lên trên ZG ' + f2(zg) + ' nhưng chưa đủ 2 trung tâm cùng chiều tăng.'; }
+      else if (c >= zd) { z = dnT ? 0 : 1; why = dnT ? 'Giá còn trong trung tâm, ' + n + ' trung tâm cùng chiều giảm: chưa thoát lên trên ZG ' + f2(zg) + '.' : 'Giá đi ngang trong trung tâm ZD ' + f2(zd) + ' – ZG ' + f2(zg) + '.'; }
+      else { z = upT ? 4 : 0; why = upT ? 'Xu hướng tăng nhưng giá đã thủng ZD ' + f2(zd) + '.' : 'Giá dưới ZD ' + f2(zd) + ' của trung tâm gần nhất.'; }
+      const ev = r.tl_m3_ngay ? ' Có điểm Mua 3 (' + dmy_(r.tl_m3_ngay) + ').' : r.tl_m2_ngay ? ' Có điểm Mua 2 (' + dmy_(r.tl_m2_ngay) + ').' : r.tl_m1_ngay ? ' Có điểm Mua 1 (' + dmy_(r.tl_m1_ngay) + ').' : '';
+      out.tl = [z, why + ev];
+    }
+    return out;
+  };
+
+  function chart(rows, r, sg) {
+    const box = $('ch-hs'); if (!rows.length) { box.replaceChildren(); return; }
+    const d = rows.map((x) => ({ ...x, t: new Date(x.ngay + 'T00:00:00Z'), o: +x.o, h: +x.h, l: +x.l, c: +x.c }));
+    const W = Math.max(300, box.clientWidth), HP = W < 520 ? 280 : 320, MH = W < 520 ? 90 : 110, H = HP + 14 + MH + 22, m = { l: 8, r: 46, t: 24, b: H - HP + 4 };
+    const mt = HP + 14, mb = HP + 14 + MH;
+    const lv = [];
+    if (sg && sg.cat_lo != null) lv.push(['Cắt lỗ', +sg.cat_lo, 'var(--color-bad)']);
+    if (sg && sg.muc_tieu_1 != null) lv.push(['Mục tiêu 1', +sg.muc_tieu_1, 'var(--z3)']);
+    if (sg && sg.muc_tieu_2 != null) lv.push(['Mục tiêu 2', +sg.muc_tieu_2, 'var(--z3)']);
+    const vals = d.flatMap((x) => [x.h, x.l, +x.bb_duoi || x.l, +x.bb_tren || x.h]).concat(lv.map((v) => v[1]));
+    const y = d3.scaleLinear(d3.extent(vals), [H - m.b, m.t]).nice();
+    const x = d3.scaleBand(d.map((q) => q.ngay), [m.l, W - m.r]).padding(0.25);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Biểu đồ giá ' + r.ma);
+    y.ticks(5).forEach((t) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', W - m.r + 4).attr('y', y(t) + 4).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(d3.format('.2f')(t)); });
+    const cx = (q) => x(q.ngay) + x.bandwidth() / 2;
+    if (r.tl_zd != null && r.tl_zg != null) {
+      const dm_ = y.domain(), z1 = +r.tl_zd, z2 = +r.tl_zg;
+      if (z2 >= dm_[0] && z1 <= dm_[1]) {
+        const i0 = Math.max(0, d.findIndex((q) => q.ngay >= (r.tl_tt_tu || '')));
+        const xa = x(d[i0 < 0 ? 0 : i0].ngay), yt = y(Math.min(z2, dm_[1])), yb = y(Math.max(z1, dm_[0]));
+        svg.append('rect').attr('x', xa).attr('y', yt).attr('width', W - m.r - xa).attr('height', Math.max(1, yb - yt)).attr('fill', 'var(--z4)').attr('opacity', 0.10);
+        [['ZG', z2], ['ZD', z1]].forEach(([lab, v]) => { if (v >= dm_[0] && v <= dm_[1]) { svg.append('line').attr('x1', xa).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', 'var(--z4)').attr('stroke-dasharray', '5 3').attr('opacity', 0.8);
+          svg.append('text').attr('x', xa + 3).attr('y', y(v) + (lab === 'ZD' ? 11 : -3)).attr('fill', 'var(--z4)').style('font-size', '10px').style('font-weight', 600).text(lab + ' ' + d3.format('.2f')(v)); } });
+      }
+    }
+    const band = d.filter((q) => q.bb_duoi != null);
+    svg.append('path').datum(band).attr('fill', 'var(--z1)').attr('opacity', 0.12).attr('d', d3.area(cx, (q) => y(+q.bb_tren), (q) => y(+q.bb_duoi)));
+    const cid = 'hsclip' + Math.random().toString(36).slice(2, 8);
+    svg.append('clipPath').attr('id', cid).append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.r - m.l).attr('height', HP - m.t);
+    [['ma20', 'var(--z1)', 1.2, '3 2'], ['ma50', 'var(--z4)', 1.5, null], ['ma200', 'var(--z6)', 1.5, null]].forEach(([k, c, sw, da]) => {
+      const p = d.filter((q) => q[k] != null); if (p.length < 2) return;
+      svg.append('path').attr('clip-path', 'url(#' + cid + ')').datum(p).attr('fill', 'none').attr('stroke', c).attr('stroke-width', sw).attr('stroke-dasharray', da).attr('d', d3.line(cx, (q) => y(+q[k])));
+    });
+    d.forEach((q) => { const up = q.c >= q.o, c = up ? 'var(--z3)' : 'var(--z6)';
+      svg.append('line').attr('x1', cx(q)).attr('x2', cx(q)).attr('y1', y(q.h)).attr('y2', y(q.l)).attr('stroke', c);
+      svg.append('rect').attr('x', x(q.ngay)).attr('width', x.bandwidth()).attr('y', y(Math.max(q.o, q.c))).attr('height', Math.max(1, Math.abs(y(q.o) - y(q.c)))).attr('fill', c); });
+    // đánh dấu các sự kiện Wyckoff có ngày trong dữ liệu: nhãn xếp ở mép trên chart, nối bằng đường đứt xuống nến
+    const wye = [['wy2', 'SC', 'Selling Climax: bán tháo cực đại', 'var(--z6)'], ['wy4', 'ST', 'Secondary Test: thử lại cạn cung', 'var(--z2)'], ['wy5', 'Spring', 'Spring: thủng đáy vùng rồi lấy lại', 'var(--z3)'], ['wy6', 'SOS', 'Sign of Strength: lực cầu xuất hiện', 'var(--z7)'], ['wy7', 'LPS', 'Last Point of Support: đáy chỉnh sau SOS', 'var(--z7)']];
+    let wyN = 0; const placed = [];
+    wye.forEach(([k, lab, ten, c]) => {
+      const mt_ = /(\d{4}-\d{2}-\d{2})/.exec(String(r[k + '_gt'] || '')); const q = mt_ && isT(r[k]) ? d.find((z) => z.ngay === mt_[1]) : null;
+      if (!q) return;
+      const px_ = cx(q); const low = lab !== 'SOS'; const rowp = placed.filter((p) => p.low === low && Math.abs(p.x - px_) < 34); const row_ = rowp.length ? 1 : 0; placed.push({ x: px_, row: row_, low }); const tip = low ? y(q.l) + 2 : y(q.h) - 2; const pk_ = r.tl_pk === 'đỉnh' ? d.find((z) => z.ngay === r.tl_d2_ngay) : null; const pkNear = !low && pk_ && Math.abs(cx(pk_) - px_) < 70; const yy = low ? (HP - 8 - row_ * 13) : (pkNear ? 13 + row_ * 13 : Math.max(13 + row_ * 13, tip - 16 - row_ * 13)); wyN++;
+      svg.append('line').attr('x1', cx(q)).attr('x2', cx(q)).attr('y1', low ? yy - 10 : yy + 3).attr('y2', tip).attr('stroke', c).attr('stroke-width', 1).attr('stroke-dasharray', '2 2');
+      svg.append('circle').attr('cx', cx(q)).attr('cy', tip + (low ? -1 : -1)).attr('r', 2.2).attr('fill', c);
+      const tx = svg.append('text').attr('x', Math.min(cx(q), W - m.r - 14)).attr('y', yy).attr('text-anchor', 'middle').attr('fill', c).style('font-size', '10px').style('font-weight', 700)
+        .style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', '3px').style('stroke-linejoin', 'round').text(lab);
+      tx.append('title').text(ten + ' · ngày ' + mt_[1].slice(8, 10) + '/' + mt_[1].slice(5, 7));
+    });
+    lv.forEach(([lab, v, c]) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', c).attr('stroke-dasharray', '4 3');
+      svg.append('text').attr('x', m.l + 4).attr('y', y(v) - 3).attr('fill', c).style('font-size', '10px').style('font-weight', 600).text(lab + ' ' + d3.format('.2f')(v)); });
+    // ---- MACD 12,26,9 ----
+    const md = d.filter((q) => q.macd != null);
+    if (md.length) {
+      const ext = d3.extent(md.flatMap((q) => [+q.macd, +q.macd_tb, +q.macd_cot])); const am = Math.max(Math.abs(ext[0]), Math.abs(ext[1])) || 1;
+      const ym = d3.scaleLinear([-am, am], [mb, mt]);
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ym(0)).attr('y2', ym(0)).attr('stroke', 'var(--cds-chart-axis)');
+      svg.append('text').attr('x', m.l + 2).attr('y', mt + 10).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text('MACD 12,26,9');
+      md.forEach((q) => { const v = +q.macd_cot; svg.append('rect').attr('x', x(q.ngay)).attr('width', x.bandwidth()).attr('y', ym(Math.max(0, v))).attr('height', Math.max(0.5, Math.abs(ym(v) - ym(0)))).attr('fill', v >= 0 ? 'var(--z3)' : 'var(--z6)').attr('opacity', 0.55); });
+      [['macd', 'var(--color-fg)'], ['macd_tb', 'var(--z4)']].forEach(([k, c]) => svg.append('path').datum(md).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 1.2).attr('d', d3.line(cx, (q) => ym(+q[k]))));
+      [am / 2, 0, -am / 2].forEach((t) => svg.append('text').attr('x', W - m.r + 4).attr('y', ym(t) + 4).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(d3.format('.2f')(t)));
+      // phan ky nhip cuoi (Trien Luan)
+      const da = d.find((q) => q.ngay === r.tl_d1_ngay), db = d.find((q) => q.ngay === r.tl_d2_ngay);
+      if (da && db && r.tl_pk) {
+        const bu = r.tl_pk === 'đáy', c = bu ? 'var(--z3)' : 'var(--z6)', off = bu ? 6 : -6;
+        svg.append('line').attr('x1', cx(da)).attr('x2', cx(db)).attr('y1', y(+r.tl_d1_gia) + off).attr('y2', y(+r.tl_d2_gia) + off).attr('stroke', c).attr('stroke-width', 2);
+        svg.append('line').attr('x1', cx(da)).attr('x2', cx(db)).attr('y1', ym(+r.tl_d1_macd)).attr('y2', ym(+r.tl_d2_macd)).attr('stroke', c).attr('stroke-width', 2);
+        svg.append('text').attr('x', Math.min(cx(db), W - m.r - 36)).attr('y', bu ? Math.max(y(+r.tl_d2_gia) - 14, 40) : Math.max(y(+r.tl_d2_gia) - 34, 40)).attr('text-anchor', 'middle').attr('fill', c).style('font-size', '10px').style('font-weight', 600).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', '3px').text('Phân kỳ ' + r.tl_pk);
+      }
+    }
+    const ticks = d.filter((q, i) => i % Math.ceil(d.length / (W < 520 ? 4 : 7)) === 0);
+    ticks.forEach((q) => svg.append('text').attr('x', cx(q)).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(q.ngay.slice(8, 10) + '/' + q.ngay.slice(5, 7)));
+    const el2 = window.atlTip(box); const bis = d3.bisector((q) => cx(q)).center;
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.r - m.l).attr('height', mb - m.t).attr('fill', 'transparent')
+      .on('pointermove', (ev) => { const [px] = d3.pointer(ev); const q = d[bis(d, px)]; if (!q) return; el2.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = q.ngay.slice(8, 10) + '/' + q.ngay.slice(5, 7) + '/' + q.ngay.slice(0, 4); el2.appendChild(t);
+        [['Mở · Cao · Thấp · Đóng', [q.o, q.h, q.l, q.c].map((v) => d3.format('.2f')(v)).join(' · ')], ['MA20 / MA50 / MA200', [q.ma20, q.ma50, q.ma200].map((v) => (v == null ? '—' : d3.format('.2f')(+v))).join(' / ')], ['Dải dưới / trên', (q.bb_duoi == null ? '—' : d3.format('.2f')(+q.bb_duoi)) + ' / ' + (q.bb_tren == null ? '—' : d3.format('.2f')(+q.bb_tren))], ['MACD / tín hiệu / cột', q.macd == null ? '—' : [q.macd, q.macd_tb, q.macd_cot].map((v) => d3.format('.2f')(+v)).join(' / ')]]
+          .forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el2.appendChild(e); });
+        const k = box.clientWidth / W; window.atlPlaceTip(el2, box, cx(q) * k, y(q.h) * k); })
+      .on('pointerleave', () => { el2.hidden = true; });
+    box.replaceChildren(svg.node(), el2);
+    const lg = $('hs-lg'); lg.replaceChildren();
+    [['Dải Bollinger 20,2', 'var(--z1)'], ['MA20', 'var(--z1)'], ['MA50', 'var(--z4)'], ['MA200', 'var(--z6)'], ['MACD', 'var(--color-fg)'], ['Đường tín hiệu', 'var(--z4)'], ['Trung tâm ZD–ZG & phân kỳ (Triền Luận)', 'var(--z4)']].forEach(([t, c]) => { const s = el('span'); const i = el('i', 'atl-dot'); i.style.background = c; s.append(i, document.createTextNode(t)); lg.appendChild(s); });
+  }
+  window.atlDrawHS = draw;
+})();
+</script>
+
+<script>
+(() => {
+  const TT = {
+    '★★★★ Thiên thời · Địa lợi · Nhân hòa': 'Đủ cả ba tài: ngành tốt, mã mạnh, giá tăng êm khi thanh khoản co.',
+    '★★★ Thiên thời · Nhân hòa': 'Có thời, có thế: ngành tốt và mã tự mạnh. Chưa có Địa lợi.',
+    '★★ Thiên thời': 'Có thời, chưa có thế: ngành tốt nhưng mã chưa tự mạnh.',
+    '★★ Nhân hòa': 'Mạnh một mình: mã tự mạnh nhưng ngành chưa tốt.',
+    'Nghịch thiên': 'Không có thời: ngành yếu và mã chưa đủ mạnh. Không ưu tiên.',
+    'Nghịch thời': 'Không có thời: ngành yếu và mã chưa đủ mạnh. Không ưu tiên.',
+    'Hết thời': 'Tránh: ngành tốt nhưng mã đang bị xả (thanh khoản tăng, giá giảm).',
+  };
+  // ba điều kiện Tam tài của một mã, kèm số liệu của chính mã đó
+  window.atlTamTaiParts = (r) => {
+    const tt = r.rrg_nhom === 'Dẫn dắt' || r.rrg_nhom === 'Cải thiện';
+    const ma50 = r.tren_ma50 === true || r.tren_ma50 === 'true';
+    const rs = r.rs60 == null ? null : Math.round(+r.rs60);
+    const nh = ma50 && rs != null && rs >= 70;
+    const dl = r.tk_gia === 'TK giảm · giá tăng' || r.tk_gia === 'Cạn cung';
+    return { tt, nh, dl,
+      ttTxt: 'nhóm ' + r.nhom + ' ' + (r.rrg_nhom ? r.rrg_nhom.toLowerCase() : 'chưa đủ dữ liệu') + ' (RRG tuần)',
+      nhTxt: (ma50 ? 'trên' : 'dưới') + ' MA50, sức mạnh giá ' + (rs == null ? '—' : rs),
+      dlTxt: r.tk_gia ? r.tk_gia.replace(/^TK /, 'thanh khoản ') : 'chưa đủ dữ liệu' };
+  };
+  // mô tả Tam tài của từng mã (hiện khi rê chuột vào ô trong bảng)
+  window.atlTamTaiTip = (r) => {
+    const t = TT[r.dong_tien]; if (!t) return '';
+    const p = window.atlTamTaiParts(r), ok = (v) => (v ? '✓ ' : '✗ ');
+    return [t,
+      ok(p.tt) + 'Thiên thời: ' + p.ttTxt,
+      ok(p.nh) + 'Nhân hòa: ' + p.nhTxt,
+      ok(p.dl) + 'Địa lợi: ' + p.dlTxt + (p.dl && !(p.tt && p.nh) ? ' (có, nhưng chỉ tính sao khi đã đủ Thiên thời và Nhân hòa)' : ''),
+    ].join('\n');
+  };
+
+  // chú thích nhẹ khi rê chuột (hoặc chạm) vào bất kỳ phần tử có data-tip
+  const root = document.querySelector('.atl'), tip = document.getElementById('atl-ttip');
+  let cur = null;
+  const hide = () => { tip.hidden = true; cur = null; };
+  const show = (el) => {
+    const txt = el.dataset.tip; if (!txt) return hide();
+    tip.replaceChildren();
+    txt.split('\n').forEach((line) => { const d = document.createElement('div'); d.textContent = line; tip.appendChild(d); });
+    tip.hidden = false; cur = el;
+    const rr = root.getBoundingClientRect(), er = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    const maxR = Math.min(rr.right, document.documentElement.clientWidth) - rr.left;
+    const left = Math.max(0, Math.min(er.left - rr.left + er.width / 2 - w / 2, maxR - w));
+    const above = er.top - h - 8 >= 0;
+    tip.style.left = left + 'px';
+    tip.style.top = (above ? er.top - rr.top - h - 8 : er.bottom - rr.top + 8) + 'px';
+  };
+  root.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-tip]'); if (!el) { if (cur) hide(); } else if (el !== cur) show(el); });
+  root.addEventListener('mouseleave', hide);
+  root.addEventListener('scroll', hide, true);
+  window.addEventListener('scroll', hide, true);
+})();
+</script>
+
+<script>
+(() => {
+  window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); };
+  const h = location.hash.slice(1);
+  if (h === 'rrg') { window.atlShow('dong-tien'); window.atlDV('rrg', false); }
+  else if (['hom-nay', 'xep-hang', 'ho-so', 'nhiet-ke', 'dong-tien'].includes(h)) window.atlShow(h);
+  dash.onData(() => window.atlRedraw());
+})();
+</script>
+
+</div>
+</body>
+</html>
