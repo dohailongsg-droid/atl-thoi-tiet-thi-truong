@@ -155,6 +155,297 @@ def suc_khoe(ma, cp, st, inc, is_bank, is_ck, ky_long, ln4, equity_vnd, shares):
     return e
 
 
+
+# ================= ĐỊNH GIÁ v2 (Ke theo beta, 3 kịch bản lợi nhuận, biên an toàn) =================
+_MACRO, _BETA, _SECT = None, None, None
+CHU_KY_NGANH = {"Tài nguyên Cơ bản", "Hóa chất", "Dầu khí", "Bất động sản", "Xây dựng và Vật liệu", "Dịch vụ tài chính"}
+CO_CAU_NGANH = {"Y tế", "Công nghệ Thông tin", "Bán lẻ", "Hàng cá nhân & Gia dụng", "Thực phẩm và đồ uống"}
+TRONG_SO = {"co_cau": (0.15, 0.50, 0.35), "hon_hop": (0.25, 0.50, 0.25), "chu_ky": (0.60, 0.30, 0.10)}
+TEN_LOAI_LN = {"co_cau": "tăng trưởng cấu trúc", "hon_hop": "hỗn hợp", "chu_ky": "theo chu kỳ"}
+
+
+def macro():
+    global _MACRO
+    if _MACRO is None:
+        try:
+            _MACRO = json.load(open(os.path.join(HERE, "macro.json"), encoding="utf-8"))
+        except Exception:
+            _MACRO = {"ngay": None, "rf": 0.045, "tiet_kiem_12t": None, "erp": 0.07, "chu_ky_ghi_de": {}}
+    return _MACRO
+
+
+def nganh_cua(ma):
+    global _SECT
+    if _SECT is None:
+        import csv
+        _SECT = {}
+        try:
+            with open(os.path.join(HERE, "hose_sectors.csv"), encoding="utf-8") as f:
+                for r in csv.DictReader(f):
+                    _SECT[(r.get("symbol") or "").strip().upper()] = (r.get("nganh") or "").strip()
+        except Exception:
+            pass
+    return _SECT.get(ma, "")
+
+
+def beta_cua(ma):
+    """Beta theo lợi suất ngày so với VN-Index trên toàn bộ lịch sử giá có sẵn (~620 phiên), điều chỉnh Blume (0,67·β + 0,33)."""
+    global _BETA
+    if _BETA is None:
+        import csv
+        rows = {}
+        try:
+            with gzip.open(os.path.join(HERE, "vn_prices_long.csv.gz"), "rt", encoding="utf-8") as f:
+                for r in csv.DictReader(f):
+                    rows.setdefault(r["symbol"], {})[r["date"]] = float(r["c"])
+        except Exception:
+            rows = {}
+        _BETA = rows
+    px, mk = _BETA.get(ma), _BETA.get("VNINDEX")
+    if not px or not mk:
+        return None, 0
+    ds = sorted(set(px) & set(mk))
+    if len(ds) < 250:
+        return None, len(ds)
+    rs, rm = [], []
+    for a, b in zip(ds[:-1], ds[1:]):
+        if px[a] > 0 and mk[a] > 0:
+            x, y = px[b] / px[a] - 1, mk[b] / mk[a] - 1
+            if abs(x) < 0.2:                      # bỏ nhiễu do chia tách/điều chỉnh giá
+                rs.append(x); rm.append(y)
+    if len(rs) < 200:
+        return None, len(rs)
+    mr, mm = sum(rs) / len(rs), sum(rm) / len(rm)
+    var = sum((y - mm) ** 2 for y in rm)
+    if var <= 0:
+        return None, len(rs)
+    raw = sum((x - mr) * (y - mm) for x, y in zip(rs, rm)) / var
+    return 0.67 * raw + 0.33, len(rs)
+
+
+def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm):
+    mc = macro()
+    rf, erp = float(mc.get("rf") or 0.045), float(mc.get("erp") or 0.07)
+    b, nobs = beta_cua(ma)
+    b_dung = min(1.6, max(0.6, b)) if b is not None else 1.0
+    ke = rf + b_dung * erp
+    nganh = nganh_cua(ma)
+    rev_f = "isb38" if is_bank else "isa3"
+    f = lambda x, k: None if x.get(k) is None else float(x[k])
+    # ---- phân loại tính chu kỳ ----
+    margins = []
+    if not fin:
+        for x in inc[-12:]:
+            d, l = f(x, "isa3"), f(x, "isa22")
+            if d and d > 0 and l is not None:
+                margins.append(l / d)
+    cv = None
+    if len(margins) >= 8:
+        m = sum(margins) / len(margins)
+        sd = (sum((a - m) ** 2 for a in margins) / len(margins)) ** 0.5
+        cv = sd / abs(m) if m else None
+    ghi_de = (mc.get("chu_ky_ghi_de") or {}).get(ma)
+    if ghi_de in TRONG_SO:
+        loai_ln, ly_do = ghi_de, "do bạn đặt tay trong macro.json"
+    elif fin:
+        loai_ln, ly_do = "hon_hop", "nhóm tài chính mặc định hỗn hợp"
+    elif nganh in CHU_KY_NGANH or (cv is not None and cv > 0.45):
+        loai_ln, ly_do = "chu_ky", ("ngành " + nganh + " thường theo chu kỳ") if nganh in CHU_KY_NGANH else f"biên lợi nhuận ròng dao động mạnh (hệ số biến thiên {cv:.2f})"
+    elif nganh in CO_CAU_NGANH and cv is not None and cv < 0.3:
+        loai_ln, ly_do = "co_cau", f"ngành {nganh}, biên lợi nhuận ổn định (hệ số biến thiên {cv:.2f})"
+    else:
+        loai_ln, ly_do = "hon_hop", "không thuộc nhóm rõ ràng"
+    w = TRONG_SO[loai_ln]
+    kb = []
+    gt = (0.03, 0.04, 0.05)             # tăng trưởng dài hạn theo kịch bản, không vượt lợi suất TPCP
+    dk = (+0.005, 0.0, -0.005)          # chi phí vốn lệch nhẹ theo kịch bản
+    ten = ("Bảo thủ", "Cơ sở", "Lạc quan")
+    info = {}
+    if fin:
+        if not (roe and bvps and roe > 0.04):
+            return None
+        hroe = sorted(float(r["roe"]) for r in st[-N_HIST:] if r.get("roe") and r["roe"] > 0)
+        med = pct(hroe, .5) if len(hroe) >= 8 else roe
+        roes = (min(roe, med), roe, max(roe, med, roe * 1.05))
+        for i in range(3):
+            k_e, g, r_ = ke + dk[i], gt[i], roes[i]
+            pb = (r_ - g) / (k_e - g) if r_ > g else None
+            if pb is None:
+                return None
+            kb.append({"ten": ten[i], "w": w[i], "dau_vao": f"ROE {r_ * 100:.1f}%", "he_so": round(pb, 2), "he_so_ten": "P/B hợp lý",
+                       "ke": round(k_e, 4), "g": g, "gia": round(bvps * pb)})
+        sens_unit = ("ROE ±1 điểm", bvps * 0.01 / (ke - gt[1]))
+        base_earn = None
+    else:
+        if ln4 <= 0 or eps_ttm <= 0:
+            return None
+        rev4 = sum(f(x, "isa3") or 0 for x in inc[-4:])
+        mar = [f(x, "isa22") / f(x, "isa3") for x in inc[-20:] if f(x, "isa3") and f(x, "isa3") > 0 and f(x, "isa22") is not None]
+        avg_m = sum(mar) / len(mar) if len(mar) >= 8 else None
+        e_bt = min(ln4, avg_m * rev4) if avg_m and avg_m > 0 else ln4 * 0.9
+        ln_prev = sum(f(x, "isa22") or 0 for x in inc[-8:-4]) if len(inc) >= 8 else None
+        gr = (ln4 / ln_prev - 1) if ln_prev and ln_prev > 0 else 0.0
+        g_cs = min(0.12, max(0.0, gr * 0.5))
+        g_lq = min(0.25, 2 * g_cs + 0.05)
+        earns = (e_bt, ln4 * (1 + g_cs), ln4 * (1 + g_lq))
+        roe_u = min(0.40, max(0.06, roe or 0.10))
+        for i in range(3):
+            k_e, g = ke + dk[i], gt[i]
+            pe = (1 - g / roe_u) / (k_e - g) if roe_u > g else 1 / k_e
+            pe = min(25.0, max(5.0, pe))
+            eps_i = earns[i] / shares
+            kb.append({"ten": ten[i], "w": w[i], "dau_vao": f"EPS {round(eps_i):,} đ", "he_so": round(pe, 1), "he_so_ten": "P/E hợp lý",
+                       "ke": round(k_e, 4), "g": g, "gia": round(eps_i * pe)})
+        rev_ttm = rev4
+        sens_unit = None
+        gm = None
+        try:
+            gm = float(st[-1].get("grossMargin")) if st[-1].get("grossMargin") is not None else None
+        except Exception:
+            gm = None
+        if gm is not None and rev_ttm > 0:
+            d_ln = 0.02 * rev_ttm * 0.8
+            sens_unit = ("biên gộp ±2 điểm", d_ln / shares * kb[1]["he_so"])
+        info = {"tang_truong_co_so": round(g_cs * 100, 1), "tang_truong_lac_quan": round(g_lq * 100, 1)}
+    if any(k["gia"] <= 0 for k in kb):
+        return None
+    gia_tb = sum(k["gia"] * k["w"] for k in kb)
+    mos = (1 - price / gia_tb) * 100
+    vung_an_toan = gia_tb * 0.8
+    if price <= vung_an_toan:
+        nhan = "Giá nằm trong vùng có biên an toàn từ 20% trở lên so với giá trị ước tính"
+        muc = "tot"
+    elif price <= gia_tb:
+        nhan = "Giá thấp hơn giá trị ước tính nhưng chưa đủ biên an toàn 20%"
+        muc = "tb"
+    else:
+        nhan = "Giá cao hơn giá trị ước tính theo các giả định hiện tại"
+        muc = "xau"
+    up = (kb[2]["gia"] / price - 1) * 100
+    down = (kb[0]["gia"] / price - 1) * 100
+    rr = None if down >= 0 else round(up / abs(down), 1)
+    out = {"ke": round(ke, 4), "rf": rf, "erp": erp, "beta": None if b is None else round(b, 2), "beta_dung": round(b_dung, 2), "beta_phien": nobs,
+           "macro_ngay": mc.get("ngay"), "tiet_kiem": mc.get("tiet_kiem_12t"), "loai_ln": loai_ln, "loai_ln_ten": TEN_LOAI_LN[loai_ln], "loai_ly_do": ly_do,
+           "nganh": nganh, "kich_ban": kb, "gia_tb": round(gia_tb), "mos": r1(mos, 1), "vung_an_toan": round(vung_an_toan),
+           "nhan": nhan, "muc": muc, "len_pct": r1(up, 1), "xuong_pct": r1(down, 1), "rr": rr, "info": info}
+    if sens_unit:
+        out["nhay"] = {"ten": sens_unit[0], "dgia": round(sens_unit[1]), "pct": r1(sens_unit[1] / price * 100, 1)}
+    # lưới nhạy Ke × g trên kịch bản cơ sở
+    kc = kb[1]
+    grid = []
+    for g in (0.03, 0.04, 0.05):
+        row = []
+        for d in (-0.01, 0.0, 0.01):
+            k_e = ke + d
+            if fin:
+                r_ = roes[1]
+                v = bvps * (r_ - g) / (k_e - g) if r_ > g and k_e > g else None
+            else:
+                pe = (1 - g / roe_u) / (k_e - g) if roe_u > g and k_e > g else (1 / k_e)
+                v = (earns[1] / shares) * min(25.0, max(5.0, pe))
+            row.append(None if v is None else round(v))
+        grid.append(row)
+    out["luoi"] = {"ke": [round(ke - 0.01, 4), round(ke, 4), round(ke + 0.01, 4)], "g": [0.03, 0.04, 0.05], "gia": grid}
+    # giá mục tiêu Vietcap quy về hiện tại
+    tp = cp.get("targetPrice")
+    if tp:
+        dps = float(cp.get("dividendPerShareTsr") or 0)
+        out["vci_hien_tai"] = round((float(tp) + dps) / (1 + ke))
+    # mốc LNST quý tới (chỉ doanh nghiệp/ngân hàng đều dùng LN cổ đông mẹ)
+    if len(inc) >= 4 and not fin:
+        q_cu = f(inc[-4], "isa22") or 0
+        cs_earn = earns[1]
+        out["moc_quy_toi"] = {"giu_ttm_ty": round(q_cu / 1e9, 1), "dat_co_so_ty": round(max(0, cs_earn - (ln4 - q_cu)) / 1e9, 1),
+                               "quy_cu": qlabel(inc[-4]["yearReport"], inc[-4]["lengthReport"])}
+    # E/P so với lãi suất
+    out["ep"] = r1(eps_ttm / price * 100, 2) if eps_ttm > 0 else None
+    # bảng 4 quý
+    rows = []
+    for i in range(-4, 0):
+        if len(inc) >= -i + 4:
+            x, y = inc[i], inc[i - 4]
+            d0, d1, l0, l1 = f(x, rev_f), f(y, rev_f), f(x, "isa22"), f(y, "isa22")
+            rows.append({"q": qlabel(x["yearReport"], x["lengthReport"]), "dt": None if d0 is None else round(d0 / 1e9),
+                         "dt_yoy": r1((d0 / d1 - 1) * 100, 1) if d0 and d1 and d1 > 0 else None,
+                         "ln": None if l0 is None else round(l0 / 1e9, 1),
+                         "ln_yoy": r1((l0 / l1 - 1) * 100, 1) if l0 is not None and l1 and l1 > 0 else None,
+                         "bien": r1(l0 / d0 * 100, 1) if (l0 is not None and d0 and d0 > 0 and not fin) else None})
+    out["bang_quy"] = rows
+    return out
+
+
+
+def chat_luong(ma, st, inc, last_ky):
+    """Thẻ 'Chất lượng & cờ cảnh báo' (chỉ doanh nghiệp phi tài chính): 7 tiêu chí mô tả + cờ từ BCTC/lưu chuyển tiền tệ. Không phải tín hiệu mua."""
+    bs = [r for r in iq(f"{ma}/financial-statement?section=BALANCE_SHEET")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
+    cf = [r for r in iq(f"{ma}/financial-statement?section=CASH_FLOW")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
+    key = lambda r: (r["yearReport"], r["lengthReport"])
+    bs.sort(key=key); cf.sort(key=key)
+    if len(bs) < 5 or len(inc) < 8:
+        return None
+    f = lambda x, k: None if (x is None or x.get(k) is None) else float(x[k])
+    sm = lambda rows, k: sum(f(x, k) or 0 for x in rows)
+    ln4, ln4p = sm(inc[-4:], "isa22"), sm(inc[-8:-4], "isa22")
+    dt4, dt4p = sm(inc[-4:], "isa3"), sm(inc[-8:-4], "isa3")
+    cfo4 = sm(cf[-4:], "cfa18") if len(cf) >= 4 else None
+    b0, b1 = bs[-1], bs[-5]
+    yoy = lambda a, b: None if (a is None or b is None or b <= 0) else a / b - 1
+    g_dt = yoy(dt4, dt4p)
+    tieu, co = [], []
+    def add(ten, ok, gt):
+        tieu.append({"ten": ten, "dat": ok, "gt": gt})
+    roe = st[-1].get("roe")
+    add("ROE 4 quý từ 12% trở lên", None if roe is None else float(roe) >= 0.12, "—" if roe is None else f"ROE {float(roe) * 100:.1f}%")
+    g_ln = yoy(ln4, ln4p) if ln4p > 0 else None
+    add("Lợi nhuận 4 quý tăng so với 4 quý trước", None if g_ln is None else g_ln > 0, "—" if g_ln is None else f"{g_ln * 100:+.1f}%")
+    add("Doanh thu 4 quý tăng so với 4 quý trước", None if g_dt is None else g_dt > 0, "—" if g_dt is None else f"{g_dt * 100:+.1f}%")
+    debt = (f(b0, "bsa56") or 0) + (f(b0, "bsa71") or 0)
+    cash = (f(b0, "bsa2") or 0) + (f(b0, "bsa5") or 0)
+    eq = f(b0, "bsa78")
+    nd = (debt - cash) / eq if eq and eq > 0 else None
+    add("Vay ròng không quá 1 lần vốn chủ (hoặc dư tiền ròng)", None if nd is None else nd <= 1, "—" if nd is None else (f"vay ròng {nd:.2f} lần vốn chủ" if nd > 0 else "dư tiền ròng"))
+    cfo_ln = (cfo4 / ln4) if (cfo4 is not None and ln4 > 0) else None
+    add("Dòng tiền kinh doanh 4 quý từ 80% lợi nhuận trở lên", None if cfo_ln is None else cfo_ln >= 0.8, "—" if cfo_ln is None else f"{cfo_ln * 100:.0f}% lợi nhuận")
+    gm0, gm1 = st[-1].get("grossMargin"), st[-5].get("grossMargin") if len(st) >= 5 else None
+    add("Biên gộp không giảm quá 2 điểm so với cùng kỳ", None if (gm0 is None or gm1 is None) else (float(gm0) - float(gm1)) * 100 >= -2,
+        "—" if (gm0 is None or gm1 is None) else f"{float(gm0) * 100:.1f}% so với {float(gm1) * 100:.1f}%")
+    cr = st[-1].get("currentRatio")
+    add("Thanh toán hiện hành từ 1,2 lần trở lên", None if cr is None else float(cr) >= 1.2, "—" if cr is None else f"{float(cr):.2f} lần")
+    # ---- cờ cảnh báo (mô tả điều bất thường cần kiểm tra thêm, không phải kết luận) ----
+    def flag(muc, nd_):
+        co.append({"muc": muc, "nd": nd_})
+    for nhan, k, hint in (("Phải thu khách hàng", "bsa9", "Cần xem có phải doanh nghiệp đang bán chịu nhiều hơn."), ("Hàng tồn kho", "bsa15", "Cần xem có phải hàng ứ đọng hoặc doanh nghiệp tích trữ.")):
+        g = yoy(f(b0, k), f(b1, k))
+        if g is not None and g_dt is not None and g > 0.2 and g > 1.5 * max(g_dt, 0.0):
+            flag("vang", f"{nhan} tăng {g * 100:.0f}% so với cùng kỳ, nhanh hơn nhiều so với doanh thu ({g_dt * 100:+.0f}%). {hint}")
+    gv = yoy(f(b0, "bsa56"), f(b1, "bsa56"))
+    if gv is not None and gv >= 0.5 and cfo4 is not None and cfo4 < 0:
+        flag("do", f"Vay ngắn hạn tăng {gv * 100:.0f}% so với cùng kỳ trong khi dòng tiền kinh doanh 4 quý âm: doanh nghiệp đang vay để bù thiếu tiền.")
+    pbt4 = sm(inc[-4:], "isa16")
+    if pbt4 > 0:
+        oi = sm(inc[-4:], "isa14")
+        if oi / pbt4 > 0.10:
+            flag("vang", f"Thu nhập khác (ròng) chiếm {oi / pbt4 * 100:.0f}% lợi nhuận trước thuế 4 quý: phần lợi nhuận ngoài hoạt động chính, khó lặp lại.")
+        ass = sm(inc[-4:], "isa102") or sm(inc[-4:], "isa15")
+        if ass / pbt4 > 0.15:
+            flag("vang", f"Lãi từ công ty liên doanh, liên kết chiếm {ass / pbt4 * 100:.0f}% lợi nhuận trước thuế 4 quý: lợi nhuận phụ thuộc nhiều vào công ty ngoài tập đoàn.")
+    if cfo_ln is not None and cfo_ln < 0.8:
+        flag("vang" if cfo_ln >= 0.3 else "do", f"Dòng tiền kinh doanh 4 quý chỉ bằng {cfo_ln * 100:.0f}% lợi nhuận: lợi nhuận chưa chuyển thành tiền.")
+    elif cfo4 is not None and ln4 <= 0 and cfo4 < 0:
+        flag("do", "Lợi nhuận và dòng tiền kinh doanh 4 quý đều âm.")
+    vg0, vg1 = f(b0, "bsa80"), f(b1, "bsa80")
+    gsh = yoy(vg0, vg1)
+    if gsh is not None and gsh > 0.10:
+        flag("vang", f"Vốn góp tăng {gsh * 100:.0f}% trong 1 năm: có thể do phát hành thêm hoặc chia cổ phiếu thưởng; nếu phát hành thêm thì EPS bị loãng.")
+    if nd is not None and nd > 2:
+        flag("do", f"Vay ròng {nd:.1f} lần vốn chủ: đòn bẩy cao, nhạy với lãi suất và chu kỳ.")
+    dat = sum(1 for t in tieu if t["dat"])
+    co_do = sum(1 for c in co if c["muc"] == "do")
+    n = len([t for t in tieu if t["dat"] is not None])
+    nhan = f"Đạt {dat}/{n} tiêu chí chất lượng" + (f" · {len(co)} cờ cảnh báo" + (f" ({co_do} cờ đỏ)" if co_do else "") if co else " · chưa thấy cờ cảnh báo")
+    return {"dat": dat, "tong": n, "tieu_chi": tieu, "co": co, "nhan": nhan, "ky": last_ky}
+
+
 def build(ma):
     cp = iq(ma)
     st = [r for r in iq(f"{ma}/statistics-financial") if r.get("quarter") in (1, 2, 3, 4)]
@@ -264,6 +555,11 @@ def build(ma):
                      "tang_giam_pct": r1(float(cp.get("upsideToTargetPercent") or 0) * 100, 1)}
     dg["gia_dinh"] = {"coe": COE, "g": G}
     dg["dai_chinh"] = dg["dai"][0]["ten"] if dg["dai"] else None
+    try:
+        dg["v2"] = dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm)
+    except Exception as e:
+        dg["v2"] = None
+        cano.append("Không tính được định giá v2: " + str(e)[:80])
 
     # ---------- xu hướng 12 quý ----------
     qs = inc[-N_TREND:]
@@ -406,6 +702,12 @@ def build(ma):
         nx.append(f"Giá mục tiêu của Vietcap {v['gia']:,} đ (khuyến nghị {v['khuyen_nghi']}, {v['ngay']}), chênh {v['tang_giam_pct']:+.1f}% so với giá hiện tại. Đây là quan điểm của Vietcap, không phải kết quả của mô hình trên.")
     cano.append("Dải định giá là lịch sử bội số của chính mã: khi cấu trúc ngành hoặc tăng trưởng thay đổi, quá khứ không còn đại diện")
 
+    cl_ = None
+    if not fin:
+        try:
+            cl_ = chat_luong(ma, st, inc, ky)
+        except Exception as e:
+            cano.append("Không tính được chất lượng: " + str(e)[:80])
     sk = None
     try:
         sk = suc_khoe(ma, cp, st, inc, is_bank, is_ck, f"Q{last['lengthReport']}/{last['yearReport']}", ln4, equity_vnd, shares)
@@ -414,7 +716,7 @@ def build(ma):
     return {"sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
             "ngay": dt.date.today().isoformat(), "ky_bao_cao": ky, "gia": round(price),
             "cao_1n": None if not hi else round(float(hi)), "thap_1n": None if not lo_ else round(float(lo_)),
-            "xu_huong": {"quy": labels, "chuoi": xu_huong}, "chi_tieu": chi_tieu, "dinh_gia": dg,
+            "xu_huong": {"quy": labels, "chuoi": xu_huong}, "chi_tieu": chi_tieu, "dinh_gia": dg, "chat_luong": cl_,
             "nhan_xet": [vn(t) for t in nx], "nhan_xet_ai": None, "canh_bao": [vn(t) for t in cano]}
 
 
