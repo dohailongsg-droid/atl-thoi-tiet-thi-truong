@@ -732,7 +732,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       </div>
       <div class="atl-wide dg-sec" id="dg-sec" hidden><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div>
       <div class="atl-wide atl-hs-row" id="dg-row" hidden>
-        <div class="atl-card" id="card-hs-ind" hidden>
+        <div class="dg-left"><div class="atl-card" id="card-hs-ind" hidden>
           <style>
           .dg-sec{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-md);flex-wrap:wrap;margin-top:var(--cds-gap-md)}
           .dg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:var(--cds-gap-sm);margin:0 0 var(--cds-gap-md)}
@@ -784,6 +784,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           .dg-sc th,.dg-sc td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);text-align:right}
           .dg-sc th:first-child,.dg-sc td:first-child{text-align:left} .dg-sc th{color:var(--color-fg-muted);font-weight:600}
           .dg-sc tr.m td{font-weight:700}
+          .dg-left{display:grid;gap:var(--cds-gap-md,14px);align-content:start;min-width:0}
           .dg-cl{display:grid;gap:6px;margin:0;padding:0;list-style:none}
           .dg-cl li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:baseline;font-size:var(--cds-font-size-body);padding:5px 0;border-bottom:1px solid var(--color-border-line)}
           .dg-cl .ic{font-weight:700;text-align:center} .dg-cl .ic.y{color:var(--sem-up)} .dg-cl .ic.n{color:var(--sem-down)} .dg-cl .ic.u{color:var(--color-fg-muted)}
@@ -800,14 +801,15 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           <div class="atl-ticks" id="hs-cb-val" data-source="co_ban ho_so"></div>
           <div id="dg-ind"></div>
         </div>
+        <div class="atl-card" id="card-hs-cl" hidden>
+          <h2 class="atl-h">Chất lượng &amp; cờ cảnh báo</h2>
+          <div id="dg-cl"></div>
+        </div>
+        </div>
         <div class="atl-card" id="card-hs-dg" hidden>
           <h2 class="atl-h">Định giá</h2>
           <div id="dg-val"></div>
         </div>
-      </div>
-      <div class="atl-card atl-wide" id="card-hs-cl" hidden>
-        <h2 class="atl-h">Chất lượng &amp; cờ cảnh báo</h2>
-        <div id="dg-cl"></div>
       </div>
       <div class="atl-card atl-wide" id="card-hs-xh" hidden>
         <h2 class="atl-h">Xu hướng 12 quý</h2>
