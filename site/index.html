@@ -784,6 +784,23 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           .dg-sc th,.dg-sc td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);text-align:right}
           .dg-sc th:first-child,.dg-sc td:first-child{text-align:left} .dg-sc th{color:var(--color-fg-muted);font-weight:600}
           .dg-sc tr.m td{font-weight:700}
+          .ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+          .ai-chip{font:inherit;font-size:var(--cds-font-size-caption);padding:5px 10px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer;text-align:left}
+          .ai-chip:hover{border-color:var(--color-fg-muted)}
+          .ai-log{display:grid;gap:8px;max-height:420px;overflow:auto;margin:6px 0}
+          .ai-m{padding:9px 12px;border-radius:10px;font-size:var(--cds-font-size-body);line-height:1.55;border:1px solid var(--color-border-line)}
+          .ai-m p{margin:0 0 6px} .ai-m p:last-child{margin:0}
+          .ai-m.user{background:var(--color-bg);justify-self:end;max-width:90%} .ai-m.sys{color:var(--color-fg-muted);border-style:dashed}
+          .ai-m.bot{border-left:4px solid var(--color-fg-muted)}
+          .ai-note{font-size:11px;color:var(--color-fg-muted)}
+          .ai-form{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:6px}
+          .ai-form textarea{font:inherit;font-size:var(--cds-font-size-body);padding:8px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);resize:vertical;min-height:44px}
+          .ai-form button,.ai-btns button{font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-fg);color:var(--color-bg);cursor:pointer}
+          .ai-form button:disabled{opacity:.5;cursor:wait}
+          .ai-set{margin-top:10px;font-size:var(--cds-font-size-caption)} .ai-set summary{cursor:pointer;color:var(--color-fg-muted)}
+          .ai-set label{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;margin:6px 0}
+          .ai-set input,.ai-set select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
+          .ai-btns{display:flex;gap:8px;margin-top:6px} .ai-btns button:last-child{background:var(--color-bg);color:var(--color-fg)}
           .dg-left{display:grid;gap:var(--cds-gap-md,14px);align-content:start;min-width:0}
           .dg-cl{display:grid;gap:6px;margin:0;padding:0;list-style:none}
           .dg-cl li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:baseline;font-size:var(--cds-font-size-body);padding:5px 0;border-bottom:1px solid var(--color-border-line)}
@@ -804,6 +821,20 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <div class="atl-card" id="card-hs-cl" hidden>
           <h2 class="atl-h">Chất lượng &amp; cờ cảnh báo</h2>
           <div id="dg-cl"></div>
+        </div>
+        <div class="atl-card" id="card-hs-ai" hidden>
+          <h2 class="atl-h" id="ai-title">Hỏi AI về mã này</h2>
+          <p class="dg-note">AI đọc toàn bộ nội dung Hồ sơ mã đang hiển thị (kỹ thuật lẫn cơ bản) để giải thích thuật ngữ và cách đọc; không dự báo con số, không khuyên mua bán.</p>
+          <div class="ai-chips" id="ai-chips"></div>
+          <div class="ai-log" id="ai-log" aria-live="polite"></div>
+          <form class="ai-form" id="ai-form"><textarea id="ai-in" rows="2" placeholder="Hỏi về bất kỳ phần nào trong Hồ sơ mã…" maxlength="500"></textarea><button type="submit" id="ai-send">Gửi</button></form>
+          <details class="ai-set" id="ai-set"><summary>Cài đặt khóa API <span id="ai-stat"></span></summary>
+            <p class="dg-note">Dán khóa miễn phí của bạn từ Google AI Studio (Gemini) hoặc Groq. Khóa chỉ lưu trong trình duyệt này, không gửi đi đâu ngoài chính nhà cung cấp.</p>
+            <label>Gemini <input type="password" id="ai-kg" autocomplete="off" placeholder="khóa Gemini"></label>
+            <label>Groq <input type="password" id="ai-kq" autocomplete="off" placeholder="khóa Groq"></label>
+            <label>Ưu tiên <select id="ai-pref"><option value="gemini">Gemini trước</option><option value="groq">Groq trước</option></select></label>
+            <div class="ai-btns"><button type="button" id="ai-save">Lưu</button><button type="button" id="ai-clear">Xóa khóa</button></div>
+          </details>
         </div>
         </div>
         <div class="atl-card" id="card-hs-dg" hidden>
@@ -868,7 +899,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       var li=v.length-1;while(li>0&&v[li]==null)li--;var c=document.createElementNS(ns,'circle');c.setAttribute('cx',(li/(n-1)*W).toFixed(1));c.setAttribute('cy',Y(v[li]).toFixed(1));c.setAttribute('r','2.6');c.setAttribute('fill','currentColor');svg.appendChild(c);}
     return svg;}
   function hideAll(){
-    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;$('card-hs-cl').hidden=true;
+    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;$('card-hs-cl').hidden=true;if(window.__aiSet)window.__aiSet(null);
     setTimeout(function(){ // thẻ chỉ tiêu chỉ còn khi có ô "so với ngành" (VN100)
       var has=$('hs-cb-val').children.length>0;$('dg-ind').textContent='';
       $('card-hs-ind').hidden=!has;$('dg-row').hidden=!has;$('dg-sec').hidden=!has;
@@ -914,6 +945,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var ft=el('p','dg-note','Chi phí vốn Ke = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro cổ phiếu. Lãi suất nhập tay ngày '+(m.macro_ngay||'—')+'; beta tính từ '+m.beta_phien+' phiên giá của chính mã so với VN-Index (điều chỉnh Blume). Mô hình do mình chọn, chưa kiểm định; kết quả là khoảng giá trị để đọc doanh nghiệp, không phải tín hiệu mua bán hay giá nên mua. Giá mục tiêu Vietcap là quan điểm của Vietcap, tách riêng.');ft.style.marginTop='var(--cds-gap-md)';v.appendChild(ft);}
   function render(x){
     var dg=x.dinh_gia,kb=dg.kich_ban||[],cs=kb[1],fin=dg.mo_hinh==='pb_roe',P=x.gia;
+    if(window.__aiSet)window.__aiSet(x);
     $('dg-sec').hidden=false;$('dg-row').hidden=false;$('card-hs-ind').hidden=false;$('card-hs-dg').hidden=false;$('card-hs-xh').hidden=false;
     $('dg-sub').textContent='Báo cáo '+x.ky_bao_cao+' · '+(LOAI[x.loai]||'')+' · nguồn Vietcap IQ · cập nhật '+x.ngay.slice(8)+'/'+x.ngay.slice(5,7);
     // ---- chỉ tiêu ----
@@ -969,6 +1001,117 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   };
 })();
 </script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+  var MG=['gemini-3.1-flash-lite','gemini-2.5-flash-lite','gemini-2.5-flash'],MQ=['openai/gpt-oss-120b','qwen/qwen3.6-27b','llama-3.3-70b-versatile'];
+  var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
+  var cur=null,hist=[],busy=false;
+  var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
+  var RULES='Bạn là trợ lý giải thích trang Hồ sơ mã (cả phân tích kỹ thuật lẫn cơ bản) trên trang ATL. QUY TẮC BẮT BUỘC: (1) Chỉ dùng thông tin trong phần NỘI DUNG TRANG và SỐ LIỆU 12 QUÝ bên dưới; không có thông tin về thị trường chung hay tin tức ngoài đó; thiếu thì nói "không có dữ liệu", tuyệt đối không bịa số. (2) Không dự báo con số lợi nhuận hay giá. Khi được hỏi về quý sau, chỉ nêu mốc trong dữ liệu (ví dụ mốc LNST quý tới), xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, rồi nói rõ đây không phải dự báo. (3) Không khuyên mua, bán, nắm giữ; không dùng các từ "nên mua", "nên bán", "khuyến nghị". (4) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng chính số liệu của mã. (5) Trả lời tiếng Việt, tối đa khoảng 150 từ, gạch đầu dòng ngắn khi cần; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (6) Cuối câu trả lời không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
+  function compact(x){
+    var dg=x.dinh_gia||{},v=dg.v2||null,o={ma:x.ma,ten:x.ten,loai:x.loai,bao_cao:x.ky_bao_cao,gia:x.gia,ngay:x.ngay,
+      chi_tieu:(x.chi_tieu||[]).map(function(g){return {nhom:g.nhom,muc:g.muc.map(function(m){return {ten:m.ten,gia_tri:m.gt,don_vi:m.dv,trung_vi_5_nam:m.tb5,phan_vi:m.pv};})};}),
+      dinh_gia:{pe_hien:dg.pe_hien,pb_hien:dg.pb_hien,pe_phan_vi:dg.pe_phan_vi,pe_trung_vi:dg.pe_trung_vi,pb_trung_vi:dg.pb_trung_vi,eps_4_quy:dg.eps_ttm,bvps:dg.bvps,vietcap:dg.vci},
+      xu_huong:(x.xu_huong&&x.xu_huong.chuoi||[]).map(function(s){return {ten:s.ten,don_vi:s.dv,so_cung_ky_pct:s.yoy,quy:x.xu_huong.quy,gia_tri:s.v};}),
+      chat_luong:x.chat_luong?{nhan:x.chat_luong.nhan,tieu_chi:x.chat_luong.tieu_chi,co_canh_bao:x.chat_luong.co}:null,
+      nhan_xet:x.nhan_xet||[]};
+    if(v)o.dinh_gia.v2={gia_tri_uoc_tinh:v.gia_tb,bien_an_toan_pct:v.mos,gia_toi_da_con_bien_an_toan_20pct:v.vung_an_toan,ke:v.ke,beta:v.beta_dung,loai_doanh_nghiep:v.loai_ln_ten,ly_do_phan_loai:v.loai_ly_do,kich_ban:v.kich_ban,len_pct_neu_lac_quan:v.len_pct,xuong_pct_neu_bao_thu:v.xuong_pct,ty_le_loi_lo:v.rr,moc_quy_toi:v.moc_quy_toi,do_nhay:v.nhay,ep_pct:v.ep,trai_phieu_10n:v.rf,tiet_kiem_12t:v.tiet_kiem,muc_tieu_vietcap_quy_ve_hien_tai:v.vci_hien_tai,bang_4_quy:v.bang_quy};
+    return JSON.stringify(o);}
+  function pageText(){
+    var root=document.getElementById('ho-so'),out=[];if(!root)return '';
+    (function w(n){if(n.nodeType===3){var s=n.textContent.replace(/\s+/g,' ').trim();if(s)out.push(s);return;}
+      if(n.nodeType!==1)return;var tg=n.tagName;if(tg==='SCRIPT'||tg==='STYLE'||tg==='svg'||tg==='FORM'||tg==='BUTTON'||n.hidden||n.id==='card-hs-ai')return;
+      var cs=getComputedStyle(n);if(cs.display==='none')return;
+      var blk=/^(DIV|P|LI|H1|H2|H3|TR|SECTION|UL|TABLE)$/.test(tg);for(var i=0;i<n.childNodes.length;i++)w(n.childNodes[i]);if(blk)out.push('\n');})(root);
+    var s=out.join(' ').replace(/ ?\n ?/g,'\n').replace(/\n+/g,'\n');
+    return s.length>16000?s.slice(0,16000)+'\n[đã cắt bớt phần cuối]':s;}
+  function series(x){return JSON.stringify(((x.xu_huong&&x.xu_huong.chuoi)||[]).map(function(s){return {ten:s.ten,don_vi:s.dv,quy:x.xu_huong.quy,gia_tri:s.v};}));}
+  function sysText(){return RULES+'\n\nGIẢI THÍCH THUẬT NGỮ: '+GLOSS+'\n\nNỘI DUNG TRANG HỒ SƠ MÃ '+cur.ma+' (nguyên văn những gì người dùng đang thấy: tín hiệu và kiểm định của hệ thống, Trend Template Minervini, Wyckoff, Triền Luận, sức khỏe doanh nghiệp, chỉ tiêu, định giá, chất lượng, nhận xét):\n'+pageText()+'\n\nSỐ LIỆU 12 QUÝ (JSON, doanh thu/lợi nhuận: tỷ đồng): '+series(cur);}
+  function digits(s){return String(s).replace(/[^0-9]/g,'');}
+  function checkNums(ans,ctx){
+    var cd=ctx.replace(/(\d)[.,](?=\d)/g,'$1').replace(/[^0-9]/g,'#'),bad=[];
+    var ms=ans.match(/\d[\d.,]*\d|\d/g)||[];
+    ms.forEach(function(m){var d=digits(m);if(d.length<3)return;
+      var alt=[d];var t=m.replace(/[.,]/g,'');alt.push(t);
+      // JSON trong ngữ cảnh dùng dấu chấm thập phân, nên thử cả dạng thập phân tương ứng
+      var dec=m.replace(/\./g,'').replace(',','.');alt.push(digits(dec));
+      var ok=alt.some(function(a){return a&&cd.indexOf(a)>=0;});
+      if(!ok){// thử so khớp số làm tròn: bỏ phần thập phân
+        var base=digits(dec.split('.')[0]);if(base.length>=3&&cd.indexOf(base)>=0)ok=true;}
+      if(!ok&&bad.indexOf(m)<0)bad.push(m);});
+    return bad;}
+  var BANNED=/(nên mua|nên bán|khuyến nghị mua|khuyến nghị bán|nên nắm giữ)/i;
+  function addMsg(role,text,note){
+    var log=$('ai-log'),m=el('div','ai-m '+role);
+    text.split('\n').forEach(function(l){if(!l.trim())return;m.appendChild(el('p',null,l.replace(/\*\*/g,'').replace(/^\s*[-*]\s+/,'• ')));});
+    if(note)m.appendChild(el('p','ai-note',note));
+    log.appendChild(m);log.scrollTop=log.scrollHeight;return m;}
+  function post(url,headers,body){return fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){return {ok:r.ok,status:r.status,j:j};},function(){return {ok:r.ok,status:r.status,j:null};});});}
+  function msgs(){return hist.slice(-8);}
+  function askGemini(key,sys){
+    var contents=msgs().map(function(m){return {role:m.role==='user'?'user':'model',parts:[{text:m.text}]};});
+    var i=0,errs=[];
+    function next(){if(i>=MG.length)return Promise.reject(new Error(errs.join(' | ')||'Gemini không phản hồi'));
+      var mod=MG[i++];
+      return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},{systemInstruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:0.2,maxOutputTokens:700}}).then(function(r){
+        if(r.ok&&r.j&&r.j.candidates&&r.j.candidates[0]&&r.j.candidates[0].content){return {text:r.j.candidates[0].content.parts.map(function(p){return p.text||'';}).join(''),model:mod};}
+        var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
+        if(r.status===401||r.status===403||(r.status===400&&/API key/i.test(em)))return Promise.reject(new Error('Khóa Gemini không hợp lệ hoặc chưa được cấp quyền: '+em));
+        if(r.status===429)return Promise.reject(new Error('Gemini báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
+        return next();});}
+    return next();}
+  function askGroq(key,sys){
+    var m=[{role:'system',content:sys}].concat(msgs().map(function(x){return {role:x.role==='user'?'user':'assistant',content:x.text};}));
+    var i=0,errs=[];
+    function next(){if(i>=MQ.length)return Promise.reject(new Error(errs.join(' | ')||'Groq không phản hồi'));
+      var mod=MQ[i++];
+      return post('https://api.groq.com/openai/v1/chat/completions',{'Content-Type':'application/json','Authorization':'Bearer '+key},{model:mod,temperature:0.2,max_tokens:700,messages:m}).then(function(r){
+        if(r.ok&&r.j&&r.j.choices&&r.j.choices[0]){return {text:r.j.choices[0].message.content||'',model:mod};}
+        var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
+        if(r.status===401)return Promise.reject(new Error('Khóa Groq không hợp lệ: '+em));
+        if(r.status===429)return Promise.reject(new Error('Groq báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
+        return next();});}
+    return next();}
+  function ask(text){
+    if(busy||!cur)return;
+    var kg=LS.get('atl_key_gemini'),kq=LS.get('atl_key_groq');
+    if(!kg&&!kq){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini hoặc Groq của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
+    busy=true;$('ai-send').disabled=true;
+    addMsg('user',text);hist.push({role:'user',text:text});
+    var wait=addMsg('sys','Đang đọc toàn bộ Hồ sơ mã '+cur.ma+'…');
+    var sys=sysText(),pref=LS.get('atl_ai_pref')||'gemini',order=pref==='groq'?['groq','gemini']:['gemini','groq'];
+    var tried=[];
+    function run(k){
+      if(k>=order.length)return Promise.reject(new Error(tried.join(' | ')));
+      var p=order[k],key=p==='gemini'?kg:kq;
+      if(!key)return run(k+1);
+      return (p==='gemini'?askGemini(key,sys):askGroq(key,sys)).then(function(r){r.prov=p;return r;},function(e){tried.push((p==='gemini'?'Gemini':'Groq')+': '+(e.message==='Failed to fetch'?'không kết nối được (mạng hoặc trình duyệt chặn)':e.message));return run(k+1);});}
+    run(0).then(function(r){
+      wait.remove();
+      var bad=checkNums(r.text,sys),notes=[];
+      if(bad.length)notes.push('Chưa đối chiếu được với dữ liệu trên trang: '+bad.slice(0,6).join(', ')+'. Hãy kiểm tra lại các số này.');
+      if(BANNED.test(r.text))notes.push('Câu trả lời có lời khuyên mua bán, hệ thống không đưa lời khuyên này. Hãy bỏ qua.');
+      notes.push('Do AI viết lại từ số liệu có sẵn ('+(r.prov==='gemini'?'Gemini':'Groq')+', '+r.model+'). Chỉ để tham khảo.');
+      addMsg('bot',r.text.trim()||'(AI không trả lời)',notes.join(' '));
+      hist.push({role:'model',text:r.text});
+    },function(e){wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
+  var CHIPS=['Tóm tắt kỹ thuật và cơ bản của mã này','Các góc nhìn kỹ thuật đang đồng thuận hay mâu thuẫn?','Tóm tắt phân tích cơ bản','Giải thích các cờ cảnh báo','Vì sao giá trị ước tính ra mức này?','Lợi nhuận quý này tốt thì quý sau cần điều kiện gì?','Chỉ tiêu nào đáng chú ý nhất?','Giải thích biên an toàn và chi phí vốn Ke'];
+  function reset(x){cur=x;hist=[];$('ai-log').textContent='';$('card-hs-ai').hidden=false;$('ai-title').textContent='Hỏi AI về '+x.ma;}
+  function boot(){
+    var ch=$('ai-chips');CHIPS.forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){ask(c);});ch.appendChild(b);});
+    $('ai-form').addEventListener('submit',function(e){e.preventDefault();var t=$('ai-in').value.trim();if(!t)return;$('ai-in').value='';ask(t);});
+    $('ai-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('ai-form').requestSubmit();}});
+    function stat(){var g=LS.get('atl_key_gemini'),q=LS.get('atl_key_groq');$('ai-stat').textContent='Đã lưu: '+(g?'Gemini ':'')+(q?'Groq':'')+((g||q)?'':'chưa có khóa');$('ai-pref').value=LS.get('atl_ai_pref')||'gemini';}
+    $('ai-save').addEventListener('click',function(){var g=$('ai-kg').value.trim(),q=$('ai-kq').value.trim();if(g)LS.set('atl_key_gemini',g);if(q)LS.set('atl_key_groq',q);LS.set('atl_ai_pref',$('ai-pref').value);$('ai-kg').value='';$('ai-kq').value='';stat();});
+    $('ai-clear').addEventListener('click',function(){LS.del('atl_key_gemini');LS.del('atl_key_groq');stat();});
+    stat();}
+  window.__aiSet=function(x){if(x)reset(x);else{$('card-hs-ai').hidden=true;cur=null;}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
 
   <!-- ============ DÒNG TIỀN ============ -->
   <section class="atl-sec" id="dong-tien" role="tabpanel" aria-labelledby="tab-dong-tien" hidden>
