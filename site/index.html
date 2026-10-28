@@ -249,11 +249,131 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
+    <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="false">Trong phiên</button>
     <button class="atl-tab" role="tab" id="tab-tieu-diem" data-sec="tieu-diem" aria-selected="false">Tiêu điểm</button>
   </nav>
 
   <!-- ============ HÔM NAY ============ -->
-  <section class="atl-sec" id="tieu-diem" role="tabpanel" aria-labelledby="tab-tieu-diem" hidden>
+  <section class="atl-sec" id="trong-phien" role="tabpanel" aria-labelledby="tab-trong-phien" hidden>
+<style>
+.lv{width:100%;max-width:64rem;margin:0 auto;display:grid;gap:var(--cds-gap-md)}
+.lv-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-md);flex-wrap:wrap}
+.lv-head h2{margin:0;font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title)}
+.lv-stat{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);display:flex;align-items:center;gap:6px}
+.lv-dot{width:8px;height:8px;border-radius:50%;background:var(--color-fg-muted);opacity:.5}
+.lv-dot.on{background:var(--sem-up);opacity:1}
+.lv-warn{margin:0;font-size:var(--cds-font-size-caption);color:var(--sem-down)}
+.lv-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:var(--cds-gap-sm)}
+.lv-k{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:flex;flex-direction:column;gap:2px;min-width:0}
+.lv-k .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.lv-k .v{font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.lv-k .s{font-size:11px;color:var(--color-fg-muted);line-height:1.4}
+.lv-up{color:var(--sem-up)} .lv-dn{color:var(--sem-down)}
+.lv-note{margin:0;font-size:11px;color:var(--color-fg-muted);line-height:1.5;max-width:68ch}
+.lv-grid{display:grid;grid-template-columns:1fr;gap:var(--cds-gap-md)}
+@media(min-width:900px){.lv-grid{grid-template-columns:1fr 1fr}}
+.lv-box{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);min-width:0}
+.lv-box h3{margin:0 0 8px;font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)}
+.lv-t{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.lv-t td{padding:4px 0;border-top:1px solid var(--color-border-line)} .lv-t tr:first-child td{border-top:0}
+.lv-t td:not(:first-child){text-align:right;padding-left:8px;white-space:nowrap}
+.lv-t td:first-child{font-weight:600}
+.lv-bar{display:grid;grid-template-columns:minmax(7rem,11rem) 1fr 3.6rem;align-items:center;gap:8px;font-size:var(--cds-font-size-caption);padding:3px 0}
+.lv-bar .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-bar .tr{position:relative;height:8px;background:var(--color-bg);border-radius:4px}
+.lv-bar .tr i{position:absolute;top:0;bottom:0;border-radius:4px}
+.lv-bar .tr::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--color-border-line)}
+.lv-bar .p{text-align:right;font-variant-numeric:tabular-nums}
+.lv-news{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lv-news li{display:grid;grid-template-columns:3rem 1fr;gap:8px;font-size:var(--cds-font-size-caption);line-height:1.45}
+.lv-news .tm{color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.lv-news a{color:inherit;text-decoration:none} .lv-news a:hover{text-decoration:underline}
+.lv-news .sr{display:block;font-size:11px;color:var(--color-fg-muted)}
+.lv-spark{width:100%;height:72px;display:block}
+</style>
+<div class="atl-card atl-wide"><div class="lv" id="lv">
+  <div class="lv-head"><h2>Trong phiên</h2><div class="lv-stat"><span class="lv-dot" id="lv-dot"></span><span id="lv-stat">Đang tải…</span></div></div>
+  <p class="lv-warn" id="lv-warn" hidden></p>
+  <div id="lv-body"></div>
+</div></div>
+</section>
+<script>
+(function(){
+  var URL_LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/trong_phien.json';
+  var body=document.getElementById('lv-body'),stat=document.getElementById('lv-stat'),dot=document.getElementById('lv-dot'),warn=document.getElementById('lv-warn');
+  function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+  function n1(x){return x==null?'—':Number(x).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});}
+  function n0(x){return x==null?'—':Number(x).toLocaleString('vi-VN',{maximumFractionDigits:0});}
+  function sg(x,d){if(x==null)return '—';var v=Number(x);return (v>0?'+':'')+v.toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function cl(x){return x>0?'lv-up':(x<0?'lv-dn':'');}
+  function kpi(k,v,s,c){var d=el('div','lv-k');d.appendChild(el('span','k',k));var vv=el('span','v'+(c?' '+c:''),v);d.appendChild(vv);if(s)d.appendChild(el('span','s',s));return d;}
+  function box(title){var b=el('div','lv-box');b.appendChild(el('h3',null,title));return b;}
+  function tbl(rows,fn){var t=el('table','lv-t'),tb=el('tbody');rows.forEach(function(r){var tr=el('tr');fn(r).forEach(function(c,i){var td=el('td',c.c||'',c.t);tr.appendChild(td);});tb.appendChild(tr);});t.appendChild(tb);return t;}
+  function spark(ch,key,label){
+    var pts=ch.filter(function(p){return p[key]!=null;});if(pts.length<2)return null;
+    var vals=pts.map(function(p){return p[key];}),mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1,W=300,H=60;
+    var d=pts.map(function(p,i){return (i/(pts.length-1)*W).toFixed(1)+','+(H-4-(p[key]-mn)/rg*(H-8)).toFixed(1);}).join(' ');
+    var ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 '+W+' '+H);s.setAttribute('class','lv-spark');s.setAttribute('preserveAspectRatio','none');
+    var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke','currentColor');pl.setAttribute('stroke-width','1.5');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
+    var b=box(label+' trong ngày');b.appendChild(s);b.appendChild(el('p','lv-note',pts[0].gio+' → '+pts[pts.length-1].gio+' · thấp '+n1(mn)+' · cao '+n1(mx)));return b;}
+  function render(d){
+    body.textContent='';
+    var age=(Date.now()-Date.parse(d.cap_nhat))/60000;
+    dot.className='lv-dot'+(d.dang_giao_dich&&age<25?' on':'');
+    stat.textContent='Cập nhật '+d.gio+' · '+d.phien;
+    if(d.dang_giao_dich&&age>=25&&d.phien.indexOf('Nghỉ')<0){warn.hidden=false;warn.textContent='Dữ liệu đang trễ khoảng '+Math.round(age)+' phút so với giờ hiện tại (lịch chạy tự động của GitHub có thể bị chậm).';}else{warn.hidden=true;}
+    var cs={};(d.chi_so||[]).forEach(function(x){cs[x.ma]=x;});
+    var k=el('div','lv-kpis');
+    if(cs.VNINDEX)k.appendChild(kpi('VN-Index',n1(cs.VNINDEX.gia),sg(cs.VNINDEX.pct,2)+'%',cl(cs.VNINDEX.pct)));
+    if(cs.VN30)k.appendChild(kpi('VN30',n1(cs.VN30.gia),sg(cs.VN30.pct,2)+'%',cl(cs.VN30.pct)));
+    var nk=d.nhiet_ke||{},hq=nk.hom_qua;
+    k.appendChild(kpi('Điểm tạm tính',n1(nk.diem_tam),hq?('Chính thức '+hq.ngay.slice(8)+'/'+hq.ngay.slice(5,7)+': điểm '+n1(hq.diem)+' · TB7 '+n1(hq.tb7)+' · vùng '+n0(hq.vung)):'Chưa có số liệu hôm qua'));
+    var r=d.do_rong||{};
+    k.appendChild(kpi('Độ rộng',(r.tang||0)+' ↑ / '+(r.giam||0)+' ↓',(r.dung||0)+' đứng giá'));
+    k.appendChild(kpi('Trần / Sàn',(r.tran||0)+' / '+(r.san||0),'ngưỡng ±6,5%'));
+    var tk=d.thanh_khoan||{};
+    k.appendChild(kpi('GTGD đến giờ',n0(tk.gtgd_ty)+' tỷ',tk.ty_le!=null?(Math.round(tk.ty_le*100)+'% so với TB20 ('+n0(tk.tb20_ty)+' tỷ)'):null));
+    var kn=d.khoi_ngoai||{};
+    k.appendChild(kpi('Khối ngoại ròng',sg(kn.rong_ty,0)+' tỷ','Mua '+n0(kn.mua_ty)+' · bán '+n0(kn.ban_ty),cl(kn.rong_ty)));
+    body.appendChild(k);
+    var tp=nk.thanh_phan||{},parts=[];
+    if(tp.do_rong!=null)parts.push('độ rộng '+n1(tp.do_rong));if(tp.tran_san!=null)parts.push('trần−sàn '+n1(tp.tran_san));if(tp.hukt!=null)parts.push('hiệu ứng kiếm tiền '+n1(tp.hukt));
+    var nt=el('p','lv-note','Điểm tạm tính chỉ gồm '+parts.join(', ')+' (chưa có thanh khoản, chưa làm mượt TB7). Đây là chỉ báo tham khảo trong phiên, chưa kiểm định như nhiệt kế chính thức; vùng và tỷ trọng tối đa vẫn lấy từ nhiệt kế sau phiên.');
+    nt.style.margin='var(--cds-gap-md) 0';body.appendChild(nt);
+    var g=el('div','lv-grid');
+    var s1=spark(d.chuoi||[],'vni','VN-Index'),s2=spark(d.chuoi||[],'do_rong','Độ rộng (%)');
+    if(s1)g.appendChild(s1);if(s2)g.appendChild(s2);
+    var b1=box('Tăng mạnh (GTGD ≥ 10 tỷ)');b1.appendChild(tbl(d.top_tang||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b1);
+    var b2=box('Giảm mạnh (GTGD ≥ 10 tỷ)');b2.appendChild(tbl(d.top_giam||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b2);
+    var b3=box('Giao dịch lớn nhất');b3.appendChild(tbl(d.top_gtgd||[],function(x){return [{t:x.ma},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b3);
+    var b4=box('Khối ngoại: mua ròng / bán ròng');
+    b4.appendChild(tbl((kn.top_mua||[]).concat(kn.top_ban||[]),function(x){return [{t:x.ma},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:sg(x.rong_ty,1)+' tỷ',c:cl(x.rong_ty)}];}));g.appendChild(b4);
+    body.appendChild(g);
+    if((d.nganh||[]).length){
+      var bn=box('Ngành trong phiên (bình quân theo GTGD)');bn.style.marginTop='var(--cds-gap-md)';
+      var mx=Math.max.apply(null,d.nganh.map(function(x){return Math.abs(x.pct);}))||1;
+      d.nganh.forEach(function(x){var row=el('div','lv-bar');row.appendChild(el('span','n',x.nganh));var tr=el('span','tr'),i=el('i');var w=Math.abs(x.pct)/mx*50;i.style.width=w+'%';i.style.left=x.pct>=0?'50%':(50-w)+'%';i.style.background=x.pct>=0?'var(--sem-up)':'var(--sem-down)';tr.appendChild(i);row.appendChild(tr);row.appendChild(el('span','p '+cl(x.pct),sg(x.pct,2)+'%'));bn.appendChild(row);});
+      body.appendChild(bn);}
+    if((d.tin_moi||[]).length){
+      var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');bt.style.marginTop='var(--cds-gap-md)';
+      var ul=el('ul','lv-news');d.tin_moi.forEach(function(t){var li=el('li');li.appendChild(el('span','tm',t.luc));var w=el('div');var a=el('a',null,t.tieu_de);a.href=t.link;a.target='_blank';a.rel='noopener';w.appendChild(a);w.appendChild(el('span','sr',t.nguon));li.appendChild(w);ul.appendChild(li);});
+      bt.appendChild(ul);body.appendChild(bt);}
+    var ft=el('p','lv-note','Nguồn: bảng giá Vietcap, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể chậm). Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.');
+    ft.style.marginTop='var(--cds-gap-md)';body.appendChild(ft);
+  }
+  var busy=false;
+  function load(){
+    if(busy||document.hidden)return;busy=true;
+    fetch(URL_LIVE+'?t='+Math.floor(Date.now()/60000),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+      busy=false;
+      if(!d){if(!body.childNodes.length){stat.textContent='Chưa có dữ liệu trong phiên';body.appendChild(el('p','lv-note','Mục này sẽ hiện khi workflow trong phiên chạy lần đầu (giờ giao dịch, thứ Hai–thứ Sáu).'));}return;}
+      render(d);
+    }).catch(function(){busy=false;if(!body.childNodes.length){stat.textContent='Chưa tải được dữ liệu trong phiên';}});
+  }
+  load();setInterval(load,60000);document.addEventListener('visibilitychange',load);
+})();
+</script>
+<section class="atl-sec" id="tieu-diem" role="tabpanel" aria-labelledby="tab-tieu-diem" hidden>
 <style>
 .tin-wrap{max-width:46rem;margin:0 auto;padding:var(--cds-pad-lg) 0}
 .tin-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-md);flex-wrap:wrap;margin-bottom:var(--cds-gap-md)}
