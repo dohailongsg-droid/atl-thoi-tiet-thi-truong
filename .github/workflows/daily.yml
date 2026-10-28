@@ -47,7 +47,7 @@ jobs:
 
       - name: Dữ liệu cơ bản toàn HOSE (Vietcap IQ, lỗi không làm dừng cả lượt)
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
       - name: Ghi lại trạng thái (state/)
