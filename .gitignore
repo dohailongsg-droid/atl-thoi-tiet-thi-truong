@@ -1,0 +1,13 @@
+__pycache__/
+pipeline/atl.json
+pipeline/boloc_in.json
+pipeline/tr_in.json
+pipeline/boloc_all.json
+pipeline/tr_all.json
+pipeline/dash_payload.json
+pipeline/*.csv.gz
+pipeline/dash_out/*
+!pipeline/dash_out/kiem_dinh.json
+site/data/*
+!site/data/co_ban.json
+!site/data/.gitkeep
