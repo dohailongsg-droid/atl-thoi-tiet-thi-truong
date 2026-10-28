@@ -212,18 +212,37 @@
 <div class="atl">
   <header class="atl-head" id="tong-quan">
     <div class="atl-titlebar"><span class="atl-ico atl-ico-t"><span class="ico-w ico-1"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12M16 20l-6-6M16 16l5-5M16 24l-5-4M16 22l6-5"/><path d="M6 6l1 2M26 5l-1 2M9 3v3M23 9v3M5 12h3"/></svg></span><span class="ico-w ico-2"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24M8 25c2-3 5-3 8-3s6 0 8 3"/><path d="M16 22v-5M16 19c-4-1-6-3-6-6M16 19c4-1 6-3 6-6"/></svg></span><span class="ico-w ico-7"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24"/><path d="M16 25V15"/><path d="M16 17c-5 0-7-3-7-7 5 0 7 3 7 7zM16 15c0-4 2-7 7-7 0 4-2 7-7 7z"/></svg></span><span class="ico-w ico-3"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 27c5-3 9-8 12-17"/><circle cx="18" cy="9" r="2"/><path d="M18 5v-2M22 9h2M12 9h-2M21 6l1-1M15 6l-1-1M21 12l1 1M15 12l-1 1"/><circle cx="10" cy="19" r="1.5"/><circle cx="23" cy="17" r="1.5"/></svg></span><span class="ico-w ico-4"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12"/><path d="M16 12c-1-4 1-7 5-8 0 4-1 7-5 8zM16 16c-4 0-7-2-8-6 4 0 7 2 8 6zM16 20c4 0 7-2 8-6-4 0-7 2-8 6zM16 24c-4 0-7-2-8-6 4 0 7 2 8 6z"/></svg></span><span class="ico-w ico-5"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 29V16M16 16l-10-5 3-4 3 1 1-5 3 3 3-3 1 5 3-1 3 4z"/><path d="M16 22l-4-3M16 25l5-4"/></svg></span><span class="ico-w ico-6"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4a9 9 0 1 0 7 13c-8 1-13-5-7-13z"/><path d="M4 26h24M7 26c0-4 2-7 4-8M14 26c0-4 1-6 3-8M21 26c0-3 1-5 3-6"/></svg></span></span><h1 class="atl-title">Thời tiết thị trường</h1></div>
-<section id="tin-tieu-diem" class="atl-card" hidden style="margin:var(--sp-4) 0">
-  <div class="atl-h" id="tin-head">Tiêu điểm hôm nay</div>
-  <div id="tin-body" style="margin-top:var(--sp-3);display:grid;gap:var(--sp-3)"></div>
-  <p id="tin-gocnhin" class="atl-take" style="margin-top:var(--sp-3)"></p>
-  <p id="tin-foot" class="atl-take" style="font-size:11px;margin-top:var(--sp-3)"></p>
+
+    <p class="atl-take dash-skeleton" id="take" data-source="nhiet_ke">—</p>
+  </header>
+
+  <nav class="atl-tabs" role="tablist" aria-label="Phần">
+    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="true">Hôm nay mua gì</button>
+    <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
+    <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
+    <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
+    <button class="atl-tab" role="tab" id="tab-tieu-diem" data-sec="tieu-diem" aria-selected="false">Tiêu điểm</button>
+  </nav>
+
+  <!-- ============ HÔM NAY ============ -->
+  <section class="atl-sec" id="tieu-diem" role="tabpanel" aria-labelledby="tab-tieu-diem" hidden>
+  <div class="atl-card atl-wide">
+    <div class="atl-h">Tiêu điểm hôm nay</div>
+    <div id="tin-body" style="margin-top:var(--sp-3);display:grid;gap:var(--sp-3)"></div>
+    <p id="tin-gocnhin" class="atl-take" style="margin-top:var(--sp-3)"></p>
+    <p id="tin-foot" class="atl-take" style="font-size:11px;margin-top:var(--sp-3)"></p>
+  </div>
 </section>
 <script>
 (function(){
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+  var body=document.getElementById('tin-body'),foot=document.getElementById('tin-foot');
   fetch('data/tin.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
-    if(!d||!d.tieu_diem||!d.tieu_diem.length)return;
-    var sec=document.getElementById('tin-tieu-diem'),body=document.getElementById('tin-body');
+    if(!d||!d.tieu_diem||!d.tieu_diem.length){
+      body.appendChild(el('p','atl-take','Chưa có tiêu điểm cho phiên này. Mục sẽ tự cập nhật sau lần chạy kế tiếp.'));
+      if(d&&d.ngay)foot.textContent='Dữ liệu ngày '+d.ngay+'.';
+      return;
+    }
     d.tieu_diem.forEach(function(t,i){
       var box=el('div');
       box.appendChild(el('div','atl-h',t.nhan));
@@ -233,28 +252,16 @@
       box.appendChild(el('p','atl-take',t.cau));
       if(t.bullets&&t.bullets.length){var ul=el('ul',null);ul.style.cssText='margin:4px 0 0 18px;font-size:12px;color:var(--color-fg-muted)';
         t.bullets.forEach(function(b){ul.appendChild(el('li',null,b));});box.appendChild(ul);}
-      box.appendChild(el('div',null,t.nguon+' · '+t.ngay));
-      box.lastChild.style.cssText='font-size:11px;color:var(--color-fg-muted)';
+      var src=el('div',null,t.nguon+' · '+t.ngay);src.style.cssText='font-size:11px;color:var(--color-fg-muted)';
+      box.appendChild(src);
       body.appendChild(box);
     });
     if(d.gocnhin)document.getElementById('tin-gocnhin').textContent='Góc nhìn: '+d.gocnhin;
-    document.getElementById('tin-foot').textContent='Tóm tắt bằng AI ('+(d.nha_cung_cap||'?')+') từ tin công khai, cập nhật '+d.ngay+'. Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.';
-    sec.hidden=false;
-  }).catch(function(){});
+    foot.textContent='Tóm tắt bằng AI ('+(d.nha_cung_cap||'?')+') từ tin công khai, cập nhật '+d.ngay+'. Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.';
+  }).catch(function(){body.appendChild(el('p','atl-take','Chưa tải được tiêu điểm.'));});
 })();
 </script>
-    <p class="atl-take dash-skeleton" id="take" data-source="nhiet_ke">—</p>
-  </header>
-
-  <nav class="atl-tabs" role="tablist" aria-label="Phần">
-    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="true">Hôm nay mua gì</button>
-    <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
-    <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
-    <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
-  </nav>
-
-  <!-- ============ HÔM NAY ============ -->
-  <section class="atl-sec" id="hom-nay" role="tabpanel" aria-labelledby="tab-hom-nay">
+<section class="atl-sec" id="hom-nay" role="tabpanel" aria-labelledby="tab-hom-nay">
     <div class="atl-grid" id="hn-nhiet-ke">
       <div class="atl-card" id="card-mua">
         <h2 class="atl-h">Mùa hiện tại</h2>
