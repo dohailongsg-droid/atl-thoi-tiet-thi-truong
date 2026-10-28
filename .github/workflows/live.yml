@@ -1,0 +1,47 @@
+name: Trong phiên (cập nhật ~10 phút)
+
+on:
+  schedule:
+    # 09:00–14:50 giờ Việt Nam (UTC+7), thứ Hai–thứ Sáu, mỗi 10 phút; thêm 15:00 để chốt phiên.
+    # GitHub không đảm bảo đúng giờ: lịch có thể trễ vài phút đến vài chục phút khi hệ thống bận.
+    - cron: "*/10 2-7 * * 1-5"
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write          # chỉ để đẩy file lên nhánh "live"
+
+concurrency:
+  group: live
+  cancel-in-progress: true  # nếu lượt trước chưa xong thì bỏ, tránh dồn việc
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Lấy bản live trước đó (để nối chuỗi điểm trong ngày)
+        run: |
+          mkdir -p live_out
+          git fetch --depth=1 origin live 2>/dev/null && git show FETCH_HEAD:trong_phien.json > live_out/prev.json 2>/dev/null || echo "chưa có nhánh live"
+
+      - name: Lấy số liệu trong phiên
+        run: python3 pipeline/intraday.py
+
+      - name: Đẩy lên nhánh live (chỉ 1 commit, ghi đè)
+        run: |
+          if [ ! -f live_out/trong_phien.json ]; then echo "Không có dữ liệu mới (ngày nghỉ/ngày lễ), bỏ qua"; exit 0; fi
+          mkdir -p push_tmp && cp live_out/trong_phien.json push_tmp/
+          cd push_tmp
+          git init -q && git checkout -q -b live
+          git config user.name  "atl-bot"
+          git config user.email "atl-bot@users.noreply.github.com"
+          git add trong_phien.json
+          git commit -qm "live $(date -u +%FT%TZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" live
