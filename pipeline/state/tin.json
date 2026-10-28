@@ -12,5 +12,12 @@
     "nha_cung_cap": "",
     "so_tin": 0,
     "loi": "gemini: HTTP Error 404: Not Found | groq: HTTP Error 404: Not Found"
+  },
+  {
+    "ngay": "2026-10-28",
+    "trang_thai": "ok",
+    "nha_cung_cap": "gemini",
+    "so_tin": 5,
+    "loi": ""
   }
 ]
