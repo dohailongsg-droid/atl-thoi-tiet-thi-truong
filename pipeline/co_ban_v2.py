@@ -678,7 +678,11 @@ def build(ma):
     hi, lo_ = cp.get("highestPrice1Year"), cp.get("lowestPrice1Year")
     dd = (price / float(hi) - 1) * 100 if hi else None
     prim = ("P/B", dg["pb_hien"], dg["pb_phan_vi"], pb_h) if fin else ("P/E", dg["pe_hien"], dg["pe_phan_vi"], pe_h)
-    if len(dg["kich_ban"]) == 3:
+    v2_ = dg.get("v2")
+    if v2_:
+        kk = v2_["kich_ban"]
+        nx.append(f"Theo mô hình 3 kịch bản (Ke {v2_['ke'] * 100:.1f}%), giá trị ước tính có trọng số {v2_['gia_tb']:,} đ, khoảng {kk[0]['gia']:,}–{kk[2]['gia']:,} đ; giá hiện tại {price:,.0f} đ, biên an toàn {v2_['mos']:+.1f}%. Kết quả nhạy với giả định (xem bảng nhạy cảm).")
+    elif len(dg["kich_ban"]) == 3:
         k0, k1, k2 = dg["kich_ban"][0], dg["kich_ban"][1], dg["kich_ban"][2]
         if price < k0["gia"]:
             pos = "thấp hơn cả kịch bản thận trọng"
