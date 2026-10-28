@@ -15,7 +15,6 @@ HIST = os.path.join(HERE, "state", "tin.json")
 FEEDS = [
     ("The Straits Times · Asia", "https://www.straitstimes.com/news/asia/rss.xml"),
     ("The Straits Times · Business", "https://www.straitstimes.com/news/business/rss.xml"),
-    ("Vietstock (EN)", "https://en.vietstock.vn/rss"),
 ]
 MAX_AGE = dt.timedelta(hours=36)
 MAX_CANDIDATES = 40
@@ -89,7 +88,7 @@ def call_gemini(prompt):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_GEMINI}:generateContent"
     body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
                        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}}).encode()
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key})
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key, "User-Agent": "Mozilla/5.0 (atl-bot)"})
     with urllib.request.urlopen(req, timeout=120) as r:
         data = json.load(r)
     return data["candidates"][0]["content"]["parts"][0]["text"]
@@ -103,7 +102,7 @@ def call_groq(prompt):
                        "response_format": {"type": "json_object"},
                        "messages": [{"role": "user", "content": prompt}]}).encode()
     req = urllib.request.Request("https://api.groq.com/openai/v1/chat/completions", data=body,
-                                 headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"})
+                                 headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}", "User-Agent": "Mozilla/5.0 (atl-bot)"})
     with urllib.request.urlopen(req, timeout=120) as r:
         data = json.load(r)
     return data["choices"][0]["message"]["content"]
@@ -155,6 +154,7 @@ def main():
     else:
         lines = [f"[{i}] {c['title']} | {c['source']} | {c['date']} | {c['desc'][:400]}" for i, c in enumerate(cands)]
         prompt = PROMPT + "\n".join(lines)
+        errs_ai = []
         for name, fn in (("gemini", call_gemini), ("groq", call_groq)):
             try:
                 result = parse_json(fn(prompt))
@@ -163,9 +163,10 @@ def main():
                 if items:
                     status, provider = "ok", name
                     break
-                err = f"{name}: không có tin hợp lệ"
+                errs_ai.append(f"{name}: không có tin hợp lệ")
             except Exception as e:
-                err = f"{name}: {e}"
+                errs_ai.append(f"{name}: {e}")
+        err = " | ".join(errs_ai)
     payload = {"ngay": now.astimezone(dt.timezone(dt.timedelta(hours=7))).date().isoformat(),
                "tao_luc": now.isoformat(timespec="seconds"), "trang_thai": status,
                "nha_cung_cap": provider, "loi": err, "canh_bao": warn + feed_errs,
