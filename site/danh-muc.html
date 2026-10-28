@@ -368,7 +368,7 @@ function renderVnIndexInput(){
   const lastVnEntry = vnHistSorted[vnHistSorted.length-1];
   const navDates = (state.navHistory||[]).map(h=>h.date);
   const missingDates = navDates.filter(dt => !vnHistSorted.some(h=>h.date===dt));
-  const showDetails = ui.showVnChips && !ui.privacyMode;
+  const showDetails = ui.showVnChips;
 
   return `<div class="card" style="margin-bottom:10px;">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -376,7 +376,7 @@ function renderVnIndexInput(){
       <input type="date" id="vnindexDate" value="${today}" max="${today}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12.5px;">
       <input type="number" id="vnindexInput" inputmode="decimal" step="0.01" value="${todayVn ? todayVn.value : (lastVnEntry ? lastVnEntry.value : '')}" placeholder="Điểm" style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12.5px;">
       <button class="btn btn-primary" style="padding:5px 12px;font-size:12px;" onclick="saveVnIndex()">Lưu</button>
-      ${!ui.privacyMode ? `<label style="font-size:11px;color:var(--text-dim);margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="checkbox" ${ui.showVnChips?'checked':''} onchange="toggleVnChips()"> Chi tiết</label>` : ''}
+      <label style="font-size:11px;color:var(--text-dim);margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="checkbox" ${ui.showVnChips?'checked':''} onchange="toggleVnChips()"> Lịch sử</label>
     </div>
     ${showDetails ? `
     <div style="margin-top:8px;">
@@ -1577,7 +1577,8 @@ async function syncATL(){
     Object.keys(G.vni).sort().forEach(d=>{ if(d >= start && !have.has(d)){ state.vnindexHistory.push({date:d, value:G.vni[d]}); addedVn++; } });
     state.vnindexHistory.sort((a,b)=> a.date < b.date ? -1 : 1);
   }
-  ui.syncMsg = `Đã cập nhật giá ${updated} mã theo phiên ${G.ngay}` + (addedVn ? `, thêm ${addedVn} điểm VN-Index` : '') + (miss.length ? `. Không có dữ liệu: ${miss.join(', ')}` : '') + '.';
+  const nVn = (state.vnindexHistory||[]).length;
+  ui.syncMsg = `Đã cập nhật giá ${updated} mã theo phiên ${G.ngay}. VN-Index: ` + (addedVn ? `thêm ${addedVn} điểm mới, hiện có ${nVn} phiên` : `đã đủ ${nVn} phiên, không có ngày nào thiếu`) + ' (bấm "Lịch sử" để xem)' + (miss.length ? `. Không có dữ liệu giá: ${miss.join(', ')}` : '') + '.';
   await saveState();
   render();
 }
