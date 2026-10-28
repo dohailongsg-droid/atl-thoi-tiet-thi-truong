@@ -23,6 +23,8 @@ python3 dash_lenhdai.py
 python3 tin.py || echo "tin.py lỗi, bỏ qua"
 # tham chiếu cho bảng "Trong phiên" (TB20, top10 hôm qua)
 python3 live_ref.py || echo "live_ref.py lỗi, bỏ qua"
+# giá đóng cửa mọi mã HOSE + VN-Index cho tab Danh mục (lỗi không làm dừng pipeline)
+python3 gia_hose.py || echo "gia_hose.py lỗi, bỏ qua"
 # sang thư mục trang (co_ban.json cập nhật riêng theo quý nên không bị ghi đè)
 cp dash_out/*.json ../site/data/
 python3 -c "
