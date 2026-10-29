@@ -17,7 +17,7 @@
   --cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:15px;--cds-font-size-title:26px;--cds-font-weight-medium:600;
   --cds-surface-popover:#222222;--cds-border:#444444;--cds-chart-grid:#2c2c2c;--cds-chart-axis:#555555;--cds-chart-muted:#777777;--cds-chart-reference:#d8c35a;
   --cds-text-secondary:#aaaaaa;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.45);--cds-dur-slow:300ms;
-  --font-anthropic-sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-anthropic-serif:Georgia,"Times New Roman",serif}
+  --font-anthropic-sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-anthropic-serif:"Noto Serif",Georgia,"Times New Roman",serif}
 @media (prefers-color-scheme:light){:root{color-scheme:light;
   --color-bg:#f6f5f2;--color-panel:#ffffff;--color-fg:#1a1a1a;--color-fg-muted:#5c5c5c;--color-border-line:#dcdad4;--color-ok:#1a7f4b;--color-bad:#c0392b;--color-warn:#9a6b00;
   --cds-surface-popover:#ffffff;--cds-border:#cfcdc6;--cds-chart-grid:#e8e6e0;--cds-chart-axis:#b5b2aa;--cds-chart-muted:#8a877f;--cds-chart-reference:#9a7b00;--cds-text-secondary:#555555;
@@ -567,10 +567,16 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
       </div>
 
-      <div class="atl-card" id="card-tranh">
-        <h2 class="atl-h">Cần tránh: đang bị bán tháo</h2>
-        <p class="atl-note">Mã đang bị bán mạnh với thanh khoản lớn sau một nhịp giảm sâu. Thống kê cho thấy nhóm này thường tiếp tục yếu hơn thị trường trong vài tuần sau. Không bắt đáy.</p>
-        <div id="hn-tranh-list" data-source="hom_nay"></div>
+      <div class="atl-card" id="card-vitri">
+        <h2 class="atl-h">Vị trí tuần này</h2>
+        <p class="atl-note">Vị trí các ngành trên vòng quay RRG (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi của nó trên biểu đồ RRG.</p>
+        <style>#tb-vitri th,#tb-vitri td{padding-left:6px;padding-right:6px;white-space:normal}#tb-vitri th.num,#tb-vitri td.num,#tb-vitri td:nth-child(2),#tb-vitri .atl-pill{white-space:nowrap}#tb-vitri tbody tr:hover{background:var(--color-border-line)}</style>
+        <div class="atl-tablebox">
+          <table id="tb-vitri" data-source="rrg_nganh" data-row-key="khung,nganh,tuan">
+            <thead><tr><th data-field="nganh">Ngành</th><th data-source="goc_nganh" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="atl-card" id="card-cach-dung">
@@ -744,11 +750,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
       </div>
       </div>
-      <div class="atl-card atl-wide" id="card-hs-toc-do">
-        <h2 class="atl-h">Tốc độ giá theo giai đoạn</h2>
-        <p class="atl-note" id="hs-td-note">—</p>
-        <div class="atl-chart" id="ch-hs-td" data-source="xep_hang" style="min-height:12rem"></div>
-      </div>
       <div class="atl-wide dg-sec" id="dg-sec" hidden><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div>
       <div class="atl-wide atl-hs-row" id="dg-row" hidden>
         <div class="dg-left"><div class="atl-card" id="card-hs-ind" hidden>
@@ -803,6 +804,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           .dg-sc th,.dg-sc td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);text-align:right}
           .dg-sc th:first-child,.dg-sc td:first-child{text-align:left} .dg-sc th{color:var(--color-fg-muted);font-weight:600}
           .dg-sc tr.m td{font-weight:700}
+          .ai-ma{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+          .ai-ma label{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+          .ai-ma input{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);text-transform:uppercase;width:7.5rem}
+          .ai-ma button{font:inherit;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-fg);color:var(--color-bg);cursor:pointer}
           .ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
           .ai-chip{font:inherit;font-size:var(--cds-font-size-caption);padding:5px 10px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer;text-align:left}
           .ai-chip:hover{border-color:var(--color-fg-muted)}
@@ -844,6 +849,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <div class="atl-card" id="card-hs-ai" hidden>
           <h2 class="atl-h" id="ai-title">Hỏi AI về mã này</h2>
           <p class="dg-note">AI đọc 4 tab: Hồ sơ mã, Hôm nay mua gì, Dòng tiền & RRG, Xếp hạng trong nhóm (đúng những gì hệ thống đã tính) để giải thích thuật ngữ và cách đọc; không dự báo con số, không khuyên mua bán.</p>
+          <form class="ai-ma" id="ai-ma-form"><label for="ai-ma">Mã cổ phiếu</label><input type="search" id="ai-ma" list="hs-ds" placeholder="VD: DGW" size="7" maxlength="5" autocomplete="off"><button type="submit">Đổi mã</button><span class="dg-note" id="ai-ma-msg" aria-live="polite"></span></form>
           <div class="ai-chips" id="ai-chips"></div>
           <div class="ai-log" id="ai-log" aria-live="polite"></div>
           <form class="ai-form" id="ai-form"><textarea id="ai-in" rows="2" placeholder="Hỏi về bất kỳ phần nào trong Hồ sơ mã…" maxlength="500"></textarea><button type="submit" id="ai-send">Gửi</button></form>
@@ -1027,7 +1033,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
   var MG=['gemini-3.5-flash-lite','gemini-3.8-flash','gemini-3.1-flash-lite'],MQ=['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'],MM=['mistral-small-latest','open-mistral-nemo'];
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
-  var cur=null,hist=[],busy=false;
+  var cur=null,hist=[],busy=false,jumpAi=false;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
   var RULES='Bạn là trợ lý giải thích các tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC: (1) Căn cứ chính là dữ liệu trong các phần NỘI DUNG TAB, SỐ LIỆU 12 QUÝ và SO SÁNH (nếu có). Được phép giải thích khái niệm chung (ví dụ MA50, dải Bollinger, ROE, định giá, RRG), nhưng ví dụ và kết luận phải lấy từ số liệu của trang; không dùng tin tức hay số liệu thị trường ngoài trang và không bịa số. Nếu thiếu dữ liệu, nói rõ phần nào của trang chưa có và gợi ý tab cần xem, rồi vẫn trả lời phần có thể trả lời. (2) Không dự báo giá hay lợi nhuận. Khi hỏi về quý sau, nêu mốc và xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, và nói rõ đây không phải dự báo. (3) Không đưa lệnh mua, bán hay nắm giữ kiểu "nên mua", "nên bán", "khuyến nghị mua". Thay vào đó mô tả trạng thái và kịch bản: điều gì đang đúng, điều gì đang yếu, và điều kiện nào trên trang sẽ đổi nhận định. Khi hỏi đắt hay rẻ, nêu khoảng giá trị theo các kịch bản có trên trang, kịch bản làm ước tính sai và điều kiện đổi nhận định. (4) Khi được hỏi so sánh hai mã: nêu mã nào tốt hơn về cơ bản và mã nào tốt hơn về kỹ thuật, đưa từng tiêu chí và ghi rõ mã nào hơn ở tiêu chí nào, rồi kết luận tổng quát dựa trên số liệu trang. Không dùng dữ liệu ngoài trang để so sánh. (5) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng số liệu của mã. (6) Trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI NGAY (cuối cùng); không tóm tắt lại toàn bộ tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. (7) Trả lời tiếng Việt, khoảng 150 từ (so sánh hai mã hoặc câu hỏi đắt rẻ tối đa 250 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (8) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (9) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
   function compact(x){
@@ -1181,13 +1187,24 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   function reset(x){cur=x;hist=[];$('ai-log').textContent='';$('card-hs-ai').hidden=false;$('ai-title').textContent='Hỏi AI về '+x.ma;}
   function boot(){
     var ch=$('ai-chips');CHIPS.forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){ask(c);});ch.appendChild(b);});
+    $('ai-ma-form').addEventListener('submit',function(e){e.preventDefault();
+      var v=($('ai-ma').value||'').trim().toUpperCase(),msg=$('ai-ma-msg');msg.textContent='';if(!v)return;
+      var D=(typeof dash!=='undefined')?dash.data('ho_so'):null;
+      if(!D||D.status!=='ok'){msg.textContent='Dữ liệu hồ sơ mã chưa tải xong, thử lại sau vài giây.';return;}
+      if(!D.data.some(function(r){return r.ma===v;})){msg.textContent='Chưa có mã '+v+' trong dữ liệu hồ sơ.';return;}
+      if(cur&&cur.ma===v){msg.textContent='Đang xem '+v+'.';return;}
+      var ip=cbIdx?Promise.resolve(cbIdx):fetchJ('data/cb/_index.json').then(function(j){cbIdx=j||{};return cbIdx;});
+      ip.then(function(ix){
+        if(!ix[v]){msg.textContent='Mã '+v+' chưa có dữ liệu cơ bản nên chưa hỏi AI được.';return;}
+        jumpAi=true;window.atlOpenProfile(v);
+        setTimeout(function(){jumpAi=false;},4000);});});
     $('ai-form').addEventListener('submit',function(e){e.preventDefault();var t=$('ai-in').value.trim();if(!t)return;$('ai-in').value='';ask(t);});
     $('ai-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('ai-form').requestSubmit();}});
     function stat(){var g=LS.get('atl_key_gemini'),q=LS.get('atl_key_groq'),mi=LS.get('atl_key_mistral');$('ai-stat').textContent='Đã lưu: '+(g?'Gemini ':'')+(q?'Groq ':'')+(mi?'Mistral':'')+((g||q||mi)?'':'chưa có khóa');$('ai-pref').value=LS.get('atl_ai_pref')||'gemini';}
     $('ai-save').addEventListener('click',function(){var g=$('ai-kg').value.trim(),q=$('ai-kq').value.trim(),mi=$('ai-km').value.trim();if(g)LS.set('atl_key_gemini',g);if(q)LS.set('atl_key_groq',q);if(mi)LS.set('atl_key_mistral',mi);LS.set('atl_ai_pref',$('ai-pref').value);$('ai-kg').value='';$('ai-kq').value='';$('ai-km').value='';stat();});
     $('ai-clear').addEventListener('click',function(){LS.del('atl_key_gemini');LS.del('atl_key_groq');LS.del('atl_key_mistral');stat();});
     stat();}
-  window.__aiSet=function(x){if(x){if(cur&&cur.ma===x.ma){cur=x;$('card-hs-ai').hidden=false;}else reset(x);}else{$('card-hs-ai').hidden=true;cur=null;}};
+  window.__aiSet=function(x){if(x){if(cur&&cur.ma===x.ma){cur=x;$('card-hs-ai').hidden=false;}else{reset(x);if(jumpAi){jumpAi=false;$('ai-ma').value='';setTimeout(function(){$('card-hs-ai').scrollIntoView({block:'start'});},80);}}}else{$('card-hs-ai').hidden=true;cur=null;}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
@@ -1250,6 +1267,27 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
             <button type="button" id="rrg-t4" aria-pressed="true">Đuôi 4</button>
             <button type="button" id="rrg-t8" aria-pressed="false">Đuôi 8</button>
           </div>
+          <div class="atl-seg" role="group" aria-label="Lọc theo góc">
+            <button type="button" id="rrg-f-all" aria-pressed="true">Tất cả</button>
+            <button type="button" id="rrg-f-up" aria-pressed="false">Dẫn dắt + Cải thiện</button>
+            <button type="button" id="rrg-f-dn" aria-pressed="false">Suy yếu + Tụt hậu</button>
+          </div>
+          <details class="rrg-pick" id="rrg-pick"><summary id="rrg-pick-sum">Chọn ngành</summary>
+            <div class="rrg-pick-pop">
+              <div class="rrg-pick-act"><button type="button" id="rrg-pk-all">Tất cả</button><button type="button" id="rrg-pk-top">7 mạnh nhất</button><button type="button" id="rrg-pk-none">Bỏ hết</button></div>
+              <div id="rrg-pick-list"></div>
+            </div>
+          </details>
+          <style>
+            .rrg-pick{position:relative}
+            .rrg-pick>summary{list-style:none;cursor:pointer;border:1px solid var(--color-border-line);border-radius:var(--r-in,8px);padding:6px 12px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);user-select:none}
+            .rrg-pick>summary::-webkit-details-marker{display:none}
+            .rrg-pick[open]>summary{background:var(--color-fg);color:var(--color-bg)}
+            .rrg-pick-pop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;min-width:15rem;max-height:21rem;overflow:auto;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:8px;box-shadow:var(--cds-shadow-popover);padding:8px}
+            .rrg-pick-act{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+            .rrg-pick-act button{font:inherit;font-size:var(--cds-font-size-caption);padding:4px 10px;border-radius:6px;border:1px solid var(--color-border-line);background:none;color:var(--color-fg);cursor:pointer}
+            .rrg-pick-pop label{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:var(--cds-font-size-caption);color:var(--color-fg);cursor:pointer}
+          </style>
           <label class="atl-lab" for="rrg-nganh" id="rrg-nganh-lab" hidden>Ngành <select id="rrg-nganh"></select></label>
           <label class="atl-lab" for="rrg-ben" id="rrg-ben-lab" hidden>So với <select id="rrg-ben"><option value="VN-Index">VN-Index</option><option value="Ngành">Chỉ số ngành</option></select></label>
           <label class="atl-lab" for="rrg-tim">Tìm mã <input type="search" id="rrg-tim" list="rrg-ds" placeholder="VD: CII" size="7" autocomplete="off"></label>
@@ -1257,20 +1295,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
         <div class="atl-chart" id="ch-rrg" data-source="rrg_nganh rrg_ma" style="min-height:20rem"></div>
         <p class="atl-note" id="rrg-foot">—</p>
-      </div>
-      <div class="atl-card atl-wide" id="card-rrg-bang">
-        <h2 class="atl-h">Vị trí tuần này</h2>
-        <p class="atl-note">Bấm một dòng để làm nổi bật đường trên biểu đồ.</p>
-        <div class="atl-tablebox">
-          <table id="tb-rrg-nganh" data-source="rrg_nganh" data-row-key="khung,nganh,tuan">
-            <thead><tr><th data-field="nganh">Ngành</th><th data-source="goc_nganh" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
-            <tbody></tbody>
-          </table>
-          <table id="tb-rrg-ma" data-source="rrg_ma" data-row-key="khung,ma,so_voi,tuan" hidden>
-            <thead><tr><th data-field="ma">Mã</th><th data-source="goc_ma" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
       </div>
     </div>
     </div>
@@ -1578,24 +1602,45 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     fn: (rrg_ma) => rrg_ma.map((r) => ({ khung: r.khung, ma: r.ma, so_voi: r.so_voi, tuan: r.tuan, goc: r.ratio >= 100 ? (r.mom >= 100 ? 'Dẫn dắt' : 'Suy yếu') : (r.mom >= 100 ? 'Cải thiện' : 'Tụt hậu') })),
   });
 
-  const st = { mode: 'nganh', nganh: null, ben: 'VN-Index', hl: null, khung: 'Tuần', tail: 4 };
+  const st = { mode: 'nganh', nganh: null, ben: 'VN-Index', hl: null, khung: 'Tuần', tail: 4, f: 'all', pick: null, top: [] };
   const $ = (id) => document.getElementById(id);
   const bN = $('rrg-m-nganh'), bM = $('rrg-m-ma'), selN = $('rrg-nganh'), selB = $('rrg-ben'), tim = $('rrg-tim');
-  const setMode = (m) => { st.mode = m; st.hl = null; window.atlRedraw(); };
+  const setMode = (m) => { st.mode = m; st.hl = null; st.pick = null; window.atlRedraw(); };
   $('rrg-k-tuan').addEventListener('click', () => { st.khung = 'Tuần'; window.atlRedraw(); });
   $('rrg-k-ngay').addEventListener('click', () => { st.khung = 'Ngày'; window.atlRedraw(); });
   $('rrg-t4').addEventListener('click', () => { st.tail = 4; window.atlRedraw(); });
   $('rrg-t8').addEventListener('click', () => { st.tail = 8; window.atlRedraw(); });
   bN.addEventListener('click', () => setMode('nganh'));
   bM.addEventListener('click', () => setMode('ma'));
-  selN.addEventListener('change', () => { st.nganh = selN.value; st.hl = null; window.atlRedraw(); });
+  selN.addEventListener('change', () => { st.nganh = selN.value; st.hl = null; st.pick = null; window.atlRedraw(); });
   selB.addEventListener('change', () => { st.ben = selB.value; window.atlRedraw(); });
   tim.addEventListener('change', () => {
     const v = tim.value.trim().toUpperCase(); const d = dash.data('rrg_ma');
     if (d.status !== 'ok') return;
     const r = d.data.find((x) => x.ma === v && x.khung === st.khung);
-    if (r) { st.mode = 'ma'; st.nganh = r.nganh; st.hl = v; window.atlRedraw(); }
+    if (r) { st.mode = 'ma'; st.nganh = r.nganh; st.hl = v; st.pick = null; st.f = 'all'; window.atlRedraw(); }
   });
+
+  const fBtn = { all: $('rrg-f-all'), up: $('rrg-f-up'), dn: $('rrg-f-dn') };
+  Object.keys(fBtn).forEach((k) => fBtn[k].addEventListener('click', () => { st.f = k; st.pick = null; st.hl = null; window.atlRedraw(); }));
+  const pkBox = $('rrg-pick'), pkList = $('rrg-pick-list'), pkSum = $('rrg-pick-sum');
+  pkList.addEventListener('change', () => {
+    const all = [...pkList.querySelectorAll('input')], on = all.filter((c) => c.checked).map((c) => c.value);
+    st.pick = on.length === all.length ? null : new Set(on); st.f = 'all'; st.hl = null; window.atlRedraw();
+  });
+  $('rrg-pk-all').addEventListener('click', () => { st.pick = null; st.f = 'all'; st.hl = null; window.atlRedraw(); });
+  $('rrg-pk-none').addEventListener('click', () => { st.pick = new Set(); st.f = 'all'; st.hl = null; window.atlRedraw(); });
+  $('rrg-pk-top').addEventListener('click', () => { st.pick = new Set(st.top.slice(0, 7)); st.f = 'all'; st.hl = null; window.atlRedraw(); });
+  document.addEventListener('click', (e) => { if (pkBox.open && !pkBox.contains(e.target)) pkBox.open = false; });
+  function buildPick(names, shown) {
+    const key = st.mode + '|' + st.nganh + '|' + names.join(',');
+    if (pkList.dataset.key !== key) {
+      pkList.dataset.key = key;
+      pkList.replaceChildren(...names.map((n) => { const l = document.createElement('label'), c = document.createElement('input'); c.type = 'checkbox'; c.value = n; l.append(c, document.createTextNode(n)); return l; }));
+    }
+    pkList.querySelectorAll('input').forEach((c) => { c.checked = shown.has(c.value); });
+    pkSum.textContent = 'Chọn ' + (st.mode === 'nganh' ? 'ngành' : 'mã') + (shown.size < names.length ? ' (' + shown.size + '/' + names.length + ')' : '');
+  }
 
   function series(rows, key) {
     const g = d3.group(rows, (r) => r[key]);
@@ -1607,7 +1652,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     const box = $('ch-rrg');
     bN.setAttribute('aria-pressed', String(st.mode === 'nganh')); bM.setAttribute('aria-pressed', String(st.mode === 'ma'));
     $('rrg-nganh-lab').hidden = st.mode !== 'ma'; $('rrg-ben-lab').hidden = st.mode !== 'ma';
-    $('tb-rrg-nganh').hidden = st.mode !== 'nganh'; $('tb-rrg-ma').hidden = st.mode !== 'ma';
+    if (A.status === 'ok') vitri(A);
     if (A.status !== 'ok' || B.status !== 'ok') { if (A.status === 'error' || B.status === 'error') window.atlFail(box); else box.replaceChildren(); return; }
     ['rrg-k-tuan', 'rrg-k-ngay'].forEach((id) => $(id).setAttribute('aria-pressed', String((id === 'rrg-k-tuan') === (st.khung === 'Tuần'))));
     $('rrg-t4').setAttribute('aria-pressed', String(st.tail === 4)); $('rrg-t8').setAttribute('aria-pressed', String(st.tail === 8));
@@ -1634,9 +1679,20 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       title = 'RRG mã ngành ' + st.nganh + (st.ben === 'VN-Index' ? ' so với VN-Index' : ' so với chỉ số ngành') + ' · khung ' + st.khung.toLowerCase();
       foot = st.ben === 'VN-Index' ? 'Đường đen đậm là cả ngành: mã đi cùng hướng với đường đen là đang theo ngành. Mã có GTGD TB20 ≥ 5 tỷ.' : 'Tâm (100, 100) chính là ngành: mã bên phải mạnh hơn ngành, bên trái yếu hơn ngành.';
     }
-    $('rrg-h').textContent = title; $('rrg-foot').textContent = foot;
-    if (window.atlVis('rrg')) chart(box, items);
-    table(items);
+    const lq = (s) => { const h = s.pts[s.pts.length - 1]; return quad(h.ratio, h.mom); };
+    const base = items.filter((s) => !s.isSec).sort((a, b) => b.pts[b.pts.length - 1].ratio - a.pts[a.pts.length - 1].ratio);
+    st.top = base.map((s) => s.name);
+    let vis = items;
+    if (st.pick) vis = items.filter((s) => s.isSec || st.pick.has(s.name));
+    else if (st.f === 'up') vis = items.filter((s) => s.isSec || ['lead', 'imp'].includes(lq(s)));
+    else if (st.f === 'dn') vis = items.filter((s) => s.isSec || ['weak', 'lag'].includes(lq(s)));
+    if (st.hl && !vis.some((s) => s.name === st.hl)) st.hl = null;
+    const shown = new Set(vis.filter((s) => !s.isSec).map((s) => s.name));
+    buildPick(st.top, shown);
+    Object.keys(fBtn).forEach((k) => fBtn[k].setAttribute('aria-pressed', String(!st.pick && st.f === k)));
+    $('rrg-h').textContent = title;
+    $('rrg-foot').textContent = foot + (shown.size < base.length ? ' Đang hiển thị ' + shown.size + '/' + base.length + (st.mode === 'nganh' ? ' ngành.' : ' mã.') : '');
+    if (window.atlVis('rrg')) chart(box, vis);
   }
 
   function chart(box, items) {
@@ -1684,27 +1740,29 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     box.replaceChildren(svg.node(), el);
   }
 
-  function table(items) {
-    const isN = st.mode === 'nganh';
-    const tb = document.querySelector(isN ? '#tb-rrg-nganh tbody' : '#tb-rrg-ma tbody');
-    const rows = items.filter((s) => !s.isSec).map((s) => ({ s, h: s.pts[s.pts.length - 1] }));
+  function vitri(A) {
+    const tb = $('tb-vitri'); if (!tb) return;
     const rank = { lead: 0, imp: 1, weak: 2, lag: 3 };
+    const rows = d3.groups(A.data.filter((r) => r.khung === 'Tuần'), (r) => r.nganh).map(([n, pts]) => { pts.sort((a, b) => a.tuan - b.tuan); const h = pts[pts.length - 1]; return { n, h: { ...h, ratio: +h.ratio, mom: +h.mom } }; });
     rows.sort((a, b) => rank[quad(a.h.ratio, a.h.mom)] - rank[quad(b.h.ratio, b.h.mom)] || b.h.ratio - a.h.ratio);
-    tb.replaceChildren(...rows.map(({ s, h }) => {
-      const tr = document.createElement('tr');
-      tr.dataset.key = isN ? enc(h.khung) + ',' + enc(h.nganh) + ',' + enc(h.tuan) : enc(h.khung) + ',' + enc(h.ma) + ',' + enc(h.so_voi) + ',' + enc(h.tuan);
-      if (st.hl === s.name) tr.className = 'on';
+    tb.querySelector('tbody').replaceChildren(...rows.map(({ n, h }) => {
+      const tr = document.createElement('tr'); tr.style.cursor = 'pointer';
+      tr.dataset.key = enc(h.khung) + ',' + enc(h.nganh) + ',' + enc(h.tuan);
       const q = quad(h.ratio, h.mom);
-      const c1 = document.createElement('td'); c1.textContent = isN ? h.nganh : h.ma;
-      const c2 = document.createElement('td'); const pill = document.createElement('span'); pill.className = 'atl-pill';
+      const c1 = document.createElement('td'); c1.textContent = n;
+      const c2 = document.createElement('td'), pill = document.createElement('span'); pill.className = 'atl-pill';
       const dt = document.createElement('i'); dt.className = 'atl-dot'; dt.style.background = QC[q]; pill.append(dt, document.createTextNode(QN[q])); c2.appendChild(pill);
       const c3 = document.createElement('td'); c3.className = 'num'; c3.textContent = f2(h.ratio);
       const c4 = document.createElement('td'); c4.className = 'num'; c4.textContent = f2(h.mom);
       tr.append(c1, c2, c3, c4);
-      tr.addEventListener('click', () => { st.hl = st.hl === s.name ? null : s.name; window.atlRedraw(); });
+      tr.addEventListener('click', () => window.atlRrgFocus(n));
       return tr;
     }));
   }
+  window.atlRrgFocus = (name) => {
+    st.mode = 'nganh'; st.khung = 'Tuần'; st.f = 'all'; st.pick = null; st.hl = name;
+    window.atlShow('dong-tien'); dash.setLink('dong-tien'); window.atlDV('rrg', true);
+  };
   window.atlDrawRRG = draw;
 })();
 </script>
@@ -1946,7 +2004,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     }
     const D = dash.data('dem_loai');
     if (D.status === 'ok') { const g = (k) => (D.data.find((x) => x.loai === k) || {}).so_ma ?? 0; $('hn-n-mua').textContent = g('MUA'); $('hn-n-giu').textContent = g('ĐANG GIỮ'); }
-    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list', 'hn-dai-list', 'hn-tranh-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
+    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list', 'hn-dai-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
     else {
       const rows = H.data, by = (k) => rows.filter((r) => r.loai === k);
       const ngay = (rows[0] && rows.find((r) => r.loai !== 'ĐANG GIỮ') || {}).ngay_tin_hieu || (N.status === 'ok' ? N.data[N.data.length - 1].ngay : '');
@@ -1966,9 +2024,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           .forEach(([x, c], i) => { const td = el('td', c, String(x)); if (i === 7 && String(x).startsWith('Đang')) td.style.fontWeight = '600'; t.appendChild(td); });
         return t; }) : [(() => { const t = el('tr'); const td = el('td', null, 'Chưa có lệnh dài nào.'); td.colSpan = 8; t.appendChild(td); return t; })()]));
       else tld.replaceChildren();
-      const tr = by('BÁN THÁO'), tb = $('hn-tranh-list'); tb.replaceChildren();
-      if (!tr.length) tb.appendChild(el('div', 'atl-empty', 'Phiên ' + dmy(ngay) + ' không có mã thanh khoản ≥ 10 tỷ nào bị bán tháo.'));
-      else { const w = el('div', 'atl-chips'); tr.forEach((r) => { const p = chip(r.ma, 'var(--z6)', true); p.title = r.tin_hieu; mark(p, r, 'ma'); w.appendChild(p); }); tb.appendChild(w); }
     }
     const tbd = document.querySelector('#tb-dcd tbody');
     if (DC.status === 'ok') tbd.replaceChildren(...DC.data.slice(0, 8).map((r) => {
@@ -2396,8 +2451,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     { const dp = window.atlDialPos(r);
       [['tt', 'Minervini'], ['wy', 'Wyckoff'], ['tl', 'Triền Luận']].forEach(([k, who]) => dial($('dl-' + k), k, dp[k] ? dp[k][0] : null, dp[k] ? dp[k][1] : '', who, DL)); }
 
-    // toc do
-    if (xr && X.status === 'ok') { $('hs-td-note').textContent = 'Tốc độ giá mỗi tháng của từng giai đoạn (cột màu) so với trung vị nhóm ' + xr.nhom + ' (vạch đen). Pha giá: ' + xr.pha_gia + '.'; window.atlSpeedChart($('ch-hs-td'), xr, X.data); }
   }
 
   /* ---------- đồng hồ trạng thái cho ba checklist: Xu hướng giảm · Đi ngang · Chớm tăng · Xu hướng tăng · Tăng suy yếu ---------- */
