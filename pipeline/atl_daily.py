@@ -130,6 +130,17 @@ if os.path.exists("boloc_in.json"):
             if res: u["quy_tac"]=res
         if len(u)>1: upd.append(u)
 # v1.5.1: ma dang giu (da co tin hieu MUA chua thoat theo quy tac) -> khong ghi tin hieu moi, bao "dang giu"
+def nhan_thoat(tin, vg):
+    # v1.5.5: nhãn hiển thị trên thẻ Đang giữ (chỉ nêu trạng thái và ưu tiên, không lộ quy tắc)
+    if "Turtle" in tin:
+        return "Chốt lãi/Cắt lỗ khi thủng đáy 10 phiên. Ưu tiên nắm giữ theo xu hướng."
+    z = (vg or "").strip()[:1]
+    if z == "2":                       # vùng 2: thoát ở MA20 (Mục tiêu 1)
+        return "Nhiệt kế " + ("Đầu xuân" if "↑" in vg else "Giáp hạt") + " · Ưu tiên chốt ở Mục tiêu 1"
+    ten = {"1": "Nghỉ đông", "3": "Ra hoa", "4": "Đầu hạ", "5": "Đầu thu"}.get(z)
+    if not ten: return ""              # vùng 6: không mở vị thế mới
+    return "Nhiệt kế " + ten + " · Ưu tiên chốt ở Mục tiêu 2"
+
 dang_giu=[]
 if os.path.exists("boloc_in.json"):
     done={u["dong"] for u in upd if "quy_tac" in u}
@@ -142,7 +153,7 @@ if os.path.exists("boloc_in.json"):
         try: e=ato(mac,list(dates).index(pd.Timestamp(str(r[1])[:10]).date()))
         except Exception: e=None
         if e is None: continue        # v1.5.3: chua co phien sau (tin hieu cua phien hom nay) -> chua mua, khong ghi 'Dang giu'; hien o 'Hom nay mua gi'
-        dang_giu.append({"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93)})
+        dang_giu.append({"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93),"nhan_thoat":nhan_thoat(tin, str(r[5]) if len(r)>5 else "")})
 _held={x["ma"] for x in dang_giu}
 rows=[x for x in rows if x["ma"] not in _held]
 # ===== v1.5: DONG CHU DAO + TRUNG RONG TRONG BAO + RO VE SO =====

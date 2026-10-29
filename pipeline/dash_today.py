@@ -15,7 +15,7 @@ for r in A["bo_loc"]:
       "muc_tieu_1":r["muc_tieu_1"],"muc_tieu_2":r["muc_tieu_2"],"cat_lo":r["cat_lo"],"gtgd_tb20":r["gtgd_tb20"],"gia_mua":None,"lai_lo_pct":None})
 for r in A["dang_giu"]:
     rows.append({**base(r["ma"]),"loai":"ĐANG GIỮ","tin_hieu":r["tin_hieu"],"ngay_tin_hieu":r["ngay_mua"],"gia_khuyen_nghi":r["gia_tin_hieu"],"rs":None,"pctB":None,
-      "muc_tieu_1":r["ma20"],"muc_tieu_2":r["dai_tren"],"cat_lo":r["cat_lo"],"gtgd_tb20":None,"gia_mua":r["gia_mua_ato"],"lai_lo_pct":r["lai_lo_pct"]})
+      "muc_tieu_1":r["ma20"],"muc_tieu_2":r["dai_tren"],"cat_lo":r["cat_lo"],"gtgd_tb20":None,"gia_mua":r["gia_mua_ato"],"lai_lo_pct":r["lai_lo_pct"],"nhan_thoat":r.get("nhan_thoat","")})
 for r in A["trung_rong"]+A["ve_so"]:
     rows.append({**base(r["ma"]),"loai":"TRỨNG RỒNG" if r["loai"].startswith("Trứng") else "VÉ SỐ","tin_hieu":r["loai"]+" · "+r["ly_do"],"ngay_tin_hieu":ngay,
       "gia_khuyen_nghi":r["gia"],"rs":r["rs"],"pctB":None,"muc_tieu_1":None,"muc_tieu_2":None,"cat_lo":r["cat_lo"],"gtgd_tb20":None,"gia_mua":None,"lai_lo_pct":None,
