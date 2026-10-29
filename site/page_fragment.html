@@ -553,13 +553,19 @@
             ['tang_deu','Xu hướng tăng đều','MA20 > MA50 > MA200','var(--z3)'],['giam_deu','Xu hướng giảm đều','MA20 < MA50 < MA200','var(--z6)']];
   function chart(box,ch){
     box.textContent='';if(!ch||ch.length<2)return;
-    var W=360,H=150,m={l:34,r:10,t:8,b:20},ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    var W=640,H=230,m={l:36,r:44,t:10,b:22},ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);
     function mk(n,a){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
     var X=function(i){return m.l+(W-m.l-m.r)*i/(ch.length-1);},Y=function(v){return m.t+(H-m.t-m.b)*(1-v/100);};
+    var vs=ch.map(function(r){return r.vni;}).filter(function(v){return v!=null;});
+    var vlo=Math.min.apply(null,vs),vhi=Math.max.apply(null,vs),vpad=(vhi-vlo)*0.08||1;vlo-=vpad;vhi+=vpad;
+    var YV=function(v){return m.t+(H-m.t-m.b)*(1-(v-vlo)/(vhi-vlo));};
     [0,25,50,75,100].forEach(function(v){svg.appendChild(mk('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:v===50?'var(--cds-chart-axis)':'var(--cds-chart-grid)','stroke-dasharray':v===50?'4 3':'0'}));
-      var t=mk('text',{x:m.l-5,y:Y(v)+4,'text-anchor':'end',fill:'var(--color-fg-muted)','font-size':10});t.textContent=v+'%';svg.appendChild(t);});
-    var every=Math.ceil(ch.length/4);
-    ch.forEach(function(r,i){if(i%every===0||i===ch.length-1){var t=mk('text',{x:X(i),y:H-5,'text-anchor':i===0?'start':(i===ch.length-1?'end':'middle'),fill:'var(--color-fg-muted)','font-size':10});t.textContent=dm(r.ngay);svg.appendChild(t);}});
+      var t=mk('text',{x:m.l-6,y:Y(v)+4,'text-anchor':'end',fill:'var(--color-fg-muted)','font-size':11});t.textContent=v+'%';svg.appendChild(t);});
+    [vlo+vpad,(vlo+vhi)/2,vhi-vpad].forEach(function(v){var t=mk('text',{x:W-m.r+6,y:YV(v)+4,'text-anchor':'start',fill:'var(--color-fg-muted)','font-size':11});t.textContent=Math.round(v).toLocaleString('vi-VN');svg.appendChild(t);});
+    var every=Math.ceil(ch.length/6);
+    ch.forEach(function(r,i){if(i%every===0||i===ch.length-1){var t=mk('text',{x:X(i),y:H-6,'text-anchor':i===0?'start':(i===ch.length-1?'end':'middle'),fill:'var(--color-fg-muted)','font-size':11});t.textContent=dm(r.ngay);svg.appendChild(t);}});
+    var dv='';ch.forEach(function(r,i){if(r.vni==null)return;dv+=(dv?'L':'M')+X(i).toFixed(1)+','+YV(r.vni).toFixed(1);});
+    if(dv)svg.appendChild(mk('path',{d:dv,fill:'none',stroke:'var(--color-fg-muted)','stroke-width':1.6,'stroke-dasharray':'5 4','stroke-linejoin':'round'}));
     [['ma200','var(--color-fg)'],['ma50','var(--z4)'],['ma20','var(--z1)']].forEach(function(k){
       var d='';ch.forEach(function(r,i){d+=(i?'L':'M')+X(i).toFixed(1)+','+Y(r[k[0]]).toFixed(1);});
       svg.appendChild(mk('path',{d:d,fill:'none',stroke:k[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
@@ -577,7 +583,7 @@
       row.appendChild(el('div','ct-d',(d>0?'+':d<0?'−':'')+nf(Math.abs(d),1)+' điểm so với 5 phiên'));
       rows.appendChild(row);});
     var lg=$('ct-leg');lg.textContent='';
-    [['MA20','var(--z1)'],['MA50','var(--z4)'],['MA200','var(--color-fg)']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[1];s.appendChild(i);s.appendChild(document.createTextNode('% mã trên '+k[0]));lg.appendChild(s);});
+    [['% mã trên MA20','var(--z1)'],['% mã trên MA50','var(--z4)'],['% mã trên MA200','var(--color-fg)'],['VN-Index (phải)','var(--color-fg-muted)']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[1];s.appendChild(i);s.appendChild(document.createTextNode(k[0]));lg.appendChild(s);});
     chart($('ct-ch'),CT.chuoi);
     var a=CT.tren_ma20,b=CT.tren_ma50,c=CT.tren_ma200,txt=nf(c,0)+'% mã trên MA200, '+nf(b,0)+'% trên MA50, '+nf(a,0)+'% trên MA20. ';
     if(a-c>=15)txt+='Ngắn hạn đang khá hơn cấu trúc dài hạn: nhiều mã đã hồi lên trên MA20 nhưng chưa lấy lại MA200.';
@@ -758,9 +764,13 @@
         </div>
       </div>
 
-      <div class="atl-card" id="card-chuyen-pha">
+      <div class="atl-card atl-wide" id="card-chuyen-pha">
         <style>
 #card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
+@media (min-width:720px){#card-chuyen-pha .cp-list{grid-template-columns:1fr 1fr;column-gap:24px}}
+#card-cau-truc .ct-body{display:grid;gap:var(--cds-gap-lg)}
+@media (min-width:900px){#card-cau-truc .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
+#card-cau-truc .ct-ch svg{height:auto}
 .cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
 .cp-row:hover{background:var(--color-border-line)}
 .cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
@@ -776,17 +786,7 @@
         <p class="cp-giu" id="cp-giu"></p>
       </div>
 
-      <div class="atl-card" id="card-cach-dung">
-        <h2 class="atl-h">Cách vào lệnh</h2>
-        <ol class="atl-steps">
-          <li>Xem mùa và tỷ trọng tối đa ở trên: tổng vị thế không vượt mức này.</li>
-          <li>Mã MUA: đặt lệnh <b>ATO</b> phiên kế tiếp, trước 9:15.</li>
-          <li>Cắt lỗ khi giá đóng cửa thấp hơn giá mua 7%. Hàng về sau T+2.</li>
-          <li>Bán: theo mục tiêu 1 và mục tiêu 2 ghi trên thẻ của từng mã; tối đa khoảng 3 tuần.</li>
-        </ol>
-      </div>
-
-      <div class="atl-card" id="card-cau-truc">
+      <div class="atl-card atl-wide" id="card-cau-truc">
         <style>
 .ct-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) 3.2rem;align-items:center;gap:2px 10px;padding:4px 0}
 .ct-l{font-size:var(--cds-font-size-caption)}
@@ -801,12 +801,19 @@
 .ct-src{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
         </style>
         <h2 class="atl-h">Cấu trúc thị trường</h2>
-        <p class="atl-note">Tỷ lệ mã HOSE đang ở trên các đường trung bình và xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
-        <div class="ct-rows" id="ct-rows"></div>
-        <p class="atl-sub">Diễn biến 60 phiên: % mã trên MA</p>
-        <div class="sm-leg" id="ct-leg"></div>
-        <div class="ct-ch" id="ct-ch"></div>
-        <p class="ct-mota" id="ct-mota"></p>
+        <p class="atl-note">Tỷ lệ mã HOSE đang nằm trên từng đường trung bình (MA20, MA50, MA200) và số mã xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
+        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt là VN-Index để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
+        <div class="ct-body">
+          <div>
+            <div class="ct-rows" id="ct-rows"></div>
+            <p class="ct-mota" id="ct-mota"></p>
+          </div>
+          <div>
+            <p class="atl-sub">Diễn biến 60 phiên</p>
+            <div class="sm-leg" id="ct-leg"></div>
+            <div class="ct-ch" id="ct-ch"></div>
+          </div>
+        </div>
         <p class="ct-src" id="ct-src"></p>
       </div>
 
