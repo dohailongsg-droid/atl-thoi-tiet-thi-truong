@@ -34,7 +34,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Serif:wght@400;500;600;700&display=swap&subset=vietnamese');
 
-/* Bảng điều khiển thời tiết thị trường: header tóm tắt → 4 tab (Hôm nay kèm nhiệt kế · Xếp hạng · Hồ sơ có đồng hồ · Dòng tiền & RRG), mỗi tab là lưới thẻ */
+/* Bảng điều khiển thời tiết thị trường: header tóm tắt → 4 tab (Hôm nay kèm nhiệt kế · Xếp hạng · Hồ sơ có đồng hồ · Dòng tiền và Thị trường), mỗi tab là lưới thẻ */
 .atl{--z1:#5b8db8;--z2:#9a8f7a;--z7:#7fb77e;--z3:#3f9a62;--z4:#d4a62a;--z5:#e07b39;--z6:#c9483b;
   --q-lead:rgba(63,154,98,.10);--q-weak:rgba(212,166,42,.12);--q-lag:rgba(201,72,59,.09);--q-imp:rgba(91,141,184,.11);
   font-family:var(--font-anthropic-sans);color:var(--color-fg);display:flex;flex-direction:column;gap:var(--cds-gap-lg)}
@@ -266,7 +266,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   <nav class="atl-tabs" role="tablist" aria-label="Phần">
     <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="true">Bảng giá</button>
     <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
-    <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền &amp; RRG</button>
+    <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Dòng tiền và Thị trường</button>
     <button class="atl-tab" role="tab" id="tab-xep-hang" data-sec="xep-hang" aria-selected="false">Xếp hạng trong nhóm</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
     <button class="atl-tab" role="tab" id="tab-danh-muc" data-sec="danh-muc" aria-selected="false">Danh mục</button>
@@ -768,12 +768,13 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class="atl-card atl-wide" id="card-mua-hom-nay">
         <h2 class="atl-h">Hôm nay mua gì</h2>
         <p class="atl-note" id="hn-mua-note">—</p>
+        <p class="atl-note">Mã gắn nhãn <b>Vé số</b> hoặc <b>Trứng rồng</b> là lệnh dài: tỷ trọng nhỏ, giữ lâu, thoát khi chạm cắt lỗ hoặc ngưỡng thoát ghi trên thẻ.</p>
         <div id="hn-mua-list" data-source="hom_nay"></div>
       </div>
 
       <div class="atl-card atl-wide" id="card-dang-giu">
         <h2 class="atl-h">Đang giữ</h2>
-        <p class="atl-note">Mã đã có tín hiệu MUA, chưa chạm điểm bán hay cắt lỗ. Lãi/lỗ tính từ giá mua ATO phiên sau tín hiệu.</p>
+        <p class="atl-note">Mã đã có tín hiệu MUA, chưa chạm điểm bán hay cắt lỗ. Lãi/lỗ tính từ giá mua ATO phiên sau tín hiệu. Lệnh Vé số / Trứng rồng đang giữ cũng nằm ở đây, có nhãn riêng; lệnh đã đóng chuyển xuống Lịch sử tín hiệu.</p>
         <div id="hn-giu-list" data-source="hom_nay"></div>
       </div>
 
@@ -781,73 +782,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <h2 class="atl-h">Theo dõi</h2>
         <p class="atl-note">Mã mạnh đang điều chỉnh về gần vùng mua nhưng chưa đủ điều kiện. Chưa mua; mã sẽ chuyển sang MUA nếu đủ điều kiện ở các phiên tới. Mỗi mã được giữ trên danh sách 10 phiên kể từ lần theo dõi gần nhất. Vùng chờ là vùng đang canh, chưa phải vùng gom: chỉ mua khi đủ điều kiện mua ghi trên thẻ. Kết quả theo dõi tính theo giá lúc đưa vào danh sách.</p>
         <div id="hn-td-list" data-source="hom_nay"></div>
-      </div>
-
-      <div class="atl-card" id="card-lenh-dai">
-        <h2 class="atl-h">Lệnh dài: Trứng rồng &amp; Vé số</h2>
-        <p class="atl-note">Trứng rồng: mã có khả năng dẫn dắt sóng mới sau những nhịp sụt mạnh của thị trường. Vé số: mã vừa chuyển biến tốt cả về kinh doanh lẫn xu hướng giá; tỷ trọng nhỏ, giữ dài.</p>
-        <div id="hn-dai-list" data-source="hom_nay"></div>
-        <p class="atl-sub">Nhật ký lệnh dài</p>
-        <p class="atl-note">Mọi tín hiệu Trứng rồng và Vé số đã phát, mua giá đóng cửa phiên sau tín hiệu; theo dõi đến khi chạm cắt lỗ hoặc thủng ngưỡng thoát.</p>
-        <div class="atl-tablebox" style="max-height:18rem">
-          <table id="tb-ld" data-source="lenh_dai" data-row-key="ngay,ma">
-            <thead><tr><th data-field="ngay">Ngày</th><th data-field="loai">Loại</th><th data-field="ma">Mã</th><th class="num" data-field="gia_mua">Giá mua</th><th class="num" data-field="gia_hien_tai">Giá hiện tại / bán</th><th class="num" data-field="lai_lo">Lãi/lỗ %</th><th class="num" data-field="nguong_thoat">Ngưỡng thoát</th><th data-field="trang_thai">Trạng thái</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="atl-card atl-wide" id="card-chuyen-pha">
-        <style>
-#card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
-@media (min-width:720px){#card-chuyen-pha .cp-list{grid-template-columns:1fr 1fr;column-gap:24px}}
-#card-cau-truc .ct-body{display:grid;gap:var(--cds-gap-lg)}
-@media (min-width:900px){#card-cau-truc .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
-#card-cau-truc .ct-ch svg{height:auto}
-.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
-.cp-row:hover{background:var(--color-border-line)}
-.cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
-.cp-n{flex:1 1 7.5rem;font-weight:600;min-width:0}
-.cp-g{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
-.cp-g .atl-pill{white-space:nowrap}
-.cp-giu{margin:8px 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
-.cp-giu b{color:var(--color-fg);font-weight:600}
-        </style>
-        <h2 class="atl-h">Ngành chuyển pha</h2>
-        <p class="atl-note" id="cp-note">Góc RRG của từng ngành hiện nay so với 4 tuần trước (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.</p>
-        <div class="cp-list" id="cp-list"></div>
-        <p class="cp-giu" id="cp-giu"></p>
-      </div>
-
-      <div class="atl-card atl-wide" id="card-cau-truc">
-        <style>
-.ct-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) 3.2rem;align-items:center;gap:2px 10px;padding:4px 0}
-.ct-l{font-size:var(--cds-font-size-caption)}
-.ct-l small{display:block;color:var(--color-fg-muted);font-size:inherit}
-.ct-bar{height:.7rem;border-radius:999px;background:var(--color-border-line);overflow:hidden}
-.ct-bar i{display:block;height:100%;border-radius:999px}
-.ct-v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
-.ct-d{grid-column:2 / -1;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:-2px}
-.ct-ch{width:100%}
-.ct-ch svg{display:block;width:100%;height:auto}
-.ct-mota{margin:0;line-height:1.55;font-size:.9rem}
-.ct-src{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
-        </style>
-        <h2 class="atl-h">Cấu trúc thị trường</h2>
-        <p class="atl-note">Tỷ lệ mã HOSE đang nằm trên từng đường trung bình (MA20, MA50, MA200) và số mã xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
-        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt là VN-Index để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
-        <div class="ct-body">
-          <div>
-            <div class="ct-rows" id="ct-rows"></div>
-            <p class="ct-mota" id="ct-mota"></p>
-          </div>
-          <div>
-            <p class="atl-sub">Diễn biến 60 phiên</p>
-            <div class="sm-leg" id="ct-leg"></div>
-            <div class="ct-ch" id="ct-ch"></div>
-          </div>
-        </div>
-        <p class="ct-src" id="ct-src"></p>
       </div>
 
       <div class="atl-card atl-wide" id="card-lich-su-loc">
@@ -861,12 +795,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
       </div>
 
-      <div class="atl-card atl-wide" id="card-lich-su">
-        <h2 class="atl-h">VN-Index theo mùa và nhiệt kế TB7</h2>
-        <p class="atl-note">Nền màu là mùa đã xác nhận. Khung dưới: đường TB7, chấm mờ là điểm từng phiên, vạch đứt là ngưỡng 45 · 55 · 65 · 70 · 75.</p>
-        <div class="atl-legend" id="lg-mua"></div>
-        <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:22rem"></div>
-      </div>
     </div>
   </section>
 
@@ -1098,7 +1026,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
         <div class="atl-card" id="card-hs-ai" hidden>
           <h2 class="atl-h" id="ai-title">Hỏi AI về mã này</h2>
-          <p class="dg-note">AI đọc 4 tab: Hồ sơ mã, Hôm nay mua gì, Dòng tiền & RRG, Xếp hạng trong nhóm (đúng những gì hệ thống đã tính) để giải thích thuật ngữ và cách đọc; không dự báo con số, không khuyên mua bán.</p>
+          <p class="dg-note">AI đọc 4 tab: Hồ sơ mã, Hôm nay mua gì, Dòng tiền và Thị trường, Xếp hạng trong nhóm (đúng những gì hệ thống đã tính) để giải thích thuật ngữ và cách đọc; không dự báo con số, không khuyên mua bán.</p>
           <form class="ai-ma" id="ai-ma-form"><label for="ai-ma">Mã cổ phiếu</label><input type="search" id="ai-ma" list="hs-ds" placeholder="VD: DGW" size="7" maxlength="5" autocomplete="off"><button type="submit">Đổi mã</button><span class="dg-note" id="ai-ma-msg" aria-live="polite"></span></form>
           <div class="ai-chips" id="ai-chips"></div>
           <div class="ai-log" id="ai-log" aria-live="polite"></div>
@@ -1285,7 +1213,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
   var cur=null,hist=[],busy=false,jumpAi=false;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
-  var RULES='Bạn là trợ lý giải thích các tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC: (1) Căn cứ chính là dữ liệu trong các phần NỘI DUNG TAB, SỐ LIỆU 12 QUÝ và SO SÁNH (nếu có). Được phép giải thích khái niệm chung (ví dụ MA50, dải Bollinger, ROE, định giá, RRG), nhưng ví dụ và kết luận phải lấy từ số liệu của trang; không dùng tin tức hay số liệu thị trường ngoài trang và không bịa số. Nếu thiếu dữ liệu, nói rõ phần nào của trang chưa có và gợi ý tab cần xem, rồi vẫn trả lời phần có thể trả lời. (2) Không dự báo giá hay lợi nhuận. Khi hỏi về quý sau, nêu mốc và xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, và nói rõ đây không phải dự báo. (3) Không đưa lệnh mua, bán hay nắm giữ kiểu "nên mua", "nên bán", "khuyến nghị mua". Thay vào đó mô tả trạng thái và kịch bản: điều gì đang đúng, điều gì đang yếu, và điều kiện nào trên trang sẽ đổi nhận định. Khi hỏi đắt hay rẻ, nêu khoảng giá trị theo các kịch bản có trên trang, kịch bản làm ước tính sai và điều kiện đổi nhận định. (4) Khi được hỏi so sánh hai mã: nêu mã nào tốt hơn về cơ bản và mã nào tốt hơn về kỹ thuật, đưa từng tiêu chí và ghi rõ mã nào hơn ở tiêu chí nào, rồi kết luận tổng quát dựa trên số liệu trang. Không dùng dữ liệu ngoài trang để so sánh. (5) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng số liệu của mã. (6) Trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI NGAY (cuối cùng); không tóm tắt lại toàn bộ tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. (7) Trả lời tiếng Việt, khoảng 150 từ (so sánh hai mã hoặc câu hỏi đắt rẻ tối đa 250 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (8) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (9) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
+  var RULES='Bạn là trợ lý giải thích các tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền và Thị trường, Xếp hạng trong nhóm. QUY TẮC: (1) Căn cứ chính là dữ liệu trong các phần NỘI DUNG TAB, SỐ LIỆU 12 QUÝ và SO SÁNH (nếu có). Được phép giải thích khái niệm chung (ví dụ MA50, dải Bollinger, ROE, định giá, RRG), nhưng ví dụ và kết luận phải lấy từ số liệu của trang; không dùng tin tức hay số liệu thị trường ngoài trang và không bịa số. Nếu thiếu dữ liệu, nói rõ phần nào của trang chưa có và gợi ý tab cần xem, rồi vẫn trả lời phần có thể trả lời. (2) Không dự báo giá hay lợi nhuận. Khi hỏi về quý sau, nêu mốc và xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, và nói rõ đây không phải dự báo. (3) Không đưa lệnh mua, bán hay nắm giữ kiểu "nên mua", "nên bán", "khuyến nghị mua". Thay vào đó mô tả trạng thái và kịch bản: điều gì đang đúng, điều gì đang yếu, và điều kiện nào trên trang sẽ đổi nhận định. Khi hỏi đắt hay rẻ, nêu khoảng giá trị theo các kịch bản có trên trang, kịch bản làm ước tính sai và điều kiện đổi nhận định. (4) Khi được hỏi so sánh hai mã: nêu mã nào tốt hơn về cơ bản và mã nào tốt hơn về kỹ thuật, đưa từng tiêu chí và ghi rõ mã nào hơn ở tiêu chí nào, rồi kết luận tổng quát dựa trên số liệu trang. Không dùng dữ liệu ngoài trang để so sánh. (5) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng số liệu của mã. (6) Trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI NGAY (cuối cùng); không tóm tắt lại toàn bộ tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. (7) Trả lời tiếng Việt, khoảng 150 từ (so sánh hai mã hoặc câu hỏi đắt rẻ tối đa 250 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (8) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (9) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
   function compact(x){
     var dg=x.dinh_gia||{},v=dg.v2||null,o={ma:x.ma,ten:x.ten,loai:x.loai,bao_cao:x.ky_bao_cao,gia:x.gia,ngay:x.ngay,
       chi_tieu:(x.chi_tieu||[]).map(function(g){return {nhom:g.nhom,muc:g.muc.map(function(m){return {ten:m.ten,gia_tri:m.gt,don_vi:m.dv,trung_vi_5_nam:m.tb5,phan_vi:m.pv};})};}),
@@ -1303,7 +1231,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       var blk=/^(DIV|P|LI|H1|H2|H3|TR|SECTION|UL|TABLE)$/.test(tg);for(var i=0;i<n.childNodes.length;i++)w(n.childNodes[i],false);if(blk)out.push('\n');})(root,true);
     var s=out.join(' ').replace(/ ?\n ?/g,'\n').replace(/\n+/g,'\n');
     return s.length>lim?s.slice(0,lim)+'\n[đã cắt bớt phần cuối]':s;}
-  var TABS=[['ho','ho-so','HỒ SƠ MÃ'],['hn','hom-nay','HÔM NAY MUA GÌ (nhiệt kế, tín hiệu bộ lọc, chế độ Trứng rồng)'],['dt','dong-tien','DÒNG TIỀN & RRG (bản đồ nhiệt, vòng quay ngành)'],['xh','xep-hang','XẾP HẠNG TRONG NHÓM (long đầu, nhãn giá, tam tài)']];
+  var TABS=[['ho','ho-so','HỒ SƠ MÃ'],['hn','hom-nay','HÔM NAY MUA GÌ (nhiệt kế, tín hiệu bộ lọc, chế độ Trứng rồng)'],['dt','dong-tien','DÒNG TIỀN VÀ THỊ TRƯỜNG (VN-Index theo mùa, ngành chuyển pha, cấu trúc thị trường, bản đồ nhiệt, vòng quay ngành)'],['xh','xep-hang','XẾP HẠNG TRONG NHÓM (long đầu, nhãn giá, tam tài)']];
   var LIM_G={ho:16000,hn:6000,dt:8500,xh:7000},LIM_Q={ho:3400,hn:1400,dt:1100,xh:1100};
   function collect(){// mở lần lượt từng tab (đồng bộ, không kịp vẽ ra màn hình) để các tab đã được dựng nội dung rồi mới đọc
     var cur0=window.atlTab||'hom-nay',o={},y=window.pageYOffset||0,bd=document.body,h=document.documentElement.scrollHeight;
@@ -1416,7 +1344,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     if(!kg&&!kq&&!km){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini, Groq hoặc Mistral của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
     busy=true;$('ai-send').disabled=true;
     lastUser=addMsg('user',text);hist.push({role:'user',text:text});
-    var wait=addMsg('sys','Đang đọc 4 tab (Hồ sơ mã '+cur.ma+', Hôm nay mua gì, Dòng tiền & RRG, Xếp hạng)…');
+    var wait=addMsg('sys','Đang đọc 4 tab (Hồ sơ mã '+cur.ma+', Hôm nay mua gì, Dòng tiền và Thị trường, Xếp hạng)…');
     ctxT=collect();var sys=sysText(LIM_G,ctxT),pref=LS.get('atl_ai_pref')||'gemini',order=pref==='groq'?['groq','mistral','gemini']:pref==='mistral'?['mistral','gemini','groq']:['gemini','mistral','groq'];
     var tried=[];
     function run(k){
@@ -1465,6 +1393,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <div class="atl-subnav" role="group" aria-label="Phần xem">
       <div class="atl-seg">
         <button type="button" data-v="all" aria-pressed="true">Xem tất cả</button>
+        <button type="button" data-v="mua" aria-pressed="false">Mùa &amp; cấu trúc</button>
         <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
         <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
@@ -1472,7 +1401,69 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       </div>
       <span class="atl-note" id="dv-hint">Cuộn xuống để xem lần lượt, hoặc bấm một mục để chỉ xem mục đó.</span>
     </div>
+    <div class="atl-dv" data-view="mua">
+      <div class="atl-card atl-wide" id="card-lich-su">
+        <h2 class="atl-h">VN-Index theo mùa và nhiệt kế TB7</h2>
+        <p class="atl-note">Nền màu là mùa đã xác nhận. Khung dưới: đường TB7, chấm mờ là điểm từng phiên, vạch đứt là ngưỡng 45 · 55 · 65 · 70 · 75.</p>
+        <div class="atl-legend" id="lg-mua"></div>
+        <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:22rem"></div>
+      </div>
+      <div class="atl-card atl-wide" id="card-chuyen-pha">
+        <style>
+#card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
+@media (min-width:720px){#card-chuyen-pha .cp-list{grid-template-columns:1fr 1fr;column-gap:24px}}
+#card-cau-truc .ct-body{display:grid;gap:var(--cds-gap-lg)}
+@media (min-width:900px){#card-cau-truc .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
+#card-cau-truc .ct-ch svg{height:auto}
+.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
+.cp-row:hover{background:var(--color-border-line)}
+.cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
+.cp-n{flex:1 1 7.5rem;font-weight:600;min-width:0}
+.cp-g{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.cp-g .atl-pill{white-space:nowrap}
+.cp-giu{margin:8px 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
+.cp-giu b{color:var(--color-fg);font-weight:600}
+        </style>
+        <h2 class="atl-h">Ngành chuyển pha</h2>
+        <p class="atl-note" id="cp-note">Góc RRG của từng ngành hiện nay so với 4 tuần trước (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.</p>
+        <div class="cp-list" id="cp-list"></div>
+        <p class="cp-giu" id="cp-giu"></p>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-cau-truc">
+        <style>
+.ct-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) 3.2rem;align-items:center;gap:2px 10px;padding:4px 0}
+.ct-l{font-size:var(--cds-font-size-caption)}
+.ct-l small{display:block;color:var(--color-fg-muted);font-size:inherit}
+.ct-bar{height:.7rem;border-radius:999px;background:var(--color-border-line);overflow:hidden}
+.ct-bar i{display:block;height:100%;border-radius:999px}
+.ct-v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.ct-d{grid-column:2 / -1;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:-2px}
+.ct-ch{width:100%}
+.ct-ch svg{display:block;width:100%;height:auto}
+.ct-mota{margin:0;line-height:1.55;font-size:.9rem}
+.ct-src{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+        </style>
+        <h2 class="atl-h">Cấu trúc thị trường</h2>
+        <p class="atl-note">Tỷ lệ mã HOSE đang nằm trên từng đường trung bình (MA20, MA50, MA200) và số mã xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
+        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt là VN-Index để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
+        <div class="ct-body">
+          <div>
+            <div class="ct-rows" id="ct-rows"></div>
+            <p class="ct-mota" id="ct-mota"></p>
+          </div>
+          <div>
+            <p class="atl-sub">Diễn biến 60 phiên</p>
+            <div class="sm-leg" id="ct-leg"></div>
+            <div class="ct-ch" id="ct-ch"></div>
+          </div>
+        </div>
+        <p class="ct-src" id="ct-src"></p>
+      </div>
+
+    </div>
     <div class="atl-dv" data-view="tm">
+      <h2 class="atl-dvh">Bản đồ nhiệt</h2>
     <div class="atl-card" id="card-ban-do">
       <h2 class="atl-h">Bản đồ nhiệt HOSE</h2>
       <p class="atl-note" id="tm-note">Mỗi ô là một mã có GTGD trung bình 20 phiên ≥ 3 tỷ, nhóm theo ngành ICB. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Chạm vào ô để xem chi tiết.</p>
@@ -1740,7 +1731,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     /* legend + lich su */
     const lg = document.getElementById('lg-mua'); lg.replaceChildren();
     [1, 2, 7, 3, 4, 5, 6].forEach((k) => { const s = document.createElement('span'); const d = document.createElement('i'); d.className = 'atl-dot'; d.style.background = Z[k].c; s.append(d, document.createTextNode(Z[k].ten)); lg.appendChild(s); });
-    if (window.atlTab === 'hom-nay') drawHistory(document.getElementById('ch-lich-su'), rows);
+    if (window.atlVis && window.atlVis('mua')) drawHistory(document.getElementById('ch-lich-su'), rows);
   }
 
   function drawScale(box, last) {
@@ -2132,13 +2123,13 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     fn: (hom_nay) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ', 'VÉ SỐ', 'TRỨNG RỒNG', 'BÁN THÁO'].map((loai) => ({ loai, so_ma: hom_nay.filter((r) => r.loai === loai).length })),
   });
   const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-  const mark = (e, r, field) => { e.dataset.source = 'hom_nay'; e.dataset.field = field; e.dataset.where = 'ma=' + enc(r.ma) + '&loai=' + enc(r.loai); return e; };
+  const mark = (e, r, field) => { if (r.dai) return e; e.dataset.source = 'hom_nay'; e.dataset.field = field; e.dataset.where = 'ma=' + enc(r.ma) + '&loai=' + enc(r.loai); return e; };
   const num = (v) => (v == null || v === '' ? null : +v);
   const chip = (t, color, bold) => { const p = el('span', 'atl-pill'); if (color) { const d = el('i', 'atl-dot'); d.style.background = color; p.appendChild(d); } p.appendChild(document.createTextNode(t)); if (bold) p.style.fontWeight = '600'; return p; };
 
   function ladder(r) {
     // thang gia: cat lo, dai duoi, gia mua, gia hien tai, MA20, dai tren
-    const pts = [['Cắt lỗ', num(r.cat_lo), 'var(--color-bad)'], ['Vùng mua', num(r.dai_duoi), 'var(--cds-chart-muted)'], ['Mục tiêu 1', num(r.muc_tieu_1), 'var(--z3)'], ['Mục tiêu 2', num(r.muc_tieu_2), 'var(--z3)']].filter((p) => p[1] != null);
+    const pts = [['Cắt lỗ', num(r.cat_lo), 'var(--color-bad)'], ['Thoát', num(r.st_tuan), 'var(--z4)'], ['Vùng mua', num(r.dai_duoi), 'var(--cds-chart-muted)'], ['Mục tiêu 1', num(r.muc_tieu_1), 'var(--z3)'], ['Mục tiêu 2', num(r.muc_tieu_2), 'var(--z3)']].filter((p) => p[1] != null);
     const cur = num(r.gia_hien_tai), buy = num(r.gia_mua);
     const vals = pts.map((p) => p[1]).concat([cur, buy].filter((v) => v != null));
     if (vals.length < 2) return null;
@@ -2163,17 +2154,25 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   }
 
   function card(r) {
-    const c = el('div', 'atl-stock'); c.id = 'ma-' + r.ma + '-' + r.loai.replace(/\s/g, '');
+    const c = el('div', 'atl-stock'); c.id = 'ma-' + r.ma + '-' + r.loai.replace(/\s/g, '') + (r.dai ? '-ld' : '');
     const top = el('div', 'atl-stock-top');
     const name = el('span', 'atl-ma', r.ma); mark(name, r, 'ma'); name.style.cursor = 'pointer'; name.title = 'Mở hồ sơ ' + r.ma; name.addEventListener('click', () => window.atlOpenProfile && window.atlOpenProfile(r.ma));
     const chips = el('div', 'atl-chips');
     if (r.nganh) chips.appendChild(chip(r.nganh + (r.hang_nganh ? ' · hạng ' + r.hang_nganh : '')));
     if (r.long_dau === true || r.long_dau === 'true') chips.appendChild(chip('Long đầu ngành', 'var(--z4)', true));
+    const ldNhan = r.dai || (r.loai === 'VÉ SỐ' ? 'Vé số' : r.loai === 'TRỨNG RỒNG' ? 'Trứng rồng' : '');
+    if (ldNhan) chips.appendChild(chip(ldNhan, 'var(--z1)', true));
     top.append(name, chips); c.appendChild(top);
     const lad = ladder(r); if (lad) c.appendChild(lad);
     const kv = el('div', 'atl-kv2');
     const add = (k, v, field, cls) => { const d = el('div'); d.appendChild(el('span', 'k', k)); const s = el('span', 'v' + (cls ? ' ' + cls : ''), v); if (field) mark(s, r, field); d.appendChild(s); kv.appendChild(d); };
-    if (r.loai === 'ĐANG GIỮ') {
+    if (r.loai === 'ĐANG GIỮ' && r.dai) {
+      add('Giá mua', f2(num(r.gia_mua)), 'gia_mua');
+      add('Giá hiện tại', f2(num(r.gia_hien_tai)), 'gia_hien_tai');
+      add('Lãi/lỗ', r.lai_lo_pct == null ? '—' : fp(num(r.lai_lo_pct)) + '%', 'lai_lo_pct', num(r.lai_lo_pct) >= 0 ? 'pos' : 'neg');
+      add('Ngưỡng thoát', r.st_tuan == null ? '—' : f2(num(r.st_tuan)), 'st_tuan');
+      add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
+    } else if (r.loai === 'ĐANG GIỮ') {
       add('Giá mua ATO', f2(num(r.gia_mua)), 'gia_mua');
       add('Giá hiện tại', f2(num(r.gia_hien_tai)), 'gia_hien_tai');
       add('Lãi/lỗ', fp(num(r.lai_lo_pct)) + '%', 'lai_lo_pct', num(r.lai_lo_pct) >= 0 ? 'pos' : 'neg');
@@ -2207,6 +2206,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     }
     c.appendChild(kv);
     if (r.loai === 'ĐANG GIỮ' && r.nhan_thoat) c.appendChild(el('p', 'atl-note', r.nhan_thoat));
+    if (r.loai === 'VÉ SỐ' || r.loai === 'TRỨNG RỒNG') c.appendChild(el('p', 'atl-note', 'Lệnh dài ' + (r.loai === 'VÉ SỐ' ? '(Vé số)' : '(Trứng rồng)') + ': mua giá đóng cửa phiên sau tín hiệu, tỷ trọng nhỏ, giữ lâu.'));
     if (r.loai === 'THEO DÕI' && num(r.dai_duoi) != null) {
       const top = Math.max(num(r.dai_duoi), num(r.gia_khuyen_nghi)), cur = num(r.gia_hien_tai);
       c.appendChild(el('p', 'atl-note', 'Theo dõi từ ' + dmy(r.ngay_tin_hieu) + ' · giá hiện tại ' + f2(cur) + (cur <= top ? ', đang nằm trong vùng chờ.' : ', cao hơn vùng chờ ' + d3.format('.1f')((cur / top - 1) * 100) + '%.')));
@@ -2223,7 +2223,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   }
 
   function draw() {
-    const H = dash.data('hom_nay'), N = dash.data('nhiet_ke'), B = dash.data('che_do_bao'), L = dash.data('lich_su_loc');
+    const H = dash.data('hom_nay'), N = dash.data('nhiet_ke'), B = dash.data('che_do_bao'), L = dash.data('lich_su_loc'), LD = dash.data('lenh_dai');
+    const ldRows = LD.status === 'ok' ? LD.data : [];
+    const ldOpen = ldRows.filter((r) => String(r.trang_thai).startsWith('Đang'));
     const Z = window.atlZ;
     if (B.status === 'ok' && B.data.length) {
       const r = B.data[0]; const on = r.bao_bat === true || r.bao_bat === 'true';
@@ -2233,37 +2235,32 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       s.appendChild(document.createTextNode(on ? ' · bão ' + r.cap_bao : ' · cần ≤ −15% để bật'));
     }
     const D = dash.data('dem_loai');
-    if (D.status === 'ok') { const g = (k) => (D.data.find((x) => x.loai === k) || {}).so_ma ?? 0; $('hn-n-mua').textContent = g('MUA'); $('hn-n-giu').textContent = g('ĐANG GIỮ'); }
-    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list', 'hn-dai-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
+    if (D.status === 'ok') { const g = (k) => (D.data.find((x) => x.loai === k) || {}).so_ma ?? 0; $('hn-n-mua').textContent = g('MUA'); $('hn-n-giu').textContent = g('ĐANG GIỮ') + ldOpen.length; }
+    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
     else {
       const rows = H.data, by = (k) => rows.filter((r) => r.loai === k);
       const ngay = (rows[0] && rows.find((r) => r.loai !== 'ĐANG GIỮ') || {}).ngay_tin_hieu || (N.status === 'ok' ? N.data[N.data.length - 1].ngay : '');
       const gp = B.status === 'ok' && B.data.length && (B.data[0].giua_phien === true || B.data[0].giua_phien === 'true');
       $('hn-mua-note').textContent = gp ? 'Dữ liệu giữa phiên ' + dmy(ngay) + ' (chưa chốt giá đóng cửa): tín hiệu bên dưới chỉ tạm thời, chính thức sau 15:15.' : 'Tín hiệu tính trên giá đóng cửa phiên ' + dmy(ngay) + '; vào lệnh ATO phiên giao dịch kế tiếp.';
       const zt = N.status === 'ok' && Z ? Z[+N.data[N.data.length - 1].vung] : null;
-      list($('hn-mua-list'), by('MUA'), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
-      list($('hn-giu-list'), by('ĐANG GIỮ'), 'Chưa có lệnh nào đang giữ.');
+      list($('hn-mua-list'), by('MUA').concat(by('TRỨNG RỒNG'), by('VÉ SỐ')), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
+      list($('hn-giu-list'), by('ĐANG GIỮ').concat(ldOpen.map((r) => ({ loai: 'ĐANG GIỮ', dai: r.loai, ma: r.ma, nganh: r.nganh, ngay_tin_hieu: r.ngay, gia_mua: r.gia_mua, gia_hien_tai: r.gia_hien_tai, lai_lo_pct: r.lai_lo, cat_lo: r.cat_lo, st_tuan: r.nguong_thoat, muc_tieu_1: null, muc_tieu_2: null, dai_duoi: null }))), 'Chưa có lệnh nào đang giữ.');
       list($('hn-td-list'), by('THEO DÕI'), 'Không có mã nào sát dải dưới.');
-      list($('hn-dai-list'), by('TRỨNG RỒNG').concat(by('VÉ SỐ')), 'Không có tín hiệu lệnh dài.');
-      const LD = dash.data('lenh_dai'), tld = document.querySelector('#tb-ld tbody');
-      if (LD.status === 'ok') tld.replaceChildren(...(LD.data.length ? LD.data.map((r) => {
-        const t = el('tr'); t.dataset.key = encodeURIComponent(r.ngay) + ',' + encodeURIComponent(r.ma);
-        const v = (x) => (x == null || x === '' ? '—' : f2(+x));
-        [[r.ngay, ''], [r.loai, ''], [r.ma, ''], [v(r.gia_mua), 'num'], [v(r.gia_hien_tai), 'num'],
-         [r.lai_lo == null ? '—' : d3.format('+.2f')(+r.lai_lo), 'num ' + (r.lai_lo == null ? '' : +r.lai_lo >= 0 ? 'pos' : 'neg')], [v(r.nguong_thoat), 'num'], [r.trang_thai, '']]
-          .forEach(([x, c], i) => { const td = el('td', c, String(x)); if (i === 7 && String(x).startsWith('Đang')) td.style.fontWeight = '600'; t.appendChild(td); });
-        return t; }) : [(() => { const t = el('tr'); const td = el('td', null, 'Chưa có lệnh dài nào.'); td.colSpan = 8; t.appendChild(td); return t; })()]));
-      else tld.replaceChildren();
     }
     const tls = document.querySelector('#tb-ls tbody');
     if (L.status === 'ok') {
-      const rows = dotTheoDoi(L.data).sort((a, b) => (a.ngay < b.ngay ? 1 : -1));
+      const ldHist = ldRows.map((r) => {
+        const open = String(r.trang_thai).startsWith('Đang'), cho = String(r.trang_thai).startsWith('Mới');
+        return { ngay: r.ngay, ma: r.ma, tin_hieu: 'MUA · ' + r.loai, gia_khuyen_nghi: r.gia_tin_hieu, gia_mua_ato: cho ? null : r.gia_mua, lai_t3: null, lai_t10: null,
+          lai_quy_tac: open || cho ? null : r.lai_lo, ly_do_thoat: open || cho ? '' : String(r.trang_thai).replace(/^Đã bán:\s*/, ''), ngay_thoat: null, _cho: cho };
+      });
+      const rows = dotTheoDoi(L.data).concat(ldHist).sort((a, b) => (a.ngay < b.ngay ? 1 : -1));
       const pct = (v) => (v == null || v === '' ? '—' : d3.format('+.2f')(+v));
       tls.replaceChildren(...rows.map((r) => {
         const t = el('tr'); t.dataset.key = enc(r.ngay) + ',' + enc(r.ma);
         const mua = String(r.tin_hieu).startsWith('MUA');
         const cells = [[r.ngay, ''], [r.ma, ''], [r.so_phien > 1 ? r.tin_hieu + ' (' + r.so_phien + ' phiên, đến ' + r.den_ngay.slice(8, 10) + '/' + r.den_ngay.slice(5, 7) + ')' : r.tin_hieu, ''], [r.gia_khuyen_nghi == null ? '—' : f2(+r.gia_khuyen_nghi), 'num'], [r.gia_mua_ato == null ? '—' : f2(+r.gia_mua_ato), 'num'],
-          [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [pct(r.lai_quy_tac), 'num'], [r.ly_do_thoat ? r.ly_do_thoat + (r.ngay_thoat ? ' (' + r.ngay_thoat.slice(8, 10) + '/' + r.ngay_thoat.slice(5, 7) + ')' : '') : (mua ? 'Đang giữ' : '—'), '']];
+          [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [pct(r.lai_quy_tac), 'num'], [r.ly_do_thoat ? r.ly_do_thoat + (r.ngay_thoat ? ' (' + r.ngay_thoat.slice(8, 10) + '/' + r.ngay_thoat.slice(5, 7) + ')' : '') : (r._cho ? 'Chờ mua phiên sau' : mua ? 'Đang giữ' : '—'), '']];
         cells.forEach(([v, c], i) => { const td = el('td', c, String(v)); if (i >= 5 && i <= 7 && v !== '—') td.classList.add(+v >= 0 ? 'pos' : 'neg'); if (i === 2) td.style.fontWeight = mua ? '600' : ''; t.appendChild(td); });
         return t;
       }));
