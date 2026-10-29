@@ -131,5 +131,12 @@
     "nha_cung_cap": "groq",
     "so_tin": 5,
     "loi": "gemini: gemini-3.1-flash-lite: HTTP 503 {   \"error\": {     \"code\": 503,     \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later; gemini-2.5-flash-lite: HTTP 404 {   \"error\": {     \"code\": 404,     \"message\": \"This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use mode; gemini-2.5-flash: HTTP 404 {   \"error\": {     \"code\": 404,     \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/ge"
+  },
+  {
+    "ngay": "2026-10-29",
+    "trang_thai": "ok",
+    "nha_cung_cap": "groq",
+    "so_tin": 5,
+    "loi": "gemini: gemini-3.1-flash-lite: HTTP 503 {   \"error\": {     \"code\": 503,     \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later; gemini-2.5-flash-lite: HTTP 404 {   \"error\": {     \"code\": 404,     \"message\": \"This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use mode; gemini-2.5-flash: HTTP 404 {   \"error\": {     \"code\": 404,     \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/ge"
   }
 ]
