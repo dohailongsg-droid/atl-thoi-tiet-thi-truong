@@ -1899,6 +1899,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       add('Thanh khoản (tỷ)', r.gtgd_tb20 == null ? '—' : f0(num(r.gtgd_tb20)), 'gtgd_tb20');
     }
     c.appendChild(kv);
+    if (r.loai === 'ĐANG GIỮ' && r.nhan_thoat) c.appendChild(el('p', 'atl-note', r.nhan_thoat));
     if (r.loai === 'THEO DÕI' && num(r.dai_duoi) != null) {
       const top = Math.max(num(r.dai_duoi), num(r.gia_khuyen_nghi)), cur = num(r.gia_hien_tai);
       c.appendChild(el('p', 'atl-note', 'Theo dõi từ ' + dmy(r.ngay_tin_hieu) + ' · giá hiện tại ' + f2(cur) + (cur <= top ? ', đang nằm trong vùng chờ.' : ', cao hơn vùng chờ ' + d3.format('.1f')((cur / top - 1) * 100) + '%.')));
@@ -1930,7 +1931,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     else {
       const rows = H.data, by = (k) => rows.filter((r) => r.loai === k);
       const ngay = (rows[0] && rows.find((r) => r.loai !== 'ĐANG GIỮ') || {}).ngay_tin_hieu || (N.status === 'ok' ? N.data[N.data.length - 1].ngay : '');
-      $('hn-mua-note').textContent = 'Tín hiệu tính trên giá đóng cửa phiên ' + dmy(ngay) + '; vào lệnh ATO phiên giao dịch kế tiếp.';
+      const gp = B.status === 'ok' && B.data.length && (B.data[0].giua_phien === true || B.data[0].giua_phien === 'true');
+      $('hn-mua-note').textContent = gp ? 'Dữ liệu giữa phiên ' + dmy(ngay) + ' (chưa chốt giá đóng cửa): tín hiệu bên dưới chỉ tạm thời, chính thức sau 15:15.' : 'Tín hiệu tính trên giá đóng cửa phiên ' + dmy(ngay) + '; vào lệnh ATO phiên giao dịch kế tiếp.';
       const zt = N.status === 'ok' && Z ? Z[+N.data[N.data.length - 1].vung] : null;
       list($('hn-mua-list'), by('MUA'), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
       list($('hn-giu-list'), by('ĐANG GIỮ'), 'Chưa có lệnh nào đang giữ.');
