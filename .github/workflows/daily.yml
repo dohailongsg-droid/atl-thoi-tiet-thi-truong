@@ -53,9 +53,14 @@ jobs:
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
-      - name: Ghi lại trạng thái (state/), bỏ qua lượt 11:35 vì phiên chưa đóng cửa
+      - name: Ghi lại trạng thái (state/), chỉ khi phiên đã đóng cửa (sau 15:10 giờ VN)
         if: github.event.schedule != '35 4 * * 1-5'
         run: |
+          HM=$(TZ=Asia/Ho_Chi_Minh date +%H%M); DOW=$(TZ=Asia/Ho_Chi_Minh date +%u)
+          if [ "$DOW" -le 5 ] && [ "$HM" -ge 900 ] && [ "$HM" -lt 1510 ]; then
+            echo "Đang trong giờ giao dịch ($HM), không ghi trạng thái để tránh lưu tín hiệu từ dữ liệu dở dang."
+            exit 0
+          fi
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
           git add pipeline/state pipeline/dash_out/kiem_dinh.json
