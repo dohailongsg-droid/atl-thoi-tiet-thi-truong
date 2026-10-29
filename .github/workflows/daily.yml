@@ -2,6 +2,7 @@ name: Cập nhật số liệu hằng ngày
 
 on:
   schedule:
+    - cron: "35 4 * * 1-5"    # 11:35 giờ Việt Nam: cập nhật giữa phiên (có dữ liệu phiên sáng cho phiên chiều)
     - cron: "25 8 * * *"      # 15:25 giờ Việt Nam (UTC+7), sau phiên
   workflow_dispatch:          # cho phép bấm chạy tay trong tab Actions
 
@@ -38,6 +39,7 @@ jobs:
         run: bash pipeline/run_all.sh
 
       - name: Khôi phục dữ liệu cơ bản lần trước (dự phòng nếu Vietcap lỗi)
+        if: github.event.schedule != '35 4 * * 1-5'
         uses: actions/cache@v4
         with:
           path: site/data/cb
@@ -46,11 +48,13 @@ jobs:
             cb-
 
       - name: Dữ liệu cơ bản toàn HOSE (Vietcap IQ, lỗi không làm dừng cả lượt)
+        if: github.event.schedule != '35 4 * * 1-5'
         continue-on-error: true
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
-      - name: Ghi lại trạng thái (state/)
+      - name: Ghi lại trạng thái (state/), bỏ qua lượt 11:35 vì phiên chưa đóng cửa
+        if: github.event.schedule != '35 4 * * 1-5'
         run: |
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
