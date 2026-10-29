@@ -94,6 +94,20 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .atl-sec[hidden]{display:none!important}
 .atl-subnav{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm) var(--cds-gap-md);padding:8px 0;margin-bottom:var(--cds-gap-sm);background:var(--color-bg)}
 .atl-subnav .atl-seg{flex-wrap:wrap;max-width:100%}
+.th-wrap{overflow-x:auto}
+.th-tb{border-collapse:separate;border-spacing:2px;width:100%;min-width:640px;font-size:var(--t-sm,12px);font-variant-numeric:tabular-nums}
+.th-tb th{font-weight:500;color:var(--color-fg-muted);padding:6px 4px;text-align:center;white-space:nowrap}
+.th-tb th.y{text-align:left;padding-left:6px}
+.th-tb td{text-align:center;padding:7px 4px;border-radius:4px;color:var(--color-fg)}
+.th-tb td.y{text-align:left;padding-left:6px;color:var(--color-fg-muted);background:transparent}
+.th-tb td.ytd{font-weight:600}
+.th-tb td.na{color:var(--color-fg-muted);opacity:.5}
+.th-tb tr.stat td{background:transparent;border-top:1px solid var(--color-border-line);border-radius:0;font-weight:500}
+.th-tb tr.stat td.y{color:var(--color-fg)}
+.th-tb .nx{box-shadow:inset 1px 0 0 var(--color-warn),inset -1px 0 0 var(--color-warn)}
+.th-tb th.nx{box-shadow:inset 1px 0 0 var(--color-warn),inset -1px 0 0 var(--color-warn),inset 0 1px 0 var(--color-warn)}
+.th-tb tr:last-child td.nx{box-shadow:inset 1px 0 0 var(--color-warn),inset -1px 0 0 var(--color-warn),inset 0 -1px 0 var(--color-warn)}
+.th-tb .run{font-style:italic;opacity:.85}
 .atl-dv{display:flex;flex-direction:column;gap:var(--cds-gap-md);scroll-margin-top:3.5rem}
 .atl-dv+.atl-dv{margin-top:var(--cds-gap-lg,24px)}
 .atl-dv[hidden]{display:none!important}
@@ -1015,7 +1029,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
   var cur=null,hist=[],busy=false;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
-  var RULES='Bạn là trợ lý giải thích 4 tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC BẮT BUỘC: (1) Chỉ dùng thông tin trong các phần NỘI DUNG TAB và SỐ LIỆU 12 QUÝ bên dưới; không dùng kiến thức thị trường chung hay tin tức ngoài đó, kể cả mức trung bình ngành hay tiêu chuẩn chung nếu trang không ghi. So sánh với quá khứ chỉ dùng trung vị 5 năm của chính mã đó có trên trang. Nếu câu hỏi cần thông tin không có, nói rõ "phần nội dung đang có không đề cập" và gợi ý xem mục nào; tuyệt đối không bịa số. Khi người dùng nêu một con số không có trên trang, nói rõ trang không có số đó và dữ liệu trang chỉ tới quý báo cáo gần nhất; không xác nhận con số đó. (2) Không dự báo con số lợi nhuận hay giá. Khi được hỏi về quý sau, chỉ nêu mốc trong dữ liệu, xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, rồi nói rõ đây không phải dự báo. (3) Không khuyên mua, bán, nắm giữ; không dùng các từ "nên mua", "nên bán", "khuyến nghị". Khi được hỏi đắt hay rẻ, đáng đầu tư không: nêu khoảng giá trị của 3 kịch bản (g cố định 3/4/5% theo từng kịch bản), độ nhạy theo Ke nếu có, kịch bản làm ước tính sai, và điều kiện nào trên trang sẽ đổi nhận định; không kết luận mua hay bán. (4) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng chính số liệu của mã. (5) Chỉ trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI cuối cùng; không tóm tắt lại toàn bộ các tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. Khi hỏi về thị trường, ngành hay tín hiệu, đọc đúng tab liên quan và nêu tên tab. Tín hiệu và nhiệt kế là kết quả hệ thống đã tính, chỉ diễn giải, không tự suy ra tín hiệu mới. (6) Trả lời tiếng Việt, khoảng 150 từ (câu hỏi đắt/rẻ tối đa 220 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (7) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
+  var RULES='Bạn là trợ lý giải thích 4 tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC BẮT BUỘC: (1) Chỉ dùng thông tin trong các phần NỘI DUNG TAB và SỐ LIỆU 12 QUÝ bên dưới; không dùng kiến thức thị trường chung hay tin tức ngoài đó, kể cả mức trung bình ngành hay tiêu chuẩn chung nếu trang không ghi. So sánh với quá khứ chỉ dùng trung vị 5 năm của chính mã đó có trên trang. Nếu câu hỏi cần thông tin không có, nói rõ "phần nội dung đang có không đề cập" và gợi ý xem mục nào; tuyệt đối không bịa số. Khi người dùng nêu một con số không có trên trang, nói rõ trang không có số đó và dữ liệu trang chỉ tới quý báo cáo gần nhất; không xác nhận con số đó. (2) Không dự báo con số lợi nhuận hay giá. Khi được hỏi về quý sau, chỉ nêu mốc trong dữ liệu, xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, rồi nói rõ đây không phải dự báo. (3) Không khuyên mua, bán, nắm giữ; không dùng các từ "nên mua", "nên bán", "khuyến nghị". Khi được hỏi đắt hay rẻ, đáng đầu tư không: nêu khoảng giá trị của 3 kịch bản (g cố định 3/4/5% theo từng kịch bản), độ nhạy theo Ke nếu có, kịch bản làm ước tính sai, và điều kiện nào trên trang sẽ đổi nhận định; không kết luận mua hay bán. (4) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng chính số liệu của mã. (5) Chỉ trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI cuối cùng; không tóm tắt lại toàn bộ các tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. Khi hỏi về thị trường, ngành hay tín hiệu, đọc đúng tab liên quan và nêu tên tab. Tín hiệu và nhiệt kế là kết quả hệ thống đã tính, chỉ diễn giải, không tự suy ra tín hiệu mới. (6) Trả lời tiếng Việt, khoảng 150 từ (câu hỏi đắt/rẻ tối đa 220 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (7) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (8) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
   function compact(x){
     var dg=x.dinh_gia||{},v=dg.v2||null,o={ma:x.ma,ten:x.ten,loai:x.loai,bao_cao:x.ky_bao_cao,gia:x.gia,ngay:x.ngay,
       chi_tieu:(x.chi_tieu||[]).map(function(g){return {nhom:g.nhom,muc:g.muc.map(function(m){return {ten:m.ten,gia_tri:m.gt,don_vi:m.dv,trung_vi_5_nam:m.tb5,phan_vi:m.pv};})};}),
@@ -1034,11 +1048,12 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var s=out.join(' ').replace(/ ?\n ?/g,'\n').replace(/\n+/g,'\n');
     return s.length>lim?s.slice(0,lim)+'\n[đã cắt bớt phần cuối]':s;}
   var TABS=[['ho','ho-so','HỒ SƠ MÃ'],['hn','hom-nay','HÔM NAY MUA GÌ (nhiệt kế, tín hiệu bộ lọc, chế độ Trứng rồng)'],['dt','dong-tien','DÒNG TIỀN & RRG (bản đồ nhiệt, vòng quay ngành)'],['xh','xep-hang','XẾP HẠNG TRONG NHÓM (long đầu, nhãn giá, tam tài)']];
-  var LIM_G={ho:16000,hn:6000,dt:6000,xh:7000},LIM_Q={ho:3400,hn:1400,dt:1100,xh:1100};
+  var LIM_G={ho:16000,hn:6000,dt:8500,xh:7000},LIM_Q={ho:3400,hn:1400,dt:1100,xh:1100};
   function collect(){// mở lần lượt từng tab (đồng bộ, không kịp vẽ ra màn hình) để các tab đã được dựng nội dung rồi mới đọc
-    var cur0=window.atlTab||'hom-nay',o={};
+    var cur0=window.atlTab||'hom-nay',o={},y=window.pageYOffset||0,bd=document.body,h=document.documentElement.scrollHeight;
+    bd.style.minHeight=h+'px';// giữ nguyên chiều cao trang khi đổi tab tạm thời để trang không bị kéo xuống
     try{TABS.forEach(function(t){if(window.atlShow)window.atlShow(t[1]);o[t[0]]=textOf(t[1],30000);});}
-    finally{if(window.atlShow)window.atlShow(cur0);}
+    finally{if(window.atlShow)window.atlShow(cur0);bd.style.minHeight='';window.scrollTo(0,y);}
     return o;}
   function sysText(lim,T){T=T||collect();var parts=[RULES,'GIẢI THÍCH THUẬT NGỮ: '+GLOSS];
     TABS.forEach(function(t){var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
@@ -1072,7 +1087,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var log=$('ai-log'),m=el('div','ai-m '+role);
     text.split('\n').forEach(function(l){if(!l.trim())return;m.appendChild(el('p',null,clean(l)));});
     if(note)m.appendChild(el('p','ai-note',note));
-    log.appendChild(m);log.scrollTop=log.scrollHeight;return m;}
+    log.appendChild(m);
+    if(role==='bot'&&lastUser&&lastUser.parentNode===log)log.scrollTop+=lastUser.getBoundingClientRect().top-log.getBoundingClientRect().top-4;// đưa câu hỏi lên đầu khung để đọc từ câu hỏi xuống câu trả lời
+    else log.scrollTop=log.scrollHeight;
+    return m;}
   function post(url,headers,body){return fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){return {ok:r.ok,status:r.status,j:j};},function(){return {ok:r.ok,status:r.status,j:null};});});}
   function msgs(){return hist.slice(-8);}
   function askGemini(key,sys){
@@ -1115,14 +1133,14 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         if(r.status===429)return Promise.reject(new Error('Mistral báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
         return next();});}
     return next();}
-  var ctxT=null,lastQ='';
+  var ctxT=null,lastQ='',lastUser=null;
   function ask(text){
     if(busy||!cur)return;
     lastQ=text;
     var kg=LS.get('atl_key_gemini'),kq=LS.get('atl_key_groq'),km=LS.get('atl_key_mistral');
     if(!kg&&!kq&&!km){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini, Groq hoặc Mistral của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
     busy=true;$('ai-send').disabled=true;
-    addMsg('user',text);hist.push({role:'user',text:text});
+    lastUser=addMsg('user',text);hist.push({role:'user',text:text});
     var wait=addMsg('sys','Đang đọc 4 tab (Hồ sơ mã '+cur.ma+', Hôm nay mua gì, Dòng tiền & RRG, Xếp hạng)…');
     ctxT=collect();var sys=sysText(LIM_G,ctxT),pref=LS.get('atl_ai_pref')||'gemini',order=pref==='groq'?['groq','mistral','gemini']:pref==='mistral'?['mistral','gemini','groq']:['gemini','mistral','groq'];
     var tried=[];
@@ -1150,7 +1168,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     $('ai-save').addEventListener('click',function(){var g=$('ai-kg').value.trim(),q=$('ai-kq').value.trim(),mi=$('ai-km').value.trim();if(g)LS.set('atl_key_gemini',g);if(q)LS.set('atl_key_groq',q);if(mi)LS.set('atl_key_mistral',mi);LS.set('atl_ai_pref',$('ai-pref').value);$('ai-kg').value='';$('ai-kq').value='';$('ai-km').value='';stat();});
     $('ai-clear').addEventListener('click',function(){LS.del('atl_key_gemini');LS.del('atl_key_groq');LS.del('atl_key_mistral');stat();});
     stat();}
-  window.__aiSet=function(x){if(x)reset(x);else{$('card-hs-ai').hidden=true;cur=null;}};
+  window.__aiSet=function(x){if(x){if(cur&&cur.ma===x.ma){cur=x;$('card-hs-ai').hidden=false;}else reset(x);}else{$('card-hs-ai').hidden=true;cur=null;}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
@@ -1164,6 +1182,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
         <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
+        <button type="button" data-v="th" aria-pressed="false">Theo tháng</button>
       </div>
       <span class="atl-note" id="dv-hint">Cuộn xuống để xem lần lượt, hoặc bấm một mục để chỉ xem mục đó.</span>
     </div>
@@ -1290,6 +1309,20 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
       </div>
     </div>
+    </div>
+    <div class="atl-dv" data-view="th">
+      <h2 class="atl-dvh">Hiệu suất VN-Index theo tháng</h2>
+      <div class="atl-card" id="card-th">
+        <div class="atl-controls">
+          <div class="atl-seg" role="group" aria-label="Số năm">
+            <button type="button" id="th-b10" aria-pressed="true">10 năm gần nhất</button>
+            <button type="button" id="th-ball" aria-pressed="false">Toàn bộ lịch sử</button>
+          </div>
+        </div>
+        <p class="atl-note" id="th-sum">Đang tải…</p>
+        <div class="th-wrap"><table class="th-tb" id="th-tb"></table></div>
+        <p class="atl-note" id="th-foot"></p>
+      </div>
     </div>
   </section>
   <p class="atl-note" id="nguon">Nguồn: giá ngày HOSE từ bảng giá Vietcap, tính theo quy tắc nhiệt kế ATL v1.2 · v1.4. Tham khảo, không phải khuyến nghị đầu tư.</p>
@@ -2557,7 +2590,79 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 <script>
 (() => {
-  window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); };
+  const $ = (id) => document.getElementById(id);
+  let D = null, rng = 10, loaded = false;
+  const f2 = (v) => (v < 0 ? '-' : '') + Math.abs(v).toFixed(2);
+  const heat = (v) => {
+    const a = Math.min(1, Math.abs(v) / 10) * 70 + 10;
+    return 'color-mix(in srgb, var(' + (v >= 0 ? '--sem-up' : '--sem-down') + ') ' + a.toFixed(0) + '%, transparent)';
+  };
+  const med = (a) => { const b = a.slice().sort((x, y) => x - y), n = b.length; return n ? (n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2) : null; };
+  const cell = (tr, txt, cls, bg) => { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; if (bg) td.style.background = bg; tr.appendChild(td); return td; };
+  function draw() {
+    const tb = $('th-tb'); if (!tb) return;
+    if (!window.atlVis || !window.atlVis('th')) return;
+    if (!D || !D.thang) { $('th-sum').textContent = loaded ? 'Chưa có dữ liệu hiệu suất theo tháng. Chạy workflow “Cập nhật số liệu hằng ngày” để tạo.' : 'Đang tải…'; tb.replaceChildren(); return; }
+    const run = D.thang_dang_chay, ry = +run.slice(0, 4), rm = +run.slice(5, 7);
+    const nxM = rm === 12 ? 1 : rm + 1;
+    let years = [...new Set(Object.keys(D.thang).map((k) => +k.slice(0, 4)))].sort((a, b) => b - a);
+    if (rng) years = years.filter((y) => y > ry - rng);
+    const get = (y, m) => { const v = D.thang[y + '-' + String(m).padStart(2, '0')]; return typeof v === 'number' ? v : null; };
+    const done = (y, m) => !(y === ry && m === rm);
+    tb.replaceChildren();
+    const thead = document.createElement('thead'), hr = document.createElement('tr');
+    const th0 = document.createElement('th'); th0.className = 'y'; th0.textContent = 'Năm'; hr.appendChild(th0);
+    const thy = document.createElement('th'); thy.textContent = 'YTD'; hr.appendChild(thy);
+    for (let m = 1; m <= 12; m++) { const th = document.createElement('th'); th.textContent = 'T' + m; if (m === nxM) th.className = 'nx'; hr.appendChild(th); }
+    thead.appendChild(hr); tb.appendChild(thead);
+    const body = document.createElement('tbody');
+    years.forEach((y) => {
+      const tr = document.createElement('tr');
+      cell(tr, String(y), 'y');
+      const yt = D.ytd && D.ytd[String(y)];
+      if (typeof yt === 'number') cell(tr, f2(yt), 'ytd', heat(yt)); else cell(tr, '—', 'ytd na');
+      for (let m = 1; m <= 12; m++) {
+        const v = get(y, m), c = (m === nxM ? 'nx' : '') + (y === ry && m === rm ? ' run' : '');
+        if (v === null) cell(tr, '—', ('na ' + c).trim()); else cell(tr, f2(v), c.trim(), heat(v));
+      }
+      body.appendChild(tr);
+    });
+    const stats = [['Trung bình', (a) => f2(a.reduce((s, x) => s + x, 0) / a.length), (a) => a.reduce((s, x) => s + x, 0) / a.length],
+                   ['Trung vị', (a) => f2(med(a)), med],
+                   ['Tỷ lệ tăng', (a) => a.filter((x) => x > 0).length + '/' + a.length, null]];
+    const colVals = {};
+    for (let m = 1; m <= 12; m++) colVals[m] = years.map((y) => (done(y, m) ? get(y, m) : null)).filter((v) => v !== null);
+    stats.forEach((st) => {
+      const tr = document.createElement('tr'); tr.className = 'stat';
+      cell(tr, st[0], 'y'); cell(tr, '', '');
+      for (let m = 1; m <= 12; m++) {
+        const a = colVals[m]; const c = m === nxM ? 'nx' : '';
+        if (!a.length) { cell(tr, '—', 'na ' + c); continue; }
+        const td = cell(tr, st[1](a), c, st[2] ? heat(st[2](a)) : null);
+      }
+      body.appendChild(tr);
+    });
+    tb.appendChild(body);
+    const a = colVals[nxM];
+    const y0 = years[years.length - 1], y1 = years[0];
+    $('th-sum').textContent = a.length
+      ? 'Tháng ' + nxM + ' (tháng kế tiếp): trung bình ' + f2(a.reduce((s, x) => s + x, 0) / a.length) + '%, trung vị ' + f2(med(a)) + '%, tăng ' + a.filter((x) => x > 0).length + '/' + a.length + ' năm (' + y0 + '–' + y1 + '). Ô viền vàng là tháng kế tiếp.'
+      : 'Chưa đủ dữ liệu cho tháng ' + nxM + '.';
+    $('th-foot').textContent = 'Hiệu suất tháng = đóng cửa phiên cuối tháng so với phiên cuối tháng trước. YTD = so với đóng cửa cuối năm trước. Tháng đang chạy (chữ nghiêng, tới phiên ' + D.cap_nhat.split('-').reverse().join('/') + ') không tính vào thống kê. Mỗi tháng chỉ có khoảng ' + years.length + ' năm mẫu, chênh lệch giữa các tháng nhỏ hơn độ dao động giữa các năm: chỉ để tham khảo mùa vụ, không phải tín hiệu mua bán. Nguồn: VN-Index từ Vietcap (' + (D.nguon || '') + ').';
+  }
+  window.atlDrawTH = draw;
+  function setR(r) { rng = r; $('th-b10').setAttribute('aria-pressed', String(r === 10)); $('th-ball').setAttribute('aria-pressed', String(r === 0)); draw(); }
+  const b10 = $('th-b10'), ball = $('th-ball');
+  if (b10) { b10.addEventListener('click', () => setR(10)); ball.addEventListener('click', () => setR(0)); }
+  fetch('data/hieu_suat_thang.json?v=' + new Date().toISOString().slice(0, 10), { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    .then((j) => { D = j; loaded = true; draw(); });
+})();
+</script>
+
+<script>
+(() => {
+  window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); };
   const h = location.hash.slice(1);
   if (h === 'rrg') { window.atlShow('dong-tien'); window.atlDV('rrg', false); }
   else if (['hom-nay', 'xep-hang', 'ho-so', 'nhiet-ke', 'dong-tien', 'trong-phien', 'danh-muc'].includes(h)) window.atlShow(h);
