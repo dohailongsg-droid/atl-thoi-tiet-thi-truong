@@ -598,7 +598,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var every=Math.ceil(ch.length/6);
     ch.forEach(function(r,i){if(i%every===0||i===ch.length-1){var t=mk('text',{x:X(i),y:H-6,'text-anchor':i===0?'start':(i===ch.length-1?'end':'middle'),fill:'var(--color-fg-muted)','font-size':11});t.textContent=dm(r.ngay);svg.appendChild(t);}});
     var dv='';ch.forEach(function(r,i){if(r.vni==null)return;dv+=(dv?'L':'M')+X(i).toFixed(1)+','+YV(r.vni).toFixed(1);});
-    if(dv)svg.appendChild(mk('path',{d:dv,fill:'none',stroke:'var(--color-fg-muted)','stroke-width':1.6,'stroke-dasharray':'5 4','stroke-linejoin':'round'}));
+    if(dv)svg.appendChild(mk('path',{d:dv,fill:'none',stroke:'#b57bee','stroke-width':2.2,'stroke-dasharray':'5 3','stroke-linejoin':'round'}));
     [['ma200','var(--color-fg)'],['ma50','var(--z4)'],['ma20','var(--z1)']].forEach(function(k){
       var d='';ch.forEach(function(r,i){d+=(i?'L':'M')+X(i).toFixed(1)+','+Y(r[k[0]]).toFixed(1);});
       svg.appendChild(mk('path',{d:d,fill:'none',stroke:k[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
@@ -616,7 +616,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       row.appendChild(el('div','ct-d',(d>0?'+':d<0?'−':'')+nf(Math.abs(d),1)+' điểm so với 5 phiên'));
       rows.appendChild(row);});
     var lg=$('ct-leg');lg.textContent='';
-    [['% mã trên MA20','var(--z1)'],['% mã trên MA50','var(--z4)'],['% mã trên MA200','var(--color-fg)'],['VN-Index (phải)','var(--color-fg-muted)']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[1];s.appendChild(i);s.appendChild(document.createTextNode(k[0]));lg.appendChild(s);});
+    [['% mã trên MA20','var(--z1)'],['% mã trên MA50','var(--z4)'],['% mã trên MA200','var(--color-fg)'],['VN-Index (nét đứt, trục phải)','#b57bee']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[0].indexOf('VN-Index')===0?'repeating-linear-gradient(90deg,'+k[1]+' 0 5px,transparent 5px 8px)':k[1];s.appendChild(i);s.appendChild(document.createTextNode(k[0]));lg.appendChild(s);});
     chart($('ct-ch'),CT.chuoi);
     var a=CT.tren_ma20,b=CT.tren_ma50,c=CT.tren_ma200,txt=nf(c,0)+'% mã trên MA200, '+nf(b,0)+'% trên MA50, '+nf(a,0)+'% trên MA20. ';
     if(a-c>=15)txt+='Ngắn hạn đang khá hơn cấu trúc dài hạn: nhiều mã đã hồi lên trên MA20 nhưng chưa lấy lại MA200.';
@@ -1446,7 +1446,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </style>
         <h2 class="atl-h">Cấu trúc thị trường</h2>
         <p class="atl-note">Tỷ lệ mã HOSE đang nằm trên từng đường trung bình (MA20, MA50, MA200) và số mã xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
-        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt là VN-Index để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
+        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt màu tím là VN-Index (đọc theo trục bên phải) để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
         <div class="ct-body">
           <div>
             <div class="ct-rows" id="ct-rows"></div>
