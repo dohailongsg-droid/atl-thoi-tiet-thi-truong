@@ -547,6 +547,86 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 <script>
 (function(){
+  var $=function(i){return document.getElementById(i);};
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+  var QC={'Dẫn dắt':'var(--z3)','Suy yếu':'var(--z4)','Tụt hậu':'var(--z6)','Cải thiện':'var(--z1)'};
+  var hr=new Date().toISOString().slice(0,13);
+  function getJ(f){return fetch('data/'+f+'?v='+hr,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(f);return r.json();});}
+  function dm(s){return s?s.slice(8,10)+'/'+s.slice(5,7):'';}
+  function nf(v,d){return Number(v).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function pill(g){var p=el('span','atl-pill'),d=el('i','atl-dot');d.style.background=QC[g]||'var(--cds-chart-muted)';p.appendChild(d);p.appendChild(document.createTextNode(g));return p;}
+
+  /* ---- Ngành chuyển pha ---- */
+  function drawCP(R){
+    var box=$('cp-list'),gi=$('cp-giu');box.textContent='';gi.textContent='';
+    if(!R||!R.length){box.appendChild(el('p','atl-note','Chưa có dữ liệu RRG theo tuần.'));return;}
+    var t0=R[0].ngay_truoc,t1=R[0].ngay_nay;
+    $('cp-note').textContent='Góc RRG của từng ngành ngày '+dm(t1)+' so với '+dm(t0)+' (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.';
+    var ch=R.filter(function(r){return r.da_doi;}),gu=R.filter(function(r){return !r.da_doi;});
+    if(!ch.length)box.appendChild(el('p','atl-note','4 tuần qua không có ngành nào đổi góc.'));
+    ch.forEach(function(r){
+      var row=el('div','cp-row');row.setAttribute('role','button');row.tabIndex=0;
+      var up=r.huong==='len';
+      var ar=el('span','cp-ar '+(up?'pos':'neg'),up?'▲':'▼');ar.setAttribute('aria-label',up?'tốt lên':'yếu đi');
+      var n=el('span','cp-n',r.nganh);
+      var g=el('span','cp-g');g.appendChild(pill(r.goc_truoc));g.appendChild(document.createTextNode('→'));g.appendChild(pill(r.goc_nay));
+      row.append(ar,n,g);
+      var go=function(){if(window.atlRrgFocus)window.atlRrgFocus(r.nganh);};
+      row.addEventListener('click',go);row.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+      box.appendChild(row);});
+    var order=['Dẫn dắt','Cải thiện','Suy yếu','Tụt hậu'];
+    order.forEach(function(q){var l=gu.filter(function(r){return r.goc_nay===q;});
+      if(!l.length)return;var d=el('div');d.appendChild(el('b',null,'Giữ '+q+' ('+l.length+'): '));
+      d.appendChild(document.createTextNode(l.map(function(r){return r.nganh+(r.so_tuan>=8?' (≥8 tuần)':' ('+r.so_tuan+' tuần)');}).join(', ')));gi.appendChild(d);});
+  }
+
+  /* ---- Cấu trúc thị trường ---- */
+  var CT=null;
+  var ROWS=[['tren_ma20','Trên MA20','ngắn hạn','var(--z1)'],['tren_ma50','Trên MA50','trung hạn','var(--z4)'],['tren_ma200','Trên MA200','dài hạn','var(--color-fg)'],
+            ['tang_deu','Xu hướng tăng đều','MA20 > MA50 > MA200','var(--z3)'],['giam_deu','Xu hướng giảm đều','MA20 < MA50 < MA200','var(--z6)']];
+  function chart(box,ch){
+    box.textContent='';if(!ch||ch.length<2)return;
+    var W=360,H=150,m={l:34,r:10,t:8,b:20},ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    function mk(n,a){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+    var X=function(i){return m.l+(W-m.l-m.r)*i/(ch.length-1);},Y=function(v){return m.t+(H-m.t-m.b)*(1-v/100);};
+    [0,25,50,75,100].forEach(function(v){svg.appendChild(mk('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:v===50?'var(--cds-chart-axis)':'var(--cds-chart-grid)','stroke-dasharray':v===50?'4 3':'0'}));
+      var t=mk('text',{x:m.l-5,y:Y(v)+4,'text-anchor':'end',fill:'var(--color-fg-muted)','font-size':10});t.textContent=v+'%';svg.appendChild(t);});
+    var every=Math.ceil(ch.length/4);
+    ch.forEach(function(r,i){if(i%every===0||i===ch.length-1){var t=mk('text',{x:X(i),y:H-5,'text-anchor':i===0?'start':(i===ch.length-1?'end':'middle'),fill:'var(--color-fg-muted)','font-size':10});t.textContent=dm(r.ngay);svg.appendChild(t);}});
+    [['ma200','var(--color-fg)'],['ma50','var(--z4)'],['ma20','var(--z1)']].forEach(function(k){
+      var d='';ch.forEach(function(r,i){d+=(i?'L':'M')+X(i).toFixed(1)+','+Y(r[k[0]]).toFixed(1);});
+      svg.appendChild(mk('path',{d:d,fill:'none',stroke:k[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+      svg.appendChild(mk('circle',{cx:X(ch.length-1),cy:Y(ch[ch.length-1][k[0]]),r:3.2,fill:k[1]}));});
+    box.appendChild(svg);}
+  function drawCT(){
+    var rows=$('ct-rows');rows.textContent='';
+    if(!CT){rows.appendChild(el('p','atl-note','Chưa có dữ liệu. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.'));return;}
+    ROWS.forEach(function(r){
+      var v=CT[r[0]],p=CT.truoc5[r[0]],d=Math.round((v-p)*10)/10;
+      var row=el('div','ct-row');
+      var l=el('div','ct-l',r[1]);l.appendChild(el('small',null,r[2]));
+      var bar=el('div','ct-bar'),f=el('i');f.style.width=Math.max(0,Math.min(100,v))+'%';f.style.background=r[3];bar.appendChild(f);
+      row.append(l,bar,el('div','ct-v',nf(v,0)+'%'));
+      row.appendChild(el('div','ct-d',(d>0?'+':d<0?'−':'')+nf(Math.abs(d),1)+' điểm so với 5 phiên'));
+      rows.appendChild(row);});
+    var lg=$('ct-leg');lg.textContent='';
+    [['MA20','var(--z1)'],['MA50','var(--z4)'],['MA200','var(--color-fg)']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[1];s.appendChild(i);s.appendChild(document.createTextNode('% mã trên '+k[0]));lg.appendChild(s);});
+    chart($('ct-ch'),CT.chuoi);
+    var a=CT.tren_ma20,b=CT.tren_ma50,c=CT.tren_ma200,txt=nf(c,0)+'% mã trên MA200, '+nf(b,0)+'% trên MA50, '+nf(a,0)+'% trên MA20. ';
+    if(a-c>=15)txt+='Ngắn hạn đang khá hơn cấu trúc dài hạn: nhiều mã đã hồi lên trên MA20 nhưng chưa lấy lại MA200.';
+    else if(c-a>=15)txt+='Ngắn hạn yếu hơn cấu trúc dài hạn: nhiều mã còn trên MA200 nhưng đang bị đẩy xuống dưới MA20.';
+    else txt+='Ba khung thời gian đang ở mức gần nhau.';
+    txt+=' Có '+nf(CT.tang_deu,0)+'% mã xếp xu hướng tăng đều và '+nf(CT.giam_deu,0)+'% xếp xu hướng giảm đều.';
+    $('ct-mota').textContent=txt;
+    $('ct-src').textContent='Tính ngày '+dm(CT.ngay)+' trên '+CT.so_ma+' mã HOSE có GTGD trung bình 20 phiên từ 3 tỷ và đủ 200 phiên giá. Chỉ mô tả, không phải tín hiệu mua bán.';
+  }
+  getJ('nganh_chuyen_pha.json').then(drawCP).catch(function(){$('cp-list').textContent='';$('cp-list').appendChild(el('p','atl-note','Chưa có dữ liệu. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.'));});
+  getJ('cau_truc_thi_truong.json').then(function(j){CT=j;drawCT();}).catch(function(){drawCT();});
+})();
+</script>
+
+<script>
+(function(){
   var URL_LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/trong_phien.json';
   var body=document.getElementById('lv-body'),stat=document.getElementById('lv-stat'),dot=document.getElementById('lv-dot'),warn=document.getElementById('lv-warn');
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
@@ -711,16 +791,22 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
       </div>
 
-      <div class="atl-card" id="card-vitri">
-        <h2 class="atl-h">Vị trí tuần này</h2>
-        <p class="atl-note">Vị trí các ngành trên vòng quay RRG (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi của nó trên biểu đồ RRG.</p>
-        <style>#tb-vitri th,#tb-vitri td{padding-left:6px;padding-right:6px;white-space:normal}#tb-vitri th.num,#tb-vitri td.num,#tb-vitri td:nth-child(2),#tb-vitri .atl-pill{white-space:nowrap}#tb-vitri tbody tr:hover{background:var(--color-border-line)}</style>
-        <div class="atl-tablebox">
-          <table id="tb-vitri" data-source="rrg_nganh" data-row-key="khung,nganh,tuan">
-            <thead><tr><th data-field="nganh">Ngành</th><th data-source="goc_nganh" data-field="goc">Góc</th><th class="num" data-field="ratio">RS-Ratio</th><th class="num" data-field="mom">RS-Momentum</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <div class="atl-card" id="card-chuyen-pha">
+        <style>
+#card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
+.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
+.cp-row:hover{background:var(--color-border-line)}
+.cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
+.cp-n{flex:1 1 7.5rem;font-weight:600;min-width:0}
+.cp-g{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.cp-g .atl-pill{white-space:nowrap}
+.cp-giu{margin:8px 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
+.cp-giu b{color:var(--color-fg);font-weight:600}
+        </style>
+        <h2 class="atl-h">Ngành chuyển pha</h2>
+        <p class="atl-note" id="cp-note">Góc RRG của từng ngành hiện nay so với 4 tuần trước (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.</p>
+        <div class="cp-list" id="cp-list"></div>
+        <p class="cp-giu" id="cp-giu"></p>
       </div>
 
       <div class="atl-card" id="card-cach-dung">
@@ -733,15 +819,28 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </ol>
       </div>
 
-      <div class="atl-card" id="card-dcd">
-        <h2 class="atl-h">Long Đầu Chiến Pháp</h2>
-        <p class="atl-note">Ngành đang dẫn sóng (độ rộng, động lượng, dòng tiền) và các mã 🐉 long đầu, cùng cách xếp hạng với tab Xếp hạng. Sao = nhãn Tam tài của mã số 1. Dùng để ưu tiên, không phải tín hiệu mua.</p>
-        <div class="atl-tablebox" style="max-height:20rem">
-          <table id="tb-dcd" data-source="dong_chu_dao" data-row-key="nganh">
-            <thead><tr><th class="num" data-field="hang">#</th><th data-field="nganh">Ngành</th><th class="num" data-field="do_rong_ma20">Trên MA20</th><th data-field="long_dau">Long đầu</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <div class="atl-card" id="card-cau-truc">
+        <style>
+.ct-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) 3.2rem;align-items:center;gap:2px 10px;padding:4px 0}
+.ct-l{font-size:var(--cds-font-size-caption)}
+.ct-l small{display:block;color:var(--color-fg-muted);font-size:inherit}
+.ct-bar{height:.7rem;border-radius:999px;background:var(--color-border-line);overflow:hidden}
+.ct-bar i{display:block;height:100%;border-radius:999px}
+.ct-v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.ct-d{grid-column:2 / -1;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:-2px}
+.ct-ch{width:100%}
+.ct-ch svg{display:block;width:100%;height:auto}
+.ct-mota{margin:0;line-height:1.55;font-size:.9rem}
+.ct-src{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+        </style>
+        <h2 class="atl-h">Cấu trúc thị trường</h2>
+        <p class="atl-note">Tỷ lệ mã HOSE đang ở trên các đường trung bình và xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
+        <div class="ct-rows" id="ct-rows"></div>
+        <p class="atl-sub">Diễn biến 60 phiên: % mã trên MA</p>
+        <div class="sm-leg" id="ct-leg"></div>
+        <div class="ct-ch" id="ct-ch"></div>
+        <p class="ct-mota" id="ct-mota"></p>
+        <p class="ct-src" id="ct-src"></p>
       </div>
 
       <div class="atl-card atl-wide" id="card-lich-su-loc">
@@ -1796,7 +1895,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     const box = $('ch-rrg');
     bN.setAttribute('aria-pressed', String(st.mode === 'nganh')); bM.setAttribute('aria-pressed', String(st.mode === 'ma'));
     $('rrg-nganh-lab').hidden = st.mode !== 'ma'; $('rrg-ben-lab').hidden = st.mode !== 'ma';
-    if (A.status === 'ok') vitri(A);
     if (A.status !== 'ok' || B.status !== 'ok') { if (A.status === 'error' || B.status === 'error') window.atlFail(box); else box.replaceChildren(); return; }
     ['rrg-k-tuan', 'rrg-k-ngay'].forEach((id) => $(id).setAttribute('aria-pressed', String((id === 'rrg-k-tuan') === (st.khung === 'Tuần'))));
     $('rrg-t4').setAttribute('aria-pressed', String(st.tail === 4)); $('rrg-t8').setAttribute('aria-pressed', String(st.tail === 8));
@@ -1884,25 +1982,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     box.replaceChildren(svg.node(), el);
   }
 
-  function vitri(A) {
-    const tb = $('tb-vitri'); if (!tb) return;
-    const rank = { lead: 0, imp: 1, weak: 2, lag: 3 };
-    const rows = d3.groups(A.data.filter((r) => r.khung === 'Tuần'), (r) => r.nganh).map(([n, pts]) => { pts.sort((a, b) => a.tuan - b.tuan); const h = pts[pts.length - 1]; return { n, h: { ...h, ratio: +h.ratio, mom: +h.mom } }; });
-    rows.sort((a, b) => rank[quad(a.h.ratio, a.h.mom)] - rank[quad(b.h.ratio, b.h.mom)] || b.h.ratio - a.h.ratio);
-    tb.querySelector('tbody').replaceChildren(...rows.map(({ n, h }) => {
-      const tr = document.createElement('tr'); tr.style.cursor = 'pointer';
-      tr.dataset.key = enc(h.khung) + ',' + enc(h.nganh) + ',' + enc(h.tuan);
-      const q = quad(h.ratio, h.mom);
-      const c1 = document.createElement('td'); c1.textContent = n;
-      const c2 = document.createElement('td'), pill = document.createElement('span'); pill.className = 'atl-pill';
-      const dt = document.createElement('i'); dt.className = 'atl-dot'; dt.style.background = QC[q]; pill.append(dt, document.createTextNode(QN[q])); c2.appendChild(pill);
-      const c3 = document.createElement('td'); c3.className = 'num'; c3.textContent = f2(h.ratio);
-      const c4 = document.createElement('td'); c4.className = 'num'; c4.textContent = f2(h.mom);
-      tr.append(c1, c2, c3, c4);
-      tr.addEventListener('click', () => window.atlRrgFocus(n));
-      return tr;
-    }));
-  }
   window.atlRrgFocus = (name) => {
     st.mode = 'nganh'; st.khung = 'Tuần'; st.f = 'all'; st.pick = null; st.hl = name;
     window.atlShow('dong-tien'); dash.setLink('dong-tien'); window.atlDV('rrg', true);
@@ -2137,7 +2216,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   }
 
   function draw() {
-    const H = dash.data('hom_nay'), N = dash.data('nhiet_ke'), B = dash.data('che_do_bao'), L = dash.data('lich_su_loc'), DC = dash.data('dong_chu_dao');
+    const H = dash.data('hom_nay'), N = dash.data('nhiet_ke'), B = dash.data('che_do_bao'), L = dash.data('lich_su_loc');
     const Z = window.atlZ;
     if (B.status === 'ok' && B.data.length) {
       const r = B.data[0]; const on = r.bao_bat === true || r.bao_bat === 'true';
@@ -2169,12 +2248,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         return t; }) : [(() => { const t = el('tr'); const td = el('td', null, 'Chưa có lệnh dài nào.'); td.colSpan = 8; t.appendChild(td); return t; })()]));
       else tld.replaceChildren();
     }
-    const tbd = document.querySelector('#tb-dcd tbody');
-    if (DC.status === 'ok') tbd.replaceChildren(...DC.data.slice(0, 8).map((r) => {
-      const t = el('tr'); t.dataset.key = enc(r.nganh);
-      [[r.hang, 'num'], [r.nganh, ''], [f0(+r.do_rong_ma20) + '%', 'num'], [((String(r.nhan_so1 || '').match(/^★+/) || [''])[0] + ' ' + (r.long_dau || '—')).trim(), '']].forEach(([v, c]) => t.appendChild(el('td', c, String(v))));
-      return t;
-    })); else tbd.replaceChildren();
     const tls = document.querySelector('#tb-ls tbody');
     if (L.status === 'ok') {
       const rows = dotTheoDoi(L.data).sort((a, b) => (a.ngay < b.ngay ? 1 : -1));
