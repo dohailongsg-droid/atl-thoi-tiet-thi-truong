@@ -18,7 +18,7 @@ for i in range(len(brk)):
     cnt=cnt+1; new=brk[i]&(np.isnan(cnt)|(cnt>40)); cnt[new]=0; age[i]=cnt
 fe=pd.DataFrame(age,index=C.index,columns=C.columns).where(C>=ma20).where(lambda x:x<=40).iloc[-1]
 mkt=pct.where(mem).median(1); rel=pct.sub(mkt,axis=0)
-fd=rel.where(mkt<-0.5).rolling(60,min_periods=8).mean().iloc[-1]; fu=rel.where(mkt>0.5).rolling(60,min_periods=8).mean().iloc[-1]
+fd=rel.where(mkt<-0.5).rolling(60,min_periods=5).mean().iloc[-1]; fu=rel.where(mkt>0.5).rolling(60,min_periods=5).mean().iloc[-1]   # v2.3: min 5 phien (truoc 8 lam fu luon trong khi chi co 7 phien tang)
 c=C.iloc[-1]; r=lambda n:(c/C.iloc[-1-n]-1)
 r21,r63,r126,r250=r(21),r(63),r(126),r(250)
 v1=r21*100; v23=((1+r63)/(1+r21)-1)/2*100; v46=((1+r126)/(1+r63)-1)/3*100; v712=((1+r250)/(1+r126)-1)/6*100
@@ -37,7 +37,7 @@ for g,m in G.items():
     if len(m)<2: continue
     d=pd.DataFrame({"fl":fl[m],"fe":fe[m].fillna(-1),"fd":fd[m],"fu":fu[m]})
     rk=lambda s:s.rank(pct=True)
-    d["a"]=rk(d.fl); d["b"]=rk(d.fe); d["cc"]=(rk(d.fd)+rk(d.fu))/2
+    d["a"]=rk(d.fl); d["b"]=rk(d.fe); d["cc"]=pd.concat([rk(d.fd),rk(d.fu)],axis=1).mean(axis=1)   # v2.3: lay trung binh cac phan co du lieu, khong de NaN lan toan bo
     d["diem"]=((d.a.fillna(.5)+d.b+d.cc.fillna(.5))/3)
     d["diem"]=(d.diem.rank(pct=True)*100).round()
     med={k:np.nanmedian(s[m]) for k,s in {"v1":v1,"v23":v23,"v46":v46,"v712":v712}.items()}
