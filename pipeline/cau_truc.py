@@ -22,7 +22,9 @@ up = pct((ma[20] > ma[50]) & (ma[50] > ma[200]))
 dn = pct((ma[20] < ma[50]) & (ma[50] < ma[200]))
 N = 60
 idx = C.index[-N:]
-chuoi = [{"ngay": str(d.date()), "ma20": round(float(s20[d]), 1), "ma50": round(float(s50[d]), 1), "ma200": round(float(s200[d]), 1)}
+VNI = P["VNI"].reindex(C.index)
+chuoi = [{"ngay": str(d.date()), "ma20": round(float(s20[d]), 1), "ma50": round(float(s50[d]), 1), "ma200": round(float(s200[d]), 1),
+          "vni": round(float(VNI[d]), 2) if pd.notna(VNI[d]) else None}
          for d in idx if pd.notna(s20[d]) and pd.notna(s50[d]) and pd.notna(s200[d])]
 last = C.index[-1]
 def at(s, back=0):
