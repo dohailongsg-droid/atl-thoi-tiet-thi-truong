@@ -837,7 +837,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
             <p class="dg-note">Dán khóa miễn phí của bạn từ Google AI Studio (Gemini) hoặc Groq. Khóa chỉ lưu trong trình duyệt này, không gửi đi đâu ngoài chính nhà cung cấp.</p>
             <label>Gemini <input type="password" id="ai-kg" autocomplete="off" placeholder="khóa Gemini"></label>
             <label>Groq <input type="password" id="ai-kq" autocomplete="off" placeholder="khóa Groq"></label>
-            <label>Ưu tiên <select id="ai-pref"><option value="gemini">Gemini trước</option><option value="groq">Groq trước</option></select></label>
+            <label>Mistral <input type="password" id="ai-km" autocomplete="off" placeholder="khóa Mistral"></label>
+            <label>Ưu tiên <select id="ai-pref"><option value="gemini">Gemini trước</option><option value="groq">Groq trước</option><option value="mistral">Mistral trước</option></select></label>
             <div class="ai-btns"><button type="button" id="ai-save">Lưu</button><button type="button" id="ai-clear">Xóa khóa</button></div>
           </details>
         </div>
@@ -1010,11 +1011,11 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 (function(){
   var $=function(i){return document.getElementById(i);};
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
-  var MG=['gemini-3.5-flash-lite','gemini-3.8-flash','gemini-3.1-flash-lite'],MQ=['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'];
+  var MG=['gemini-3.5-flash-lite','gemini-3.8-flash','gemini-3.1-flash-lite'],MQ=['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'],MM=['mistral-small-latest','open-mistral-nemo'];
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
   var cur=null,hist=[],busy=false;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
-  var RULES='Bạn là trợ lý giải thích 4 tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC BẮT BUỘC: (1) Chỉ dùng thông tin trong các phần NỘI DUNG TAB và SỐ LIỆU 12 QUÝ bên dưới; không dùng kiến thức thị trường chung hay tin tức ngoài đó, kể cả mức trung bình ngành hay tiêu chuẩn chung nếu trang không ghi. So sánh với quá khứ chỉ dùng trung vị 5 năm của chính mã đó có trên trang. Nếu câu hỏi cần thông tin không có, nói rõ "phần nội dung đang có không đề cập" và gợi ý xem mục nào; tuyệt đối không bịa số. Khi người dùng nêu một con số không có trên trang, nói rõ trang không có số đó và dữ liệu trang chỉ tới quý báo cáo gần nhất; không xác nhận con số đó. (2) Không dự báo con số lợi nhuận hay giá. Khi được hỏi về quý sau, chỉ nêu mốc trong dữ liệu, xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, rồi nói rõ đây không phải dự báo. (3) Không khuyên mua, bán, nắm giữ; không dùng các từ "nên mua", "nên bán", "khuyến nghị". Khi được hỏi đắt hay rẻ, đáng đầu tư không: nêu khoảng giá trị của 3 kịch bản (g cố định 3/4/5% theo từng kịch bản), độ nhạy theo Ke nếu có, kịch bản làm ước tính sai, và điều kiện nào trên trang sẽ đổi nhận định; không kết luận mua hay bán. (4) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng chính số liệu của mã. (5) Khi hỏi về thị trường, ngành hay tín hiệu, đọc đúng tab liên quan và nêu tên tab. Tín hiệu và nhiệt kế là kết quả hệ thống đã tính, chỉ diễn giải, không tự suy ra tín hiệu mới. (6) Trả lời tiếng Việt, khoảng 150 từ (câu hỏi đắt/rẻ tối đa 220 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (7) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
+  var RULES='Bạn là trợ lý giải thích 4 tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền & RRG, Xếp hạng trong nhóm. QUY TẮC BẮT BUỘC: (1) Chỉ dùng thông tin trong các phần NỘI DUNG TAB và SỐ LIỆU 12 QUÝ bên dưới; không dùng kiến thức thị trường chung hay tin tức ngoài đó, kể cả mức trung bình ngành hay tiêu chuẩn chung nếu trang không ghi. So sánh với quá khứ chỉ dùng trung vị 5 năm của chính mã đó có trên trang. Nếu câu hỏi cần thông tin không có, nói rõ "phần nội dung đang có không đề cập" và gợi ý xem mục nào; tuyệt đối không bịa số. Khi người dùng nêu một con số không có trên trang, nói rõ trang không có số đó và dữ liệu trang chỉ tới quý báo cáo gần nhất; không xác nhận con số đó. (2) Không dự báo con số lợi nhuận hay giá. Khi được hỏi về quý sau, chỉ nêu mốc trong dữ liệu, xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, rồi nói rõ đây không phải dự báo. (3) Không khuyên mua, bán, nắm giữ; không dùng các từ "nên mua", "nên bán", "khuyến nghị". Khi được hỏi đắt hay rẻ, đáng đầu tư không: nêu khoảng giá trị của 3 kịch bản (g cố định 3/4/5% theo từng kịch bản), độ nhạy theo Ke nếu có, kịch bản làm ước tính sai, và điều kiện nào trên trang sẽ đổi nhận định; không kết luận mua hay bán. (4) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng chính số liệu của mã. (5) Chỉ trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI cuối cùng; không tóm tắt lại toàn bộ các tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. Khi hỏi về thị trường, ngành hay tín hiệu, đọc đúng tab liên quan và nêu tên tab. Tín hiệu và nhiệt kế là kết quả hệ thống đã tính, chỉ diễn giải, không tự suy ra tín hiệu mới. (6) Trả lời tiếng Việt, khoảng 150 từ (câu hỏi đắt/rẻ tối đa 220 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (7) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
   function compact(x){
     var dg=x.dinh_gia||{},v=dg.v2||null,o={ma:x.ma,ten:x.ten,loai:x.loai,bao_cao:x.ky_bao_cao,gia:x.gia,ngay:x.ngay,
       chi_tieu:(x.chi_tieu||[]).map(function(g){return {nhom:g.nhom,muc:g.muc.map(function(m){return {ten:m.ten,gia_tri:m.gt,don_vi:m.dv,trung_vi_5_nam:m.tb5,phan_vi:m.pv};})};}),
@@ -1043,6 +1044,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     TABS.forEach(function(t){var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
       parts.push('=== NỘI DUNG TAB '+t[2]+(t[0]==='ho'?' CỦA MÃ '+cur.ma:'')+' ===\n'+(tx||'(tab này chưa có dữ liệu)'));});
     parts.push('SỐ LIỆU 12 QUÝ CỦA '+cur.ma+' (JSON, doanh thu/lợi nhuận: tỷ đồng): '+series(cur));
+    if(lastQ)parts.push('CÂU HỎI CẦN TRẢ LỜI NGAY (chỉ trả lời câu này, dựa trên các tab ở trên): '+lastQ);
     return parts.join('\n\n');}
   function series(x){return JSON.stringify(((x.xu_huong&&x.xu_huong.chuoi)||[]).map(function(s){return {ten:s.ten,don_vi:s.dv,quy:x.xu_huong.quy,gia_tri:s.v};}));}
   function numVals(m,ctx){// các giá trị số có thể hiểu từ chuỗi m; ctx=true: dữ liệu dùng dấu chấm thập phân
@@ -1092,7 +1094,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var i=0,errs=[];
     function next(){if(i>=MQ.length)return Promise.reject(new Error(errs.join(' | ')||'Groq không phản hồi'));
       var mod=MQ[i++];
-      return post('https://api.groq.com/openai/v1/chat/completions',{'Content-Type':'application/json','Authorization':'Bearer '+key},{model:mod,temperature:0.2,max_tokens:700,messages:m}).then(function(r){
+      return post('https://api.groq.com/openai/v1/chat/completions',{'Content-Type':'application/json','Authorization':'Bearer '+key},{model:mod,temperature:0.2,max_tokens:900,messages:m,reasoning_effort:/^openai\//.test(mod)?'low':undefined}).then(function(r){
         if(r.ok&&r.j&&r.j.choices&&r.j.choices[0]){return {text:r.j.choices[0].message.content||'',model:mod};}
         var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
         if(r.status===401)return Promise.reject(new Error('Khóa Groq không hợp lệ: '+em));
@@ -1101,27 +1103,40 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         if(r.status===404||r.status===400||/does not exist|too large/i.test(em))return next();
         return next();});}
     return next();}
-  var ctxT=null;
+  function askMistral(key,sys){
+    var m=[{role:'system',content:sys}].concat(msgs().map(function(x){return {role:x.role==='user'?'user':'assistant',content:x.text};}));
+    var i=0,errs=[];
+    function next(){if(i>=MM.length)return Promise.reject(new Error(errs.join(' | ')||'Mistral không phản hồi'));
+      var mod=MM[i++];
+      return post('https://api.mistral.ai/v1/chat/completions',{'Content-Type':'application/json','Authorization':'Bearer '+key,'Accept':'application/json'},{model:mod,temperature:0.2,max_tokens:700,messages:m}).then(function(r){
+        if(r.ok&&r.j&&r.j.choices&&r.j.choices[0]){return {text:r.j.choices[0].message.content||'',model:mod};}
+        var em=r.j&&r.j.message||r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
+        if(r.status===401)return Promise.reject(new Error('Khóa Mistral không hợp lệ: '+em));
+        if(r.status===429)return Promise.reject(new Error('Mistral báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
+        return next();});}
+    return next();}
+  var ctxT=null,lastQ='';
   function ask(text){
     if(busy||!cur)return;
-    var kg=LS.get('atl_key_gemini'),kq=LS.get('atl_key_groq');
-    if(!kg&&!kq){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini hoặc Groq của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
+    lastQ=text;
+    var kg=LS.get('atl_key_gemini'),kq=LS.get('atl_key_groq'),km=LS.get('atl_key_mistral');
+    if(!kg&&!kq&&!km){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini, Groq hoặc Mistral của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
     busy=true;$('ai-send').disabled=true;
     addMsg('user',text);hist.push({role:'user',text:text});
     var wait=addMsg('sys','Đang đọc 4 tab (Hồ sơ mã '+cur.ma+', Hôm nay mua gì, Dòng tiền & RRG, Xếp hạng)…');
-    ctxT=collect();var sys=sysText(LIM_G,ctxT),pref=LS.get('atl_ai_pref')||'gemini',order=pref==='groq'?['groq','gemini']:['gemini','groq'];
+    ctxT=collect();var sys=sysText(LIM_G,ctxT),pref=LS.get('atl_ai_pref')||'gemini',order=pref==='groq'?['groq','mistral','gemini']:pref==='mistral'?['mistral','gemini','groq']:['gemini','mistral','groq'];
     var tried=[];
     function run(k){
       if(k>=order.length)return Promise.reject(new Error(tried.join(' | ')));
-      var p=order[k],key=p==='gemini'?kg:kq;
+      var p=order[k],key=p==='gemini'?kg:p==='groq'?kq:km;
       if(!key)return run(k+1);
-      return (p==='gemini'?askGemini(key,sys):askGroq(key,sys)).then(function(r){r.prov=p;return r;},function(e){tried.push((p==='gemini'?'Gemini':'Groq')+': '+(e.message==='Failed to fetch'?'không kết nối được (mạng hoặc trình duyệt chặn)':e.message));return run(k+1);});}
+      return (p==='gemini'?askGemini(key,sys):p==='groq'?askGroq(key,sys):askMistral(key,sys)).then(function(r){r.prov=p;return r;},function(e){tried.push((p==='gemini'?'Gemini':p==='groq'?'Groq':'Mistral')+': '+(e.message==='Failed to fetch'?'không kết nối được (mạng hoặc trình duyệt chặn)':e.message));return run(k+1);});}
     run(0).then(function(r){
       wait.remove();
       var bad=checkNums(r.text,sys),notes=[];
       if(bad.length)notes.push('Chưa đối chiếu được với dữ liệu trên trang: '+bad.slice(0,6).join(', ')+'. Hãy kiểm tra lại các số này.');
       if(BANNED.test(r.text))notes.push('Câu trả lời có lời khuyên mua bán, hệ thống không đưa lời khuyên này. Hãy bỏ qua.');
-      notes.push('Do AI viết lại từ số liệu có sẵn ('+(r.prov==='gemini'?'Gemini':'Groq')+', '+r.model+'). Chỉ để tham khảo.');
+      notes.push('Do AI viết lại từ số liệu có sẵn ('+(r.prov==='gemini'?'Gemini':r.prov==='groq'?'Groq':'Mistral')+', '+r.model+'). Chỉ để tham khảo.');
       addMsg('bot',r.text.trim()||'(AI không trả lời)',notes.join(' '));
       hist.push({role:'model',text:r.text});
     },function(e){wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
@@ -1131,9 +1146,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var ch=$('ai-chips');CHIPS.forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){ask(c);});ch.appendChild(b);});
     $('ai-form').addEventListener('submit',function(e){e.preventDefault();var t=$('ai-in').value.trim();if(!t)return;$('ai-in').value='';ask(t);});
     $('ai-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('ai-form').requestSubmit();}});
-    function stat(){var g=LS.get('atl_key_gemini'),q=LS.get('atl_key_groq');$('ai-stat').textContent='Đã lưu: '+(g?'Gemini ':'')+(q?'Groq':'')+((g||q)?'':'chưa có khóa');$('ai-pref').value=LS.get('atl_ai_pref')||'gemini';}
-    $('ai-save').addEventListener('click',function(){var g=$('ai-kg').value.trim(),q=$('ai-kq').value.trim();if(g)LS.set('atl_key_gemini',g);if(q)LS.set('atl_key_groq',q);LS.set('atl_ai_pref',$('ai-pref').value);$('ai-kg').value='';$('ai-kq').value='';stat();});
-    $('ai-clear').addEventListener('click',function(){LS.del('atl_key_gemini');LS.del('atl_key_groq');stat();});
+    function stat(){var g=LS.get('atl_key_gemini'),q=LS.get('atl_key_groq'),mi=LS.get('atl_key_mistral');$('ai-stat').textContent='Đã lưu: '+(g?'Gemini ':'')+(q?'Groq ':'')+(mi?'Mistral':'')+((g||q||mi)?'':'chưa có khóa');$('ai-pref').value=LS.get('atl_ai_pref')||'gemini';}
+    $('ai-save').addEventListener('click',function(){var g=$('ai-kg').value.trim(),q=$('ai-kq').value.trim(),mi=$('ai-km').value.trim();if(g)LS.set('atl_key_gemini',g);if(q)LS.set('atl_key_groq',q);if(mi)LS.set('atl_key_mistral',mi);LS.set('atl_ai_pref',$('ai-pref').value);$('ai-kg').value='';$('ai-kq').value='';$('ai-km').value='';stat();});
+    $('ai-clear').addEventListener('click',function(){LS.del('atl_key_gemini');LS.del('atl_key_groq');LS.del('atl_key_mistral');stat();});
     stat();}
   window.__aiSet=function(x){if(x)reset(x);else{$('card-hs-ai').hidden=true;cur=null;}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
