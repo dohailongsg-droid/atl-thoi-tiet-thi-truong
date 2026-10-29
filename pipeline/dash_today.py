@@ -31,7 +31,7 @@ for m in bt:
 for r in rows:
     for k in ["st_tuan","ty_trong","tk10","gia10","cach_dinh60"]: r.setdefault(k,None)
 json.dump(rows,open("dash_out/hom_nay.json","w"),ensure_ascii=False,default=lambda x: x.item() if hasattr(x,'item') else None)
-che=[{"ngay":ngay,"bao_bat":A["che_do_bao"]["bat"],"vni_sut_60p":A["che_do_bao"]["vni_sut_sau_nhat_60p"],"cap_bao":A["che_do_bao"]["cap_bao"]}]
+che=[{"ngay":ngay,"giua_phien":bool(A.get("giua_phien")),"bao_bat":A["che_do_bao"]["bat"],"vni_sut_60p":A["che_do_bao"]["vni_sut_sau_nhat_60p"],"cap_bao":A["che_do_bao"]["cap_bao"]}]
 json.dump(che,open("dash_out/che_do_bao.json","w"),ensure_ascii=False)
 dcd=[{k:d[k] for k in ["hang","nganh","so_ma","do_rong_ma20","do_rong_5p_truoc","tang_20p_tv","dong_tien","diem","long_dau","canh_bao"]} for d in A["dong_chu_dao"]]
 json.dump(dcd,open("dash_out/dong_chu_dao.json","w"),ensure_ascii=False,default=lambda x: x.item() if hasattr(x,'item') else None)

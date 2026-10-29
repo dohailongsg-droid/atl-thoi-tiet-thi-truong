@@ -34,6 +34,8 @@ def setv(row, col, val, only_empty=True):
 
 def apply():
     A = load("atl.json"); ngay = A["ngay"]; B, T = load(B_FILE), load(T_FILE); ch = 0
+    if A.get("giua_phien"):    # nến hôm nay còn dở dang (chưa quá 15:15): không ghi tín hiệu hay kết quả vào state, tránh lưu giá giữa phiên
+        print("apply: bỏ qua, phiên", ngay, "chưa chốt giá đóng cửa (state giữ nguyên)"); return
     vung = str(A["nhiet_ke"].get("vung") or "")   # atl_daily đã ghi sẵn nhãn vùng, ví dụ "2↓ Giáp hạt · Hỗn độn (45–55)"
     # C1: kết quả tín hiệu cũ
     for u in A.get("cap_nhat_bo_loc", []):

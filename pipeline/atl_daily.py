@@ -3,6 +3,7 @@ import warnings; warnings.filterwarnings("ignore")
 import json, time, urllib.request, sys
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd, numpy as np
+import phien
 H={"User-Agent":"Mozilla/5.0","Referer":"https://trading.vietcap.com.vn/","Origin":"https://trading.vietcap.com.vn","Content-Type":"application/json"}
 def req(url,body=None):
     r=urllib.request.Request(url,data=None if body is None else json.dumps(body).encode(),headers=H,method="GET" if body is None else "POST")
@@ -140,7 +141,7 @@ if os.path.exists("boloc_in.json"):
         if p!=p: continue
         try: e=ato(mac,list(dates).index(pd.Timestamp(str(r[1])[:10]).date()))
         except Exception: e=None
-        if e is None: e=gia*1000      # chua co phien sau: tam dung gia khuyen nghi
+        if e is None: continue        # v1.5.3: chua co phien sau (tin hieu cua phien hom nay) -> chua mua, khong ghi 'Dang giu'; hien o 'Hom nay mua gi'
         dang_giu.append({"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93)})
 _held={x["ma"] for x in dang_giu}
 rows=[x for x in rows if x["ma"] not in _held]
@@ -277,7 +278,7 @@ if os.path.exists("tr_in.json"):
         if len(u)>1: upd_tr.append(u)
 che_do_bao={"vni_sut_sau_nhat_60p":round(bao*100,1),"cap_bao":cap or "không","vung_ok":vung_ok,"bat":storm_on}
 
-out={"ngay":str(d),"so_ma":int(C.iloc[-1].notna().sum()),
+out={"ngay":str(d),"giua_phien":phien.chua_dong(d),"so_ma":int(C.iloc[-1].notna().sum()),
  "dong_lich_su_A_L":[str(d),float(last.vni),int(last.up),int(last.ceil),int(last.dn),int(last.floor),int(last.flat),float(last.value),
    None if pd.isna(last.hukt) else float(last.hukt),int(last.streak),int(last.hit),int(last.broke)],
  "nhiet_ke":{"diem":None if pd.isna(last.score) else float(last.score),"tb7":float(last.tb7),"vung":last.zone,
