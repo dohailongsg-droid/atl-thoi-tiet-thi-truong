@@ -66,3 +66,48 @@ json.dump(out, open("dash_out/nganh_chuyen_pha.json", "w"), ensure_ascii=False, 
 print("chuyen_pha:", len(out), "nganh;", sum(r["da_doi"] for r in out), "doi goc")
 for r in out[:6]:
     print("  ", r["nganh"], r["goc_truoc"], "->", r["goc_nay"], r["huong"], r["so_tuan"])
+
+# ---------- 3. Phân bố lãi/lỗ 20 phiên ----------
+R20 = (C / C.shift(20) - 1) * 100
+okr = liq & R20.notna()
+n_r = okr.sum(axis=1).replace(0, np.nan)
+def frac(mask):
+    return (mask & okr).sum(axis=1) / n_r * 100
+BINS = [("tu20", "Lãi từ 20% trở lên", R20 >= 20), ("m10_20", "Lãi 10–20%", (R20 >= 10) & (R20 < 20)),
+        ("m7_10", "Lãi 7–10%", (R20 >= 7) & (R20 < 10)), ("m0_7", "Lãi 0–7%", (R20 >= 0) & (R20 < 7)),
+        ("l0_7", "Lỗ 0–7%", (R20 < 0) & (R20 >= -7)), ("l7_10", "Lỗ 7–10%", (R20 < -7) & (R20 >= -10)),
+        ("l10_20", "Lỗ 10–20%", (R20 < -10) & (R20 >= -20)), ("l20", "Lỗ từ 20% trở lên", R20 < -20)]
+CUM = [("g7", "Lãi trên 7%", R20 > 7), ("g15", "Lãi trên 15%", R20 > 15), ("l7", "Lỗ trên 7%", R20 < -7), ("l15", "Lỗ trên 15%", R20 < -15)]
+fr = {k: frac(m) for k, _, m in BINS + CUM}
+d5 = -6
+pb = {
+    "ngay": str(C.index[-1].date()), "so_ma": int(n_r.iloc[-1]),
+    "trung_vi": round(float(R20[okr].iloc[-1].median()), 1),
+    "cac_bin": [{"ma": k, "ten": t, "pct": round(float(fr[k].iloc[-1]), 1), "truoc5": round(float(fr[k].iloc[d5]), 1)} for k, t, _ in BINS],
+    "tich_luy": [{"ma": k, "ten": t, "pct": round(float(fr[k].iloc[-1]), 1), "truoc5": round(float(fr[k].iloc[d5]), 1)} for k, t, _ in CUM],
+    "chuoi": [{"ngay": str(d.date()), "g7": round(float(fr["g7"][d]), 1), "l7": round(float(fr["l7"][d]), 1),
+               "vni": round(float(VNI[d]), 2) if pd.notna(VNI[d]) else None}
+              for d in C.index[-60:] if pd.notna(fr["g7"][d]) and pd.notna(fr["l7"][d])],
+}
+# Nhãn mô tả bằng quy tắc cố định (ngưỡng tự đặt, chưa backtest, chỉ mô tả — không phải tín hiệu)
+_g, _l = pb["tich_luy"][0], pb["tich_luy"][2]
+g, l, dg, dl = _g["pct"], _l["pct"], round(_g["pct"] - _g["truoc5"], 1), round(_l["pct"] - _l["truoc5"], 1)
+def _doan(ten, a, b):
+    return f"{ten} {'tăng' if b >= a else 'giảm'} từ {a:.1f}% {'lên' if b >= a else 'xuống'} {b:.1f}%"
+dan = f"{_doan('Mã lãi trên 7%', _g['truoc5'], g)} và {_doan('mã lỗ trên 7%', _l['truoc5'], l)} trong 5 phiên."
+if l >= 30 and dl > 0:
+    nhan, y = "Suy yếu lan rộng", "Số mã lỗ trên 7% đã từ 30% trở lên và vẫn đang tăng."
+elif g >= 30 and dg > 0:
+    nhan, y = "Tăng lan rộng", "Số mã lãi trên 7% đã từ 30% trở lên và vẫn đang tăng."
+elif g >= 20 and l >= 20:
+    nhan, y = "Phân hóa", "Cả hai đầu cùng đông: nhiều mã lãi mạnh đồng thời nhiều mã lỗ nặng."
+elif dl <= -5 and dg >= 3 and g > l:
+    nhan, y = "Phục hồi rộng", "Mã lỗ giảm rõ, mã lãi mạnh tăng lên và đã nhiều hơn mã lỗ."
+elif dl <= -5:
+    nhan, y = "Phục hồi hẹp", "Mã lỗ giảm nhiều nhưng mã lãi mạnh chưa tăng tương ứng: chủ yếu là mã thoát vùng lỗ, chưa có nhiều mã lãi mạnh."
+else:
+    nhan, y = "Bình lặng", "Chưa có thay đổi rõ về diện rộng của lãi hoặc lỗ so với 5 phiên trước."
+pb["nhan"], pb["nhan_cau"] = nhan, y + " " + dan.replace(".", ",")
+print("nhan:", nhan, "|", pb["nhan_cau"])
+json.dump(pb, open("dash_out/phan_bo_loi_lo.json", "w"), ensure_ascii=False, allow_nan=False)
+print("phan_bo:", pb["ngay"], pb["so_ma"], "ma; >7%:", pb["tich_luy"][0]["pct"], "<-7%:", pb["tich_luy"][2]["pct"], "trung vi", pb["trung_vi"])
