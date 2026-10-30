@@ -325,7 +325,7 @@
 .dm.sim{max-width:64rem}
 .dm-sw{justify-self:center}
 .sm{display:grid;gap:var(--cds-gap-md)}
-.sm [hidden]{display:none!important}
+.sm[hidden],.sm [hidden]{display:none!important}
 .sm .atl-tiles{grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
 @media (max-width:640px){.sm .atl-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--cds-gap-sm)}.sm .atl-tile .v{font-size:1.05rem}.sm .atl-tile{padding:var(--cds-pad-sm) var(--cds-pad-md)}}
 .sm-h{margin:0;font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)}
@@ -345,6 +345,7 @@
       <div class="atl-seg dm-sw" role="group" aria-label="Chọn danh mục">
         <button type="button" id="dm-sw-me" aria-pressed="true">Của tôi</button>
         <button type="button" id="dm-sw-sim" aria-pressed="false">Mô phỏng ATL</button>
+        <button type="button" id="dm-sw-ld" aria-pressed="false">Mô phỏng Long đầu</button>
       </div>
       <div class="sm" id="dm-sim" hidden>
         <div class="sm-warn" id="sm-note">Đang tải dữ liệu mô phỏng…</div>
@@ -358,7 +359,12 @@
         </div>
         <div class="atl-card">
           <h2 class="atl-h">Các lệnh</h2>
-          <div class="atl-tablebox"><table class="sm-tbl" id="sm-tb"><thead><tr><th>Mã</th><th>Loại</th><th>Mua</th><th class="num">Giá mua</th><th class="num">Số cp</th><th class="num">% NAV</th><th class="num">Giá nay / bán</th><th class="num">Lãi/lỗ %</th><th class="num">Lãi/lỗ (đ)</th><th>Trạng thái</th></tr></thead><tbody></tbody></table></div>
+          <div class="atl-tablebox"><table class="sm-tbl" id="sm-tb"><thead><tr><th>Mã</th><th id="sm-th-loai">Loại</th><th>Mua</th><th class="num">Giá mua</th><th class="num">Số cp</th><th class="num">% NAV</th><th class="num">Giá nay / bán</th><th class="num">Lãi/lỗ %</th><th class="num">Lãi/lỗ (đ)</th><th>Trạng thái</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="atl-card" id="sm-ld-card" hidden>
+          <h2 class="atl-h">Long đầu từng nhóm hôm nay</h2>
+          <p class="atl-note" id="sm-ld-note">—</p>
+          <div id="sm-ld"></div>
         </div>
         <div class="atl-card" id="sm-cho-card" hidden>
           <h2 class="atl-h">Chờ vào lệnh phiên tới</h2>
@@ -427,7 +433,7 @@
   function pc(x,d){if(x==null)return '—';d=d==null?2:d;return (x>0?'+':x<0?'−':'')+Math.abs(x).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';}
   function dm(d){return d?d.slice(8,10)+'/'+d.slice(5,7):'—';}
   function cls(x){return x==null?'':x>0?'pos':x<0?'neg':'';}
-  var D=null,loading=false,mode='me';
+  var D=null,mode='me',DS={sim:null,ld:null},FILE={sim:'mo_phong.json',ld:'mo_phong_long_dau.json'},LOADING={};
   function tile(k,v,s,c){var t=el('div','atl-tile');t.appendChild(el('span','k',k));t.appendChild(el('span','v'+(c?' '+c:''),v));if(s)t.appendChild(el('span','s',s));return t;}
   function chartLines(box,nav){
     box.textContent='';var W=Math.max(300,box.clientWidth||600),H=220,m={l:46,r:16,t:12,b:26};
@@ -463,11 +469,13 @@
     box.appendChild(svg);}
   function render(){
     if(!D)return;
+    $('sm-ld-card').hidden=true;
     var note=$('sm-note'),tiles=$('sm-tiles'),tb=$('sm-tb').querySelector('tbody');
     var ass=$('sm-ass');ass.textContent='';(D.gia_dinh||[]).forEach(function(t){ass.appendChild(el('li',null,t));});
     if(D.trang_thai!=='ok'){note.textContent='Chưa có lệnh nào trong nhật ký tín hiệu để mô phỏng.';tiles.textContent='';tb.textContent='';return;}
     var T=D.tong,n=T.so_phien;
-    note.textContent='Mô phỏng từ '+dm(D.ngay_bat_dau)+' đến '+dm(D.ngay_cuoi)+': mới '+n+' phiên và '+T.so_lenh+' lệnh, chưa đủ để kết luận hơn hay kém giao dịch tay. Số liệu dài dần mỗi ngày theo nhật ký tín hiệu của hệ thống.';
+    var isLd=mode==='ld';$('sm-th-loai').textContent=isLd?'Nhóm':'Loại';
+    note.textContent='Mô phỏng '+(isLd?'Long đầu ':'')+'từ '+dm(D.ngay_bat_dau)+' đến '+dm(D.ngay_cuoi)+': mới '+n+' phiên và '+T.so_lenh+' lệnh, chưa đủ để kết luận hơn hay kém giao dịch tay. Số liệu dài dần mỗi ngày theo nhật ký tín hiệu của hệ thống.';
     tiles.textContent='';
     tiles.appendChild(tile('Vốn ban đầu',n0(D.von)+' đ','Giả định'));
     tiles.appendChild(tile('Giá trị danh mục (NAV)',n0(T.nav)+' đ',pc(T.lai_pct)+' · '+(T.lai_dong>=0?'+':'−')+n0(Math.abs(T.lai_dong))+' đ',cls(T.lai_pct)));
@@ -490,24 +498,29 @@
       tr.appendChild(el('td',null,r.trang_thai==='Đang giữ'?'Đang giữ':'Đã đóng '+dm(r.ngay_thoat)+(r.ly_do?' · '+r.ly_do:'')));
       tb.appendChild(tr);});
     var cc=$('sm-cho-card'),ch=$('sm-cho');cc.hidden=!(D.cho&&D.cho.length);ch.textContent='';
-    if(!cc.hidden){$('sm-cho-note').textContent='Tín hiệu mới chưa vào lệnh. Mô phỏng sẽ mua khi có giá phiên sau (ATO với mã MUA, giá đóng cửa với vé số), với tỷ trọng dự kiến bên dưới.';
+    if(!cc.hidden){$('sm-cho-note').textContent=isLd?'Kết quả lần xét lại gần nhất, sẽ vào hoặc ra ở giá đóng cửa phiên tới, với tỷ trọng dự kiến bên dưới.':'Tín hiệu mới chưa vào lệnh. Mô phỏng sẽ mua khi có giá phiên sau (ATO với mã MUA, giá đóng cửa với vé số), với tỷ trọng dự kiến bên dưới.';
       var w=el('div','atl-chips');D.cho.forEach(function(r){var c=el('span','atl-chip',r.ma+' · '+r.loai+' · '+(r.ty*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'% NAV');w.appendChild(c);});ch.appendChild(w);}
     var bq=$('sm-bq');bq.textContent='';$('sm-bq-card').hidden=!(D.bo_qua&&D.bo_qua.length);
     (D.bo_qua||[]).forEach(function(r){bq.appendChild(el('li',null,r.ma+' ('+dm(r.ngay)+'): '+r.ly_do));});
+    var lc=$('sm-ld-card'),lb=$('sm-ld');lb.textContent='';lc.hidden=!(isLd&&D.long_dau_nay&&D.long_dau_nay.length);
+    if(!lc.hidden){$('sm-ld-note').textContent='Mã dẫn đầu sức mạnh giá của mỗi nhóm (trên MA50), xếp theo hạng sức mạnh. Dấu ✓ là mã danh mục đang giữ. Vùng nhiệt kế hiện tại: '+D.vung_nay+'.';
+      var w2=el('div','atl-chips');D.long_dau_nay.forEach(function(r){var c=el('span','atl-chip',r.ma+' · '+r.nhom+' · '+r.rs60+(r.dang_giu?' ✓':''));if(r.dang_giu)c.style.fontWeight='700';w2.appendChild(c);});lb.appendChild(w2);}
     drawCharts();}
-  function drawCharts(){if(!D||D.trang_thai!=='ok'||mode!=='sim')return;chartLines($('sm-ch'),D.nav);chartDD($('sm-dd'),D.nav);}
-  function load(){
-    if(D||loading)return;loading=true;
-    fetch('data/mo_phong.json?v='+new Date().toISOString().slice(0,13),{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('x');return r.json();})
-      .then(function(j){D=j;render();}).catch(function(){$('sm-note').textContent='Chưa có dữ liệu mô phỏng. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.';loading=false;});}
+  function drawCharts(){if(!D||D.trang_thai!=='ok'||mode==='me')return;chartLines($('sm-ch'),D.nav);chartDD($('sm-dd'),D.nav);}
+  function load(m){
+    if(DS[m]||LOADING[m])return;LOADING[m]=true;
+    fetch('data/'+FILE[m]+'?v='+new Date().toISOString().slice(0,13),{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('x');return r.json();})
+      .then(function(j){DS[m]=j;LOADING[m]=false;if(mode===m){D=j;render();}}).catch(function(){LOADING[m]=false;if(mode===m)$('sm-note').textContent='Chưa có dữ liệu mô phỏng. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.';});}
   function setMode(m){
-    mode=m;var sim=m==='sim';
-    $('dm-sw-me').setAttribute('aria-pressed',String(!sim));$('dm-sw-sim').setAttribute('aria-pressed',String(sim));
+    mode=m;var sim=m!=='me';
+    $('dm-sw-me').setAttribute('aria-pressed',String(!sim));$('dm-sw-sim').setAttribute('aria-pressed',String(m==='sim'));$('dm-sw-ld').setAttribute('aria-pressed',String(m==='ld'));
     $('dm-sim').hidden=!sim;$('dm-me').style.display=sim?'none':'grid';$('dm-root').classList.toggle('sim',sim);
-    if(sim){load();setTimeout(drawCharts,0);}else if(window.__dmBoot)window.__dmBoot();}
+    if(sim){D=DS[m];if(D){render();}else{$('sm-note').textContent='Đang tải dữ liệu mô phỏng…';$('sm-tiles').textContent='';$('sm-ld-card').hidden=true;load(m);}setTimeout(drawCharts,0);}
+    else if(window.__dmBoot)window.__dmBoot();}
   $('dm-sw-me').addEventListener('click',function(){setMode('me');});
   $('dm-sw-sim').addEventListener('click',function(){setMode('sim');});
-  window.addEventListener('resize',function(){if(mode==='sim')drawCharts();});
+  $('dm-sw-ld').addEventListener('click',function(){setMode('ld');});
+  window.addEventListener('resize',function(){if(mode!=='me')drawCharts();});
   window.atlSimMode=setMode;
 })();
 </script>
@@ -595,6 +608,56 @@
   }
   getJ('nganh_chuyen_pha.json').then(drawCP).catch(function(){$('cp-list').textContent='';$('cp-list').appendChild(el('p','atl-note','Chưa có dữ liệu. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.'));});
   getJ('cau_truc_thi_truong.json').then(function(j){CT=j;drawCT();}).catch(function(){drawCT();});
+
+  /* ---- Phân bố lãi/lỗ 20 phiên ---- */
+  var PB=null;
+  var PBC={tu20:'var(--z3)',m10_20:'var(--z3)',m7_10:'var(--z3)',m0_7:'var(--z3)',l0_7:'var(--z6)',l7_10:'var(--z6)',l10_20:'var(--z6)',l20:'var(--z6)'};
+  var PBO={tu20:1,m10_20:.8,m7_10:.6,m0_7:.4,l0_7:.4,l7_10:.6,l10_20:.8,l20:1};
+  function pbChart(box,ch){
+    box.textContent='';if(!ch||ch.length<2)return;
+    var W=640,H=230,m={l:36,r:44,t:10,b:22},ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    function mk(n,a){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+    var mx=0;ch.forEach(function(r){mx=Math.max(mx,r.g7,r.l7);});mx=Math.max(20,Math.ceil(mx/20)*20);
+    var X=function(i){return m.l+(W-m.l-m.r)*i/(ch.length-1);},Y=function(v){return m.t+(H-m.t-m.b)*(1-v/mx);};
+    var vs=ch.map(function(r){return r.vni;}).filter(function(v){return v!=null;});
+    var vlo=Math.min.apply(null,vs),vhi=Math.max.apply(null,vs),vpad=(vhi-vlo)*0.08||1;vlo-=vpad;vhi+=vpad;
+    var YV=function(v){return m.t+(H-m.t-m.b)*(1-(v-vlo)/(vhi-vlo));};
+    for(var g=0;g<=mx;g+=mx/4){svg.appendChild(mk('line',{x1:m.l,x2:W-m.r,y1:Y(g),y2:Y(g),stroke:'var(--cds-chart-grid)'}));
+      var t=mk('text',{x:m.l-6,y:Y(g)+4,'text-anchor':'end',fill:'var(--color-fg-muted)','font-size':11});t.textContent=Math.round(g)+'%';svg.appendChild(t);}
+    [vlo+vpad,(vlo+vhi)/2,vhi-vpad].forEach(function(v){var t=mk('text',{x:W-m.r+6,y:YV(v)+4,'text-anchor':'start',fill:'var(--color-fg-muted)','font-size':11});t.textContent=Math.round(v).toLocaleString('vi-VN');svg.appendChild(t);});
+    var every=Math.ceil(ch.length/6);
+    ch.forEach(function(r,i){if(i%every===0||i===ch.length-1){var t=mk('text',{x:X(i),y:H-6,'text-anchor':i===0?'start':(i===ch.length-1?'end':'middle'),fill:'var(--color-fg-muted)','font-size':11});t.textContent=dm(r.ngay);svg.appendChild(t);}});
+    var dv='';ch.forEach(function(r,i){if(r.vni==null)return;dv+=(dv?'L':'M')+X(i).toFixed(1)+','+YV(r.vni).toFixed(1);});
+    if(dv)svg.appendChild(mk('path',{d:dv,fill:'none',stroke:'#b57bee','stroke-width':2.2,'stroke-dasharray':'5 3','stroke-linejoin':'round'}));
+    [['l7','var(--z6)'],['g7','var(--z3)']].forEach(function(k){
+      var d='';ch.forEach(function(r,i){d+=(i?'L':'M')+X(i).toFixed(1)+','+Y(r[k[0]]).toFixed(1);});
+      svg.appendChild(mk('path',{d:d,fill:'none',stroke:k[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+      svg.appendChild(mk('circle',{cx:X(ch.length-1),cy:Y(ch[ch.length-1][k[0]]),r:3.2,fill:k[1]}));});
+    box.appendChild(svg);}
+  function drawPB(){
+    var rows=$('pb-rows'),kp=$('pb-k');rows.textContent='';kp.textContent='';
+    if(!PB){rows.appendChild(el('p','atl-note','Chưa có dữ liệu. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.'));return;}
+    PB.tich_luy.forEach(function(r){var d=Math.round((r.pct-r.truoc5)*10)/10;var b=el('div');b.appendChild(el('small',null,r.ten));b.appendChild(el('b',null,nf(r.pct,1)+'%'));
+      b.appendChild(el('em',null,(d>0?'+':d<0?'−':'')+nf(Math.abs(d),1)+' điểm so với 5 phiên'));kp.appendChild(b);});
+    PB.cac_bin.forEach(function(r){
+      var d=Math.round((r.pct-r.truoc5)*10)/10;
+      var row=el('div','ct-row');row.appendChild(el('div','ct-l',r.ten));
+      var bar=el('div','ct-bar'),f=el('i');f.style.width=Math.max(0,Math.min(100,r.pct*2))+'%';f.style.background=PBC[r.ma];f.style.opacity=PBO[r.ma];bar.appendChild(f);
+      row.append(bar,el('div','ct-v',nf(r.pct,1)+'%'));
+      row.appendChild(el('div','ct-d',(d>0?'+':d<0?'−':'')+nf(Math.abs(d),1)+' điểm so với 5 phiên'));
+      rows.appendChild(row);});
+    var lg=$('pb-leg');lg.textContent='';
+    [['% mã lãi trên 7%','var(--z3)'],['% mã lỗ trên 7%','var(--z6)'],['VN-Index (nét đứt, trục phải)','#b57bee']].forEach(function(k){var s=el('span');var i=el('i');i.style.background=k[0].indexOf('VN-Index')===0?'repeating-linear-gradient(90deg,'+k[1]+' 0 5px,transparent 5px 8px)':k[1];s.appendChild(i);s.appendChild(document.createTextNode(k[0]));lg.appendChild(s);});
+    pbChart($('pb-ch'),PB.chuoi);
+    var g7=PB.tich_luy[0].pct,l10=PB.tich_luy[2].pct;
+    var txt='Trong 20 phiên qua, '+nf(g7,1)+'% mã lãi trên 7% và '+nf(l10,1)+'% mã lỗ trên 7%; mã ở giữa danh sách (trung vị) '+(PB.trung_vi>0.04?'lãi '+nf(PB.trung_vi,1)+'%':PB.trung_vi<-0.04?'lỗ '+nf(-PB.trung_vi,1)+'%':'gần như đứng yên')+'. ';
+    if(g7-l10>=10)txt+='Số mã lãi trên 7% nhiều hơn rõ rệt số mã lỗ trên 7%.';
+    else if(l10-g7>=10)txt+='Số mã lỗ trên 7% nhiều hơn rõ rệt số mã lãi trên 7%.';
+    else txt+='Số mã lãi trên 7% và lỗ trên 7% đang khá cân bằng.';
+    if(PB.nhan){var mo=$('pb-mota');mo.textContent='';mo.appendChild(el('b',null,PB.nhan+'. '));mo.appendChild(document.createTextNode(PB.nhan_cau));}else $('pb-mota').textContent=txt;
+    $('pb-src').textContent='Tính ngày '+dm(PB.ngay)+' trên '+PB.so_ma+' mã HOSE có GTGD trung bình 20 phiên từ 3 tỷ. Lãi/lỗ = giá đóng cửa hôm nay so với 20 phiên trước. Chỉ mô tả, không phải tín hiệu mua bán.';
+  }
+  getJ('phan_bo_loi_lo.json').then(function(j){PB=j;drawPB();}).catch(function(){drawPB();});
 })();
 </script>
 
@@ -1210,6 +1273,7 @@
     TABS.forEach(function(t){var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
       parts.push('=== NỘI DUNG TAB '+t[2]+(t[0]==='ho'?' CỦA MÃ '+cur.ma:'')+' ===\n'+(tx||'(tab này chưa có dữ liệu)'));});
     parts.push('SỐ LIỆU 12 QUÝ CỦA '+cur.ma+' (JSON, doanh thu/lợi nhuận: tỷ đồng): '+series(cur));
+    if(cmpCtx)parts.push(lim===LIM_Q?cmpCtx.q:cmpCtx.g);
     if(lastQ)parts.push('CÂU HỎI CẦN TRẢ LỜI NGAY (chỉ trả lời câu này, dựa trên các tab ở trên): '+lastQ);
     return parts.join('\n\n');}
   function series(x){return JSON.stringify(((x.xu_huong&&x.xu_huong.chuoi)||[]).map(function(s){return {ten:s.ten,don_vi:s.dv,quy:x.xu_huong.quy,gia_tri:s.v};}));}
@@ -1284,25 +1348,25 @@
         if(r.status===429)return Promise.reject(new Error('Mistral báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
         return next();});}
     return next();}
-  var cbIdx=null,xepRows=null,cbCache={};
+  var cbIdx=null,xepRows=null,cbCache={},cmpCtx=null;
   function fetchJ(u){return fetch(u,{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
   function tickersIn(t){var m=(String(t).toUpperCase().match(/\b[A-Z]{3}\b/g)||[]);return m.filter(function(x,i){return m.indexOf(x)===i&&x!==(cur&&cur.ma);});}
   function compareCtx(t){// khi câu hỏi nêu mã thứ hai có trên trang: đưa thêm dữ liệu của mã đó để so sánh, chỉ từ dữ liệu trang
-    if(!cur||!tickersIn(t).length)return Promise.resolve('');
+    if(!cur||!tickersIn(t).length)return Promise.resolve(null);
     var idxP=cbIdx?Promise.resolve(cbIdx):fetchJ('data/cb/_index.json').then(function(j){cbIdx=j||{};return cbIdx;});
     var xepP=xepRows?Promise.resolve(xepRows):fetchJ('data/xep_hang.json').then(function(j){xepRows=j||[];return xepRows;});
     return Promise.all([idxP,xepP]).then(function(v){
-      var b=tickersIn(t).filter(function(x){return v[0][x];})[0];if(!b)return '';
+      var b=tickersIn(t).filter(function(x){return v[0][x];})[0];if(!b)return null;
       var cbP=cbCache[b]?Promise.resolve(cbCache[b]):fetchJ('data/cb/'+encodeURIComponent(b)+'.json').then(function(j){cbCache[b]=j;return j;});
       return cbP.then(function(bj){
-        if(!bj)return '';
+        if(!bj)return null;
         var rowOf=function(m){return v[1].filter(function(r){return r.ma===m;})[0]||null;};
-        var txt='=== SO SÁNH HAI MÃ: MÃ A = '+cur.ma+', MÃ B = '+b+' (chỉ dùng dữ liệu dưới đây) ===\n'+
-          'Cơ bản MÃ B (JSON): '+compact(bj).slice(0,6000)+'\n'+
+        var mk=function(n){return '=== SO SÁNH HAI MÃ: MÃ A = '+cur.ma+', MÃ B = '+b+' (chỉ dùng dữ liệu dưới đây) ===\n'+
+          'Cơ bản MÃ B (JSON): '+compact(bj).slice(0,n)+'\n'+
           'Số liệu 12 quý MÃ B: '+series(bj)+'\n'+
           'Kỹ thuật và xếp hạng trong nhóm MÃ A: '+JSON.stringify(rowOf(cur.ma))+'\n'+
-          'Kỹ thuật và xếp hạng trong nhóm MÃ B: '+JSON.stringify(rowOf(b));
-        return txt;});});}
+          'Kỹ thuật và xếp hạng trong nhóm MÃ B: '+JSON.stringify(rowOf(b));};
+        return {g:mk(6000),q:mk(1000)};});});}
   var ctxT=null,lastQ='',lastUser=null;
   function ask(text){
     if(busy||!cur)return;
@@ -1319,7 +1383,8 @@
       var p=order[k],key=p==='gemini'?kg:p==='groq'?kq:km;
       if(!key)return run(k+1);
       return (p==='gemini'?askGemini(key,sys):p==='groq'?askGroq(key,sys):askMistral(key,sys)).then(function(r){r.prov=p;return r;},function(e){tried.push((p==='gemini'?'Gemini':p==='groq'?'Groq':'Mistral')+': '+(e.message==='Failed to fetch'?'không kết nối được (mạng hoặc trình duyệt chặn)':e.message));return run(k+1);});}
-    compareCtx(text).then(function(x){if(x)sys+=('\n\n'+x);return run(0);}).then(function(r){
+    cmpCtx=null;
+    compareCtx(text).then(function(x){cmpCtx=x||null;sys=sysText(LIM_G,ctxT);return run(0);}).then(function(r){
       wait.remove();
       var bad=checkNums(r.text,sys),notes=[];
       if(bad.length)notes.push('Chưa đối chiếu được với dữ liệu trên trang: '+bad.slice(0,6).join(', ')+'. Hãy kiểm tra lại các số này.');
@@ -1426,6 +1491,35 @@
           </div>
         </div>
         <p class="ct-src" id="ct-src"></p>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-phan-bo">
+        <style>
+.pb-k{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+@media (min-width:600px){.pb-k{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pb-k div{border:1px solid var(--color-border-line);border-radius:8px;padding:8px 10px}
+.pb-k small{display:block;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.pb-k b{font-size:1.25rem;font-variant-numeric:tabular-nums}
+.pb-k em{display:block;font-style:normal;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+#card-phan-bo .ct-body{display:grid;gap:var(--cds-gap-lg)}
+@media (min-width:900px){#card-phan-bo .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
+        </style>
+        <h2 class="atl-h">Phân bố lãi/lỗ 20 phiên</h2>
+        <p class="atl-note">Trong các mã HOSE, bao nhiêu phần trăm đang lãi hoặc lỗ ở các mức khác nhau so với 20 phiên trước. Cho biết sức lan tỏa của đợt tăng hoặc giảm: tăng trên diện rộng hay chỉ vài mã.</p>
+        <p class="atl-note">Cách đọc: các thanh là tỷ lệ mã trong từng nhóm (tổng 100%, độ dài thanh phóng gấp đôi để dễ nhìn). Đường xanh là % mã lãi trên 7%, đường đỏ là % mã lỗ trên 7%. Các mốc lãi và lỗ đối xứng (7%, 10%, 20%) để so sánh hai phía công bằng, mốc 7% bằng biên độ HOSE và mức cắt lỗ của hệ thống, nét đứt tím là VN-Index (trục phải). Đây là mô tả, không phải tín hiệu mua bán.</p>
+        <div class="pb-k" id="pb-k"></div>
+        <div class="ct-body">
+          <div>
+            <div class="ct-rows" id="pb-rows"></div>
+            <p class="ct-mota" id="pb-mota"></p>
+          </div>
+          <div>
+            <p class="atl-sub">Diễn biến 60 phiên</p>
+            <div class="sm-leg" id="pb-leg"></div>
+            <div class="ct-ch" id="pb-ch"></div>
+          </div>
+        </div>
+        <p class="ct-src" id="pb-src"></p>
       </div>
 
     </div>
