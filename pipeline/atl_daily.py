@@ -153,11 +153,7 @@ if os.path.exists("boloc_in.json"):
         try: e=ato(mac,list(dates).index(pd.Timestamp(str(r[1])[:10]).date()))
         except Exception: e=None
         if e is None: continue        # v1.5.3: chua co phien sau (tin hieu cua phien hom nay) -> chua mua, khong ghi 'Dang giu'; hien o 'Hom nay mua gi'
-        # v1.5.6: T+3 (hang ve) va T+10 tinh tu gia mua ATO, cung moc voi Lich su tin hieu (phien tin hieu + 3 / + 10); chua toi thi None
-        _i=list(dates).index(pd.Timestamp(str(r[1])[:10]).date()); _s=C[mac]; _t={}
-        for _k,_nm in [(3,"lai_t3"),(10,"lai_t10")]:
-            _t[_nm]=round((_s.iloc[_i+_k]/e-1)*100,2) if _i+_k<len(dates) and _s.iloc[_i+_k]==_s.iloc[_i+_k] else None
-        dang_giu.append({**_t,"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93),"nhan_thoat":nhan_thoat(tin, str(r[5]) if len(r)>5 else "")})
+        dang_giu.append({"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93),"nhan_thoat":nhan_thoat(tin, str(r[5]) if len(r)>5 else "")})
 _held={x["ma"] for x in dang_giu}
 rows=[x for x in rows if x["ma"] not in _held]
 # ===== v1.5: DONG CHU DAO + TRUNG RONG TRONG BAO + RO VE SO =====
