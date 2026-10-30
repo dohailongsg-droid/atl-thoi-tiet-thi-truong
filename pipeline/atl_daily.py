@@ -7,18 +7,30 @@ import phien
 H={"User-Agent":"Mozilla/5.0","Referer":"https://trading.vietcap.com.vn/","Origin":"https://trading.vietcap.com.vn","Content-Type":"application/json"}
 def req(url,body=None):
     r=urllib.request.Request(url,data=None if body is None else json.dumps(body).encode(),headers=H,method="GET" if body is None else "POST")
-    return json.loads(urllib.request.urlopen(r,timeout=60).read())
+    return json.loads(urllib.request.urlopen(r,timeout=20).read())
 syms=[d["symbol"] for d in req("https://trading.vietcap.com.vn/api/price/symbols/getByGroup?group=HOSE")]
 stocks=[s for s in syms if len(s)==3]
 TO=int(time.time())+86400
+# gioi han thoi gian tai gia: moi lenh toi da 20s, tong toi da 9 phut, thieu >5% ma thi dung va bao ro (khong ghi so lieu sai)
+T0=time.time(); DEADLINE=540; _n=[0]
 def get(s):
-    for a in range(4):
+    for a in range(3):
+        if time.time()-T0>DEADLINE: return s,None
         try:
             j=req("https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart",{"timeFrame":"ONE_DAY","symbols":[s],"to":TO,"countBack":330})
+            _n[0]+=1
+            if _n[0]%50==0: print("tai gia: %d/%d ma, %ds"%(_n[0],len(stocks)+1,time.time()-T0),file=sys.stderr,flush=True)
             return s,(j[0] if j else None)
-        except Exception: time.sleep(1+a)
+        except Exception as e:
+            if a==0 and _n[0]==0: print("canh bao: loi dau tien khi tai %s: %r"%(s,e),file=sys.stderr,flush=True)
+            time.sleep(1+a)
     return s,None
+print("bat dau tai gia %d ma"%(len(stocks)+1),file=sys.stderr,flush=True)
 with ThreadPoolExecutor(4) as ex: data={s:it for s,it in ex.map(get,stocks+["VNINDEX"]) if it}
+_thieu=len(stocks)+1-len(data)
+print("tai gia xong: %d/%d ma, thieu %d, %ds"%(len(data),len(stocks)+1,_thieu,time.time()-T0),file=sys.stderr,flush=True)
+if "VNINDEX" not in data or _thieu>0.05*(len(stocks)+1):
+    print("LOI: Vietcap tra du lieu cham/thieu, dung de khong ghi so lieu sai. Chay lai sau it phut.",file=sys.stderr); sys.exit(1)
 def fr(it,f):
     s=pd.Series(it[f],index=pd.to_datetime([int(t) for t in it["t"]],unit="s").date,dtype=float); return s[~s.index.duplicated()]
 dates=fr(data["VNINDEX"],"c").index
