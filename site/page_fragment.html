@@ -2318,6 +2318,8 @@
       add('Mục tiêu 1', f2(num(r.muc_tieu_1)), 'muc_tieu_1');
       add('Mục tiêu 2', f2(num(r.muc_tieu_2)), 'muc_tieu_2');
       add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
+      add('T+3 (hàng về)', r.lai_t3 == null ? 'chưa tới' : fp(num(r.lai_t3)) + '%', 'lai_t3', r.lai_t3 == null ? '' : (num(r.lai_t3) >= 0 ? 'pos' : 'neg'));
+      add('T+10', r.lai_t10 == null ? 'chưa tới' : fp(num(r.lai_t10)) + '%', 'lai_t10', r.lai_t10 == null ? '' : (num(r.lai_t10) >= 0 ? 'pos' : 'neg'));
     } else if (r.loai === 'VÉ SỐ' || r.loai === 'TRỨNG RỒNG') {
       add('Giá', f2(num(r.gia_khuyen_nghi)), 'gia_khuyen_nghi');
       add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
