@@ -2,7 +2,7 @@
  1) cau_truc_thi_truong.json: % mã HOSE trên MA20/MA50/MA200, % xu hướng tăng đều/giảm đều, chuỗi 60 phiên.
  2) nganh_chuyen_pha.json: góc RRG (khung tuần, so với VN-Index) của từng ngành hiện tại so với 4 tuần trước.
 Chỉ mô tả số đã tính, không kèm khuyến nghị."""
-import warnings, json; warnings.filterwarnings("ignore")
+import warnings, json, re; warnings.filterwarnings("ignore")
 import pandas as pd, numpy as np, vn_prices as vp
 
 # ---------- 1. Cấu trúc thị trường ----------
@@ -74,8 +74,8 @@ n_r = okr.sum(axis=1).replace(0, np.nan)
 def frac(mask):
     return (mask & okr).sum(axis=1) / n_r * 100
 BINS = [("tu20", "Lãi từ 20% trở lên", R20 >= 20), ("m10_20", "Lãi 10–20%", (R20 >= 10) & (R20 < 20)),
-        ("m7_10", "Lãi 7–10%", (R20 >= 7) & (R20 < 10)), ("m0_7", "Lãi 0–7%", (R20 >= 0) & (R20 < 7)),
-        ("l0_7", "Lỗ 0–7%", (R20 < 0) & (R20 >= -7)), ("l7_10", "Lỗ 7–10%", (R20 < -7) & (R20 >= -10)),
+        ("m7_10", "Lãi 7–10%", (R20 >= 7) & (R20 < 10)), ("m0_7", "Lãi nhẹ 0–7%", (R20 >= 0) & (R20 < 7)),
+        ("l0_7", "Lỗ nhẹ 0–7%", (R20 < 0) & (R20 >= -7)), ("l7_10", "Lỗ 7–10%", (R20 < -7) & (R20 >= -10)),
         ("l10_20", "Lỗ 10–20%", (R20 < -10) & (R20 >= -20)), ("l20", "Lỗ từ 20% trở lên", R20 < -20)]
 CUM = [("g7", "Lãi trên 7%", R20 > 7), ("g15", "Lãi trên 15%", R20 > 15), ("l7", "Lỗ trên 7%", R20 < -7), ("l15", "Lỗ trên 15%", R20 < -15)]
 fr = {k: frac(m) for k, _, m in BINS + CUM}
@@ -107,7 +107,7 @@ elif dl <= -5:
     nhan, y = "Phục hồi hẹp", "Mã lỗ giảm nhiều nhưng mã lãi mạnh chưa tăng tương ứng: chủ yếu là mã thoát vùng lỗ, chưa có nhiều mã lãi mạnh."
 else:
     nhan, y = "Bình lặng", "Chưa có thay đổi rõ về diện rộng của lãi hoặc lỗ so với 5 phiên trước."
-pb["nhan"], pb["nhan_cau"] = nhan, y + " " + dan.replace(".", ",")
+pb["nhan"], pb["nhan_cau"] = nhan, y + " " + re.sub(r"(\d)\.(\d)", r"\1,\2", dan)
 print("nhan:", nhan, "|", pb["nhan_cau"])
 json.dump(pb, open("dash_out/phan_bo_loi_lo.json", "w"), ensure_ascii=False, allow_nan=False)
 print("phan_bo:", pb["ngay"], pb["so_ma"], "ma; >7%:", pb["tich_luy"][0]["pct"], "<-7%:", pb["tich_luy"][2]["pct"], "trung vi", pb["trung_vi"])
