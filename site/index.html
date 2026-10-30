@@ -391,8 +391,14 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           <div class="sm-chart" id="sm-dd" style="min-height:6rem"></div>
         </div>
         <div class="atl-card">
-          <h2 class="atl-h">Các lệnh</h2>
+          <h2 class="atl-h">Đang giữ</h2>
           <div class="atl-tablebox"><table class="sm-tbl" id="sm-tb"><thead><tr><th>Mã</th><th id="sm-th-loai">Loại</th><th>Mua</th><th class="num">Giá mua</th><th class="num">Số cp</th><th class="num">% NAV</th><th class="num">Giá nay / bán</th><th class="num">Lãi/lỗ %</th><th class="num">Lãi/lỗ (đ)</th><th>Trạng thái</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="atl-card">
+          <h2 class="atl-h">Những mã đã đóng</h2>
+          <p class="atl-note">Các lệnh đã bán, mỗi trang là một tháng (theo ngày đóng lệnh).</p>
+          <div class="atl-pgbar" id="sm-pg"></div>
+          <div class="atl-tablebox"><table class="sm-tbl" id="sm-tb2"><thead><tr><th>Mã</th><th id="sm-th-loai2">Loại</th><th>Mua</th><th class="num">Giá mua</th><th class="num">Số cp</th><th class="num">% NAV</th><th class="num">Giá bán</th><th class="num">Lãi/lỗ %</th><th class="num">Lãi/lỗ (đ)</th><th>Đóng</th></tr></thead><tbody></tbody></table></div>
         </div>
         <div class="atl-card" id="sm-ld-card" hidden>
           <h2 class="atl-h">Long đầu từng nhóm hôm nay</h2>
@@ -461,7 +467,22 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 (function(){
   var st=document.createElement('style');
   st.textContent='.ch-tip{position:absolute;pointer-events:none;z-index:6;background:var(--color-panel);color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:8px;padding:6px 9px;font-size:12px;line-height:1.5;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.28)}.ch-tip b{font-variant-numeric:tabular-nums}';
+  st.textContent+='.atl-pgbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;flex-wrap:wrap}.atl-pgbar button{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:8px;padding:5px 12px;cursor:pointer}.atl-pgbar button:disabled{opacity:.35;cursor:default}.atl-pgbar .pg-l{font-weight:600;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}';
   document.head.appendChild(st);
+  /* Phân trang theo tháng: mỗi trang là một tháng, mặc định tháng mới nhất. render(danhSáchTrongTháng) vẽ bảng. */
+  window.atlMonthPager=function(host,items,dateOf,render,unit){
+    var by={};items.forEach(function(it){var k=String(dateOf(it)||'').slice(0,7);if(k)(by[k]=by[k]||[]).push(it);});
+    var keys=Object.keys(by).sort();host.textContent='';
+    if(!keys.length){host.style.display='none';render([]);return;}
+    host.style.display='flex';
+    var idx=keys.indexOf(host._pgk);if(idx<0)idx=keys.length-1;
+    var prev=document.createElement('button'),next=document.createElement('button'),lab=document.createElement('span');
+    prev.type=next.type='button';prev.textContent='‹ Tháng trước';next.textContent='Tháng sau ›';lab.className='pg-l';
+    prev.setAttribute('aria-label','Tháng trước');next.setAttribute('aria-label','Tháng sau');
+    host.append(prev,lab,next);
+    function show(){var k=keys[idx];host._pgk=k;lab.textContent='Tháng '+k.slice(5)+'/'+k.slice(0,4)+' · '+by[k].length+' '+(unit||'lệnh');prev.disabled=idx===0;next.disabled=idx===keys.length-1;render(by[k]);}
+    prev.addEventListener('click',function(){if(idx>0){idx--;show();}});next.addEventListener('click',function(){if(idx<keys.length-1){idx++;show();}});
+    show();};
   var ns='http://www.w3.org/2000/svg';
   /* Chú thích khi đưa chuột (hoặc chạm) vào biểu đồ. xs: toạ độ x từng điểm; rows(i) trả {t:tiêu đề, items:[[nhãn,giá trị,màu]]} */
   window.atlHover=function(box,svg,W,xs,top,bot,rows){
@@ -538,7 +559,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     $('sm-ld-card').hidden=true;
     var note=$('sm-note'),tiles=$('sm-tiles'),tb=$('sm-tb').querySelector('tbody');
     var ass=$('sm-ass');ass.textContent='';(D.gia_dinh||[]).forEach(function(t){ass.appendChild(el('li',null,t));});
-    if(D.trang_thai!=='ok'){note.textContent='Chưa có lệnh nào trong nhật ký tín hiệu để mô phỏng.';tiles.textContent='';tb.textContent='';return;}
+    if(D.trang_thai!=='ok'){note.textContent='Chưa có lệnh nào trong nhật ký tín hiệu để mô phỏng.';tiles.textContent='';tb.textContent='';$('sm-tb2').querySelector('tbody').textContent='';$('sm-pg').style.display='none';return;}
     var T=D.tong,n=T.so_phien;
     var isLd=mode==='ld';$('sm-th-loai').textContent=isLd?'Nhóm':'Loại';
     note.textContent='Mô phỏng '+(isLd?'Long đầu ':'')+'từ '+dm(D.ngay_bat_dau)+' đến '+dm(D.ngay_cuoi)+': mới '+n+' phiên và '+T.so_lenh+' lệnh, chưa đủ để kết luận hơn hay kém giao dịch tay. Số liệu dài dần mỗi ngày theo nhật ký tín hiệu của hệ thống.';
@@ -549,8 +570,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     tiles.appendChild(tile('Sụt giảm tối đa',pc(T.mdd),'Thấp nhất ngày '+dm(T.mdd_ngay),T.mdd<0?'neg':''));
     tiles.appendChild(tile('Cổ phiếu / tiền mặt',pc(T.co_phieu_pct,1).replace('+',''),'Tiền mặt '+n0(T.tien_mat)+' đ'));
     tiles.appendChild(tile('Lệnh',T.dang_giu+' đang giữ · '+T.da_dong+' đã đóng',T.da_dong?('Thắng '+T.thang+' · thua '+T.thua+(T.lai_tb_lenh!=null?' · TB '+pc(T.lai_tb_lenh):'')):'Chưa có lệnh đóng'));
-    tb.textContent='';
-    D.lenh.forEach(function(r){
+    var tb2=$('sm-tb2').querySelector('tbody');$('sm-th-loai2').textContent=isLd?'Nhóm':'Loại';
+    function rowFor(r){
       var tr=el('tr');
       var a=el('td',null,r.ma);a.style.fontWeight='600';tr.appendChild(a);
       tr.appendChild(el('td',null,r.loai));
@@ -561,8 +582,13 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       tr.appendChild(el('td','num',r.gia_nay.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})));
       tr.appendChild(el('td','num '+cls(r.lai_pct),pc(r.lai_pct)));
       tr.appendChild(el('td','num '+cls(r.lai_dong),(r.lai_dong>=0?'+':'−')+n0(Math.abs(r.lai_dong))));
-      tr.appendChild(el('td',null,r.trang_thai==='Đang giữ'?'Đang giữ':'Đã đóng '+dm(r.ngay_thoat)+(r.ly_do?' · '+r.ly_do:'')));
-      tb.appendChild(tr);});
+      tr.appendChild(el('td',null,r.trang_thai==='Đang giữ'?'Đang giữ':dm(r.ngay_thoat)+(r.ly_do?' · '+r.ly_do:'')));
+      return tr;}
+    function fill(body,list,empty){body.textContent='';
+      if(!list.length){var t=el('tr'),c=el('td',null,empty);c.colSpan=10;c.style.color='var(--color-fg-muted)';t.appendChild(c);body.appendChild(t);return;}
+      list.forEach(function(r){body.appendChild(rowFor(r));});}
+    fill(tb,D.lenh.filter(function(r){return r.trang_thai==='Đang giữ';}),'Hiện không giữ mã nào.');
+    window.atlMonthPager($('sm-pg'),D.lenh.filter(function(r){return r.trang_thai!=='Đang giữ';}),function(r){return r.ngay_thoat||r.ngay_mua;},function(list){fill(tb2,list,'Chưa có lệnh nào đã đóng.');});
     var cc=$('sm-cho-card'),ch=$('sm-cho');cc.hidden=!(D.cho&&D.cho.length);ch.textContent='';
     if(!cc.hidden){$('sm-cho-note').textContent=isLd?'Kết quả lần xét lại gần nhất, sẽ vào hoặc ra ở giá đóng cửa phiên tới, với tỷ trọng dự kiến bên dưới.':'Tín hiệu mới chưa vào lệnh. Mô phỏng sẽ mua khi có giá phiên sau (ATO với mã MUA, giá đóng cửa với vé số), với tỷ trọng dự kiến bên dưới.';
       var w=el('div','atl-chips');D.cho.forEach(function(r){var c=el('span','atl-chip',r.ma+' · '+r.loai+' · '+(r.ty*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'% NAV');w.appendChild(c);});ch.appendChild(w);}
@@ -887,11 +913,24 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       </div>
 
       <div class="atl-card atl-wide" id="card-lich-su-loc">
-        <h2 class="atl-h">Lịch sử tín hiệu và kết quả</h2>
-        <p class="atl-note">Mọi tín hiệu bộ lọc đã phát. Lãi/lỗ của mã MUA tính từ giá ATO; mã THEO DÕI tính từ giá khuyến nghị để tham khảo, không có lệnh thật.</p>
+        <h2 class="atl-h">Lịch sử tín hiệu đã chốt</h2>
+        <p class="atl-note">Các mã đã mua và đã chốt, mỗi trang là một tháng. Lãi/lỗ tính từ giá ATO (mã MUA) hoặc giá mua (Vé số, Trứng rồng). Mã còn đang giữ nằm ở phần Đang giữ phía trên.</p>
+        <div class="atl-pgbar" id="ls-pg"></div>
         <div class="atl-tablebox">
           <table id="tb-ls" data-source="lich_su_loc" data-row-key="ngay,ma">
             <thead><tr><th data-field="ngay">Ngày</th><th data-field="ma">Mã</th><th data-field="tin_hieu">Tín hiệu</th><th class="num" data-field="gia_khuyen_nghi">Giá KN</th><th class="num" data-field="gia_mua_ato">Giá ATO</th><th class="num" data-field="lai_t3">T+3 %</th><th class="num" data-field="lai_t10">T+10 %</th><th class="num" data-field="lai_quy_tac">Chốt</th><th data-field="ly_do_thoat">Lý do thoát</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-theo-doi-ls">
+        <h2 class="atl-h">Theo dõi chưa mua</h2>
+        <p class="atl-note">Các mã từng có tín hiệu THEO DÕI nhưng chưa mua, mỗi trang là một tháng. Lãi/lỗ T+3 và T+10 tính từ giá khuyến nghị để tham khảo, không có lệnh thật. Cột Kết quả cho biết mã đã lên MUA, còn đang theo dõi hay đã hết hạn.</p>
+        <div class="atl-pgbar" id="td-pg"></div>
+        <div class="atl-tablebox">
+          <table id="tb-td-ls">
+            <thead><tr><th>Ngày</th><th>Mã</th><th>Theo dõi</th><th class="num">Giá KN</th><th class="num">T+3 %</th><th class="num">T+10 %</th><th>Kết quả</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -2380,24 +2419,46 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       list($('hn-giu-list'), by('ĐANG GIỮ').concat(ldOpen.map((r) => ({ loai: 'ĐANG GIỮ', dai: r.loai, ma: r.ma, nganh: r.nganh, ngay_tin_hieu: r.ngay, gia_mua: r.gia_mua, gia_hien_tai: r.gia_hien_tai, lai_lo_pct: r.lai_lo, cat_lo: r.cat_lo, st_tuan: r.nguong_thoat, muc_tieu_1: null, muc_tieu_2: null, dai_duoi: null }))), 'Chưa có lệnh nào đang giữ.');
       list($('hn-td-list'), by('THEO DÕI'), 'Không có mã nào sát dải dưới.');
     }
-    const tls = document.querySelector('#tb-ls tbody');
+    const tls = document.querySelector('#tb-ls tbody'), tdt = document.querySelector('#tb-td-ls tbody');
+    const emptyRow = (tb, n, txt) => { const t = el('tr'), c = el('td', '', txt); c.colSpan = n; c.style.color = 'var(--color-fg-muted)'; t.appendChild(c); tb.replaceChildren(t); };
     if (L.status === 'ok') {
       const ldHist = ldRows.map((r) => {
         const open = String(r.trang_thai).startsWith('Đang'), cho = String(r.trang_thai).startsWith('Mới');
         return { ngay: r.ngay, ma: r.ma, tin_hieu: 'MUA · ' + r.loai, gia_khuyen_nghi: r.gia_tin_hieu, gia_mua_ato: cho ? null : r.gia_mua, lai_t3: null, lai_t10: null,
-          lai_quy_tac: open || cho ? null : r.lai_lo, ly_do_thoat: open || cho ? '' : String(r.trang_thai).replace(/^Đã bán:\s*/, ''), ngay_thoat: null, _cho: cho };
+          lai_quy_tac: open || cho ? null : r.lai_lo, ly_do_thoat: open || cho ? '' : String(r.trang_thai).replace(/^Đã bán:\s*/, ''), ngay_thoat: r.ngay_thoat || null, _cho: cho };
       });
       const rows = dotTheoDoi(L.data).concat(ldHist).sort((a, b) => (a.ngay < b.ngay ? 1 : -1));
       const pct = (v) => (v == null || v === '' ? '—' : d3.format('+.2f')(+v));
-      tls.replaceChildren(...rows.map((r) => {
-        const t = el('tr'); t.dataset.key = enc(r.ngay) + ',' + enc(r.ma);
-        const mua = String(r.tin_hieu).startsWith('MUA');
-        const cells = [[r.ngay, ''], [r.ma, ''], [r.so_phien > 1 ? r.tin_hieu + ' (' + r.so_phien + ' phiên, đến ' + r.den_ngay.slice(8, 10) + '/' + r.den_ngay.slice(5, 7) + ')' : r.tin_hieu, ''], [r.gia_khuyen_nghi == null ? '—' : f2(+r.gia_khuyen_nghi), 'num'], [r.gia_mua_ato == null ? '—' : f2(+r.gia_mua_ato), 'num'],
-          [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [pct(r.lai_quy_tac), 'num'], [r.ly_do_thoat ? r.ly_do_thoat + (r.ngay_thoat ? ' (' + r.ngay_thoat.slice(8, 10) + '/' + r.ngay_thoat.slice(5, 7) + ')' : '') : (r._cho ? 'Chờ mua phiên sau' : mua ? 'Đang giữ' : '—'), '']];
-        cells.forEach(([v, c], i) => { const td = el('td', c, String(v)); if (i >= 5 && i <= 7 && v !== '—') td.classList.add(+v >= 0 ? 'pos' : 'neg'); if (i === 2) td.style.fontWeight = mua ? '600' : ''; t.appendChild(td); });
-        return t;
-      }));
-    } else tls.replaceChildren();
+      const dd = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+      const isBuy = (r) => String(r.tin_hieu).startsWith('MUA');
+      const closed = rows.filter((r) => isBuy(r) && !r._cho && r.ly_do_thoat);
+      const watch = rows.filter((r) => String(r.tin_hieu).startsWith('THEO'));
+      const fillLS = (list) => {
+        if (!list.length) { emptyRow(tls, 9, 'Chưa có lệnh nào đã chốt.'); return; }
+        tls.replaceChildren(...list.map((r) => {
+          const t = el('tr'); t.dataset.key = enc(r.ngay) + ',' + enc(r.ma);
+          const cells = [[r.ngay, ''], [r.ma, ''], [r.tin_hieu, ''], [r.gia_khuyen_nghi == null ? '—' : f2(+r.gia_khuyen_nghi), 'num'], [r.gia_mua_ato == null ? '—' : f2(+r.gia_mua_ato), 'num'],
+            [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [pct(r.lai_quy_tac), 'num'], [r.ly_do_thoat + (r.ngay_thoat ? ' (' + dd(r.ngay_thoat) + ')' : ''), '']];
+          cells.forEach(([v, c], i) => { const td = el('td', c, String(v)); if (i >= 5 && i <= 7 && v !== '—') td.classList.add(+v >= 0 ? 'pos' : 'neg'); if (i === 2) td.style.fontWeight = '600'; t.appendChild(td); });
+          return t; }));
+      };
+      window.atlMonthPager($('ls-pg'), closed, (r) => r.ngay_thoat || r.ngay, fillLS);
+      const ref = N.status === 'ok' && N.data.length ? N.data[N.data.length - 1].ngay : (rows[0] ? rows[0].ngay : '');
+      const buys = {}; L.data.forEach((r) => { if (String(r.tin_hieu).startsWith('MUA')) (buys[r.ma] = buys[r.ma] || []).push(r.ngay); });
+      const days = (a, b) => (new Date(b) - new Date(a)) / 864e5;
+      const ketQua = (r) => { const m = (buys[r.ma] || []).filter((d) => d >= r.ngay && days(r.den_ngay, d) <= 14).sort()[0];
+        if (m) return 'Đã lên MUA ' + dd(m); return days(r.den_ngay, ref) > 14 ? 'Hết hạn theo dõi' : 'Đang theo dõi'; };
+      const fillTD = (list) => {
+        if (!list.length) { emptyRow(tdt, 7, 'Chưa có mã nào ở trạng thái theo dõi.'); return; }
+        tdt.replaceChildren(...list.map((r) => {
+          const t = el('tr');
+          const cells = [[r.ngay, ''], [r.ma, ''], [r.so_phien > 1 ? r.so_phien + ' phiên, đến ' + dd(r.den_ngay) : '1 phiên', ''], [r.gia_khuyen_nghi == null ? '—' : f2(+r.gia_khuyen_nghi), 'num'],
+            [pct(r.lai_t3), 'num'], [pct(r.lai_t10), 'num'], [ketQua(r), '']];
+          cells.forEach(([v, c], i) => { const td = el('td', c, String(v)); if ((i === 4 || i === 5) && v !== '—') td.classList.add(+v >= 0 ? 'pos' : 'neg'); if (i === 6 && String(v).startsWith('Đã lên')) td.style.fontWeight = '600'; t.appendChild(td); });
+          return t; }));
+      };
+      window.atlMonthPager($('td-pg'), watch, (r) => r.ngay, fillTD, 'mã');
+    } else { tls.replaceChildren(); tdt.replaceChildren(); }
   }
   // Gop cac phien theo doi lien tiep cua cung 1 ma thanh 1 dot (dot moi neu cach > 14 ngay hoac da co MUA xen giua)
   const dotTheoDoi = (rows) => { const out = [], last = {}; rows.slice().sort((a, b) => (a.ngay < b.ngay ? -1 : a.ngay > b.ngay ? 1 : 0)).forEach((r) => {
