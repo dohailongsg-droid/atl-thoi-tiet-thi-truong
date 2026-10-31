@@ -32,31 +32,32 @@ def _req(url, body=None):
 
 def symbols(group="HOSE"):
     """Mã cổ phiếu 3 ký tự đang niêm yết trong nhóm (HOSE, HNX, UPCOM, VN30...)."""
-    return [d["symbol"] for d in _req(f"{BASE}/price/symbols/getByGroup?group={group}") if len(d["symbol"]) == 3]
+    import gia_nguon as gn
+    return gn.danh_sach_ma(group)
 
 
-def _one(sym, count_back):
-    for a in range(4):
-        try:
-            j = _req(f"{BASE}/chart/OHLCChart/gap-chart",
-                     {"timeFrame": "ONE_DAY", "symbols": [sym], "to": int(time.time()) + 86400, "countBack": count_back})
-            if not j:
-                return None
-            it = j[0]
-            df = pd.DataFrame({k: it[k] for k in "ohlcv"}, dtype=float)
-            df["date"] = pd.to_datetime([int(t) for t in it["t"]], unit="s").normalize()
-            df["symbol"] = sym
-            return df.drop_duplicates("date")
-        except Exception:
-            time.sleep(1 + a)
-    return None
+def _one(sym, count_back, order=None, deadline=None):
+    """Giá ngày 1 mã (Vietcap, tự chuyển nguồn dự phòng khi Vietcap chậm/chặn). Xem gia_nguon.py."""
+    import gia_nguon as gn
+    it = gn.lay(sym, count_back, order or gn.THU_TU, deadline)
+    if not it:
+        return None
+    df = pd.DataFrame({k: it[k] for k in "ohlcv"}, dtype=float)
+    df["date"] = pd.to_datetime([int(t) for t in it["t"]], unit="s").normalize()
+    df["symbol"] = sym
+    return df.drop_duplicates("date")
 
 
 def fetch(group="HOSE", count_back=1750, path=FILE, workers=4):
     """Tải lại từ đầu. count_back = số phiên (1750 ≈ 7 năm). Ghi file CSV nén gzip dạng dài (date,symbol,o,h,l,c,v)."""
+    import gia_nguon as gn
     syms = symbols(group) + ["VNINDEX"]
+    order = gn.chon_nguon()
+    dl = time.time() + 900
     with ThreadPoolExecutor(workers) as ex:
-        parts = [p for p in ex.map(lambda s: _one(s, count_back), syms) if p is not None]
+        parts = [p for p in ex.map(lambda s: _one(s, count_back, order, dl), syms) if p is not None]
+    if "VNINDEX" not in {p.symbol.iloc[0] for p in parts} or len(parts) < 0.95 * len(syms):
+        raise SystemExit("LOI: khong tai du gia (%d/%d ma), dung de khong ghi du lieu thieu." % (len(parts), len(syms)))
     df = pd.concat(parts, ignore_index=True)[["date", "symbol", "o", "h", "l", "c", "v"]]
     df.to_csv(path, index=False)
     print(f"{df.symbol.nunique()} mã, {len(df)} dòng, {df.date.min().date()} → {df.date.max().date()}")
