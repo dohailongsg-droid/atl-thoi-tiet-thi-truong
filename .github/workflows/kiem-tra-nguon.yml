@@ -1,0 +1,54 @@
+name: Kiểm tra nguồn giá
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Thử
+        run: |
+          python3 - <<'EOF'
+          import json, time, urllib.request
+          from concurrent.futures import ThreadPoolExecutor
+          UA = {"User-Agent": "Mozilla/5.0"}
+          VH = {**UA, "Referer": "https://trading.vietcap.com.vn/", "Origin": "https://trading.vietcap.com.vn", "Content-Type": "application/json"}
+          def get(url, body=None, h=UA, to=20):
+              r = urllib.request.Request(url, data=None if body is None else json.dumps(body).encode(), headers=h, method="GET" if body is None else "POST")
+              return urllib.request.urlopen(r, timeout=to).read().decode("utf-8", "replace")
+          # A. Vietcap: 1 luồng vs 4 luồng
+          try:
+              syms = [d["symbol"] for d in json.loads(get("https://trading.vietcap.com.vn/api/price/symbols/getByGroup?group=HOSE", h=VH)) if len(d["symbol"]) == 3]
+              TO = int(time.time()) + 86400
+              def one(x):
+                  t = time.time()
+                  try:
+                      get("https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart", {"timeFrame": "ONE_DAY", "symbols": [x], "to": TO, "countBack": 330}, VH)
+                      return True, time.time() - t
+                  except Exception as e:
+                      return False, time.time() - t
+              for w, lst in [(1, syms[:20]), (4, syms[20:40])]:
+                  t = time.time()
+                  with ThreadPoolExecutor(w) as ex: r = list(ex.map(one, lst))
+                  print("VIETCAP %d luong: %d/%d ok, %.0fs" % (w, sum(k for k, _ in r), len(lst), time.time() - t))
+          except Exception as e:
+              print("VIETCAP loi:", repr(e)[:100])
+          # B. Nguồn khác: HPG và VNINDEX, 30 ngày gần nhất
+          N = int(time.time()); F = N - 86400 * 30
+          tests = [
+            ("VPS HPG", "https://histdatafeed.vps.com.vn/tradingview/history?symbol=HPG&resolution=1D&from=%d&to=%d" % (F, N)),
+            ("VPS VNINDEX", "https://histdatafeed.vps.com.vn/tradingview/history?symbol=VNINDEX&resolution=1D&from=%d&to=%d" % (F, N)),
+            ("DNSE HPG", "https://services.entrade.com.vn/chart-api/v2/ohlcs/stock?from=%d&to=%d&symbol=HPG&resolution=1D" % (F, N)),
+            ("DNSE VNINDEX", "https://services.entrade.com.vn/chart-api/v2/ohlcs/index?from=%d&to=%d&symbol=VNINDEX&resolution=1D" % (F, N)),
+            ("VNDIRECT HPG", "https://dchart-api.vndirect.com.vn/dchart/history?resolution=D&symbol=HPG&from=%d&to=%d" % (F, N)),
+            ("VNDIRECT VNINDEX", "https://dchart-api.vndirect.com.vn/dchart/history?resolution=D&symbol=VNINDEX&from=%d&to=%d" % (F, N)),
+            ("TCBS HPG", "https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term?ticker=HPG&type=stock&resolution=D&from=%d&to=%d" % (F, N)),
+            ("SSI HPG", "https://iboard-api.ssi.com.vn/statistics/company/stock-price?symbol=HPG&page=1&size=5&fromDate=01/10/2026&toDate=30/10/2026"),
+          ]
+          for name, url in tests:
+              t = time.time()
+              try:
+                  b = get(url)
+                  print("%s: OK %.1fs | %s" % (name, time.time() - t, b[-230:].replace("\n", " ")))
+              except Exception as e:
+                  print("%s: LOI %.1fs | %s" % (name, time.time() - t, repr(e)[:120]))
+          EOFA
