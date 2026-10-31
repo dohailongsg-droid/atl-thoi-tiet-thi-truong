@@ -9,10 +9,10 @@ def req(url,body=None):
     r=urllib.request.Request(url,data=None if body is None else json.dumps(body).encode(),headers=H,method="GET" if body is None else "POST")
     return json.loads(urllib.request.urlopen(r,timeout=20).read())
 import gia_nguon as gn
-# v1.5.8: nguon gia DNSE > VPS > VNDirect > Vietcap (Vietcap hay cham/chan may GitHub; 3 nguon dau da doi chieu voi Vietcap: gia lech <=0,08%, khoi luong khop). Moi lenh toi da 12s, tong toi da 9 phut.
+# v1.5.8: nguon gia DNSE > VPS > VNDirect > Vietcap (Vietcap hay cham/chan may GitHub; 3 nguon dau da doi chieu voi Vietcap: gia lech <=0,08%, khoi luong khop). Moi lenh toi da 12s, tong toi da 14 phut.
 stocks=gn.danh_sach_ma("HOSE")
 ORDER=gn.chon_nguon()
-T0=time.time(); DEADLINE=T0+540; _n=[0]
+T0=time.time(); DEADLINE=T0+840; _n=[0]
 def get(s):
     it=gn.lay(s,330,ORDER,DEADLINE)
     if it: _n[0]+=1

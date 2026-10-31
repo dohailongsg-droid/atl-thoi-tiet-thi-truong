@@ -9,7 +9,7 @@ Chỉ số VNINDEX tính bằng điểm, không nhân 1000.
 
 Biến môi trường GIA_NGUON (kiểm thử): vietcap | vndirect | dnse | vps, ép dùng đúng nguồn đó.
 """
-import csv, datetime, json, os, sys, time, urllib.request
+import csv, datetime, json, os, sys, threading, time, urllib.request
 
 UA = {"User-Agent": "Mozilla/5.0"}
 VH = {**UA, "Referer": "https://trading.vietcap.com.vn/", "Origin": "https://trading.vietcap.com.vn",
@@ -68,6 +68,22 @@ def _nguon(src, sym, n, to):
 
 
 ICT = datetime.timezone(datetime.timedelta(hours=7))
+_PEERS = []                      # các nguồn phụ ngang hàng (cùng có nến mới nhất): chia đều mã cho chúng
+_LOI = {}                        # nguồn -> (số lần lỗi liên tiếp, thời điểm hết nghỉ)
+_LK = threading.Lock()
+
+
+def _ghi(src, ok):
+    """Nguồn lỗi 4 lần liên tiếp thì nghỉ 15s, 30s, 60s... (tối đa 120s) để khỏi chờ timeout từng mã."""
+    with _LK:
+        n = 0 if ok else _LOI.get(src, (0, 0))[0] + 1
+        _LOI[src] = (n, 0 if n < 4 else time.time() + min(120, 15 * 2 ** (n - 4)))
+
+
+def _nghi(src):
+    with _LK:
+        return time.time() < _LOI.get(src, (0, 0))[1]
+
 THU_TU = ["dnse", "vps", "vndirect", "vietcap"]     # Vietcap đứng cuối: hay chậm/chặn máy GitHub
 
 
@@ -77,7 +93,7 @@ def chon_nguon():
     Nếu không nguồn nào có nến hôm nay (ngày lễ) thì giữ thứ tự mặc định."""
     ep = os.environ.get("GIA_NGUON", "").strip().lower()
     if ep:
-        _log("nguon gia ep dung:", ep); return [ep]
+        _log("nguon gia ep dung:", ep); _PEERS[:] = [ep]; return [ep]
     now = datetime.datetime.now(ICT)
     can_hom_nay = now.weekday() < 5 and now.hour * 60 + now.minute >= 15 * 60 + 20
     ngay = {}
@@ -92,21 +108,33 @@ def chon_nguon():
     if can_hom_nay and any(ngay[s] == now.date() for s in song):
         order = [s for s in song if ngay[s] == now.date()] + [s for s in song if ngay[s] != now.date()]
     order += [s for s in THU_TU if s not in order]
+    moi = max([ngay[s] for s in song if s != "vietcap"] or [None], key=lambda d: d or datetime.date.min)
+    _PEERS[:] = [s for s in order if s != "vietcap" and ngay[s] and ngay[s] == moi]
     _log("kiem tra nguon (VNINDEX phien cuoi): %s -> thu tu: %s" % (
         ", ".join("%s=%s" % (s, ngay[s] or "loi") for s in THU_TU), " > ".join(order)))
     return order
 
 
 def lay(sym, n, order, deadline=None):
-    """Giá ngày n phiên của 1 mã; thử lần lượt các nguồn trong order, tối đa 2 vòng. None nếu thất bại."""
+    """Giá ngày n phiên của 1 mã. Mã được chia đều cho các nguồn phụ ngang hàng (xoay vòng theo tên mã), nguồn nào
+    đang nghỉ (lỗi liên tiếp) thì bỏ qua; lỗi thì chuyển nguồn kế. Tối đa 2 vòng. None nếu thất bại."""
+    ngang = [s for s in order if s in _PEERS]
+    if len(ngang) > 1:
+        k = sum(map(ord, sym)) % len(ngang)
+        ngang = ngang[k:] + ngang[:k]
+    thu = ngang + [s for s in order if s not in ngang]
     for vong in range(2):
-        for src in order:
+        khoe = [s for s in thu if not _nghi(s)] or thu
+        for src in khoe:
             if deadline is not None and time.time() > deadline:
                 return None
             try:
-                return _nguon(src, sym, n, 12)
+                it = _nguon(src, sym, n, 12)
+                _ghi(src, True)
+                return it
             except Exception:
-                time.sleep(0.5)
+                _ghi(src, False)
+                time.sleep(0.2)
         time.sleep(1 + vong)
     return None
 
