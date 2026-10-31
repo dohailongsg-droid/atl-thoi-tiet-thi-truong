@@ -1,0 +1,59 @@
+name: So sánh nguồn giá
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: So sánh
+        run: |
+          python3 - <<'EOF'
+          import json, time, datetime, urllib.request, statistics as st
+          from concurrent.futures import ThreadPoolExecutor
+          UA = {"User-Agent": "Mozilla/5.0"}
+          VH = {**UA, "Referer": "https://trading.vietcap.com.vn/", "Origin": "https://trading.vietcap.com.vn", "Content-Type": "application/json"}
+          N = int(time.time()); F = N - 86400 * 480
+          def get(url, body=None, h=UA, to=20):
+              r = urllib.request.Request(url, data=None if body is None else json.dumps(body).encode(), headers=h, method="GET" if body is None else "POST")
+              return json.loads(urllib.request.urlopen(r, timeout=to).read().decode("utf-8", "replace"))
+          def day(t): return datetime.datetime.utcfromtimestamp(int(t) + 25200).date().isoformat()
+          def pack(j, k=1):
+              return {day(t): (float(c) * k, float(v)) for t, c, v in zip(j["t"], j["c"], j["v"])}
+          def vietcap(s):
+              for a in range(8):
+                  try:
+                      j = get("https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart", {"timeFrame": "ONE_DAY", "symbols": [s], "to": N + 86400, "countBack": 330}, VH)
+                      return pack(j[0], 1)
+                  except Exception: time.sleep(2)
+              return None
+          def alt(name, s):
+              try:
+                  if name == "VPS": j = get("https://histdatafeed.vps.com.vn/tradingview/history?symbol=%s&resolution=1D&from=%d&to=%d" % (s, F, N))
+                  elif name == "DNSE": j = get("https://services.entrade.com.vn/chart-api/v2/ohlcs/%s?from=%d&to=%d&symbol=%s&resolution=1D" % ("index" if s == "VNINDEX" else "stock", F, N, s))
+                  else: j = get("https://dchart-api.vndirect.com.vn/dchart/history?resolution=D&symbol=%s&from=%d&to=%d" % (s, F, N))
+                  return pack(j, 1000)
+              except Exception as e:
+                  return repr(e)[:80]
+          def job(s):
+              out = []
+              v = vietcap(s)
+              if v is None:
+                  return ["%s: Vietcap that bai sau 8 lan" % s]
+              ks = sorted(v)
+              out.append("%s: Vietcap %d phien, cuoi %s, dong cua %.0f" % (s, len(v), ks[-1], v[ks[-1]][0]))
+              for name in ["VPS", "DNSE", "VNDIRECT"]:
+                  a = alt(name, s)
+                  if isinstance(a, str):
+                      out.append("  %s: LOI %s" % (name, a)); continue
+                  common = [d for d in v if d in a]
+                  if not common:
+                      out.append("  %s: khong trung ngay nao (%d phien)" % (name, len(a))); continue
+                  r = [a[d][0] / v[d][0] for d in common if v[d][0]]
+                  vr = [a[d][1] / v[d][1] for d in common if v[d][1]]
+                  bad = sum(1 for x in r if abs(x - 1) > 0.005)
+                  out.append("  %s: %d phien, cuoi %s | trung %d ngay | gia lech lon nhat %.2f%%, %d ngay lech >0.5%% | khoi luong TB ti le %.2f" % (name, len(a), max(a), len(common), max(abs(x - 1) for x in r) * 100, bad, st.median(vr)))
+              return out
+          with ThreadPoolExecutor(2) as ex:
+              for res in ex.map(job, ["HPG", "FPT", "VNM", "VNINDEX"]):
+                  print("\n".join(res))
+          EOF
