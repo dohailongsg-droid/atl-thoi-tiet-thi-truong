@@ -1373,7 +1373,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var s=out.join(' ').replace(/ ?\n ?/g,'\n').replace(/\n+/g,'\n');
     return s.length>lim?s.slice(0,lim)+'\n[đã cắt bớt phần cuối]':s;}
   var TABS=[['ho','ho-so','HỒ SƠ MÃ'],['hn','hom-nay','HÔM NAY MUA GÌ (nhiệt kế, tín hiệu bộ lọc, chế độ Trứng rồng)'],['dt','dong-tien','DÒNG TIỀN VÀ THỊ TRƯỜNG (VN-Index theo mùa, ngành chuyển pha, cấu trúc thị trường, bản đồ nhiệt, vòng quay ngành)'],['xh','xep-hang','XẾP HẠNG TRONG NHÓM (long đầu, nhãn giá, tam tài)']];
-  var LIM_G={ho:16000,hn:6000,dt:8500,xh:7000},LIM_Q={ho:3400,hn:1400,dt:1100,xh:1100};
+  var LIM_G={ho:16000,hn:6000,dt:10500,xh:7000},LIM_Q={ho:3400,hn:1400,dt:1100,xh:1100};
   function collect(){// mở lần lượt từng tab (đồng bộ, không kịp vẽ ra màn hình) để các tab đã được dựng nội dung rồi mới đọc
     var cur0=window.atlTab||'hom-nay',o={},y=window.pageYOffset||0,bd=document.body,h=document.documentElement.scrollHeight;
     bd.style.minHeight=h+'px';// giữ nguyên chiều cao trang khi đổi tab tạm thời để trang không bị kéo xuống
@@ -1539,6 +1539,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class="atl-seg">
         <button type="button" data-v="all" aria-pressed="true">Xem tất cả</button>
         <button type="button" data-v="mua" aria-pressed="false">Mùa &amp; cấu trúc</button>
+        <button type="button" data-v="nh" aria-pressed="false">Ngành vs VN-Index</button>
         <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
         <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
@@ -1635,6 +1636,56 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         <p class="ct-src" id="pb-src"></p>
       </div>
 
+    </div>
+    <div class="atl-dv" data-view="nh">
+      <h2 class="atl-dvh">Ngành so với VN-Index</h2>
+      <div class="atl-grid">
+        <div class="atl-card atl-wide" id="card-nh">
+          <style>
+#card-nh .nh-body{display:grid;gap:var(--cds-gap-lg);margin-top:var(--cds-gap-md)}
+@media (min-width:900px){#card-nh .nh-body{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);align-items:start}}
+#card-nh .nh-hd,#card-nh .nh-r{display:grid;grid-template-columns:minmax(7.5rem,1.1fr) minmax(0,1.6fr) 4.6rem 3.8rem;gap:8px;align-items:center}
+#card-nh .nh-hd{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:0 6px 4px}
+#card-nh .nh-hd span:nth-child(n+3),#card-nh .nh-r .v,#card-nh .nh-r .d{text-align:right}
+#card-nh .nh-r{padding:5px 6px;border-radius:6px;cursor:pointer;font-size:var(--cds-font-size-caption);border:1px solid transparent}
+#card-nh .nh-r:hover{background:color-mix(in srgb,var(--color-fg) 6%,transparent)}
+#card-nh .nh-r[aria-pressed="true"]{border-color:var(--cds-border)}
+#card-nh .nh-r .n{display:flex;align-items:center;gap:6px;min-width:0}
+#card-nh .nh-r .n b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#card-nh .nh-r .n i{flex:none;width:9px;height:9px;border-radius:50%}
+#card-nh .nh-r .trk{position:relative;height:9px;background:color-mix(in srgb,var(--color-fg) 8%,transparent);border-radius:5px}
+#card-nh .nh-r .fl{position:absolute;top:0;height:100%;border-radius:5px}
+#card-nh .nh-r .z{position:absolute;top:-2px;width:1px;height:13px;background:var(--cds-chart-axis)}
+#card-nh .nh-r .d{color:var(--color-fg-muted)}
+#card-nh .nh-r.ref{font-weight:600}
+#card-nh .nh-r.avg{font-style:italic;color:var(--color-fg-muted)}
+#card-nh .nh-r.dim{opacity:.35}
+#card-nh .nh-lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:6px}
+#card-nh .nh-lg i{display:inline-block;width:18px;height:0;border-top:3px solid var(--color-fg);vertical-align:middle;margin-right:5px}
+          </style>
+          <h2 class="atl-h" id="nh-h">Ngành mạnh hơn hay yếu hơn VN-Index?</h2>
+          <p class="atl-note" id="nh-take">—</p>
+          <div class="atl-controls">
+            <div class="atl-seg" role="group" aria-label="Khung thời gian" id="nh-kseg"></div>
+            <div class="atl-seg" role="group" aria-label="Đường hiển thị" id="nh-mseg">
+              <button type="button" data-m="top" aria-pressed="true">6 mạnh nhất</button>
+              <button type="button" data-m="bot" aria-pressed="false">6 yếu nhất</button>
+              <button type="button" data-m="all" aria-pressed="false">Tất cả</button>
+            </div>
+          </div>
+          <div class="nh-body">
+            <div>
+              <div class="nh-hd"><span>Ngành</span><span></span><span>% giá</span><span>so VNI</span></div>
+              <div id="nh-rank" data-source="nganh_hieu_suat"></div>
+            </div>
+            <div>
+              <div class="atl-chart" id="ch-nh" style="min-height:22rem"></div>
+              <div class="nh-lg"><span><i></i>VN-Index</span><span><i style="border-top-style:dashed;border-top-color:var(--color-fg-muted)"></i>Bình quân các ngành</span></div>
+            </div>
+          </div>
+          <p class="atl-note" id="nh-foot">—</p>
+        </div>
+      </div>
     </div>
     <div class="atl-dv" data-view="tm">
       <h2 class="atl-dvh">Bản đồ nhiệt</h2>
@@ -3155,7 +3206,132 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 <script>
 (() => {
-  window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); };
+  const $ = (id) => document.getElementById(id);
+  const PAL = ['#6aa3d8', '#d8a35a', '#6fc19a', '#b58bd6', '#d8d36a', '#6ad8d0', '#d87a7a', '#8fd14f', '#e07b9a', '#7aa0e0', '#e0905a', '#5aa9a0', '#c9a0dc', '#b0b05a', '#d08f8f', '#6fb0d0', '#a0d08f', '#c98ad0'];
+  const KH = [['1T', 5, '1 tuần'], ['1M', 20, '1 tháng'], ['3M', 60, '3 tháng'], ['6M', 120, '6 tháng'], ['YTD', -1, 'Từ đầu năm'], ['1Y', 251, '1 năm']];
+  const st = { k: '1M', m: 'top', sel: new Set(), hl: null }; let D = null, fail = false;
+  const fv = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',') + '%';
+  const fd = (v) => (Math.abs(v) < 0.05 ? '0,0' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ','));
+  const dm = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
+  const kseg = $('nh-kseg');
+  KH.forEach(([k, , lab]) => { const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k; b.textContent = lab; b.addEventListener('click', () => { st.k = k; st.hl = null; draw(); }); kseg.appendChild(b); });
+  $('nh-mseg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { st.m = b.dataset.m; st.sel = new Set(); st.hl = null; draw(); }));
+
+  function calc() {
+    const L = D.ngay.length, kh = KH.find((x) => x[0] === st.k);
+    let i0;
+    if (kh[1] < 0) { const y = D.ngay[L - 1].slice(0, 4); i0 = 0; for (let i = L - 1; i >= 0; i--) if (D.ngay[i].slice(0, 4) < y) { i0 = i; break; } }
+    else i0 = Math.max(0, L - 1 - kh[1]);
+    const pc = (v) => v.slice(i0).map((x) => (x / v[i0] - 1) * 100);
+    const sec = D.nganh.map((s, j) => ({ ten: s.ten, so_ma: s.so_ma, c: PAL[j % PAL.length], p: pc(s.v) }));
+    const n = sec[0].p.length;
+    const avg = Array.from({ length: n }, (_, t) => sec.reduce((a, s) => a + s.p[t], 0) / sec.length);
+    return { i0, ngay: D.ngay.slice(i0), vni: pc(D.vni), avg, sec, kh };
+  }
+
+  function draw() {
+    const box = $('ch-nh'), rank = $('nh-rank');
+    if (!window.atlVis || !window.atlVis('nh')) return;
+    if (fail) { window.atlFail && window.atlFail(box); return; }
+    if (!D) return;
+    kseg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === st.k)));
+    $('nh-mseg').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(!st.sel.size && b.dataset.m === st.m)));
+    const R = calc(), last = R.vni.length - 1, vL = R.vni[last], aL = R.avg[last];
+    const ord = R.sec.slice().sort((a, b) => b.p[last] - a.p[last]);
+    const beat = ord.filter((s) => s.p[last] > vL).length;
+    const dates = R.ngay;
+    const gap = vL - aL;
+    let rd = 'VN-Index và bình quân ngành gần nhau, chỉ số phản ánh khá sát mặt bằng chung.';
+    if (gap >= 1) rd = 'VN-Index hơn bình quân ngành ' + Math.abs(gap).toFixed(1).replace('.', ',') + ' điểm: chỉ số đang được các mã vốn hóa lớn kéo, độ rộng yếu hơn con số của chỉ số.';
+    else if (gap <= -1) rd = 'Bình quân ngành hơn VN-Index ' + Math.abs(gap).toFixed(1).replace('.', ',') + ' điểm: sức mạnh đang lan ở các nhóm vừa và nhỏ hơn là các mã trụ.';
+    $('nh-take').textContent = 'Từ ' + dm(dates[0]) + ' đến ' + dm(dates[last]) + ' (' + R.kh[2].toLowerCase() + '): VN-Index ' + fv(vL) + ', bình quân ' + R.sec.length + ' ngành ' + fv(aL) + '; ' + beat + '/' + R.sec.length + ' ngành hơn VN-Index. Mạnh nhất ' + ord[0].ten + ' ' + fv(ord[0].p[last]) + ', yếu nhất ' + ord[ord.length - 1].ten + ' ' + fv(ord[ord.length - 1].p[last]) + '. ' + rd;
+    $('nh-h').textContent = 'Ngành so với VN-Index · ' + R.kh[2].toLowerCase();
+
+    // chon duong hien thi
+    let vis;
+    if (st.sel.size) vis = ord.filter((s) => st.sel.has(s.ten));
+    else if (st.m === 'top') vis = ord.slice(0, 6);
+    else if (st.m === 'bot') vis = ord.slice(-6).reverse();
+    else vis = ord;
+    const visSet = new Set(vis.map((s) => s.ten));
+
+    // bang xep hang (gom VN-Index va binh quan vao cung danh sach)
+    const rows = ord.map((s) => ({ ten: s.ten, v: s.p[last], c: s.c, kind: 'sec', so_ma: s.so_ma }))
+      .concat([{ ten: 'VN-Index', v: vL, c: 'var(--color-fg)', kind: 'ref' }, { ten: 'Bình quân các ngành', v: aL, c: 'var(--color-fg-muted)', kind: 'avg' }])
+      .sort((a, b) => b.v - a.v);
+    const lo = Math.min(0, ...rows.map((r) => r.v)), hi = Math.max(0, ...rows.map((r) => r.v)), span = (hi - lo) || 1, z0 = (-lo / span) * 100;
+    rank.replaceChildren();
+    rows.forEach((r) => {
+      const e = document.createElement('div'); e.className = 'nh-r' + (r.kind === 'ref' ? ' ref' : r.kind === 'avg' ? ' avg' : '') + (st.hl && st.hl !== r.ten && r.kind === 'sec' ? ' dim' : '');
+      if (r.kind === 'sec') { e.setAttribute('role', 'button'); e.tabIndex = 0; e.setAttribute('aria-pressed', String(st.sel.has(r.ten))); e.title = r.so_ma + ' mã. Bấm để chọn hoặc bỏ chọn đường này'; }
+      const n = document.createElement('div'); n.className = 'n';
+      const dot = document.createElement('i'); dot.style.background = r.kind === 'sec' ? (visSet.has(r.ten) ? r.c : 'transparent') : r.c;
+      if (r.kind === 'sec' && !visSet.has(r.ten)) dot.style.border = '1px solid var(--cds-chart-muted)';
+      if (r.kind === 'avg') { dot.style.background = 'transparent'; dot.style.border = '1px dashed var(--color-fg-muted)'; }
+      const nm = document.createElement('b'); nm.textContent = r.ten; n.append(dot, nm);
+      const t = document.createElement('div'); t.className = 'trk';
+      const fl = document.createElement('div'); fl.className = 'fl';
+      const w = (Math.abs(r.v) / span) * 100; fl.style.width = w + '%'; fl.style.left = (r.v >= 0 ? z0 : z0 - w) + '%';
+      fl.style.background = r.v >= 0 ? 'var(--color-ok)' : 'var(--color-bad)'; fl.style.opacity = r.kind === 'sec' ? 0.85 : 1;
+      const zl = document.createElement('div'); zl.className = 'z'; zl.style.left = z0 + '%';
+      t.append(fl, zl);
+      const v = document.createElement('div'); v.className = 'v ' + (r.v >= 0 ? 'pos' : 'neg'); v.textContent = fv(r.v);
+      const dd = document.createElement('div'); dd.className = 'd'; dd.textContent = r.kind === 'ref' ? '—' : fd(r.v - vL);
+      e.append(n, t, v, dd);
+      if (r.kind === 'sec') {
+        const tog = () => { if (st.sel.has(r.ten)) st.sel.delete(r.ten); else { if (!st.sel.size) { /* bat dau chon tay tu dau */ } st.sel.add(r.ten); } draw(); };
+        e.addEventListener('click', tog); e.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } });
+        e.addEventListener('pointerenter', (ev) => { if (ev.pointerType !== 'mouse') return; st.hl = r.ten; hlApply(); }); e.addEventListener('pointerleave', (ev) => { if (ev.pointerType !== 'mouse') return; st.hl = null; hlApply(); });
+      }
+      rank.appendChild(e);
+    });
+
+    // bieu do duong
+    const W = Math.max(300, box.clientWidth), H = W < 520 ? 340 : 400, m = { l: 44, r: 10, t: 10, b: 24 };
+    const all = [R.vni, R.avg].concat(vis.map((s) => s.p)); const ymin = d3.min(all, (a) => d3.min(a)), ymax = d3.max(all, (a) => d3.max(a));
+    const y = d3.scaleLinear([Math.min(ymin, 0), Math.max(ymax, 0)], [H - m.b, m.t]).nice(); const x = d3.scaleLinear([0, last], [m.l, W - m.r]);
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Lợi suất tích lũy của VN-Index và các ngành');
+    y.ticks(6).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', t === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)').attr('stroke-dasharray', t === 0 ? '4 3' : null);
+      svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text((t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t) + '%');
+    });
+    const nt = W < 520 ? 4 : 6; for (let q = 0; q < nt; q++) { const i = Math.round((last * q) / (nt - 1)); svg.append('text').attr('x', x(i)).attr('y', H - 6).attr('text-anchor', q === 0 ? 'start' : q === nt - 1 ? 'end' : 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(dm(dates[i])); }
+    const ln = d3.line().x((_, i) => x(i)).y((v) => y(v)).defined((v) => v === v).curve(d3.curveLinear);
+    const gS = svg.append('g');
+    vis.forEach((s) => gS.append('path').attr('class', 'nh-ln').attr('data-t', s.ten).attr('d', ln(s.p)).attr('fill', 'none').attr('stroke', s.c).attr('stroke-width', vis.length > 8 ? 1.6 : 2.2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('opacity', vis.length > 8 ? 0.8 : 1));
+    svg.append('path').attr('d', ln(R.avg)).attr('fill', 'none').attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
+    svg.append('path').attr('d', ln(R.vni)).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 3).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+    svg.append('circle').attr('cx', x(last)).attr('cy', y(vL)).attr('r', 4).attr('fill', 'var(--color-fg)');
+    // hover
+    const hl = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0);
+    const el = window.atlTip(box);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev); const i = Math.max(0, Math.min(last, Math.round(x.invert(px))));
+        hl.attr('x1', x(i)).attr('x2', x(i)).attr('opacity', 1); el.replaceChildren();
+        const add = (a, b, bold) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; if (bold) d.style.fontWeight = 600; el.appendChild(d); };
+        const t = document.createElement('div'); t.className = 't'; t.textContent = dm(dates[i]) + '/' + dates[i].slice(0, 4) + ' · % từ ' + dm(dates[0]); el.appendChild(t);
+        add('VN-Index', fv(R.vni[i]), true); add('Bình quân ngành', fv(R.avg[i]));
+        vis.slice().sort((a, b) => b.p[i] - a.p[i]).slice(0, 10).forEach((s) => add(s.ten, fv(s.p[i])));
+        const sc = box.clientWidth / W; window.atlPlaceTip(el, box, x(i) * sc, (m.t + 30) * sc);
+      }).on('pointerleave', () => { hl.attr('opacity', 0); el.hidden = true; });
+    box.replaceChildren(svg.node(), el);
+    $('nh-foot').textContent = 'Chỉ số ngành = bình quân đều lợi suất các mã có GTGD TB20 ≥ 3 tỷ (cùng cách tính với RRG ngành), nhóm có từ 3 mã, không tính nhóm Khác. Bình quân các ngành là trung bình đơn giản của % các ngành. VN-Index tính theo vốn hóa nên nghiêng về nhóm trụ; chênh lệch giữa hai đường cho biết sức mạnh tập trung hay lan rộng. Điểm cuối tính tới phiên ' + dm(dates[last]) + '/' + dates[last].slice(0, 4) + '. ' + (st.sel.size ? 'Đang chọn ' + st.sel.size + ' ngành; bấm "6 mạnh nhất", "6 yếu nhất" hoặc "Tất cả" để bỏ chọn. ' : 'Bấm vào một ngành ở bảng xếp hạng để chọn đường muốn xem. ') + 'Chỉ mô tả số đã tính, không phải tín hiệu mua bán.';
+  }
+  function hlApply() {
+    document.querySelectorAll('#card-nh .nh-ln').forEach((p) => { const t = p.dataset.t; p.style.opacity = st.hl && st.hl !== t ? 0.12 : ''; if (st.hl === t) p.setAttribute('stroke-width', 3.2); else p.removeAttribute('data-x'); });
+    document.querySelectorAll('#card-nh .nh-r').forEach((r) => { const nm = r.querySelector('b').textContent; const sec = !r.classList.contains('ref') && !r.classList.contains('avg'); r.classList.toggle('dim', !!(st.hl && sec && nm !== st.hl)); });
+  }
+  window.atlDrawNH = draw;
+  fetch('data/nganh_hieu_suat.json?v=' + new Date().toISOString().slice(0, 10), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then((j) => { D = j; draw(); }).catch(() => { fail = true; draw(); });
+  dash.onData(() => draw());
+})();
+</script>
+
+<script>
+(() => {
+  window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawNH && window.atlDrawNH(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); };
   const h = location.hash.slice(1);
   if (h === 'rrg') { window.atlShow('dong-tien'); window.atlDV('rrg', false); }
   else if (['hom-nay', 'xep-hang', 'ho-so', 'nhiet-ke', 'dong-tien', 'trong-phien', 'danh-muc'].includes(h)) window.atlShow(h);
