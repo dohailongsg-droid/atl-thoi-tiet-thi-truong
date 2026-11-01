@@ -1167,7 +1167,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
         <div class="atl-card" id="card-hs-ai" hidden>
           <h2 class="atl-h" id="ai-title">Hỏi AI về mã này</h2>
-          <p class="dg-note">AI đọc 4 tab: Hồ sơ mã, Hôm nay mua gì, Dòng tiền và Thị trường, Xếp hạng trong nhóm (đúng những gì hệ thống đã tính) để giải thích thuật ngữ và cách đọc; không dự báo con số, không khuyên mua bán.</p>
+          <p class="dg-note">AI đọc 4 tab: Hồ sơ mã, Hôm nay mua gì, Dòng tiền và Thị trường, Xếp hạng trong nhóm (đúng những gì hệ thống đã tính) và khi cần tra thêm web (Gemini) để tư vấn mua bán, tỷ trọng, điểm vào, cắt lỗ. Thông tin ngoài trang được gắn thẻ [Ngoài trang, cần kiểm chứng]. Chỉ để tham khảo, quyết định và rủi ro do bạn.</p>
           <form class="ai-ma" id="ai-ma-form"><label for="ai-ma">Mã cổ phiếu</label><input type="search" id="ai-ma" list="hs-ds" placeholder="VD: DGW" size="7" maxlength="5" autocomplete="off"><button type="submit">Đổi mã</button><span class="dg-note" id="ai-ma-msg" aria-live="polite"></span></form>
           <div class="ai-chips" id="ai-chips"></div>
           <div class="ai-log" id="ai-log" aria-live="polite"></div>
@@ -1354,7 +1354,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
   var cur=null,hist=[],busy=false,jumpAi=false;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
-  var RULES='Bạn là trợ lý giải thích các tab của trang ATL: Hồ sơ mã (kỹ thuật và cơ bản của mã đang chọn), Hôm nay mua gì (nhiệt kế, tín hiệu), Dòng tiền và Thị trường, Xếp hạng trong nhóm. QUY TẮC: (1) Căn cứ chính là dữ liệu trong các phần NỘI DUNG TAB, SỐ LIỆU 12 QUÝ và SO SÁNH (nếu có). Được phép giải thích khái niệm chung (ví dụ MA50, dải Bollinger, ROE, định giá, RRG), nhưng ví dụ và kết luận phải lấy từ số liệu của trang; không dùng tin tức hay số liệu thị trường ngoài trang và không bịa số. Nếu thiếu dữ liệu, nói rõ phần nào của trang chưa có và gợi ý tab cần xem, rồi vẫn trả lời phần có thể trả lời. (2) Không dự báo giá hay lợi nhuận. Khi hỏi về quý sau, nêu mốc và xu hướng 12 quý, so sánh cùng kỳ và điều cần theo dõi, và nói rõ đây không phải dự báo. (3) Không đưa lệnh mua, bán hay nắm giữ kiểu "nên mua", "nên bán", "khuyến nghị mua". Thay vào đó mô tả trạng thái và kịch bản: điều gì đang đúng, điều gì đang yếu, và điều kiện nào trên trang sẽ đổi nhận định. Khi hỏi đắt hay rẻ, nêu khoảng giá trị theo các kịch bản có trên trang, kịch bản làm ước tính sai và điều kiện đổi nhận định. (4) Khi được hỏi so sánh hai mã: nêu mã nào tốt hơn về cơ bản và mã nào tốt hơn về kỹ thuật, đưa từng tiêu chí và ghi rõ mã nào hơn ở tiêu chí nào, rồi kết luận tổng quát dựa trên số liệu trang. Không dùng dữ liệu ngoài trang để so sánh. (5) Khi giải thích thuật ngữ, dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng số liệu của mã. (6) Trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI NGAY (cuối cùng); không tóm tắt lại toàn bộ tab nếu không được hỏi. Nếu câu hỏi nêu một con số hay tiêu chí, trả lời trực tiếp về con số hay tiêu chí đó trước. (7) Trả lời tiếng Việt, khoảng 150 từ (so sánh hai mã hoặc câu hỏi đắt rẻ tối đa 250 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (8) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (9) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
+  var RULES='Bạn là cố vấn đầu tư chứng khoán Việt Nam của ATL, trả lời trực tiếp cho chủ trang (người dùng duy nhất, đã hiểu rủi ro). Được tư vấn tự do và có quan điểm rõ ràng: mua, bán, nắm giữ, chờ, tỷ trọng, điểm vào, cắt lỗ, mục tiêu, kịch bản và dự báo có điều kiện. QUY TẮC: (1) Ưu tiên dữ liệu của trang trong các phần NỘI DUNG TAB, SỐ LIỆU 12 QUÝ và SO SÁNH (nếu có): mọi nhận định bám vào số của trang trước. Không bịa số. (2) Khi cần thêm thông tin (tin tức, báo cáo mới, giá và sự kiện gần đây, vĩ mô, đối thủ cùng ngành, hoặc trang thiếu dữ liệu), được tra web nếu có công cụ tìm kiếm trong lượt này, hoặc dùng kiến thức nền. Mọi ý lấy từ ngoài trang phải kết thúc bằng thẻ [Ngoài trang, cần kiểm chứng], kèm nguồn và thời điểm nếu biết; ý lấy từ trang thì không gắn thẻ. Nếu web mâu thuẫn với trang, nêu cả hai, nói rõ cái nào là của trang và ưu tiên số của trang khi tính toán. (3) Đi theo khung 3 lớp: nói pha thị trường và tỷ trọng tối đa nhiệt kế cho phép trước (nếu tab Hôm nay mua gì có), rồi ngành và vị thế long đầu, rồi điểm vào và cắt lỗ cụ thể (theo Bollinger, MA, trung tâm Triền Luận nếu trang có). (4) Kết luận thẳng như "mua thăm dò", "chờ", "không mua", "giảm tỷ trọng" kèm lý do; luôn kèm kịch bản thành công, kịch bản thất bại, điều kiện đổi nhận định và mức cắt lỗ; nhắc T+2 khi nói về điểm vào. Khi hỏi đắt hay rẻ, nêu khoảng giá trị theo các kịch bản trên trang và kịch bản làm ước tính sai. (5) Nếu ý định của người hỏi đi ngược pha thị trường (dùng margin khi thị trường yếu, đuổi giá, mua khi giá vừa vượt MA ở vùng nóng), phản biện thẳng và giải thích lý do, không chiều theo. (6) Khi so sánh hai mã: đưa từng tiêu chí cơ bản và kỹ thuật, ghi mã nào hơn ở tiêu chí nào, rồi kết luận nên ưu tiên mã nào và vì sao; được bổ sung thông tin web có gắn thẻ. (7) Giải thích thuật ngữ dùng phần GIẢI THÍCH THUẬT NGỮ, ngắn gọn, ví dụ bằng số liệu của mã. (8) Trả lời đúng câu hỏi ở mục CÂU HỎI CẦN TRẢ LỜI NGAY (cuối cùng), con số hay tiêu chí được hỏi trả lời trước; không tóm tắt lại toàn bộ tab nếu không được hỏi. (9) Trả lời tiếng Việt, khoảng 250 từ (so sánh hai mã, đắt rẻ hoặc kế hoạch vào lệnh tối đa 400 từ), gạch đầu dòng ngắn; chỉ dùng chữ thường, không dùng ký hiệu LaTeX hay dấu sao; số theo kiểu Việt Nam (dấu chấm ngăn nghìn, dấu phẩy thập phân). (10) Viết hoa đúng chính tả; mã cổ phiếu viết HOA và liền nhau như DGW, PVT, PVP. (11) Không cần lời chào hay tuyên bố miễn trừ, giao diện đã có.';
   function compact(x){
     var dg=x.dinh_gia||{},v=dg.v2||null,o={ma:x.ma,ten:x.ten,loai:x.loai,bao_cao:x.ky_bao_cao,gia:x.gia,ngay:x.ngay,
       chi_tieu:(x.chi_tieu||[]).map(function(g){return {nhom:g.nhom,muc:g.muc.map(function(m){return {ten:m.ten,gia_tri:m.gt,don_vi:m.dv,trung_vi_5_nam:m.tb5,phan_vi:m.pv};})};}),
@@ -1407,8 +1407,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       var ok=vs.some(function(v){return set.some(function(c){return Math.abs(v-c)<=tol||Math.abs(v-c*100)<=tol;});});
       if(!ok&&bad.indexOf(m)<0)bad.push(m);});
     return bad;}
-  var BANNED=/(nên mua|nên bán|khuyến nghị mua|khuyến nghị bán|nên nắm giữ)/i;
-  function clean(l){return l.replace(/\$\$?/g,'').replace(/\\text\{([^}]*)\}/g,'$1').replace(/\\times/g,'×').replace(/\\%/g,'%').replace(/\\[()\[\]]/g,'').replace(/^\s*[-*]\s+/,'• ').replace(/\*/g,'');}
+    function clean(l){return l.replace(/\$\$?/g,'').replace(/\\text\{([^}]*)\}/g,'$1').replace(/\\times/g,'×').replace(/\\%/g,'%').replace(/\\[()\[\]]/g,'').replace(/^\s*[-*]\s+/,'• ').replace(/\*/g,'');}
   function addMsg(role,text,note){
     var log=$('ai-log'),m=el('div','ai-m '+role);
     text.split('\n').forEach(function(l){if(!l.trim())return;m.appendChild(el('p',null,clean(l)));});
@@ -1424,8 +1423,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var i=0,errs=[];
     function next(){if(i>=MG.length)return Promise.reject(new Error(errs.join(' | ')||'Gemini không phản hồi'));
       var mod=MG[i++];
-      return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},{systemInstruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:0.2,maxOutputTokens:700}}).then(function(r){
-        if(r.ok&&r.j&&r.j.candidates&&r.j.candidates[0]&&r.j.candidates[0].content){return {text:r.j.candidates[0].content.parts.map(function(p){return p.text||'';}).join(''),model:mod};}
+      function call(useTool){var b={systemInstruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:0.4,maxOutputTokens:2500}};if(useTool)b.tools=[{google_search:{}}];
+        return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},b);}
+      return call(true).then(function(r0){return (!r0.ok&&r0.status!==401&&r0.status!==403)?call(false):r0;}).then(function(r){
+        if(r.ok&&r.j&&r.j.candidates&&r.j.candidates[0]&&r.j.candidates[0].content){var c=r.j.candidates[0],web=[],gm=c.groundingMetadata;((gm&&gm.groundingChunks)||[]).forEach(function(g){var t=g.web&&(g.web.title||g.web.uri);if(t&&web.indexOf(t)<0&&web.length<5)web.push(t);});return {text:c.content.parts.map(function(p){return p.text||'';}).join(''),model:mod,web:web};}
         var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
         if(r.status===401||r.status===403||(r.status===400&&/API key/i.test(em)))return Promise.reject(new Error('Khóa Gemini không hợp lệ hoặc chưa được cấp quyền: '+em));
         if(r.status===429)return Promise.reject(new Error('Gemini báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
@@ -1498,13 +1499,14 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     compareCtx(text).then(function(x){cmpCtx=x||null;sys=sysText(LIM_G,ctxT);return run(0);}).then(function(r){
       wait.remove();
       var bad=checkNums(r.text,sys),notes=[];
-      if(bad.length)notes.push('Chưa đối chiếu được với dữ liệu trên trang: '+bad.slice(0,6).join(', ')+'. Hãy kiểm tra lại các số này.');
-      if(BANNED.test(r.text))notes.push('Câu trả lời có lời khuyên mua bán, hệ thống không đưa lời khuyên này. Hãy bỏ qua.');
-      notes.push('Do AI viết lại từ số liệu có sẵn ('+(r.prov==='gemini'?'Gemini':r.prov==='groq'?'Groq':'Mistral')+', '+r.model+'). Chỉ để tham khảo.');
+      if(bad.length)notes.push('Số chưa thấy trên trang: '+bad.slice(0,6).join(', ')+' (có thể từ web ngoài hoặc AI tự tính), hãy kiểm tra lại.');
+      if(/\[Ngoài trang/i.test(r.text)||(r.web&&r.web.length))notes.push('Có thông tin ngoài trang (web hoặc kiến thức AI), cần kiểm chứng thêm.');
+      if(r.web&&r.web.length)notes.push('Nguồn web: '+r.web.join(', ')+'.');
+      notes.push('Do AI tư vấn từ số liệu trên trang ('+(r.prov==='gemini'?'Gemini':r.prov==='groq'?'Groq':'Mistral')+', '+r.model+'). Chỉ để tham khảo.');
       addMsg('bot',r.text.trim()||'(AI không trả lời)',notes.join(' '));
       hist.push({role:'model',text:r.text});
     },function(e){wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
-  var CHIPS=['Hôm nay thị trường đang ở pha nào, được mua tối đa bao nhiêu?','Mã này thuộc nhóm nào, dòng tiền ngành đang ra sao?','Tóm tắt kỹ thuật và cơ bản của mã này','Các góc nhìn kỹ thuật đang đồng thuận hay mâu thuẫn?','Tóm tắt phân tích cơ bản','Giải thích các cờ cảnh báo','Vì sao giá trị ước tính ra mức này?','Lợi nhuận quý này tốt thì quý sau cần điều kiện gì?','Chỉ tiêu nào đáng chú ý nhất?','Giải thích biên an toàn và chi phí vốn Ke'];
+  var CHIPS=['Hôm nay thị trường đang ở pha nào, được mua tối đa bao nhiêu?','Mã này thuộc nhóm nào, dòng tiền ngành đang ra sao?','Tóm tắt kỹ thuật và cơ bản của mã này','Các góc nhìn kỹ thuật đang đồng thuận hay mâu thuẫn?','Tóm tắt phân tích cơ bản','Giải thích các cờ cảnh báo','Vì sao giá trị ước tính ra mức này?','Lợi nhuận quý này tốt thì quý sau cần điều kiện gì?','Chỉ tiêu nào đáng chú ý nhất?','Giải thích biên an toàn và chi phí vốn Ke','Có nên mua mã này lúc này không, mua bao nhiêu, cắt lỗ ở đâu?','Tìm thêm tin tức và sự kiện mới nhất của mã này'];
   function reset(x){cur=x;hist=[];$('ai-log').textContent='';$('card-hs-ai').hidden=false;$('ai-title').textContent='Hỏi AI về '+x.ma;}
   function boot(){
     var ch=$('ai-chips');CHIPS.forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){ask(c);});ch.appendChild(b);});
@@ -2351,6 +2353,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       add('Mục tiêu 1', f2(num(r.muc_tieu_1)), 'muc_tieu_1');
       add('Mục tiêu 2', f2(num(r.muc_tieu_2)), 'muc_tieu_2');
       add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
+      add('T+3 (hàng về)', r.lai_t3 == null ? 'chưa tới' : fp(num(r.lai_t3)) + '%', 'lai_t3', r.lai_t3 == null ? '' : (num(r.lai_t3) >= 0 ? 'pos' : 'neg'));
+      add('T+10', r.lai_t10 == null ? 'chưa tới' : fp(num(r.lai_t10)) + '%', 'lai_t10', r.lai_t10 == null ? '' : (num(r.lai_t10) >= 0 ? 'pos' : 'neg'));
     } else if (r.loai === 'VÉ SỐ' || r.loai === 'TRỨNG RỒNG') {
       add('Giá', f2(num(r.gia_khuyen_nghi)), 'gia_khuyen_nghi');
       add('Cắt lỗ', f2(num(r.cat_lo)), 'cat_lo');
