@@ -1,4 +1,4 @@
-"""Danh mục mô phỏng Long đầu: vốn giả định 1 tỷ, mỗi nhóm ngành giữ 1 mã dẫn đầu (long đầu), mỗi mã 2% NAV.
+"""Danh mục mô phỏng Long đầu: vốn giả định 1 tỷ, mỗi nhóm ngành giữ 1 mã dẫn đầu (long đầu), tỷ trọng mỗi mã theo vùng nhiệt kế (2% / 3,3% / 5,3% NAV).
 Chỉ dùng giá (vn_prices_long.csv.gz) và vùng nhiệt kế (dash_out/nhiet_ke.json); không đọc dữ liệu cá nhân, không gọi mạng.
 Không lưu trạng thái: mỗi lần chạy tính lại từ ngày bắt đầu nên kết quả luôn nhất quán với giá mới nhất.
 Đầu ra: dash_out/mo_phong_long_dau.json (cùng cấu trúc với mo_phong.json để trang dùng chung giao diện).
@@ -6,7 +6,7 @@ Không lưu trạng thái: mỗi lần chạy tính lại từ ngày bắt đầ
 Quy tắc (cũng ghi trong file kết quả để trang hiển thị):
 - Nhóm ngành theo groups.py (nhóm có từ 3 mã trở lên). Long đầu của nhóm = mã đang trên MA50 có tăng giá 60 phiên cao nhất nhóm
   (xếp hạng % tăng 60 phiên trong các mã GTGD TB20 ≥ 3 tỷ). Trùng với "hạng 1" của tab Xếp hạng trong nhóm về thứ tự sức mạnh giá.
-- Mỗi 5 phiên xét lại một lần, vào hoặc ra ở giá đóng cửa phiên sau. Mỗi mã 2% NAV. Mã nào mạnh nhất (xếp hạng cao) được vào trước.
+- Mỗi 5 phiên xét lại một lần, vào hoặc ra ở giá đóng cửa phiên sau. Mỗi mã 2% NAV. Tỷ trọng mỗi mã chốt theo vùng lúc mua: vùng 1–2: 2%, vùng 3: 3,3%, vùng 4–5: 5,3% NAV. Mã nào mạnh nhất (xếp hạng cao) được vào trước.
 - Giữ mã đang nắm nếu vẫn trên MA50 và sức mạnh giá chưa kém mã dẫn đầu nhóm quá 20 điểm xếp hạng; nếu không thì bán và đổi sang mã dẫn đầu mới.
 - Cắt lỗ −10% theo giá đóng cửa. Tôn trọng T+2 (không bán trước phiên thứ ba).
 - Tổng tỷ trọng cổ phiếu không vượt trần theo vùng nhiệt kế: vùng 1–2: 30%, vùng 3: 50%, vùng 4–5: 80%, vùng 6: không mua mới.
@@ -18,6 +18,7 @@ import numpy as np, pandas as pd
 import vn_prices as vp, groups, phien
 
 VON = 1_000_000_000
+TY_Z = {1: 0.02, 2: 0.02, 3: 0.033, 4: 0.053, 5: 0.053, 6: 0.02}   # tỷ trọng mỗi mã theo vùng (chốt lúc mua)
 TY = 0.02
 FEE = 0.0015
 STOP = 0.10
@@ -119,15 +120,16 @@ def main():
                     sell(j, i, why)
             nav_now = cash + sum(p["sl"] * (px_of(j, i) or p["px"]) for j, p in pos.items())
             cap = CAP.get(zone_of[idx[i - 1]], 0.30)
+            ty = TY_Z.get(zone_of[idx[i - 1]], TY)
             for k, j in buys:
                 if j in pos or cv[i, j] != cv[i, j]:
                     continue
                 expo = sum(p["sl"] * (px_of(jj, i) or p["px"]) for jj, p in pos.items())
-                if cap <= 0 or expo + TY * nav_now > cap * nav_now + 1:
+                if cap <= 0 or expo + ty * nav_now > cap * nav_now + 1:
                     skipped.append(dict(ma=cols[j], ngay=d, ly_do="Vượt trần tỷ trọng vùng %d (%d%%)" % (zone_of[idx[i - 1]], round(cap * 100))))
                     continue
                 px = float(cv[i, j])
-                sl = int(math.floor(TY * nav_now / px / 100) * 100)
+                sl = int(math.floor(ty * nav_now / px / 100) * 100)
                 while sl > 0 and sl * px * (1 + FEE) > cash:
                     sl -= 100
                 if sl <= 0:
@@ -183,7 +185,7 @@ def main():
             if j in pos:
                 cho.append(dict(ma=cols[j], loai="Bán · " + why, ngay_tin_hieu=idx[last_i], gia_khuyen_nghi=None, cat_lo=None, ty=pos[j]["ty_nav"] / 100))
         for k, j in pend[1]:
-            cho.append(dict(ma=cols[j], loai="Mua · " + gl[k], ngay_tin_hieu=idx[last_i], gia_khuyen_nghi=None, cat_lo=None, ty=TY))
+            cho.append(dict(ma=cols[j], loai="Mua · " + gl[k], ngay_tin_hieu=idx[last_i], gia_khuyen_nghi=None, cat_lo=None, ty=TY_Z.get(zone_of[idx[last_i]], TY)))
 
     L_now = leaders(last_i)
     long_dau_nay = sorted(
@@ -200,15 +202,15 @@ def main():
                 lai_tb_lenh=round(sum(x["lai_pct"] for x in closed_l) / len(closed_l), 2) if closed_l else None,
                 co_phieu_pct=last["co_phieu_pct"], tien_mat=round(cash), so_phien=len(nav_rows))
     assume = [
-        "Vốn giả định 1 tỷ đồng, không dùng margin. Mỗi nhóm ngành (có từ 3 mã) giữ 1 mã long đầu, mỗi mã 2% NAV.",
+        "Vốn giả định 1 tỷ đồng, không dùng margin. Mỗi nhóm ngành (có từ 3 mã) giữ 1 mã long đầu. Tỷ trọng mỗi mã theo vùng nhiệt kế lúc mua: vùng 1–2: 2%, vùng 3: 3,3%, vùng 4–5: 5,3% NAV.",
         "Long đầu của nhóm = mã trên MA50 có sức mạnh giá 60 phiên cao nhất nhóm (xếp hạng trong các mã GTGD TB20 từ 3 tỷ).",
         "Xét lại mỗi 5 phiên, vào hoặc ra ở giá đóng cửa phiên sau. Giữ mã đang nắm nếu còn trên MA50 và chưa kém mã dẫn đầu quá 20 điểm xếp hạng; nếu không thì bán và đổi sang mã dẫn đầu mới.",
         "Cắt lỗ −10% theo giá đóng cửa, tôn trọng T+2.",
         "Tổng tỷ trọng cổ phiếu không vượt trần theo vùng nhiệt kế (vùng 1–2: 30%, vùng 3: 50%, vùng 4–5: 80%, vùng 6: không mua mới). Mã mạnh hơn được vào trước.",
         "Phí và thuế 0,3% mỗi vòng, làm tròn lô 100, giá đánh giá theo giá đóng cửa.",
-        "Backtest 2020–10/2026 của cấu hình này (có thiên lệch người sống sót): khoảng 10% mỗi năm, sụt giảm tối đa khoảng −20%, nhưng từ 7/2023 chỉ khoảng 5% mỗi năm, kém VN-Index cùng kỳ. Đây là cách xếp hạng sức mạnh, không phải tín hiệu mua.",
+        "Backtest 2020–10/2026 với 2% mỗi mã ở mọi vùng (có thiên lệch người sống sót): khoảng 10,6% mỗi năm, sụt giảm tối đa −20%. Tăng tỷ trọng theo vùng (2% / 3,3% / 5,3%) cho 12,1% mỗi năm, sụt giảm tối đa −24%, Sharpe không đổi (1,1); vùng 4–5 chỉ có 3–4 đợt nên chênh lệch nằm trong khoảng nhiễu. Từ 7/2023 khoảng 8% mỗi năm, vẫn kém VN-Index cùng kỳ. Đây là cách xếp hạng sức mạnh, không phải tín hiệu mua.",
     ]
-    out = dict(von=VON, ty_trong=TY, phi_moi_chieu=FEE, tran_theo_vung={str(k): v for k, v in CAP.items()},
+    out = dict(von=VON, ty_trong=TY, ty_trong_theo_vung={str(k): v for k, v in TY_Z.items()}, phi_moi_chieu=FEE, tran_theo_vung={str(k): v for k, v in CAP.items()},
                cap_nhat=datetime.date.today().isoformat(), trang_thai="ok", ngay_bat_dau=start, ngay_cuoi=last["ngay"],
                nav=nav_rows, lenh=lenh, cho=cho, bo_qua=skipped, tong=tong, gia_dinh=assume, long_dau_nay=long_dau_nay,
                ten="Long đầu", vung_nay=zone_of[idx[last_i]])
