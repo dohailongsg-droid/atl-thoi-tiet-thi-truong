@@ -9,9 +9,21 @@ def jl(p,d):
     except Exception: return d
 def vn_now(): return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)+datetime.timedelta(hours=7)
 n=vn_now()
-if not os.environ.get("FORCE") and n.isoweekday()<=5 and 900<=n.hour*100+n.minute<1510:
-    print("Đang trong giờ giao dịch, không cảnh báo."); sys.exit(0)
+TRONG_PHIEN = n.isoweekday()<=5 and 900<=n.hour*100+n.minute<1510 and not os.environ.get("FORCE")
 a=jl("atl.json",{}); ld=jl("dash_out/mo_phong_long_dau.json",{}); wl=set()
+def gui(txt):
+    tok=os.environ.get("TELEGRAM_BOT_TOKEN"); cid=os.environ.get("TELEGRAM_CHAT_ID"); print(txt)
+    if not(tok and cid) or os.environ.get("DRY")=="1": print("(Chưa cấu hình Telegram hoặc DRY: không gửi.)"); return False
+    try:
+        urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/sendMessage",data=urllib.parse.urlencode({"chat_id":cid,"text":txt}).encode()),timeout=20).read(); return True
+    except Exception as e: print("Gửi Telegram lỗi:",type(e).__name__); return False
+if TRONG_PHIEN:
+    # trong phiên chỉ báo lệnh đang giữ chạm điểm thoát (giá tạm thời), không ghi state
+    tam=[x for x in (a.get("dang_giu") or []) if x.get("tam_thoi")]
+    if tam:
+        gui("⚠ ATL · Lệnh đang giữ chạm điểm thoát trong phiên (giá tạm thời, chốt sau 15:15):\n"+"\n".join(f"- {x['ma']}: mua {x['gia_mua_ato']}, giá hiện tại {x['gia_hien_tai']} ({x['lai_lo_pct']:+.2f}%), {x['tam_thoi']}" for x in tam)+"\n\nQuy tắc tính theo giá đóng cửa. Chỉ để tham khảo, không phải khuyến nghị đầu tư.")
+    else: print("Trong phiên, không có lệnh chạm điểm thoát.")
+    sys.exit(0)
 try: wl={l.strip().upper() for l in open("watchlist.txt",encoding="utf-8") if l.strip() and not l.startswith("#")}
 except Exception: pass
 cu=jl(ST,None); moi_lap=cu is None; cu=cu or {}

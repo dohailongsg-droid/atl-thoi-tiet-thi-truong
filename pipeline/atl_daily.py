@@ -149,10 +149,16 @@ def nhan_thoat(tin, vg):
 dang_giu=[]
 if os.path.exists("boloc_in.json"):
     done={u["dong"] for u in upd if "quy_tac" in u}
+    # v1.6: lenh cham diem thoat NGAY HOM NAY khi phien chua chot (gia dang chay) -> van hien o "Dang giu" kem nhan tam thoi, khong de bien mat
+    _last=pd.Timestamp(dates[-1]).strftime("%d/%m"); _tam={}
+    if phien.chua_dong(str(dates[-1])[:10]):
+        for u in upd:
+            q=u.get("quy_tac")
+            if q and str(q[2]).endswith("("+_last+")") and not str(q[2]).startswith("Hết"): _tam[u["dong"]]=str(q[2]).rsplit(" (",1)[0]
     for r in json.load(open("boloc_in.json")):
         try: row,mac,gia,tin=int(r[0]),str(r[2]),float(r[3]),str(r[4])
         except Exception: continue
-        if not tin.startswith("MUA") or row in done or mac not in C.columns: continue
+        if not tin.startswith("MUA") or (row in done and row not in _tam) or mac not in C.columns: continue
         p=C.iloc[-1][mac]
         if p!=p: continue
         try: e=ato(mac,list(dates).index(pd.Timestamp(str(r[1])[:10]).date()))
@@ -162,7 +168,10 @@ if os.path.exists("boloc_in.json"):
         _i=list(dates).index(pd.Timestamp(str(r[1])[:10]).date()); _s=C[mac]; _t={}
         for _k,_nm in [(3,"lai_t3"),(10,"lai_t10")]:
             _t[_nm]=round((_s.iloc[_i+_k]/e-1)*100,2) if _i+_k<len(dates) and _s.iloc[_i+_k]==_s.iloc[_i+_k] else None
-        dang_giu.append({**_t,"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93),"nhan_thoat":nhan_thoat(tin, str(r[5]) if len(r)>5 else "")})
+        dang_giu.append({**_t,"ma":mac,"ngay_mua":str(r[1])[:10],"tin_hieu":tin,"gia_tin_hieu":gia,"gia_mua_ato":r2(e),"gia_hien_tai":r2(p),"lai_lo_pct":round((p/e-1)*100,2),"ma20":r2(ma.iloc[-1][mac]),"dai_tren":r2(upb.iloc[-1][mac]),"cat_lo":r2(e*0.93),"nhan_thoat":nhan_thoat(tin, str(r[5]) if len(r)>5 else ""),"tam_thoi":(_tam.get(row) or None)})
+if dang_giu and any(x.get("tam_thoi") for x in dang_giu):
+    for x in dang_giu:
+        if x.get("tam_thoi"): x["nhan_thoat"]="⚠ "+x["tam_thoi"]+" trong phiên (tạm thời, chốt sau 15:15). Nếu đóng cửa vẫn ở mức này, lệnh thoát theo quy tắc."
 _held={x["ma"] for x in dang_giu}
 rows=[x for x in rows if x["ma"] not in _held]
 # ===== v1.5: DONG CHU DAO + TRUNG RONG TRONG BAO + RO VE SO =====
