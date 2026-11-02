@@ -54,6 +54,14 @@ jobs:
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
+      - name: Cảnh báo Telegram (chỉ sau phiên; không có bí mật Telegram thì bỏ qua)
+        if: github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 pipeline/canh_bao.py
+
       - name: Ghi lại trạng thái (state/), chỉ khi phiên đã đóng cửa (sau 15:10 giờ VN)
         if: github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
         run: |
@@ -73,3 +81,18 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  bao_loi:
+    needs: build
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Báo Telegram khi lượt chạy đỏ
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then echo "Chưa cấu hình Telegram, bỏ qua."; exit 0; fi
+          curl -s -o /dev/null "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=⚠️ ATL: lượt cập nhật số liệu bị lỗi (${{ github.event.schedule || 'chạy tay' }}). Xem: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
