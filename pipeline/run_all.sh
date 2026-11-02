@@ -19,6 +19,7 @@ python3 dash_watch.py
 python3 dash_dcd.py > /dev/null
 python3 dash_final.py
 python3 dash_lenhdai.py
+python3 forward_test.py || echo "forward_test.py lỗi, bỏ qua"
 # tiêu điểm tin (lỗi không làm dừng pipeline)
 python3 tin.py || echo "tin.py lỗi, bỏ qua"
 # tham chiếu cho bảng "Trong phiên" (TB20, top10 hôm qua)

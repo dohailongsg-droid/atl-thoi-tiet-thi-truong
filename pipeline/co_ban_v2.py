@@ -157,8 +157,10 @@ def suc_khoe(ma, cp, st, inc, is_bank, is_ck, ky_long, ln4, equity_vnd, shares):
 
 
 # ================= ĐỊNH GIÁ v2 (Ke theo beta, 3 kịch bản lợi nhuận, biên an toàn) =================
-_MACRO, _BETA, _SECT = None, None, None
+_MACRO, _BETA, _SECT, _NHOM = None, None, None, None
 CHU_KY_NGANH = {"Tài nguyên Cơ bản", "Hóa chất", "Dầu khí", "Bất động sản", "Xây dựng và Vật liệu", "Dịch vụ tài chính"}
+# Nhóm ngành kiểu VN (nhom_vn.csv) mà lợi nhuận dao động theo chu kỳ hàng hóa / cước / vốn đầu tư; sửa tay ở đây nếu muốn thêm hoặc bớt
+CHU_KY_NHOM_VN = {"Cảng biển & Logistics", "Thép", "Dầu khí", "Phân bón & Hóa chất", "Hàng không"}
 CO_CAU_NGANH = {"Y tế", "Công nghệ Thông tin", "Bán lẻ", "Hàng cá nhân & Gia dụng", "Thực phẩm và đồ uống"}
 TRONG_SO = {"co_cau": (0.15, 0.50, 0.35), "hon_hop": (0.25, 0.50, 0.25), "chu_ky": (0.60, 0.30, 0.10)}
 TEN_LOAI_LN = {"co_cau": "tăng trưởng cấu trúc", "hon_hop": "hỗn hợp", "chu_ky": "theo chu kỳ"}
@@ -186,6 +188,21 @@ def nganh_cua(ma):
         except Exception:
             pass
     return _SECT.get(ma, "")
+
+
+def nhom_vn_cua(ma):
+    """Nhóm ngành kiểu VN (nhom_vn.csv: ma,nhom); không có thì trả chuỗi rỗng."""
+    global _NHOM
+    if _NHOM is None:
+        import csv
+        _NHOM = {}
+        try:
+            with open(os.path.join(HERE, "nhom_vn.csv"), encoding="utf-8") as f:
+                for r in csv.DictReader(f):
+                    _NHOM[(r.get("ma") or "").strip().upper()] = (r.get("nhom") or "").strip()
+        except Exception:
+            pass
+    return _NHOM.get(ma, "")
 
 
 def beta_cua(ma):
@@ -230,6 +247,7 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
     b_dung = min(1.6, max(0.6, b)) if b is not None else 1.0
     ke = rf + b_dung * erp
     nganh = nganh_cua(ma)
+    nhom = nhom_vn_cua(ma)
     rev_f = "isb38" if is_bank else "isa3"
     f = lambda x, k: None if x.get(k) is None else float(x[k])
     # ---- phân loại tính chu kỳ ----
@@ -249,8 +267,13 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
         loai_ln, ly_do = ghi_de, "do bạn đặt tay trong macro.json"
     elif fin:
         loai_ln, ly_do = "hon_hop", "nhóm tài chính mặc định hỗn hợp"
-    elif nganh in CHU_KY_NGANH or (cv is not None and cv > 0.45):
-        loai_ln, ly_do = "chu_ky", ("ngành " + nganh + " thường theo chu kỳ") if nganh in CHU_KY_NGANH else f"biên lợi nhuận ròng dao động mạnh (hệ số biến thiên {cv:.2f})"
+    elif nganh in CHU_KY_NGANH or nhom in CHU_KY_NHOM_VN or (cv is not None and cv > 0.45):
+        if nganh in CHU_KY_NGANH:
+            loai_ln, ly_do = "chu_ky", "ngành " + nganh + " thường theo chu kỳ"
+        elif nhom in CHU_KY_NHOM_VN:
+            loai_ln, ly_do = "chu_ky", "nhóm " + nhom + " thường theo chu kỳ (giá cước, hàng hóa, vốn đầu tư)"
+        else:
+            loai_ln, ly_do = "chu_ky", f"biên lợi nhuận ròng dao động mạnh (hệ số biến thiên {cv:.2f})"
     elif nganh in CO_CAU_NGANH and cv is not None and cv < 0.3:
         loai_ln, ly_do = "co_cau", f"ngành {nganh}, biên lợi nhuận ổn định (hệ số biến thiên {cv:.2f})"
     else:
