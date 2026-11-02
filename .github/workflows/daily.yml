@@ -25,6 +25,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # luôn lấy bản mới nhất, kể cả lượt chạy xếp hàng chờ (tránh đọc state cũ gây báo trùng)
 
       - uses: actions/setup-python@v5
         with:
@@ -80,7 +82,7 @@ jobs:
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
           git add pipeline/state pipeline/dash_out/kiem_dinh.json
-          git diff --cached --quiet || (git commit -m "Cập nhật trạng thái $(date -u +%F)" && git pull --rebase --autostash && git push)
+          git diff --cached --quiet || (git commit -m "Cập nhật trạng thái $(date -u +%F)" && git pull --rebase -X theirs --autostash && git push)
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -99,6 +101,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          TELEGRAM_BOT_TOKEN=$(printf %s "$TELEGRAM_BOT_TOKEN" | tr -d '[:space:]'); TELEGRAM_CHAT_ID=$(printf %s "$TELEGRAM_CHAT_ID" | tr -d '[:space:]')
           if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then echo "Chưa cấu hình Telegram, bỏ qua."; exit 0; fi
           curl -s -o /dev/null "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
