@@ -307,6 +307,7 @@
     <div class="tin-view" id="tin-view" hidden><div class="tin-lab">Góc nhìn</div><p id="tin-gocnhin"></p></div>
     <p class="tin-foot" id="tin-foot"></p>
   </div>
+  <div id="lv-news-slot"></div>
   <p class="lv-note">Nguồn: bảng giá Vietcap, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể chậm). Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.</p>
 </div></div>
 </section>
@@ -749,7 +750,7 @@
     var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke',up?'var(--sem-up)':'var(--sem-down)');pl.setAttribute('stroke-width','1.6');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
     var b=box(title);b.appendChild(s);b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
   function render(d){
-    body.textContent='';
+    body.textContent='';var slot=document.getElementById('lv-news-slot');slot.textContent='';
     var age=(Date.now()-Date.parse(d.cap_nhat))/60000;
     dot.className='lv-dot'+(d.dang_giao_dich&&age<25?' on':'');
     stat.textContent='Cập nhật '+d.gio+' · '+d.phien;
@@ -782,9 +783,9 @@
       d.nganh.forEach(function(x){var row=el('div','lv-bar');row.appendChild(el('span','n',x.nganh));var tr=el('span','tr'),i=el('i');var w=Math.abs(x.pct)/mx*50;i.style.width=w+'%';i.style.left=x.pct>=0?'50%':(50-w)+'%';i.style.background=x.pct>=0?'var(--sem-up)':'var(--sem-down)';tr.appendChild(i);row.appendChild(tr);row.appendChild(el('span','p '+cl(x.pct),sg(x.pct,2)+'%'));bn.appendChild(row);});
       body.appendChild(bn);}
     if((d.tin_moi||[]).length){
-      var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');bt.style.marginTop='var(--cds-gap-md)';
+      var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');
       var ul=el('ul','lv-news');d.tin_moi.forEach(function(t){var li=el('li');li.appendChild(el('span','tm',t.luc));var w=el('div');var a=el('a',null,t.tieu_de);a.href=t.link;a.target='_blank';a.rel='noopener';w.appendChild(a);w.appendChild(el('span','sr',t.nguon));li.appendChild(w);ul.appendChild(li);});
-      bt.appendChild(ul);body.appendChild(bt);}
+      bt.appendChild(ul);slot.appendChild(bt);}
   }
   var busy=false;
   function load(){
@@ -3254,7 +3255,7 @@
     });
 
     // bieu do duong
-    const W = Math.max(300, box.clientWidth), H = W < 520 ? 340 : 400, m = { l: 44, r: 10, t: 10, b: 24 };
+    const W = Math.max(300, box.clientWidth), H = W < 520 ? 340 : 400, m = { l: 44, r: W < 520 ? 100 : 156, t: 10, b: 24 };
     const all = [R.vni, R.avg].concat(vis.map((s) => s.p)); const ymin = d3.min(all, (a) => d3.min(a)), ymax = d3.max(all, (a) => d3.max(a));
     const y = d3.scaleLinear([Math.min(ymin, 0), Math.max(ymax, 0)], [H - m.b, m.t]).nice(); const x = d3.scaleLinear([0, last], [m.l, W - m.r]);
     const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'Lợi suất tích lũy của VN-Index và các ngành');
@@ -3269,6 +3270,20 @@
     svg.append('path').attr('d', ln(R.avg)).attr('fill', 'none').attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
     svg.append('path').attr('d', ln(R.vni)).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 3).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
     svg.append('circle').attr('cx', x(last)).attr('cy', y(vL)).attr('r', 4).attr('fill', 'var(--color-fg)');
+    // nhan ten o dau moi duong (tranh chong lap)
+    { const small = W < 520, cut = (t) => { const n = small ? 17 : 25; return t.length > n ? t.slice(0, n - 1) + '…' : t; }, gapY = 12;
+      const L = vis.map((s) => ({ t: s.ten, show: cut(s.ten), c: s.c, y0: y(s.p[last]), k: 'sec' }))
+        .concat([{ t: 'VN-Index', show: 'VN-Index', c: 'var(--color-fg)', y0: y(vL), k: 'ref' }, { t: 'Bình quân', show: small ? 'Bình quân' : 'Bình quân ngành', c: 'var(--color-fg-muted)', y0: y(aL), k: 'avg' }])
+        .sort((a, b) => a.y0 - b.y0);
+      L.forEach((o, i) => { o.y = i === 0 ? Math.max(o.y0, m.t + 6) : Math.max(o.y0, L[i - 1].y + gapY); });
+      const bot = H - m.b; if (L.length && L[L.length - 1].y > bot) { L[L.length - 1].y = bot; for (let i = L.length - 2; i >= 0; i--) L[i].y = Math.min(L[i].y, L[i + 1].y - gapY); }
+      const lx = W - m.r + 8;
+      L.forEach((o) => {
+        const g = svg.append('g').attr('class', 'nh-lb').attr('data-t', o.k === 'sec' ? o.t : '');
+        g.append('line').attr('x1', x(last) + 4).attr('x2', lx - 2).attr('y1', o.y0).attr('y2', o.y).attr('stroke', o.c).attr('stroke-width', 1).attr('opacity', 0.5);
+        g.append('text').attr('x', lx).attr('y', o.y).attr('dy', '0.32em').attr('fill', o.c).style('font-size', '11px').style('font-weight', o.k === 'ref' ? 700 : 500).style('font-style', o.k === 'avg' ? 'italic' : null).text(o.show);
+      });
+    }
     // hover
     const hl = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0);
     const el = window.atlTip(box);
@@ -3287,6 +3302,7 @@
   }
   function hlApply() {
     document.querySelectorAll('#card-nh .nh-ln').forEach((p) => { const t = p.dataset.t; p.style.opacity = st.hl && st.hl !== t ? 0.12 : ''; if (st.hl === t) p.setAttribute('stroke-width', 3.2); else p.removeAttribute('data-x'); });
+    document.querySelectorAll('#card-nh .nh-lb').forEach((g) => { const t = g.dataset.t; g.style.opacity = st.hl && t && st.hl !== t ? 0.15 : ''; });
     document.querySelectorAll('#card-nh .nh-r').forEach((r) => { const nm = r.querySelector('b').textContent; const sec = !r.classList.contains('ref') && !r.classList.contains('avg'); r.classList.toggle('dim', !!(st.hl && sec && nm !== st.hl)); });
   }
   window.atlDrawNH = draw;
