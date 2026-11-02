@@ -30,6 +30,8 @@ python3 gia_hose.py || echo "gia_hose.py lỗi, bỏ qua"
 python3 hieu_suat_thang.py || echo "hieu_suat_thang.py lỗi, bỏ qua"
 # hiệu suất ngành so với VN-Index (lỗi không làm dừng pipeline)
 python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
+# thị trường thế giới: chỉ số, hàng hóa, bitcoin (lỗi không làm dừng pipeline)
+python3 the_gioi.py || echo "the_gioi.py lỗi, bỏ qua"
 # danh mục mô phỏng ATL (vốn 1 tỷ, theo tín hiệu trong nhật ký; lỗi không làm dừng pipeline)
 python3 mo_phong.py || echo "mo_phong.py lỗi, bỏ qua"
 python3 long_dau_mo_phong.py || echo "long_dau_mo_phong.py lỗi, bỏ qua"
