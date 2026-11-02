@@ -11,3 +11,4 @@ pipeline/dash_out/*
 site/data/*
 !site/data/co_ban.json
 !site/data/.gitkeep
+site/toan_bo/
