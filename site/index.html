@@ -925,6 +925,13 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         </div>
       </div>
 
+      <div class="atl-card atl-wide" id="card-forward">
+        <h2 class="atl-h">Kiểm chứng thực tế: tín hiệu thật so với backtest</h2>
+        <p class="atl-note" id="fw-note">Đang tải…</p>
+        <div class="atl-tablebox"><table id="tb-fw"><thead><tr><th>Vùng nhiệt kế lúc có tín hiệu</th><th class="num">Lệnh MUA</th><th class="num">Đã đóng</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">T+3 TB</th><th class="num">T+10 TB</th><th class="num">Backtest lãi TB</th><th class="num">Backtest thắng</th><th>Ghi chú backtest</th></tr></thead><tbody></tbody></table></div>
+        <p class="atl-note" id="fw-kl"></p>
+      </div>
+
       <div class="atl-card atl-wide" id="card-theo-doi-ls">
         <h2 class="atl-h">Theo dõi chưa mua</h2>
         <p class="atl-note">Các mã từng có tín hiệu THEO DÕI nhưng chưa mua, mỗi trang là một tháng. Lãi/lỗ T+3 và T+10 tính từ giá khuyến nghị để tham khảo, không có lệnh thật. Cột Kết quả cho biết mã đã lên MUA, còn đang theo dõi hay đã hết hạn.</p>
@@ -1254,9 +1261,11 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   function renderV2(x,v){
     var dg=x.dinh_gia,m=dg.v2,P=x.gia,fin=dg.mo_hinh==='pb_roe',d8=x.ngay.slice(8)+'/'+x.ngay.slice(5,7);
     var ban=el('div','dg-ban '+m.muc);
-    ban.appendChild(el('div','sub','Giá trị ước tính (bình quân có trọng số 3 kịch bản)'));
-    ban.appendChild(el('div','big',n0(m.gia_tb)+' đ · biên an toàn '+sg(m.mos)));
-    ban.appendChild(el('div','sub',m.nhan+'. Giá '+d8+': '+n0(P)+' đ.'));
+    var gk=m.kich_ban.map(function(a){return a.gia;}),gLo=Math.min.apply(null,gk),gHi=Math.max.apply(null,gk),chuKy=m.loai_ln==='chu_ky';
+    ban.appendChild(el('div','sub','Khoảng giá trị ước tính (bảo thủ → lạc quan) · điểm giữa là bình quân có trọng số'));
+    ban.appendChild(el('div','big',n0(gLo)+' – '+n0(gHi)+' đ · điểm giữa '+n0(m.gia_tb)+' đ'));
+    ban.appendChild(el('div','sub','Biên an toàn: '+sg(m.mos)+' so với điểm giữa, '+sg((gLo/P-1)*100)+' so với đáy khoảng. '+m.nhan+'. Giá '+d8+': '+n0(P)+' đ.'));
+    if(chuKy)ban.appendChild(el('div','sub','Ngành chu kỳ: lợi nhuận hiện tại có thể đang ở đỉnh hoặc đáy của chu kỳ, nên nhìn đáy khoảng thay vì điểm giữa. Khoảng rộng là đặc điểm của nhóm này, không phải lỗi.'));
     v.appendChild(ban);
     var k=el('div','dg-kpis');
     k.appendChild(kpi('Giá tối đa còn biên an toàn 20%',n0(m.vung_an_toan)+' đ',sg((m.vung_an_toan/P-1)*100)+' so với giá hiện tại'));
@@ -1293,7 +1302,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var dg=x.dinh_gia,kb=dg.kich_ban||[],cs=kb[1],fin=dg.mo_hinh==='pb_roe',P=x.gia;
     if(window.__aiSet)window.__aiSet(x);
     $('dg-sec').hidden=false;$('dg-row').hidden=false;$('card-hs-ind').hidden=false;$('card-hs-dg').hidden=false;$('card-hs-xh').hidden=false;
-    $('dg-sub').textContent='Báo cáo '+x.ky_bao_cao+' · '+(LOAI[x.loai]||'')+' · nguồn Vietcap IQ · cập nhật '+x.ngay.slice(8)+'/'+x.ngay.slice(5,7);
+    $('dg-sub').textContent='Báo cáo '+x.ky_bao_cao+' · '+(LOAI[x.loai]||'')+' · nguồn Vietcap IQ · dữ liệu cơ bản cập nhật ngày '+x.ngay.slice(8)+'/'+x.ngay.slice(5,7)+'/'+x.ngay.slice(0,4)+((Date.now()-new Date(x.ngay).getTime())/864e5>4?' (đã cũ hơn 4 ngày, lần chạy gần đây có thể lỗi)':'');
     // ---- chỉ tiêu ----
     var ind=$('dg-ind');ind.textContent='';
     x.chi_tieu.forEach(function(g){ind.appendChild(el('div','dg-mg',g.nhom));g.muc.forEach(function(m){
@@ -1363,7 +1372,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       xu_huong:(x.xu_huong&&x.xu_huong.chuoi||[]).map(function(s){return {ten:s.ten,don_vi:s.dv,so_cung_ky_pct:s.yoy,quy:x.xu_huong.quy,gia_tri:s.v};}),
       chat_luong:x.chat_luong?{nhan:x.chat_luong.nhan,tieu_chi:x.chat_luong.tieu_chi,co_canh_bao:x.chat_luong.co}:null,
       nhan_xet:x.nhan_xet||[]};
-    if(v)o.dinh_gia.v2={gia_tri_uoc_tinh:v.gia_tb,bien_an_toan_pct:v.mos,gia_toi_da_con_bien_an_toan_20pct:v.vung_an_toan,ke:v.ke,beta:v.beta_dung,loai_doanh_nghiep:v.loai_ln_ten,ly_do_phan_loai:v.loai_ly_do,kich_ban:v.kich_ban,len_pct_neu_lac_quan:v.len_pct,xuong_pct_neu_bao_thu:v.xuong_pct,ty_le_loi_lo:v.rr,moc_quy_toi:v.moc_quy_toi,do_nhay:v.nhay,ep_pct:v.ep,trai_phieu_10n:v.rf,tiet_kiem_12t:v.tiet_kiem,muc_tieu_vietcap_quy_ve_hien_tai:v.vci_hien_tai,bang_4_quy:v.bang_quy};
+    if(v)o.dinh_gia.v2={gia_tri_uoc_tinh:v.gia_tb,khoang_gia_tri:[Math.min.apply(null,v.kich_ban.map(function(a){return a.gia;})),Math.max.apply(null,v.kich_ban.map(function(a){return a.gia;}))],nganh_chu_ky:v.loai_ln==='chu_ky',bien_an_toan_pct:v.mos,gia_toi_da_con_bien_an_toan_20pct:v.vung_an_toan,ke:v.ke,beta:v.beta_dung,loai_doanh_nghiep:v.loai_ln_ten,ly_do_phan_loai:v.loai_ly_do,kich_ban:v.kich_ban,len_pct_neu_lac_quan:v.len_pct,xuong_pct_neu_bao_thu:v.xuong_pct,ty_le_loi_lo:v.rr,moc_quy_toi:v.moc_quy_toi,do_nhay:v.nhay,ep_pct:v.ep,trai_phieu_10n:v.rf,tiet_kiem_12t:v.tiet_kiem,muc_tieu_vietcap_quy_ve_hien_tai:v.vci_hien_tai,bang_4_quy:v.bang_quy};
     return JSON.stringify(o);}
   function textOf(id,lim){
     var root=document.getElementById(id),out=[];if(!root)return '';
@@ -3347,6 +3356,21 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 <script>
 (() => {
+  (function () {
+    const f1 = (v, suf) => v == null ? '—' : (v > 0 ? '+' : '') + String(v).replace('.', ',') + (suf || '');
+    fetch('data/forward_test.json?v=' + new Date().toISOString().slice(0, 10), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
+      const tb = document.querySelector('#tb-fw tbody'); if (!tb) return; tb.textContent = '';
+      d.vung.forEach((z) => {
+        const tr = document.createElement('tr');
+        [z.ten, z.n_mua, z.n_dong, z.thang_pct == null ? '—' : z.thang_pct + '%', f1(z.lai_tb, '%'), f1(z.t3_tb, '%'), f1(z.t10_tb, '%'), f1(z.bt_lai_tb, '%'), z.bt_thang == null ? '—' : z.bt_thang + '%', z.bt_ghi_chu].forEach((t, i) => {
+          const td = document.createElement('td'); td.textContent = t; if (i > 0 && i < 9) td.className = 'num'; tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+      document.getElementById('fw-note').textContent = 'Từ ' + (d.ngay_dau || '—').split('-').reverse().join('/') + ' đến nay: ' + d.n_tin_hieu + ' tín hiệu, trong đó ' + d.n_mua + ' MUA (' + d.n_mua_dong + ' đã đóng). Lãi/lỗ theo quy tắc thoát, đã trừ phí như backtest. Dùng để đối chiếu với kiểm định 2020–2026, không để chỉnh tham số theo từng lệnh.';
+      document.getElementById('fw-kl').textContent = d.ket_luan;
+    }).catch(() => { const c = document.getElementById('card-forward'); if (c) c.hidden = true; });
+  })();
   window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawNH && window.atlDrawNH(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); };
   const h = location.hash.slice(1);
   if (h === 'rrg') { window.atlShow('dong-tien'); window.atlDV('rrg', false); }
