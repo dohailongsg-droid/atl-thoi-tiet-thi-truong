@@ -2442,7 +2442,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       add('Thanh khoản (tỷ)', r.gtgd_tb20 == null ? '—' : f0(num(r.gtgd_tb20)), 'gtgd_tb20');
     }
     c.appendChild(kv);
-    if (r.loai === 'ĐANG GIỮ' && r.nhan_thoat) c.appendChild(el('p', 'atl-note', r.nhan_thoat));
+    if (r.loai === 'ĐANG GIỮ' && r.nhan_thoat) { const nt = el('p', 'atl-note', r.nhan_thoat); if (String(r.nhan_thoat).charAt(0) === '⚠') { nt.style.color = 'var(--color-bad)'; nt.style.fontWeight = '600'; c.style.borderColor = 'var(--color-bad)'; } c.appendChild(nt); }
     if (r.loai === 'VÉ SỐ' || r.loai === 'TRỨNG RỒNG') c.appendChild(el('p', 'atl-note', 'Lệnh dài ' + (r.loai === 'VÉ SỐ' ? '(Vé số)' : '(Trứng rồng)') + ': mua giá đóng cửa phiên sau tín hiệu, tỷ trọng nhỏ, giữ lâu.'));
     if (r.loai === 'THEO DÕI' && num(r.dai_duoi) != null) {
       const top = Math.max(num(r.dai_duoi), num(r.gia_khuyen_nghi)), cur = num(r.gia_hien_tai);
