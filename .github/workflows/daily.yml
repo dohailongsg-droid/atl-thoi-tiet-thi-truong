@@ -62,8 +62,7 @@ jobs:
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
-      - name: Cảnh báo Telegram (chỉ sau phiên; không có bí mật Telegram thì bỏ qua)
-        if: github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
+      - name: Cảnh báo Telegram (sau phiên báo đổi vùng và MUA mới, trong phiên chỉ báo lệnh đang giữ chạm điểm thoát)
         continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
