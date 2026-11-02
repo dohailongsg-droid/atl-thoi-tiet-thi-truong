@@ -84,6 +84,14 @@ jobs:
           git add pipeline/state pipeline/dash_out/kiem_dinh.json
           git diff --cached --quiet || (git commit -m "Cập nhật trạng thái $(date -u +%F)" && git pull --rebase -X theirs --autostash && git push)
 
+      - name: Chụp toàn bộ nội dung trang thành văn bản cho AI khác đọc (lỗi không làm đỏ cả lượt)
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+          python3 pipeline/chup_web.py
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
