@@ -1838,6 +1838,21 @@
     </div>
   </section>
   <p class="atl-note" id="nguon">Nguồn: giá ngày HOSE từ bảng giá Vietcap, tính theo quy tắc nhiệt kế ATL v1.2 · v1.4. Tham khảo, không phải khuyến nghị đầu tư.</p>
+
+  <section id="adm" class="atl-note" hidden style="margin:16px 0;padding:12px 14px;border:1px solid rgba(128,128,128,.35);border-radius:10px">
+    <b>Quản trị</b> (chỉ hiện trên máy này, khách không thấy)
+    <div id="adm-setup" style="margin-top:8px">
+      <label>Mã truy cập GitHub (fine-grained, chỉ quyền Actions của repo này) <input type="password" id="adm-tok" size="34" autocomplete="off" placeholder="dán mã vào đây"></label>
+      <button type="button" id="adm-save">Lưu trên máy này</button>
+    </div>
+    <div id="adm-act" hidden style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <button type="button" id="adm-live">Cập nhật trong phiên ngay</button>
+      <button type="button" id="adm-daily">Chạy cập nhật hằng ngày</button>
+      <button type="button" id="adm-out">Xoá mã khỏi máy này</button>
+      <span id="adm-st" role="status"></span>
+    </div>
+  </section>
+
   <div class="atl-ttip" id="atl-ttip" role="tooltip" hidden></div>
 </div>
 
@@ -3420,5 +3435,47 @@
   else if (h === 'rrg') { window.atlShow('nganh'); window.atlDV('rrg', false); }
   else if (['hom-nay', 'xep-hang', 'ho-so', 'nhiet-ke', 'dong-tien', 'nganh', 'trong-phien', 'danh-muc'].includes(h)) window.atlShow(h);
   dash.onData(() => window.atlRedraw());
+})();
+</script>
+
+<script>
+/* Nút quản trị: chạy workflow GitHub ngay từ trang. Mã truy cập chỉ lưu trong localStorage của trình duyệt này, không nằm trong code. */
+(() => {
+  const REPO = 'dohailongsg-droid/atl-thoi-tiet-thi-truong', API = 'https://api.github.com/repos/' + REPO;
+  const $ = (id) => document.getElementById(id), box = $('adm'); if (!box) return;
+  const get = () => { try { return localStorage.getItem('atl-gh') || ''; } catch (e) { return ''; } };
+  const set = (v) => { try { v ? localStorage.setItem('atl-gh', v) : localStorage.removeItem('atl-gh'); } catch (e) {} };
+  let on = false; try { on = !!get() || localStorage.getItem('atl-adm') === '1'; } catch (e) {}
+  if (/#quantri/.test(location.hash)) { on = true; try { localStorage.setItem('atl-adm', '1'); } catch (e) {} }
+  const say = (m) => { $('adm-st').textContent = m; };
+  const view = () => { box.hidden = !on; const has = !!get(); $('adm-setup').hidden = has; $('adm-act').hidden = !has; };
+  const hdr = () => ({ Authorization: 'Bearer ' + get(), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
+  const poll = async (wf, since, n) => {
+    if (n > 24) { say('Đã gửi lệnh. Xem kết quả ở tab Actions trên GitHub.'); return; }
+    try {
+      const r = await fetch(API + '/actions/workflows/' + wf + '/runs?per_page=3&event=workflow_dispatch', { headers: hdr() });
+      const j = await r.json(); const run = (j.workflow_runs || []).find((x) => Date.parse(x.created_at) >= since - 5000);
+      if (run) {
+        if (run.status === 'completed') { say(run.conclusion === 'success' ? 'Xong, chạy thành công. Chờ ~5 phút rồi bấm Ctrl+F5 để thấy số mới.' : 'Lượt chạy kết thúc với kết quả: ' + run.conclusion + '. Xem ở tab Actions.'); return; }
+        say('Đang chạy… (' + (run.status === 'queued' ? 'xếp hàng chờ' : 'đang xử lý') + ')');
+      } else say('Đã gửi lệnh, đang chờ GitHub nhận…');
+    } catch (e) {}
+    setTimeout(() => poll(wf, since, n + 1), 15000);
+  };
+  const run = async (wf, nhan) => {
+    say('Đang gửi lệnh ' + nhan + '…'); const since = Date.now();
+    try {
+      const r = await fetch(API + '/actions/workflows/' + wf + '/dispatches', { method: 'POST', headers: { ...hdr(), 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main' }) });
+      if (r.status === 204) { say('Đã gửi lệnh. Đang theo dõi…'); poll(wf, since, 0); }
+      else if (r.status === 401) say('Mã truy cập sai hoặc hết hạn. Bấm "Xoá mã khỏi máy này" rồi dán mã mới.');
+      else if (r.status === 403 || r.status === 404) say('Mã chưa đủ quyền. Cần quyền Actions: Read and write cho đúng repo này.');
+      else say('GitHub trả về lỗi ' + r.status + '.');
+    } catch (e) { say('Không kết nối được GitHub. Kiểm tra mạng rồi thử lại.'); }
+  };
+  $('adm-save').addEventListener('click', () => { const v = $('adm-tok').value.replace(/\s+/g, ''); if (v.length < 20) { say('Mã quá ngắn, kiểm tra lại.'); return; } set(v); $('adm-tok').value = ''; say(''); view(); });
+  $('adm-out').addEventListener('click', () => { set(''); say('Đã xoá mã khỏi máy này.'); view(); });
+  $('adm-live').addEventListener('click', () => run('live.yml', 'cập nhật trong phiên'));
+  $('adm-daily').addEventListener('click', () => run('daily.yml', 'cập nhật hằng ngày'));
+  view();
 })();
 </script>
