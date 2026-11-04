@@ -207,6 +207,21 @@ def main():
                       "gtgd_ty": round(gt, 1)})
     nganh.sort(key=lambda d: -d["pct"])
 
+    # bảng điện theo ngành: mỗi ngành kèm danh sách mã thanh khoản đủ lớn [mã, %, GTGD tỷ]
+    bang_dien = []
+    for n, g in grp.items():
+        if len(g) < 3:
+            continue
+        big = sorted([x for x in g if x["gt"] >= MIN_GT], key=lambda x: -x["gt"])
+        if not big:
+            continue
+        info = next((d for d in nganh if d["nganh"] == n), None)
+        bang_dien.append({"nganh": n, "pct": info["pct"] if info else 0.0, "so_ma": len(g),
+                          "tang": info["tang"] if info else 0, "giam": info["giam"] if info else 0,
+                          "gtgd_ty": info["gtgd_ty"] if info else 0,
+                          "ma": [[x["ma"], round(x["pct"], 2), round(x["gt"])] for x in big]})
+    bang_dien.sort(key=lambda d: -d["pct"])
+
     chi_so = []
     for x in idx:
         if x["symbol"] in ("VNINDEX", "VN30", "HNXIndex") and x.get("price"):
@@ -255,7 +270,7 @@ def main():
            "khoi_ngoai": {"mua_ty": round(nn_mua, 1), "ban_ty": round(nn_ban, 1), "rong_ty": round(nn_mua - nn_ban, 1),
                           "top_mua": nn_mua_top, "top_ban": nn_ban_top},
            "top_tang": top_tang, "top_giam": top_giam, "top_gtgd": top_gt,
-           "nganh": nganh, "tin_moi": tin_moi, "chuoi": chuoi, "canh_bao": canh_bao}
+           "nganh": nganh, "bang_dien": bang_dien, "tin_moi": tin_moi, "chuoi": chuoi, "canh_bao": canh_bao}
     os.makedirs(OUTDIR, exist_ok=True)
     with open(os.path.join(OUTDIR, "trong_phien.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
