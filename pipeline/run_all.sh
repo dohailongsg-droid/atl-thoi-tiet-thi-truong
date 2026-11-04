@@ -20,6 +20,8 @@ python3 dash_dcd.py > /dev/null
 python3 dash_final.py
 python3 dash_lenhdai.py
 python3 forward_test.py || echo "forward_test.py lỗi, bỏ qua"
+# lá chắn chống sập: 3 lần cắt lỗ liên tiếp ở vùng 1–2 thì nên nghỉ 10 phiên (chỉ hiển thị, lỗi không làm dừng pipeline)
+python3 la_chan.py || echo "la_chan.py lỗi, bỏ qua"
 # tiêu điểm tin (lỗi không làm dừng pipeline)
 python3 tin.py || echo "tin.py lỗi, bỏ qua"
 # tham chiếu cho bảng "Trong phiên" (TB20, top10 hôm qua)
