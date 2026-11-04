@@ -2,15 +2,15 @@
   "ngay": "2026-11-04",
   "nhiet_ke": {
     "ngay": "2026-11-04",
-    "diem": 81.0,
-    "tb7": 46.1,
+    "diem": 83.0,
+    "tb7": 46.4,
     "vung": 2.0,
-    "do_rong": 79.8,
-    "tran_san": 95.0,
+    "do_rong": 80.1,
+    "tran_san": 100.0,
     "thanh_khoan": 63.4,
     "hukt": 82.5
   },
-  "gtgd_tb20": 12355.9,
+  "gtgd_tb20": 12355.5,
   "top10_hom_qua": [
     "TCX",
     "CTS",
