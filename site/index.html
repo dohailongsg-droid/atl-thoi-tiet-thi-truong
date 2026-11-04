@@ -899,6 +899,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class="atl-card atl-wide" id="card-mua-hom-nay">
         <h2 class="atl-h">Hôm nay mua gì</h2>
         <p class="atl-note" id="hn-mua-note">—</p>
+        <p class="atl-note" id="lc-line" style="display:none;white-space:normal;margin-top:4px"></p>
         <p class="atl-note">Mã gắn nhãn <b>Vé số</b> hoặc <b>Trứng rồng</b> là lệnh dài: tỷ trọng nhỏ, giữ lâu, thoát khi chạm cắt lỗ hoặc ngưỡng thoát ghi trên thẻ.</p>
         <div id="hn-mua-list" data-source="hom_nay"></div>
       </div>
@@ -925,15 +926,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
             <tbody></tbody>
           </table>
         </div>
-      </div>
-
-      <div class="atl-card atl-wide" id="card-chan" hidden>
-        <h2 class="atl-h">Lá chắn chống sập</h2>
-        <p style="margin:0 0 8px"><span id="lc-chip" style="display:inline-block;padding:2px 10px;border-radius:999px;font-weight:600;font-size:.85em;border:1px solid currentColor">—</span></p>
-        <p class="atl-note" id="lc-msg" style="margin:0 0 8px;white-space:normal">—</p>
-        <div id="lc-ls" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px"></div>
-        <details><summary class="atl-note" style="cursor:pointer">Vì sao có lá chắn này</summary>
-          <p class="atl-note" id="lc-bt" style="white-space:normal"></p></details>
       </div>
 
       <div class="atl-card atl-wide" id="card-forward">
@@ -3525,22 +3517,12 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 <script>
 (() => {
   fetch('data/la_chan.json?v=' + new Date().toISOString().slice(0, 13), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
-    const card = document.getElementById('card-chan'); if (!card) return;
-    const chip = document.getElementById('lc-chip');
-    const nghi = d.trang_thai === 'nen_nghi', none = d.trang_thai === 'chua_co_du_lieu';
-    chip.textContent = nghi ? 'NÊN NGHỈ MỞ LỆNH MỚI' : none ? 'CHƯA ĐỦ DỮ LIỆU' : 'BÌNH THƯỜNG · chuỗi cắt lỗ ' + d.chuoi_cat_lo + '/' + d.nguong;
-    chip.style.color = nghi ? 'var(--color-bad, #f0716b)' : 'var(--color-ok, #4cc38a)'; if (none) chip.style.color = 'inherit';
-    document.getElementById('lc-msg').textContent = d.thong_diep + ' Chỉ để theo dõi, không bắt buộc.';
-    const box = document.getElementById('lc-ls'); box.textContent = '';
-    (d.lenh_gan_nhat || []).forEach((x) => {
-      const s = document.createElement('span'); s.style.cssText = 'padding:2px 8px;border-radius:6px;border:1px solid rgba(128,128,128,.4);font-size:.85em';
-      const v = String(x.lai_lo).replace('.', ',');
-      s.textContent = x.ma + ' ' + (x.cat_lo ? '✗ cắt lỗ ' : (x.lai_lo >= 0 ? '✓ ' : '✗ ')) + (x.lai_lo > 0 ? '+' : '') + v + '%';
-      s.style.color = x.lai_lo >= 0 ? 'var(--color-ok, #4cc38a)' : 'var(--color-bad, #f0716b)'; box.appendChild(s);
-    });
-    const b = d.backtest || {}; const f = (v) => String(v).replace('.', ',');
-    document.getElementById('lc-bt').textContent = 'Backtest ' + (b.giai_doan || '') + ': không nghỉ lãi ' + f(b.khong_nghi.lai_nam) + '%/năm, sụt giảm tối đa ' + f(b.khong_nghi.sut_toi_da) + '%; có lá chắn (' + d.nguong + ' lần cắt lỗ liên tiếp thì nghỉ ' + d.nghi_phien + ' phiên) lãi ' + f(b.co_la_chan.lai_nam) + '%/năm, sụt giảm tối đa ' + f(b.co_la_chan.sut_toi_da) + '%. ' + (b.ghi_chu || '');
-    card.hidden = false;
+    const el = document.getElementById('lc-line'); if (!el) return;
+    if (d.trang_thai === 'chua_co_du_lieu') return;
+    const nghi = d.trang_thai === 'nen_nghi';
+    el.textContent = nghi ? 'Lá chắn chống sập: NÊN NGHỈ MỞ LỆNH MỚI. ' + d.thong_diep + ' (Chỉ để theo dõi, không bắt buộc.)' : 'Lá chắn chống sập: bình thường, chuỗi cắt lỗ ' + d.chuoi_cat_lo + '/' + d.nguong + ' (đủ ' + d.nguong + ' lần liên tiếp thì nên nghỉ ' + d.nghi_phien + ' phiên).';
+    if (nghi) { el.style.color = 'var(--color-bad, #f0716b)'; el.style.fontWeight = '600'; }
+    el.style.display = '';
   }).catch(() => {});
 })();
 </script>
