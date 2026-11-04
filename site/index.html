@@ -1306,7 +1306,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 (function(){
   var $=function(i){return document.getElementById(i);};
   function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
-  var MG=['gemini-3.5-flash-lite','gemini-3.8-flash','gemini-3.1-flash-lite'],MQ=['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'],MM=['mistral-small-latest','open-mistral-nemo'];
+  var MG=['gemini-3.8-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite'],MQ=['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'],MM=['mistral-small-latest','open-mistral-nemo'];
   var LS={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
   var cur=null,hist=[],busy=false,jumpAi=false,lockSet=false,waitMa=null,waitRes=null;
   var GLOSS='ROE = lợi nhuận 4 quý / vốn chủ. ROIC = lợi nhuận trên vốn đầu tư. P/E = giá / EPS. P/B = giá / giá trị sổ sách mỗi cp. Ke = chi phí vốn = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro. Biên an toàn = 1 − giá / giá trị ước tính. E/P = EPS / giá. DSO = số ngày thu tiền. Chu kỳ tiền = số ngày từ chi tiền đến thu tiền. Ba kịch bản bảo thủ/cơ sở/lạc quan được cộng có trọng số tuỳ doanh nghiệp theo chu kỳ hay tăng trưởng cấu trúc. LNST mẹ = lợi nhuận sau thuế của cổ đông công ty mẹ.';
@@ -1377,8 +1377,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   function msgs(){return hist.slice(-8);}
   function askGemini(key,sys){
     var contents=msgs().map(function(m){return {role:m.role==='user'?'user':'model',parts:[{text:m.text}]};});
-    var i=0,errs=[];
-    function next(){if(i>=MG.length)return Promise.reject(new Error(errs.join(' | ')||'Gemini không phản hồi'));
+    var i=0,errs=[],rl=false;
+    function next(){if(i>=MG.length)return Promise.reject(new Error(rl?'Gemini báo hết hạn mức (429) ở mọi model của khóa này. Thử lại sau ít phút hoặc dùng khóa khác.':(errs.join(' | ')||'Gemini không phản hồi')));
       var mod=MG[i++];
       function call(useTool){var b={systemInstruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:0.4,maxOutputTokens:2500}};if(useTool)b.tools=[{google_search:{}}];
         return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},b);}
@@ -1386,7 +1386,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         if(r.ok&&r.j&&r.j.candidates&&r.j.candidates[0]&&r.j.candidates[0].content){var c=r.j.candidates[0],web=[],gm=c.groundingMetadata;((gm&&gm.groundingChunks)||[]).forEach(function(g){var t=g.web&&(g.web.title||g.web.uri);if(t&&web.indexOf(t)<0&&web.length<5)web.push(t);});return {text:c.content.parts.map(function(p){return p.text||'';}).join(''),model:mod,web:web};}
         var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
         if(r.status===401||r.status===403||(r.status===400&&/API key/i.test(em)))return Promise.reject(new Error('Khóa Gemini không hợp lệ hoặc chưa được cấp quyền: '+em));
-        if(r.status===429)return Promise.reject(new Error('Gemini báo hết hạn mức tạm thời (429). Thử lại sau ít phút.'));
+        if(r.status===429){rl=true;return next();}// hạn mức tính riêng từng model: thử model kế tiếp
         if(r.status===404||/no longer available|does not exist/i.test(em))return next();
         return next();});}
     return next();}
