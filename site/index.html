@@ -306,20 +306,23 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .bd-bar button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
 .bd-lg{margin-left:auto;display:flex;align-items:center;gap:3px;font-size:10px;color:var(--color-fg-muted)}
 .bd-lg i{width:14px;height:8px;border-radius:2px;display:inline-block}
-.bd-all{display:grid;grid-template-columns:repeat(var(--bdc,9),minmax(5.9rem,1fr));gap:14px 5px;overflow-x:auto;padding-bottom:6px;align-items:start}
+.bd-all{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 8px;align-items:start}
+@media(min-width:560px){.bd-all{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:900px){.bd-all{grid-template-columns:repeat(6,minmax(0,1fr))}}
 .bd-sec{display:flex;flex-direction:column;gap:3px;min-width:0}
-.bd-hd{display:grid;grid-template-rows:2.5em auto auto auto;gap:1px;padding:2px 2px 4px;align-content:start}
-.bd-hd .n{font-weight:600;font-size:11.5px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bd-hd{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1px 8px;align-items:baseline;padding:0 2px 3px}
+.bd-hd .n{grid-column:1/-1;font-weight:600;font-size:12px;line-height:1.25;height:2.5em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .bd-hd .p{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.05rem}
-.bd-hd .m{font-size:10px;color:var(--color-fg-muted);font-variant-numeric:tabular-nums;line-height:1.3}
-.bd-br{display:flex;height:3px;border-radius:2px;overflow:hidden;background:var(--color-bg);width:100%}
+.bd-hd .m{font-size:10px;color:var(--color-fg-muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.bd-br{grid-column:1/-1;display:flex;height:3px;border-radius:2px;overflow:hidden;background:var(--color-bg);width:100%;margin-top:3px}
 .bd-br i{display:block;height:100%}
-.bd-g{display:flex;flex-direction:column;gap:2px;max-height:10.4rem;overflow-y:auto;scrollbar-width:thin;padding-right:2px}
-.bd-c{border:0;border-radius:4px;padding:3px 6px;font:inherit;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:4px;line-height:1.2;min-width:0}
+.bd-g{display:flex;flex-direction:column;gap:2px;max-height:9.3rem;overflow-y:auto;scrollbar-width:thin;padding-right:2px}
+.bd-c{border:0;border-radius:4px;padding:3px 6px;font:inherit;cursor:pointer;display:grid;grid-template-columns:2.6rem 1fr auto;align-items:center;gap:4px;line-height:1.2;min-width:0;text-align:left}
 .bd-c b{font-size:11.5px;font-weight:600}
-.bd-c span{font-size:10.5px;font-variant-numeric:tabular-nums;opacity:.95}
-.bd-c.lim{outline:1.5px solid currentColor;outline-offset:-1.5px}
-.bd-more{font:inherit;font-size:10.5px;background:none;border:0;color:var(--color-fg-muted);cursor:pointer;padding:3px 0;text-align:center;text-decoration:underline}
+.bd-c i{font-style:normal;font-size:10.5px;font-variant-numeric:tabular-nums;text-align:right;opacity:.8}
+.bd-c span{font-size:11px;font-variant-numeric:tabular-nums;font-weight:600;text-align:right;min-width:2.9rem}
+.bd-e{font-size:10.5px;color:var(--color-fg-muted);padding:4px 2px}
+.bd-lg .tr{background:#9b5de5;width:14px}
 .lv-box{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);min-width:0}
 .lv-box h3{margin:0 0 8px;font-family:var(--font-anthropic-sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)}
 .lv-t{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
@@ -811,19 +814,21 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var base=ref!=null?ref:vals[0],up=vals[vals.length-1]>=base;
     var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke',up?'var(--sem-up)':'var(--sem-down)');pl.setAttribute('stroke-width','1.6');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
     var b=box(title);b.appendChild(s);b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
-  var bdOpen=false,bdSort='gt',bdAll={};
+  var bdOpen=true,bdSort='gt',bdAll={};
   function bdCol(p){
+    if(p>=6.5)return {bg:'#9b5de5',fg:'#fff'};
     var a=Math.min(Math.abs(p)/6.5,1),v=p>0.0001?'--sem-up':(p<-0.0001?'--sem-down':null);
     if(!v)return {bg:'var(--color-bg)',fg:'var(--color-fg-muted)'};
     var al=Math.round((0.14+0.78*a)*100);
     return {bg:'color-mix(in srgb, var('+v+') '+al+'%, var(--color-panel))',fg:al>52?'#fff':'var(--color-fg)'};
   }
+  function bdGia(g){if(g==null)return '';return Number(g).toLocaleString('vi-VN',{minimumFractionDigits:g<10?2:1,maximumFractionDigits:g<10?2:1});}
   function bangDien(d,host){
     var L=d.bang_dien||[];if(!L.length)return;
     var det=el('details','bd');if(bdOpen)det.open=true;
     det.addEventListener('toggle',function(){bdOpen=det.open;});
-    var sm=el('summary');sm.appendChild(el('span','t','Bảng điện theo ngành'));sm.appendChild(el('span','h','HOSE · mã GTGD ≥ 10 tỷ · mã tăng mạnh nhất xếp trên, cuộn trong cột để xem hết · bấm mã để mở hồ sơ'));det.appendChild(sm);
-    var inn=el('div','bd-in'),bar=el('div','bd-bar'),body2=el('div','bd-all');body2.style.setProperty('--bdc',Math.ceil(L.length/2));
+    var sm=el('summary');sm.appendChild(el('span','t','Bảng điện theo ngành'));sm.appendChild(el('span','h','HOSE · mã GTGD ≥ 3 tỷ · mã · giá (nghìn đồng) · % · tăng mạnh nhất xếp trên · bấm mã để mở hồ sơ'));det.appendChild(sm);
+    var inn=el('div','bd-in'),bar=el('div','bd-bar'),body2=el('div','bd-all');
     function draw(){
       body2.textContent='';
       var rows=L.slice();
@@ -834,18 +839,18 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         var sec=el('div','bd-sec'),hd=el('div','bd-hd');
         hd.appendChild(el('span','n',x.nganh));
         var pp=el('span','p '+cl(x.pct),sg(x.pct,2)+'%');hd.appendChild(pp);
-        hd.appendChild(el('span','m',x.tang+'↑ '+x.giam+'↓ · '+n0(x.gtgd_ty)+' tỷ'));
+        var mm=el('span','m',x.tang+'↑ '+x.giam+'↓');mm.title=n0(x.gtgd_ty)+' tỷ GTGD · '+x.so_ma+' mã';hd.appendChild(mm);
         var br=el('span','bd-br'),tt=x.so_ma||1;
         [['var(--sem-up)',x.tang],['var(--color-border-line)',x.so_ma-x.tang-x.giam],['var(--sem-down)',x.giam]].forEach(function(q){var i=el('i');i.style.width=(q[1]/tt*100)+'%';i.style.background=q[0];br.appendChild(i);});
         hd.appendChild(br);sec.appendChild(hd);
         var g=el('div','bd-g'),LIM=999;
         x.ma.slice().sort(function(a,b){return b[1]-a[1]||b[2]-a[2];}).slice(0,LIM).forEach(function(m){
-          var c=bdCol(m[1]),b=el('button','bd-c'+(Math.abs(m[1])>=6.5?' lim':''));
+          var c=bdCol(m[1]),b=el('button','bd-c');
           b.style.background=c.bg;b.style.color=c.fg;b.title=m[0]+' · '+sg(m[1],2)+'% · GTGD '+n0(m[2])+' tỷ';
-          b.appendChild(el('b',null,m[0]));b.appendChild(el('span',null,sg(m[1],1)+'%'));
+          b.appendChild(el('b',null,m[0]));b.appendChild(el('i',null,bdGia(m[3])));b.appendChild(el('span',null,sg(m[1],1)+'%'));
           b.addEventListener('click',function(){if(window.atlOpenProfile)window.atlOpenProfile(m[0]);});
           g.appendChild(b);});
-        sec.appendChild(g);
+        if(!x.ma.length)g.appendChild(el('div','bd-e','Chưa có mã GTGD ≥ 3 tỷ'));sec.appendChild(g);
         body2.appendChild(sec);});
     }
     [['gt','Thanh khoản'],['pct','Mạnh nhất'],['name','A–Z']].forEach(function(o){
@@ -853,8 +858,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       b.addEventListener('click',function(){bdSort=o[0];Array.prototype.forEach.call(bar.querySelectorAll('button'),function(z){z.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');draw();});
       bar.appendChild(b);});
     var lg=el('span','bd-lg');lg.appendChild(document.createTextNode('−6,5%'));
-    [-6.5,-3,-1,0,1,3,6.5].forEach(function(v){var i=el('i');i.style.background=bdCol(v).bg;i.style.border='1px solid var(--color-border-line)';lg.appendChild(i);});
-    lg.appendChild(document.createTextNode('+6,5%'));bar.appendChild(lg);
+    [-6.5,-3,-1,0,1,3,6].forEach(function(v){var i=el('i');i.style.background=bdCol(v).bg;i.style.border='1px solid var(--color-border-line)';lg.appendChild(i);});
+    lg.appendChild(document.createTextNode('+6%'));var tr=el('i','tr');lg.appendChild(tr);lg.appendChild(document.createTextNode('trần'));
+    bar.appendChild(lg);
     inn.appendChild(bar);inn.appendChild(body2);det.appendChild(inn);host.appendChild(det);draw();
   }
   function render(d){
