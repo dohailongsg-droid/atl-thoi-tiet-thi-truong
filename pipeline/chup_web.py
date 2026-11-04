@@ -18,7 +18,8 @@ def main():
     socketserver.TCPServer.allow_reuse_address=True
     srv=socketserver.TCPServer(("127.0.0.1",port),Q); threading.Thread(target=srv.serve_forever,daemon=True).start()
     os.makedirs(OUT,exist_ok=True); now=(datetime.datetime.utcnow()+datetime.timedelta(hours=7)).strftime("%d/%m/%Y %H:%M")
-    idx=[f"ATL Investment · Thời tiết thị trường · bản chụp toàn bộ nội dung trang lúc {now} (giờ VN).","Mỗi file dưới đây là một tab, gồm đủ các mục con. Tham khảo, không phải khuyến nghị đầu tư.",""]
+    idx=[f"ATL Investment · Thời tiết thị trường · bản chụp toàn bộ nội dung trang lúc {now} (giờ VN).","File này chứa TOÀN BỘ nội dung các tab ngay bên dưới (đọc một file này là đủ). Tham khảo, không phải khuyến nghị đầu tư.",""]
+    full=[]
     with sync_playwright() as p:
         b=p.chromium.launch(); pg=b.new_page(viewport={"width":1400,"height":900})
         pg.goto(f"http://127.0.0.1:{port}/index.html"); pg.wait_for_timeout(6000)
@@ -28,9 +29,10 @@ def main():
                 txt=f"# {ten} (cập nhật {now})\n\n"+r["t"].strip()
                 if r["svg"]: txt+="\n\n## Nhãn trên biểu đồ\n"+"\n".join("- "+x for x in r["svg"])
                 open(os.path.join(OUT,sid+".txt"),"w",encoding="utf-8").write(txt)
-                idx.append(f"- {sid}.txt · {ten} · {len(txt)//1024} KB")
+                idx.append(f"- {sid}: {ten} · {len(txt)//1024} KB"); full.append(txt)
             except Exception as e: print("Lỗi tab",sid,type(e).__name__,str(e)[:120])
         b.close()
-    open(os.path.join(OUT,"index.txt"),"w",encoding="utf-8").write("\n".join(idx)+"\n"); print("\n".join(idx)); srv.shutdown()
+    out="\n".join(idx)+"\n\n"+("\n\n"+"="*60+"\n\n").join(full)+"\n"
+    open(os.path.join(OUT,"index.txt"),"w",encoding="utf-8").write(out); print("\n".join(idx)); srv.shutdown()
 try: main()
 except Exception as e: print("Chụp web lỗi (bỏ qua):",type(e).__name__,str(e)[:200]); sys.exit(0)
