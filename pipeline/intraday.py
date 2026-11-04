@@ -19,6 +19,7 @@ HDR = {"User-Agent": "Mozilla/5.0", "Referer": "https://trading.vietcap.com.vn/"
        "Accept-Encoding": "identity"}
 ICT = dt.timezone(dt.timedelta(hours=7))
 NGUONG = 6.5          # ngưỡng trần/sàn như nhiệt kế v1.2 (±6,5%)
+BD_MIN_GT = 3.0       # tỷ đồng, ngưỡng thanh khoản để hiện mã trong Bảng điện theo ngành
 MIN_GT = 10.0         # tỷ đồng, lọc mã đủ thanh khoản cho danh sách top
 TRONG_SO = {"hukt": 25, "do_rong": 25, "tran_san": 20}   # thanh khoản không đưa vào bản tạm tính
 
@@ -212,14 +213,12 @@ def main():
     for n, g in grp.items():
         if len(g) < 3:
             continue
-        big = sorted([x for x in g if x["gt"] >= MIN_GT], key=lambda x: -x["gt"])
-        if not big:
-            continue
+        big = sorted([x for x in g if x["gt"] >= BD_MIN_GT], key=lambda x: -x["gt"])
         info = next((d for d in nganh if d["nganh"] == n), None)
         bang_dien.append({"nganh": n, "pct": info["pct"] if info else 0.0, "so_ma": len(g),
                           "tang": info["tang"] if info else 0, "giam": info["giam"] if info else 0,
                           "gtgd_ty": info["gtgd_ty"] if info else 0,
-                          "ma": [[x["ma"], round(x["pct"], 2), round(x["gt"])] for x in big]})
+                          "ma": [[x["ma"], round(x["pct"], 2), round(x["gt"]), round(x["gia"] / 1000.0, 2)] for x in big]})
     bang_dien.sort(key=lambda d: -d["pct"])
 
     chi_so = []
