@@ -1,6 +1,6 @@
 """intraday.py — Số liệu TRONG PHIÊN HOSE từ bảng giá Vietcap (không cần thư viện ngoài).
 
-Chạy mỗi ~10 phút trong giờ giao dịch (workflow live.yml). Ghi live_out/trong_phien.json.
+Chạy mỗi ~5 phút trong giờ giao dịch (workflow live.yml). Ghi live_out/trong_phien.json.
 Chỉ 3 lệnh gọi mạng chính: danh sách mã, bảng giá toàn bộ mã (1 request), chỉ số. Thêm tiêu đề tin từ RSS (không dùng AI).
 
 Không ghi file khi không có phiên giao dịch hôm nay (cuối tuần, ngày lễ) để workflow không đẩy dữ liệu cũ.
