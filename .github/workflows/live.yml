@@ -1,10 +1,11 @@
-name: Trong phiên (cập nhật ~10 phút)
+name: Trong phiên (cập nhật ~5 phút)
 
 on:
   schedule:
-    # 09:00–14:50 giờ Việt Nam (UTC+7), thứ Hai–thứ Sáu, mỗi 10 phút; thêm 15:00 để chốt phiên.
+    # 09:00–14:54 giờ Việt Nam (UTC+7), thứ Hai–thứ Sáu, mỗi 6 phút; thêm 15:00 để chốt phiên.
     # GitHub không đảm bảo đúng giờ: lịch có thể trễ vài phút đến vài chục phút khi hệ thống bận.
-    - cron: "*/10 2-7 * * 1-5"
+    # Lịch này chỉ là dự phòng. Nhịp chính do cron-job.org gọi API workflow_dispatch mỗi 5 phút.
+    - cron: "*/6 2-7 * * 1-5"
     - cron: "0 8 * * 1-5"
   workflow_dispatch:
 
@@ -13,7 +14,7 @@ permissions:
 
 concurrency:
   group: live
-  cancel-in-progress: true  # nếu lượt trước chưa xong thì bỏ, tránh dồn việc
+  cancel-in-progress: false # lượt đang chạy cứ chạy xong; lượt chờ mới nhất thay lượt chờ cũ, không dồn việc
 
 jobs:
   live:
