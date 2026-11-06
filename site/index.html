@@ -1724,9 +1724,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class="atl-seg">
         <button type="button" data-v="all" aria-pressed="true">Xem tất cả</button>
         <button type="button" data-v="nh" aria-pressed="false">Ngành vs VN-Index</button>
+        <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="xh" aria-pressed="false">Long đầu &amp; xếp hạng trong nhóm</button>
         <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
-        <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
       </div>
       <span class="atl-note">Cuộn xuống để xem lần lượt, hoặc bấm một mục để chỉ xem mục đó.</span>
@@ -1780,6 +1780,78 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
           <p class="atl-note" id="nh-foot">—</p>
         </div>
       </div>
+    </div>
+    <div class="atl-dv" data-view="rrg">
+      <h2 class="atl-dvh">Vòng quay ngành (RRG)</h2>
+    <div class="atl-grid">
+      <div class="atl-card atl-wide" id="card-rrg">
+        <h2 class="atl-h" id="rrg-h">RRG ngành so với VN-Index</h2>
+        <p class="atl-note">Khung tuần mượt, hợp lệnh giữ vài tuần; khung ngày nhanh nhưng nhiễu. Trục ngang RS-Ratio: mạnh hơn (&gt;100) hay yếu hơn chuẩn so sánh. Trục dọc RS-Momentum: sức mạnh đó đang tăng hay giảm. Vòng thường đi Cải thiện → Dẫn dắt → Suy yếu → Tụt hậu.</p>
+        <div class="atl-controls">
+          <div class="atl-seg" role="group" aria-label="Xem">
+            <button type="button" id="rrg-m-nganh" aria-pressed="true">Ngành</button>
+            <button type="button" id="rrg-m-ma" aria-pressed="false">Mã trong ngành</button>
+          </div>
+          <div class="atl-seg" role="group" aria-label="Khung thời gian">
+            <button type="button" id="rrg-k-tuan" aria-pressed="true">Tuần</button>
+            <button type="button" id="rrg-k-ngay" aria-pressed="false">Ngày</button>
+          </div>
+          <div class="atl-seg" role="group" aria-label="Độ dài đuôi">
+            <button type="button" id="rrg-t4" aria-pressed="true">Đuôi 4</button>
+            <button type="button" id="rrg-t8" aria-pressed="false">Đuôi 8</button>
+          </div>
+          <div class="atl-seg" role="group" aria-label="Lọc theo góc">
+            <button type="button" id="rrg-f-all" aria-pressed="true">Tất cả</button>
+            <button type="button" id="rrg-f-up" aria-pressed="false">Dẫn dắt + Cải thiện</button>
+            <button type="button" id="rrg-f-dn" aria-pressed="false">Suy yếu + Tụt hậu</button>
+          </div>
+          <details class="rrg-pick" id="rrg-pick"><summary id="rrg-pick-sum">Chọn ngành</summary>
+            <div class="rrg-pick-pop">
+              <div class="rrg-pick-act"><button type="button" id="rrg-pk-all">Tất cả</button><button type="button" id="rrg-pk-top">7 mạnh nhất</button><button type="button" id="rrg-pk-none">Bỏ hết</button></div>
+              <div id="rrg-pick-list"></div>
+            </div>
+          </details>
+          <style>
+            .rrg-pick{position:relative}
+            .rrg-pick>summary{list-style:none;cursor:pointer;border:1px solid var(--color-border-line);border-radius:var(--r-in,8px);padding:6px 12px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);user-select:none}
+            .rrg-pick>summary::-webkit-details-marker{display:none}
+            .rrg-pick[open]>summary{background:var(--color-fg);color:var(--color-bg)}
+            .rrg-pick-pop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;min-width:15rem;max-height:21rem;overflow:auto;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:8px;box-shadow:var(--cds-shadow-popover);padding:8px}
+            .rrg-pick-act{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+            .rrg-pick-act button{font:inherit;font-size:var(--cds-font-size-caption);padding:4px 10px;border-radius:6px;border:1px solid var(--color-border-line);background:none;color:var(--color-fg);cursor:pointer}
+            .rrg-pick-pop label{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:var(--cds-font-size-caption);color:var(--color-fg);cursor:pointer}
+          </style>
+          <label class="atl-lab" for="rrg-nganh" id="rrg-nganh-lab" hidden>Ngành <select id="rrg-nganh"></select></label>
+          <label class="atl-lab" for="rrg-ben" id="rrg-ben-lab" hidden>So với <select id="rrg-ben"><option value="VN-Index">VN-Index</option><option value="Ngành">Chỉ số ngành</option></select></label>
+          <label class="atl-lab" for="rrg-tim">Tìm mã <input type="search" id="rrg-tim" list="rrg-ds" placeholder="VD: CII" size="7" autocomplete="off"></label>
+          <datalist id="rrg-ds"></datalist>
+        </div>
+        <div class="atl-chart" id="ch-rrg" data-source="rrg_nganh rrg_ma" style="min-height:20rem"></div>
+        <p class="atl-note" id="rrg-foot">—</p>
+      </div>
+
+      <div class="atl-card atl-wide" id="card-chuyen-pha">
+        <style>
+#card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
+@media (min-width:720px){#card-chuyen-pha .cp-list{grid-template-columns:1fr 1fr;column-gap:24px}}
+#card-cau-truc .ct-body{display:grid;gap:var(--cds-gap-lg)}
+@media (min-width:900px){#card-cau-truc .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
+#card-cau-truc .ct-ch svg{height:auto}
+.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
+.cp-row:hover{background:var(--color-border-line)}
+.cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
+.cp-n{flex:1 1 7.5rem;font-weight:600;min-width:0}
+.cp-g{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.cp-g .atl-pill{white-space:nowrap}
+.cp-giu{margin:8px 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
+.cp-giu b{color:var(--color-fg);font-weight:600}
+        </style>
+        <h2 class="atl-h">Ngành chuyển pha</h2>
+        <p class="atl-note" id="cp-note">Góc RRG của từng ngành hiện nay so với 4 tuần trước (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.</p>
+        <div class="cp-list" id="cp-list"></div>
+        <p class="cp-giu" id="cp-giu"></p>
+      </div>
+    </div>
     </div>
     <div class="atl-dv" data-view="xh">
       <h2 class="atl-dvh">Long đầu &amp; xếp hạng trong nhóm</h2>
@@ -1873,78 +1945,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class="atl-scale" id="tm-scale"></div>
       <div class="atl-tm" id="ch-tm" data-source="ban_do_nhiet hom_nay xep_hang"></div>
       <p class="atl-note">Nhãn góc ô: <b>MUA</b> · <b>GIỮ</b> · <b>TD</b> (theo dõi) theo bộ lọc; <b>CC</b> cạn cung; <b>BT</b> bán tháo (khung 10 phiên).</p>
-    </div>
-    </div>
-    <div class="atl-dv" data-view="rrg">
-      <h2 class="atl-dvh">Vòng quay ngành (RRG)</h2>
-    <div class="atl-grid">
-      <div class="atl-card atl-wide" id="card-rrg">
-        <h2 class="atl-h" id="rrg-h">RRG ngành so với VN-Index</h2>
-        <p class="atl-note">Khung tuần mượt, hợp lệnh giữ vài tuần; khung ngày nhanh nhưng nhiễu. Trục ngang RS-Ratio: mạnh hơn (&gt;100) hay yếu hơn chuẩn so sánh. Trục dọc RS-Momentum: sức mạnh đó đang tăng hay giảm. Vòng thường đi Cải thiện → Dẫn dắt → Suy yếu → Tụt hậu.</p>
-        <div class="atl-controls">
-          <div class="atl-seg" role="group" aria-label="Xem">
-            <button type="button" id="rrg-m-nganh" aria-pressed="true">Ngành</button>
-            <button type="button" id="rrg-m-ma" aria-pressed="false">Mã trong ngành</button>
-          </div>
-          <div class="atl-seg" role="group" aria-label="Khung thời gian">
-            <button type="button" id="rrg-k-tuan" aria-pressed="true">Tuần</button>
-            <button type="button" id="rrg-k-ngay" aria-pressed="false">Ngày</button>
-          </div>
-          <div class="atl-seg" role="group" aria-label="Độ dài đuôi">
-            <button type="button" id="rrg-t4" aria-pressed="true">Đuôi 4</button>
-            <button type="button" id="rrg-t8" aria-pressed="false">Đuôi 8</button>
-          </div>
-          <div class="atl-seg" role="group" aria-label="Lọc theo góc">
-            <button type="button" id="rrg-f-all" aria-pressed="true">Tất cả</button>
-            <button type="button" id="rrg-f-up" aria-pressed="false">Dẫn dắt + Cải thiện</button>
-            <button type="button" id="rrg-f-dn" aria-pressed="false">Suy yếu + Tụt hậu</button>
-          </div>
-          <details class="rrg-pick" id="rrg-pick"><summary id="rrg-pick-sum">Chọn ngành</summary>
-            <div class="rrg-pick-pop">
-              <div class="rrg-pick-act"><button type="button" id="rrg-pk-all">Tất cả</button><button type="button" id="rrg-pk-top">7 mạnh nhất</button><button type="button" id="rrg-pk-none">Bỏ hết</button></div>
-              <div id="rrg-pick-list"></div>
-            </div>
-          </details>
-          <style>
-            .rrg-pick{position:relative}
-            .rrg-pick>summary{list-style:none;cursor:pointer;border:1px solid var(--color-border-line);border-radius:var(--r-in,8px);padding:6px 12px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);user-select:none}
-            .rrg-pick>summary::-webkit-details-marker{display:none}
-            .rrg-pick[open]>summary{background:var(--color-fg);color:var(--color-bg)}
-            .rrg-pick-pop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;min-width:15rem;max-height:21rem;overflow:auto;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:8px;box-shadow:var(--cds-shadow-popover);padding:8px}
-            .rrg-pick-act{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-            .rrg-pick-act button{font:inherit;font-size:var(--cds-font-size-caption);padding:4px 10px;border-radius:6px;border:1px solid var(--color-border-line);background:none;color:var(--color-fg);cursor:pointer}
-            .rrg-pick-pop label{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:var(--cds-font-size-caption);color:var(--color-fg);cursor:pointer}
-          </style>
-          <label class="atl-lab" for="rrg-nganh" id="rrg-nganh-lab" hidden>Ngành <select id="rrg-nganh"></select></label>
-          <label class="atl-lab" for="rrg-ben" id="rrg-ben-lab" hidden>So với <select id="rrg-ben"><option value="VN-Index">VN-Index</option><option value="Ngành">Chỉ số ngành</option></select></label>
-          <label class="atl-lab" for="rrg-tim">Tìm mã <input type="search" id="rrg-tim" list="rrg-ds" placeholder="VD: CII" size="7" autocomplete="off"></label>
-          <datalist id="rrg-ds"></datalist>
-        </div>
-        <div class="atl-chart" id="ch-rrg" data-source="rrg_nganh rrg_ma" style="min-height:20rem"></div>
-        <p class="atl-note" id="rrg-foot">—</p>
-      </div>
-
-      <div class="atl-card atl-wide" id="card-chuyen-pha">
-        <style>
-#card-chuyen-pha .cp-list,#card-cau-truc .ct-rows{display:grid;gap:2px}
-@media (min-width:720px){#card-chuyen-pha .cp-list{grid-template-columns:1fr 1fr;column-gap:24px}}
-#card-cau-truc .ct-body{display:grid;gap:var(--cds-gap-lg)}
-@media (min-width:900px){#card-cau-truc .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
-#card-cau-truc .ct-ch svg{height:auto}
-.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 6px;border-radius:6px;cursor:pointer}
-.cp-row:hover{background:var(--color-border-line)}
-.cp-ar{flex:none;width:1.1rem;font-weight:700;text-align:center}
-.cp-n{flex:1 1 7.5rem;font-weight:600;min-width:0}
-.cp-g{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
-.cp-g .atl-pill{white-space:nowrap}
-.cp-giu{margin:8px 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
-.cp-giu b{color:var(--color-fg);font-weight:600}
-        </style>
-        <h2 class="atl-h">Ngành chuyển pha</h2>
-        <p class="atl-note" id="cp-note">Góc RRG của từng ngành hiện nay so với 4 tuần trước (khung tuần, so với VN-Index). Bấm một ngành để xem đường đi trên biểu đồ RRG.</p>
-        <div class="cp-list" id="cp-list"></div>
-        <p class="cp-giu" id="cp-giu"></p>
-      </div>
     </div>
     </div>
     <div class="atl-dv" data-view="tk">
