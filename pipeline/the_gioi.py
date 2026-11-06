@@ -12,7 +12,7 @@ DS = [
  ("N225", "Nikkei 225", "Châu Á", "^N225", "^nkx"), ("SSEC", "Shanghai Composite", "Châu Á", "000001.SS", "^shc"), ("KS11", "Kospi", "Châu Á", "^KS11", "^kospi"),
  ("HSI", "Hang Seng", "Châu Á", "^HSI", "^hsi"), ("KLSE", "Malaysia KLCI", "Đông Nam Á", "^KLSE", None), ("SET", "SET Thái Lan", "Đông Nam Á", "^SET.BK", None),
  ("JKSE", "Indonesia JCI", "Đông Nam Á", "^JKSE", None), ("PSEI", "Philippines PSEi", "Đông Nam Á", "PSEI.PS", None), ("BSESN", "Ấn Độ Sensex", "Châu Á", "^BSESN", None),
- ("WTI", "Dầu WTI", "Hàng hóa", "CL=F", "cl.f"), ("GOLD", "Vàng", "Hàng hóa", "GC=F", "xauusd"), ("BTC", "Bitcoin", "Tiền số", "BTC-USD", "btc.v"),
+ ("WTI", "Dầu WTI", "Hàng hóa", "CL=F", "cl.f"), ("GOLD", "Vàng", "Hàng hóa", "GC=F", "xauusd"), ("DXY", "Chỉ số USD (DXY)", "Tiền tệ", "DX-Y.NYB", "dx.f"), ("BTC", "Bitcoin", "Tiền số", "BTC-USD", "btc.v"),
 ]
 def get(url, t=20):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=t).read().decode("utf-8", "replace")
