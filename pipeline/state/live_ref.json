@@ -2,15 +2,15 @@
   "ngay": "2026-11-06",
   "nhiet_ke": {
     "ngay": "2026-11-06",
-    "diem": 45.0,
-    "tb7": 47.7,
+    "diem": 46.0,
+    "tb7": 48.1,
     "vung": 2.0,
-    "do_rong": 32.2,
-    "tran_san": 40.0,
+    "do_rong": 32.4,
+    "tran_san": 42.5,
     "thanh_khoan": 61.1,
     "hukt": 53.2
   },
-  "gtgd_tb20": 12461.4,
+  "gtgd_tb20": 12461.1,
   "top10_hom_qua": [
     "VND",
     "KDH",
