@@ -845,15 +845,18 @@
       if (it.type === 'vpvr') return x > W * 0.68 ? 8 : 1e9;
       var A = px(it.a), B = it.b ? px(it.b) : null; if (!A) return 1e9;
       if (it.type === 'hline') return Math.abs(y - A.y);
+      if (it.type === 'vline') return Math.abs(x - A.x);
       if (it.type === 'text') return (Math.abs(x - A.x) < 70 && Math.abs(y - A.y) < 12) ? 0 : 1e9;
       if (!B) return 1e9;
-      if (it.type === 'trend') return dseg(x, y, A.x, A.y, B.x, B.y);
+      if (it.type === 'trend' || it.type === 'arrow') return dseg(x, y, A.x, A.y, B.x, B.y);
+      if (it.type === 'channel') { var o2 = it.off || 0, ya = se.priceToCoordinate(it.a.p + o2), yb = se.priceToCoordinate(it.b.p + o2); return Math.min(dseg(x, y, A.x, A.y, B.x, B.y), (ya == null || yb == null) ? 1e9 : dseg(x, y, A.x, ya, B.x, yb)); }
       if (it.type === 'ray') { var k = Math.max(W, 1) * 4, dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1; return dseg(x, y, A.x, A.y, A.x + dx / L * k, A.y + dy / L * k); }
       var x1 = Math.min(A.x, B.x), x2 = Math.max(A.x, B.x), y1 = Math.min(A.y, B.y), y2 = Math.max(A.y, B.y);
       if (it.type === 'rect' || it.type === 'vpfr') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
       if (it.type === 'fib') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
       return 1e9;
     }
+    function offOf(a, b, cpt) { var la = toLogical(a), lb = toLogical(b), lc = toLogical(cpt); var lp = lb === la ? a.p : a.p + (b.p - a.p) * (lc - la) / (lb - la); return cpt.p - lp; }
     function pick(x, y, W) { var best = null, bd = 9; for (var i = list.length - 1; i >= 0; i--) { var d = hit(list[i], x, y, W); if (d <= bd) { best = list[i]; bd = d; if (d === 0) break; } } return best; }
 
     /* ---- Volume at price: chia khối lượng từng nến theo các mức giá nó đi qua, tách nến tăng / nến giảm ---- */
@@ -909,12 +912,28 @@
         if (it.type === 'hline') {
           ctx.beginPath(); ctx.moveTo(0, A.y); ctx.lineTo(W, A.y); ctx.stroke();
           tag(fnum(it.a.p), W - 62, A.y, c, '#fff'); if (on) dot({ x: A.x, y: A.y });
+        } else if (it.type === 'vline') {
+          ctx.beginPath(); ctx.moveTo(A.x, 0); ctx.lineTo(A.x, H); ctx.stroke(); if (on) dot({ x: A.x, y: A.y });
         } else if (it.type === 'text') {
           ctx.font = '600 12px system-ui,sans-serif'; var tw = ctx.measureText(it.text || '').width + 12;
           ctx.fillStyle = 'rgba(30,30,30,.82)'; rrect(ctx, A.x - 6, A.y - 11, tw, 22, 4); ctx.fill(); ctx.strokeStyle = on ? '#2962ff' : '#f5a623'; ctx.lineWidth = 1; ctx.stroke();
           ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.text || '', A.x, A.y + 0.5);
         } else if (B) {
           if (it.type === 'trend') { ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
+          else if (it.type === 'arrow') {
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+            var ang = Math.atan2(B.y - A.y, B.x - A.x), hl = 13; ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(B.x, B.y);
+            ctx.lineTo(B.x - hl * Math.cos(ang - 0.42), B.y - hl * Math.sin(ang - 0.42)); ctx.lineTo(B.x - hl * Math.cos(ang + 0.42), B.y - hl * Math.sin(ang + 0.42)); ctx.closePath(); ctx.fill();
+          }
+          else if (it.type === 'channel') {
+            var o3 = it.off, ya2 = o3 == null ? null : se.priceToCoordinate(it.a.p + o3), yb2 = o3 == null ? null : se.priceToCoordinate(it.b.p + o3);
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+            if (ya2 != null && yb2 != null) {
+              ctx.beginPath(); ctx.moveTo(A.x, ya2); ctx.lineTo(B.x, yb2); ctx.stroke();
+              ctx.fillStyle = c + '1f'; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(B.x, yb2); ctx.lineTo(A.x, ya2); ctx.closePath(); ctx.fill();
+              ctx.setLineDash([5, 5]); ctx.globalAlpha *= .6; ctx.beginPath(); ctx.moveTo(A.x, (A.y + ya2) / 2); ctx.lineTo(B.x, (B.y + yb2) / 2); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = ghost ? 0.7 : 1;
+            }
+          }
           else if (it.type === 'ray') { var dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, k = (W + 400) * 4; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x + dx / L * k, A.y + dy / L * k); ctx.stroke(); }
           else if (it.type === 'vpfr') {
             var P = vpCompute(Math.min(toLogical(it.a), toLogical(it.b)), Math.max(toLogical(it.a), toLogical(it.b))), vx1 = Math.min(A.x, B.x), vx2 = Math.max(A.x, B.x);
@@ -938,7 +957,7 @@
         ctx.globalAlpha = 1;
       }
       list.forEach(function (it) { if (it.type === 'vpvr') vpvrPaint(ctx, W); else one(it, false); });
-      if (pend && hov) one({ type: pend.type, a: pend.a, b: hov, color: pend.type === 'ruler' ? '#bbb' : undefined }, true);
+      if (pend && hov) { if (pend.type === 'channel' && pend.b) one({ type: 'channel', a: pend.a, b: pend.b, off: offOf(pend.a, pend.b, hov), color: '#4aa3ff' }, true); else one({ type: pend.type, a: pend.a, b: hov, color: pend.type === 'ruler' ? '#bbb' : (pend.type === 'channel' ? '#4aa3ff' : undefined) }, true); }
       if (ruler) rulerPaint(ctx, ruler);
     }
     function rulerPaint(ctx, r) {
@@ -970,9 +989,15 @@
       var a = resolve(pm.point); if (!a) return;
       if (t === 'hline') { add({ type: 'hline', a: a, color: '#f5a623' }); setTool('cursor'); return; }
       if (t === 'text') { var tx = window.prompt('Nhập chữ ghi chú:', ''); if (tx) add({ type: 'text', a: a, text: String(tx).slice(0, 60) }); setTool('cursor'); return; }
+      if (t === 'vline') { add({ type: 'vline', a: a, color: '#f5a623' }); setTool('cursor'); return; }
+      if (t === 'channel') {
+        if (!pend) { pend = { type: t, a: a }; hov = a; redraw(); return; }
+        if (!pend.b) { pend.b = a; hov = a; redraw(); return; }
+        add({ type: 'channel', a: pend.a, b: pend.b, off: offOf(pend.a, pend.b, a), color: '#4aa3ff' }); setTool('cursor'); return;
+      }
       if (!pend) { pend = { type: t, a: a }; hov = a; redraw(); return; }
       if (t === 'ruler') ruler = { a: pend.a, b: a };
-      else add({ type: t, a: pend.a, b: a, color: t === 'trend' || t === 'ray' ? '#4aa3ff' : undefined });
+      else add({ type: t, a: pend.a, b: a, color: t === 'trend' || t === 'ray' || t === 'arrow' ? '#4aa3ff' : undefined });
       setTool('cursor');
     }
     /* tự bắt thao tác bấm (không phụ thuộc sự kiện click của thư viện, vì nó bỏ qua lần bấm thứ hai nếu bấm nhanh) */

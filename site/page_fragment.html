@@ -363,6 +363,22 @@
 html.dthi-lock,html.dthi-lock body{overflow:hidden}
 #dthi-top{display:block}
 #dthi-tbl{pointer-events:none}
+.cb-lgh{pointer-events:auto;appearance:none;border:0;background:rgba(128,128,128,.18);color:var(--color-fg-muted);font:inherit;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 8px;cursor:pointer;margin-bottom:2px}
+.cb-lgh:hover{background:rgba(128,128,128,.32);color:var(--color-fg)}
+#dthi-side{flex:0 0 34%;min-width:0;display:flex;flex-direction:column;gap:6px}
+#dthi-side[hidden]{display:none}
+.dthi-mini{display:flex;flex-direction:column;min-width:0;border:1px solid var(--cds-chart-grid,#333);border-radius:8px;overflow:hidden}
+.dthi-mh{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:11.5px;color:var(--color-fg-muted);flex-wrap:wrap}
+.dthi-mh b{color:var(--color-fg);font-size:12.5px}
+.dthi-mh input{width:5.4rem;box-sizing:border-box;background:var(--color-panel);color:var(--color-fg);border:1px solid var(--cds-chart-grid,#555);border-radius:5px;padding:2px 6px;font:inherit;font-size:12px;text-transform:uppercase}
+.dthi-mh .mseg{display:inline-flex;gap:0}
+.dthi-mh .mseg button{appearance:none;border:1px solid var(--cds-chart-grid,#555);background:none;color:var(--color-fg-muted);font:inherit;font-size:11px;padding:1px 7px;cursor:pointer}
+.dthi-mh .mseg button:first-child{border-radius:5px 0 0 5px}.dthi-mh .mseg button:last-child{border-radius:0 5px 5px 0;border-left:0}
+.dthi-mh .mseg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-panel)}
+.dthi-mo{font-variant-numeric:tabular-nums;white-space:nowrap}
+.dthi-mo .u{color:var(--sem-up)}.dthi-mo .d{color:var(--sem-down)}
+#dthi-lay[aria-pressed="true"]{background:var(--color-fg);color:var(--color-panel)}
+@media (max-width:900px){#dthi-side{flex-basis:100%}#dthi-wrap{flex-wrap:wrap}}
 .dthi-pcs{position:absolute;left:0;right:0;top:0;height:0;z-index:6;pointer-events:none}
 .dthi-pc{position:absolute;right:76px;display:flex;gap:2px;pointer-events:auto;opacity:.55;transition:opacity .12s}
 .dthi-pc:hover{opacity:1}
@@ -2122,6 +2138,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-seg" id="dthi-rg" role="group" aria-label="Khoảng xem"><button type="button" data-v="60" aria-pressed="false">3T</button><button type="button" data-v="125" aria-pressed="false">6T</button><button type="button" data-v="250" aria-pressed="true">1N</button><button type="button" data-v="0" aria-pressed="false">Tất cả</button></div>
         <div class="atl-seg" id="dthi-ind" role="group" aria-label="Chỉ báo"><button type="button" data-v="ma20" aria-pressed="true">MA20</button><button type="button" data-v="ma50" aria-pressed="true">MA50</button><button type="button" data-v="ma200" aria-pressed="false">MA200</button><button type="button" data-v="bb" aria-pressed="false">Bollinger</button><button type="button" data-v="vol" aria-pressed="true">KL</button><button type="button" data-v="macd" aria-pressed="true">MACD</button><button type="button" data-v="rsi" aria-pressed="false">RSI</button></div>
         <button type="button" class="cb-btn" id="dthi-ex" title="Mở rộng khung trong trang (phím Esc để thoát)">⤢ Mở rộng</button>
+        <button type="button" class="cb-btn" id="dthi-lay" aria-pressed="false" title="Bố cục 3 khung: biểu đồ chính + VN-Index cố định + mã chính theo tuần">▥ 3 khung</button>
         <button type="button" class="cb-btn" id="dthi-grid" aria-pressed="false" title="Bật/tắt lưới ô vuông">▦ Lưới</button>
         <button type="button" class="cb-btn" id="dthi-fs" title="Toàn màn hình (phím Esc để thoát)">⛶ Toàn màn hình</button>
       </div>
@@ -2141,8 +2158,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         </details>
       </div>
       <div id="cb-msg" role="status"></div>
-      <div id="dthi-wrap"><div id="dthi-tool" role="toolbar" aria-label="Công cụ vẽ"><button type="button" data-t="cursor" title="Con trỏ (Esc)" aria-label="Con trỏ (Esc)" aria-pressed="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></button><button type="button" data-t="trend" title="Đường xu hướng: bấm 2 điểm" aria-label="Đường xu hướng: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg></button><button type="button" data-t="ray" title="Tia: bấm 2 điểm, kéo dài sang phải" aria-label="Tia: bấm 2 điểm, kéo dài sang phải" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17L21 7"/><circle cx="5" cy="17" r="2"/></svg></button><button type="button" data-t="hline" title="Đường ngang: bấm 1 điểm" aria-label="Đường ngang: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><circle cx="12" cy="12" r="2"/></svg></button><button type="button" data-t="fib" title="Fibonacci hồi quy: bấm 2 điểm" aria-label="Fibonacci hồi quy: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/></svg></button><button type="button" data-t="vpfr" title="Volume Profile vùng cố định: bấm 2 điểm (lưu theo từng mã)" aria-label="Volume Profile vùng cố định: bấm 2 điểm (lưu theo từng mã)" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"/><path d="M4 6h10M4 10h14M4 14h8M4 18h12"/></svg></button><button type="button" data-t="vpvr" title="Volume Profile vùng đang xem: bấm để bật/tắt" aria-label="Volume Profile vùng đang xem: bấm để bật/tắt" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4v16"/><path d="M20 6H10M20 10H6M20 14h8M20 18H8" transform="translate(-4 0)"/></svg></button><button type="button" data-t="rect" title="Hình chữ nhật: bấm 2 điểm" aria-label="Hình chữ nhật: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="1"/></svg></button><button type="button" data-t="text" title="Ghi chú chữ: bấm 1 điểm" aria-label="Ghi chú chữ: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h12M12 6v13"/></svg></button><button type="button" data-t="ruler" title="Thước đo: bấm 2 điểm" aria-label="Thước đo: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16L16 4l4 4L8 20z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg></button><button type="button" data-t="magnet" title="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-label="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v8a5 5 0 0010 0V4h-3v8a2 2 0 01-4 0V4z"/></svg></button><button type="button" data-t="delete" title="Xoá từng nét: bấm vào nét muốn xoá" aria-label="Xoá từng nét: bấm vào nét muốn xoá" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" data-t="clear" title="Xoá hết nét vẽ của mã này" aria-label="Xoá hết nét vẽ của mã này" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button></div>
-        <div id="dthi-main"><div id="dthi-hd"><div class="dthi-head" id="dthi-head">Nhập mã để xem đồ thị.</div><div id="dthi-leg"></div></div><div id="dthi-box"></div><div id="dthi-tbl"></div></div></div>
+      <div id="dthi-wrap"><div id="dthi-tool" role="toolbar" aria-label="Công cụ vẽ"><button type="button" data-t="cursor" title="Con trỏ (Esc)" aria-label="Con trỏ (Esc)" aria-pressed="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></button><button type="button" data-t="trend" title="Đường xu hướng: bấm 2 điểm" aria-label="Đường xu hướng: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg></button><button type="button" data-t="ray" title="Tia: bấm 2 điểm, kéo dài sang phải" aria-label="Tia: bấm 2 điểm, kéo dài sang phải" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17L21 7"/><circle cx="5" cy="17" r="2"/></svg></button><button type="button" data-t="hline" title="Đường ngang: bấm 1 điểm" aria-label="Đường ngang: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><circle cx="12" cy="12" r="2"/></svg></button><button type="button" data-t="fib" title="Fibonacci hồi quy: bấm 2 điểm" aria-label="Fibonacci hồi quy: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/></svg></button><button type="button" data-t="vline" title="Đường dọc: bấm 1 điểm" aria-label="Đường dọc: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><circle cx="12" cy="12" r="2"/></svg></button><button type="button" data-t="channel" title="Kênh song song: bấm 3 điểm (2 điểm đường chính, điểm 3 đặt đường song song)" aria-label="Kênh song song: bấm 3 điểm (2 điểm đường chính, điểm 3 đặt đường song song)" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14L18 6M6 19L20 11"/></svg></button><button type="button" data-t="arrow" title="Mũi tên: bấm 2 điểm" aria-label="Mũi tên: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19L18 6M10 6h8v8"/></svg></button><button type="button" data-t="vpfr" title="Volume Profile vùng cố định: bấm 2 điểm (lưu theo từng mã)" aria-label="Volume Profile vùng cố định: bấm 2 điểm (lưu theo từng mã)" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"/><path d="M4 6h10M4 10h14M4 14h8M4 18h12"/></svg></button><button type="button" data-t="vpvr" title="Volume Profile vùng đang xem: bấm để bật/tắt" aria-label="Volume Profile vùng đang xem: bấm để bật/tắt" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4v16"/><path d="M20 6H10M20 10H6M20 14h8M20 18H8" transform="translate(-4 0)"/></svg></button><button type="button" data-t="rect" title="Hình chữ nhật: bấm 2 điểm" aria-label="Hình chữ nhật: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="1"/></svg></button><button type="button" data-t="text" title="Ghi chú chữ: bấm 1 điểm" aria-label="Ghi chú chữ: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h12M12 6v13"/></svg></button><button type="button" data-t="ruler" title="Thước đo: bấm 2 điểm" aria-label="Thước đo: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16L16 4l4 4L8 20z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg></button><button type="button" data-t="magnet" title="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-label="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v8a5 5 0 0010 0V4h-3v8a2 2 0 01-4 0V4z"/></svg></button><button type="button" data-t="delete" title="Xoá từng nét: bấm vào nét muốn xoá" aria-label="Xoá từng nét: bấm vào nét muốn xoá" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" data-t="clear" title="Xoá hết nét vẽ của mã này" aria-label="Xoá hết nét vẽ của mã này" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button></div>
+        <div id="dthi-main"><div id="dthi-hd"><div class="dthi-head" id="dthi-head">Nhập mã để xem đồ thị.</div><div id="dthi-leg"></div></div><div id="dthi-box"></div><div id="dthi-tbl"></div></div><div id="dthi-side" hidden></div></div>
       <div id="cb-dlg" hidden role="dialog" aria-modal="true" aria-labelledby="cb-dt"><div id="cb-dlg-in">
         <div class="cb-dh"><b id="cb-dt"></b><button type="button" class="cb-x" id="cb-dx" aria-label="Đóng">✕</button></div>
         <div class="cb-tabs" id="cb-dtabs"><button type="button" data-k="in" aria-pressed="true">Đầu vào</button><button type="button" data-k="st" aria-pressed="false">Định dạng</button></div>
@@ -2157,7 +2174,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var BASE='data/chart/',LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/nen_nay.json',UP='#3f9a62',DN='#c9483b';
     var S={ma:'HAH',tf:'D',rg:250,ind:{ma20:1,ma50:1,ma200:0,bb:0,vol:1,macd:1,rsi:0}};
     try{var sv=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv){S.tf=sv.tf==='W'?'W':'D';S.rg=[0,60,125,250].indexOf(+sv.rg)>=0?+sv.rg:250;if(sv.ind)for(var k in S.ind)if(k in sv.ind)S.ind[k]=sv.ind[k]?1:0;if(sv.ma&&/^[A-Z0-9]{2,8}$/.test(sv.ma))S.ma=sv.ma;}}catch(e){}
-    try{var sv2=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv2){S.grid=sv2.grid?1:0;if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
+    try{var sv2=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv2){S.grid=sv2.grid?1:0;S.lgc=sv2.lgc?1:0;S.lay=sv2.lay===3?3:1;if(sv2.m1&&/^[A-Z0-9]{2,8}$/.test(sv2.m1.s||''))S.m1={s:sv2.m1.s,tf:sv2.m1.tf==='W'?'W':'D'};if(sv2.m2)S.m2={tf:sv2.m2.tf==='D'?'D':'W'};if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
+    S.m1=S.m1||{s:'VNINDEX',tf:'D'};S.m2=S.m2||{tf:'W'};
     function save(){try{localStorage.setItem('atl-dthi',JSON.stringify(S));}catch(e){}}
     function $(i){return document.getElementById(i);}
     /* ---- chỉ báo ATL (chi-bao.js): chỉ báo mẫu + mã người dùng soạn, lưu trên trình duyệt này ---- */
@@ -2224,6 +2242,44 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         else cb();});});}
     function rebuild(){if(raw)prep(build);}
     function fill(){var d=view();if(!d)return;feeds.forEach(function(f){f(d);});if(legendFn&&!hover)legendFn(d,d.t.length-1);}
+        /* ---- bố cục 3 khung: VN-Index cố định + mã chính theo tuần, cạnh biểu đồ chính ---- */
+    var MC={},minis=[],miniKey='';
+    function mget(sym){return MC[sym]?Promise.resolve(MC[sym]):fetch(BASE+sym+'.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){MC[sym]=j;return j;});}
+    function mmerge(sym,r){var b=liveD&&liveD.nen&&liveD.nen[sym];if(!b||!liveD.ngay||liveD.ngay<=r.t[r.t.length-1])return r;return {t:r.t.concat([liveD.ngay]),o:r.o.concat([b[0]]),h:r.h.concat([b[1]]),l:r.l.concat([b[2]]),c:r.c.concat([b[3]]),v:r.v.concat([b[4]])};}
+    function buildMinis(force){
+      var side=$('dthi-side');if(!side)return;
+      var key=[S.lay,S.ma,S.m1.s,S.m1.tf,S.m2.tf,liveD&&liveD.cap_nhat,$('dthi-box').offsetHeight,S.grid,css('--color-panel')].join('|');
+      if(!force&&key===miniKey)return;miniKey=key;
+      minis.forEach(function(m){try{m.chart.remove();}catch(e){}});minis=[];side.textContent='';
+      side.hidden=S.lay!==3;if(S.lay!==3||!window.LightweightCharts)return;
+      var HH=Math.max(260,$('dthi-box').offsetHeight),hEach=Math.floor((HH-6)/2);
+      [{cfg:S.m1,fixed:false,k:'m1'},{cfg:S.m2,fixed:true,k:'m2'}].forEach(function(o){
+        var wrap=document.createElement('div');wrap.className='dthi-mini';var hd=document.createElement('div');hd.className='dthi-mh';
+        var sym=o.fixed?S.ma:o.cfg.s;
+        if(o.fixed){var b=document.createElement('b');b.textContent=sym;hd.appendChild(b);var sm=document.createElement('span');sm.textContent='theo mã chính';hd.appendChild(sm);}
+        else{var inp=document.createElement('input');inp.value=sym;inp.setAttribute('aria-label','Mã khung phụ');inp.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){var v=inp.value.toUpperCase().trim();if(/^[A-Z0-9]{2,8}$/.test(v)){S.m1.s=v;save();buildMinis(true);}inp.blur();}});hd.appendChild(inp);}
+        var sg=document.createElement('span');sg.className='mseg';
+        [['D','Ngày'],['W','Tuần']].forEach(function(z){var bt=document.createElement('button');bt.type='button';bt.textContent=z[1];bt.setAttribute('aria-pressed',String(o.cfg.tf===z[0]));bt.addEventListener('click',function(){o.cfg.tf=z[0];save();buildMinis(true);});sg.appendChild(bt);});hd.appendChild(sg);
+        var ov=document.createElement('span');ov.className='dthi-mo';hd.appendChild(ov);
+        var cb=document.createElement('div');cb.style.height=(hEach-30)+'px';wrap.appendChild(hd);wrap.appendChild(cb);side.appendChild(wrap);
+        mget(sym).then(function(r0){
+          var r=mmerge(sym,r0),d=o.cfg.tf==='W'?weekly(r):r,n=d.t.length,L=window.LightweightCharts;
+          var fg=css('--color-fg-muted')||'#999',grid=css('--cds-chart-grid')||'#2c2c2c',bg=css('--color-panel')||'#1c1c1c';
+          var ch=L.createChart(cb,{autoSize:true,layout:{background:{type:'solid',color:bg},textColor:fg,fontSize:10},crosshair:{mode:L.CrosshairMode.Normal},grid:{vertLines:{color:grid,visible:!!S.grid},horzLines:{color:grid,visible:!!S.grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:3,timeVisible:false},localization:{locale:'vi-VN',priceFormatter:function(p){return p.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});}}});
+          var cd=ch.addSeries(L.CandlestickSeries,{upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN});
+          cd.setData(d.t.map(function(t,i){return {time:t,open:d.o[i],high:d.h[i],low:d.l[i],close:d.c[i]};}));
+          [[20,'#d4a62a'],[50,'#5b8db8']].forEach(function(z){var a=sma(d.c,z[0]),ln=ch.addSeries(L.LineSeries,{color:z[1],lineWidth:1,lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false}),q=[];for(var i=0;i<a.length;i++)if(a[i]!=null)q.push({time:d.t[i],value:a[i]});ln.setData(q);});
+          var vs=ch.addSeries(L.HistogramSeries,{priceFormat:{type:'volume'},priceScaleId:'vol',lastValueVisible:false,priceLineVisible:false});
+          ch.priceScale('vol').applyOptions({scaleMargins:{top:0.8,bottom:0}});
+          vs.setData(d.t.map(function(t,i){return {time:t,value:d.v[i],color:(d.c[i]>=d.o[i]?UP:DN)+'88'};}));
+          var N=o.cfg.tf==='W'?90:130;if(n>N)ch.timeScale().setVisibleLogicalRange({from:n-N,to:n+3});else ch.timeScale().fitContent();
+          function show(i){var c=d.c[i],p=i>0?d.c[i-1]:null,chg=p?(c/p-1)*100:null;ov.textContent='';
+            ov.appendChild(document.createTextNode(dmy(d.t[i])+' · '+f2(c)+' '));if(chg!=null){var sp=document.createElement('span');sp.className=chg>=0?'u':'d';sp.textContent=(chg>=0?'+':'')+chg.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';ov.appendChild(sp);}}
+          show(n-1);
+          ch.subscribeCrosshairMove(function(pm){var ix=pm&&pm.time?d.t.indexOf(pm.time):-1;show(ix>=0?ix:n-1);});
+          minis.push({chart:ch});
+        }).catch(function(){ov.textContent='Không có dữ liệu '+sym;});
+      });}
     function build(){
       var box=$('dthi-box');if(!raw||!window.LightweightCharts)return;
       if(chart){try{chart.remove();}catch(e){}chart=null;}box.textContent='';feeds=[];
@@ -2235,7 +2291,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       $('dthi-tbl').textContent='';cbmsg(S.tf!=='D'&&anyOn()?'Chỉ báo ATL chỉ chạy ở khung Ngày, bấm "Ngày" để xem.':'');
       box.style.height=(S.ex?exH():430+extra*140)+'px';
       chart=L.createChart(box,{autoSize:true,layout:{background:{type:'solid',color:bg},textColor:fg,fontSize:11,panes:{separatorColor:grid,enableResize:true}},
-        grid:{vertLines:{color:grid,visible:!!S.grid},horzLines:{color:grid,visible:!!S.grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:4,timeVisible:false},
+        crosshair:{mode:L.CrosshairMode.Normal},grid:{vertLines:{color:grid,visible:!!S.grid},horzLines:{color:grid,visible:!!S.grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:4,timeVisible:false},
         localization:{locale:'vi-VN',priceFormatter:function(p){return p.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});}}});
       var cd=chart.addSeries(L.CandlestickSeries,{upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN,priceLineVisible:true},0);
       feeds.push(function(d){cd.setData(d.t.map(function(t,i){return {time:t,open:d.o[i],high:d.h[i],low:d.l[i],close:d.c[i]};}));});
@@ -2292,6 +2348,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         h.appendChild(document.createTextNode(' · KL '+fv(d.v[i])));}
       legendFn=legend;legend(d,n-1);renderLeg();
       chart.subscribeCrosshairMove(function(pm){var t=pm&&pm.time,dd=view();if(!dd)return;var ix=-1;if(t)ix=dd.t.indexOf(t);hover=ix>=0;legend(dd,ix>=0?ix:dd.t.length-1);});
+      setTimeout(function(){buildMinis();},0);
     }
     function loadSym(m){
       m=(m||'').toUpperCase().trim();if(!/^[A-Z0-9]{2,8}$/.test(m))return;
@@ -2309,13 +2366,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     function exH(){var st=$('dthi-stage'),b=$('dthi-box'),top=b.getBoundingClientRect().top-st.getBoundingClientRect().top;return Math.max(320,window.innerHeight-top-24);}
     function syncTools(t){[].forEach.call($('dthi-tool').children,function(b){var k=b.dataset.t;if(k==='magnet')b.setAttribute('aria-pressed',String(!!(window.ATLCB&&ATLCB.draw.state.magnet)));else if(k==='vpvr')b.setAttribute('aria-pressed',String(!!(window.ATLCB&&ATLCB.draw.vpOn())));else if(k!=='clear')b.setAttribute('aria-pressed',String(k===t));});}
     function setEx(on,viaFs){
-      S.ex=!!on;var st=$('dthi-stage');st.classList.toggle('dthi-ex',S.ex);document.documentElement.classList.toggle('dthi-lock',S.ex);
+      S.ex=!!on;var st=$('dthi-stage');st.classList.toggle('dthi-ex',S.ex);document.documentElement.classList.toggle('dthi-lock',S.ex);setTimeout(function(){buildMinis();},120);
       $('dthi-ex').textContent=S.ex?'⤡ Thu nhỏ':'⤢ Mở rộng';
       if(!S.ex&&!viaFs&&document.fullscreenElement){try{document.exitFullscreen();}catch(e){}}
       var b=$('dthi-box');if(raw)b.style.height=(S.ex?exH():(430+((S.ind.macd?1:0)+(S.ind.rsi?1:0)+activeInds().filter(function(x){return ATLCB.meta(x.code).pane==='sub';}).length)*140))+'px';
       if(window.scrollTo&&S.ex)st.scrollTop=0;}
     function toolsInit(){
       $('dthi-ex').addEventListener('click',function(){setEx(!S.ex);});
+      var lb=$('dthi-lay');lb.setAttribute('aria-pressed',String(S.lay===3));lb.addEventListener('click',function(){S.lay=S.lay===3?1:3;lb.setAttribute('aria-pressed',String(S.lay===3));save();buildMinis(true);});
       var gb=$('dthi-grid');gb.setAttribute('aria-pressed',String(!!S.grid));gb.addEventListener('click',function(){S.grid=S.grid?0:1;gb.setAttribute('aria-pressed',String(!!S.grid));save();if(raw)build();});
       $('dthi-fs').addEventListener('click',function(){
         var st=$('dthi-stage');
@@ -2323,7 +2381,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         setEx(true,true);if(st.requestFullscreen){st.requestFullscreen().catch(function(){});}});
       document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&S.ex&&S.fsMode){S.fsMode=false;setEx(false,true);}else if(document.fullscreenElement){S.fsMode=true;}});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.ex&&!document.fullscreenElement&&window.atlTab==='do-thi'&&!(window.ATLCB&&(ATLCB.draw.state.tool!=='cursor')))setEx(false);});
-      window.addEventListener('resize',function(){if(S.ex&&raw){$('dthi-box').style.height=exH()+'px';}});
+      window.addEventListener('resize',function(){if(S.ex&&raw){$('dthi-box').style.height=exH()+'px';}clearTimeout(window._atlmr);window._atlmr=setTimeout(function(){buildMinis();},250);});
       $('dthi-tool').addEventListener('click',function(e){
         var b=e.target.closest('button');if(!b||!window.ATLCB)return;var k=b.dataset.t;
         if(k==='magnet'){ATLCB.draw.state.magnet=!ATLCB.draw.state.magnet;syncTools(ATLCB.draw.state.tool);return;}
@@ -2353,6 +2411,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     function lgBtn(k,t,fn){var b=document.createElement('button');b.type='button';b.title=t;b.setAttribute('aria-label',t);b.innerHTML=IC[k];b.addEventListener('click',function(e){e.stopPropagation();fn();});return b;}
     function renderLeg(){
       var h=$('dthi-leg');if(!h)return;h.textContent='';
+      var tot=['ma20','ma50','ma200','bb','vol','macd','rsi'].filter(function(k){return S.ind[k];}).length+(S.tf==='D'&&window.ATLCB?inds().filter(function(x){return CB.on[x.id];}).length:0);
+      if(tot>0){var hb=document.createElement('button');hb.type='button';hb.className='cb-lgh';hb.title=S.lgc?'Mở danh sách chỉ báo':'Thu gọn danh sách chỉ báo';hb.textContent=(S.lgc?'⌄ ':'⌃ ')+tot+(S.lgc?' chỉ báo':'');hb.addEventListener('click',function(e){e.stopPropagation();S.lgc=S.lgc?0:1;save();renderLeg();});h.appendChild(hb);}
+      if(S.lgc)return;
       ['ma20','ma50','ma200','bb','vol','macd','rsi'].filter(function(k){return S.ind[k];}).forEach(function(k){
         var r=document.createElement('span');r.className='cb-lg';var nm=document.createElement('span');nm.textContent=bname(k);r.appendChild(nm);
         r.appendChild(lgBtn('gear','Cài đặt',function(){openDlg('b:'+k);}));
