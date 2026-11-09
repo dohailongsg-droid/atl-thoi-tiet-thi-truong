@@ -618,5 +618,173 @@
     return insts;
   }
 
-  window.ATLCB = { ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx };
+
+  /* ================= công cụ vẽ (đường xu hướng, tia, đường ngang, Fibonacci, hình chữ nhật, chữ, thước đo) ================= */
+  var DS = { tool: 'cursor', magnet: false }, DR_KEY = 'atl-dthi-dr', CUR = null;
+  function drLoad() { try { return JSON.parse(localStorage.getItem(DR_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function drSave(o) { try { localStorage.setItem(DR_KEY, JSON.stringify(o)); } catch (e) {} }
+  var FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1], FIBC = ['#9e9e9e', '#f23645', '#ff9800', '#4caf50', '#089981', '#00bcd4', '#9e9e9e'];
+  function fnum(x) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5); }
+
+  function drawMount(env) {
+    var chart = env.chart, se = env.candle, box = env.box, ts = chart.timeScale(), sym = env.sym;
+    var all = drLoad(), list = (all[sym] || []).filter(function (x) { return x && x.type && x.a && typeof x.a.p === 'number'; }), pend = null, hov = null, ruler = null, sel = null, req = null;
+    function persist() { all[sym] = list; drSave(all); }
+    function redraw() { if (req) req(); }
+    function data() { return env.getData(); }
+    function toAnchor(l, p) { var d = data(), n = d.t.length, i0 = Math.max(0, Math.min(n - 1, Math.round(l))); return { t: d.t[i0], f: +(l - i0).toFixed(3), p: p }; }
+    function toLogical(a) {
+      var d = data(), n = d.t.length, lo = 0, hi = n - 1;
+      while (lo < hi) { var m = (lo + hi) >> 1; if (d.t[m] < a.t) lo = m + 1; else hi = m; }
+      return lo + a.f;
+    }
+    function px(a) { var x = ts.logicalToCoordinate(toLogical(a)), y = se.priceToCoordinate(a.p); return (x == null || y == null) ? null : { x: x, y: y }; }
+    function resolve(pt) {
+      var l = ts.coordinateToLogical(pt.x), p = se.coordinateToPrice(pt.y);
+      if (l == null || p == null) return null;
+      if (DS.magnet) {
+        var d = data(), i = Math.max(0, Math.min(d.t.length - 1, Math.round(l))), best = null, bd = 1e9;
+        [d.o[i], d.h[i], d.l[i], d.c[i]].forEach(function (v) { var y = se.priceToCoordinate(v); if (y != null && Math.abs(y - pt.y) < bd) { bd = Math.abs(y - pt.y); best = v; } });
+        if (best != null && bd < 22) { l = i; p = best; }
+      }
+      return toAnchor(l, p);
+    }
+    /* ---- hình học & hit-test ---- */
+    function dseg(px_, py_, x1, y1, x2, y2) { var dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((px_ - x1) * dx + (py_ - y1) * dy) / L2)) : 0; return Math.hypot(px_ - (x1 + t * dx), py_ - (y1 + t * dy)); }
+    function hit(it, x, y, W) {
+      var A = px(it.a), B = it.b ? px(it.b) : null; if (!A) return 1e9;
+      if (it.type === 'hline') return Math.abs(y - A.y);
+      if (it.type === 'text') return (Math.abs(x - A.x) < 70 && Math.abs(y - A.y) < 12) ? 0 : 1e9;
+      if (!B) return 1e9;
+      if (it.type === 'trend') return dseg(x, y, A.x, A.y, B.x, B.y);
+      if (it.type === 'ray') { var k = Math.max(W, 1) * 4, dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1; return dseg(x, y, A.x, A.y, A.x + dx / L * k, A.y + dy / L * k); }
+      var x1 = Math.min(A.x, B.x), x2 = Math.max(A.x, B.x), y1 = Math.min(A.y, B.y), y2 = Math.max(A.y, B.y);
+      if (it.type === 'rect') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
+      if (it.type === 'fib') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
+      return 1e9;
+    }
+    function pick(x, y, W) { var best = null, bd = 9; for (var i = list.length - 1; i >= 0; i--) { var d = hit(list[i], x, y, W); if (d <= bd) { best = list[i]; bd = d; if (d === 0) break; } } return best; }
+    /* ---- vẽ ---- */
+    function paint(sc) {
+      var ctx = sc.context, W = sc.mediaSize.width, H = sc.mediaSize.height, fg = env.fg || '#ddd';
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      function dot(p) { ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2962ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 6.3); ctx.fill(); ctx.stroke(); }
+      function tag(txt, x, y, bg, col) { ctx.font = '600 11px system-ui,sans-serif'; var w = ctx.measureText(txt).width + 10; ctx.fillStyle = bg; rrect(ctx, x, y - 9, w, 18, 3); ctx.fill(); ctx.fillStyle = col || '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x + 5, y + 0.5); return w; }
+      function one(it, ghost) {
+        var A = px(it.a), B = it.b ? px(it.b) : null; if (!A) return;
+        var on = it === sel, c = it.color || '#4aa3ff';
+        ctx.globalAlpha = ghost ? 0.7 : 1; ctx.lineWidth = on ? 2.4 : 1.7; ctx.strokeStyle = c; ctx.setLineDash([]);
+        if (it.type === 'hline') {
+          ctx.beginPath(); ctx.moveTo(0, A.y); ctx.lineTo(W, A.y); ctx.stroke();
+          tag(fnum(it.a.p), W - 62, A.y, c, '#fff'); if (on) dot({ x: A.x, y: A.y });
+        } else if (it.type === 'text') {
+          ctx.font = '600 12px system-ui,sans-serif'; var tw = ctx.measureText(it.text || '').width + 12;
+          ctx.fillStyle = 'rgba(30,30,30,.82)'; rrect(ctx, A.x - 6, A.y - 11, tw, 22, 4); ctx.fill(); ctx.strokeStyle = on ? '#2962ff' : '#f5a623'; ctx.lineWidth = 1; ctx.stroke();
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.text || '', A.x, A.y + 0.5);
+        } else if (B) {
+          if (it.type === 'trend') { ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
+          else if (it.type === 'ray') { var dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, k = (W + 400) * 4; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x + dx / L * k, A.y + dy / L * k); ctx.stroke(); }
+          else if (it.type === 'rect') { var rx = Math.min(A.x, B.x), ry = Math.min(A.y, B.y), rw = Math.abs(A.x - B.x), rh = Math.abs(A.y - B.y); ctx.fillStyle = 'rgba(74,163,255,.16)'; ctx.fillRect(rx, ry, rw, rh); ctx.strokeRect(rx, ry, rw, rh); }
+          else if (it.type === 'fib') {
+            var fx1 = Math.min(A.x, B.x), fx2 = Math.max(A.x, B.x) + 0, prev = null;
+            FIB.forEach(function (lv, k) {
+              var pr = it.b.p + (it.a.p - it.b.p) * lv, yy = se.priceToCoordinate(pr); if (yy == null) return;
+              if (prev != null) { ctx.fillStyle = FIBC[k] + '22'; ctx.fillRect(fx1, Math.min(prev, yy), fx2 - fx1, Math.abs(yy - prev)); }
+              ctx.strokeStyle = FIBC[k]; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(fx1, yy); ctx.lineTo(fx2, yy); ctx.stroke();
+              ctx.font = '11px system-ui,sans-serif'; ctx.fillStyle = FIBC[k]; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(lv + ' (' + fnum(pr) + ')', fx1 + 4, yy - 2);
+              prev = yy;
+            });
+            ctx.strokeStyle = 'rgba(180,180,180,.55)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); ctx.setLineDash([]);
+          }
+          if (on || ghost) { dot(A); dot(B); }
+        }
+        ctx.globalAlpha = 1;
+      }
+      list.forEach(function (it) { one(it, false); });
+      if (pend && hov) one({ type: pend.type, a: pend.a, b: hov, color: pend.type === 'ruler' ? '#bbb' : undefined }, true);
+      if (ruler) rulerPaint(ctx, ruler);
+    }
+    function rulerPaint(ctx, r) {
+      var A = px(r.a), B = px(r.b); if (!A || !B) return;
+      var up = r.b.p >= r.a.p, c = up ? '#26a69a' : '#ef5350';
+      ctx.strokeStyle = c; ctx.fillStyle = c + '30'; ctx.lineWidth = 1.5;
+      var rx = Math.min(A.x, B.x), ry = Math.min(A.y, B.y), rw = Math.abs(A.x - B.x), rh = Math.abs(A.y - B.y);
+      ctx.fillRect(rx, ry, rw, rh); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+      var dp = r.b.p - r.a.p, pc = r.a.p ? dp / r.a.p * 100 : 0, bars = Math.round(toLogical(r.b) - toLogical(r.a)), dd = dayDiff(r.a.t, r.b.t);
+      var l1 = (dp >= 0 ? '+' : '') + fnum(dp) + ' (' + (pc >= 0 ? '+' : '') + pc.toFixed(2).replace('.', ',') + '%)', l2 = Math.abs(bars) + ' nến · ' + Math.abs(dd) + ' ngày';
+      ctx.font = '600 11.5px system-ui,sans-serif'; var w = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) + 16, x = rx + rw / 2 - w / 2, y = (up ? ry - 46 : ry + rh + 8);
+      ctx.fillStyle = c; rrect(ctx, x, y, w, 38, 4); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(l1, x + w / 2, y + 12); ctx.fillText(l2, x + w / 2, y + 27);
+    }
+    var layer = {
+      attached: function (p) { req = p.requestUpdate; }, detached: function () { req = null; }, updateAllViews: function () {},
+      paneViews: function () { return [{ zOrder: function () { return 'top'; }, renderer: function () { return { draw: function (tg) { tg.useMediaCoordinateSpace(paint); } }; } }]; }
+    };
+    se.attachPrimitive(layer);
+    /* ---- thao tác ---- */
+    function setTool(t) { DS.tool = t; pend = null; hov = null; box.style.cursor = t === 'cursor' ? '' : 'crosshair'; if (env.onTool) env.onTool(t); redraw(); }
+    function add(it) { it.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5); list.push(it); persist(); }
+    function onClick(pm) {
+      if (!pm || !pm.point) return;
+      var t = DS.tool, W = box.clientWidth;
+      if (ruler && !(t === 'ruler' && !pend)) { ruler = null; redraw(); if (t === 'cursor') return; }
+      if (t === 'cursor') { var h = pick(pm.point.x, pm.point.y, W); sel = h; redraw(); return; }
+      if (pm.paneIndex > 0) return;
+      if (t === 'delete') { var d = pick(pm.point.x, pm.point.y, W); if (d) { list.splice(list.indexOf(d), 1); persist(); redraw(); } return; }
+      var a = resolve(pm.point); if (!a) return;
+      if (t === 'hline') { add({ type: 'hline', a: a, color: '#f5a623' }); setTool('cursor'); return; }
+      if (t === 'text') { var tx = window.prompt('Nhập chữ ghi chú:', ''); if (tx) add({ type: 'text', a: a, text: String(tx).slice(0, 60) }); setTool('cursor'); return; }
+      if (!pend) { pend = { type: t, a: a }; hov = a; redraw(); return; }
+      if (t === 'ruler') ruler = { a: pend.a, b: a };
+      else add({ type: t, a: pend.a, b: a, color: t === 'trend' || t === 'ray' ? '#4aa3ff' : undefined });
+      setTool('cursor');
+    }
+    /* tự bắt thao tác bấm (không phụ thuộc sự kiện click của thư viện, vì nó bỏ qua lần bấm thứ hai nếu bấm nhanh) */
+    if (box._atlclk) { box.removeEventListener('pointerdown', box._atlclk.d, true); box.removeEventListener('pointerup', box._atlclk.u, true); }
+    var down = null;
+    box._atlclk = {
+      d: function (e) { down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; },
+      u: function (e) {
+        if (!down || e.button !== 0) return; var dx = e.clientX - down.x, dy = e.clientY - down.y; down = null;
+        if (Math.hypot(dx, dy) > 5) return;
+        var r = box.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, pw = chart.priceScale('right', 0).width();
+        if (x >= r.width - pw) return;
+        var ps = chart.panes(), pi = 0; for (var k = 0; k < ps.length; k++) { var pr = ps[k].getHTMLElement().getBoundingClientRect(); if (e.clientY >= pr.top && e.clientY <= pr.bottom) { pi = k; break; } if (k === ps.length - 1) pi = -1; }
+        if (pi < 0) return;
+        onClick({ point: { x: x, y: y }, paneIndex: pi });
+      }
+    };
+    box.addEventListener('pointerdown', box._atlclk.d, true); box.addEventListener('pointerup', box._atlclk.u, true);
+    chart.subscribeCrosshairMove(function (pm) { if (!pend || !pm || !pm.point) return; var a = resolve(pm.point); if (a) { hov = a; redraw(); } });
+    function onKey(e) {
+      var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+      if (e.key === 'Escape') { if (pend || DS.tool !== 'cursor') { setTool('cursor'); } sel = null; ruler = null; redraw(); }
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { var i = list.indexOf(sel); if (i >= 0) { list.splice(i, 1); persist(); } sel = null; redraw(); e.preventDefault(); }
+    }
+    if (ATLCB_KEY.fn) document.removeEventListener('keydown', ATLCB_KEY.fn);
+    ATLCB_KEY.fn = onKey; document.addEventListener('keydown', onKey);
+    box.style.cursor = DS.tool === 'cursor' ? '' : 'crosshair';
+    CUR = { setTool: setTool, clearAll: function () { list = []; sel = null; ruler = null; persist(); redraw(); }, count: function () { return list.length; }, redraw: redraw };
+    return CUR;
+  }
+  var ATLCB_KEY = { fn: null };
+
+  /* Con lăn: trên vùng giá (cột phải) thì phóng to/thu nhỏ trục giá, nhấp đúp để về tự động; ở giữa biểu đồ thì phóng to/thu nhỏ theo thời gian. */
+  function wheelFix(chart, box) {
+    if (box._atlw) { box.removeEventListener('wheel', box._atlw, true); box.removeEventListener('dblclick', box._atld, true); }
+    function paneAt(y) { var ps = chart.panes(); for (var k = 0; k < ps.length; k++) { var r = ps[k].getHTMLElement().getBoundingClientRect(); if (y >= r.top && y <= r.bottom) return k; } return -1; }
+    function onAxis(e, k) { var r = box.getBoundingClientRect(), w = chart.priceScale('right', k).width(); return w > 0 && e.clientX >= r.right - w; }
+    box._atlw = function (e) {
+      var k = paneAt(e.clientY); if (k < 0 || !onAxis(e, k)) return;
+      e.preventDefault(); e.stopPropagation();
+      var ps = chart.priceScale('right', k), vr = ps.getVisibleRange(); if (!vr) return;
+      var f = e.deltaY > 0 ? 1.12 : 1 / 1.12, c = (vr.from + vr.to) / 2, h = (vr.to - vr.from) / 2 * f;
+      ps.setAutoScale(false); ps.setVisibleRange({ from: c - h, to: c + h });
+    };
+    box._atld = function (e) { var k = paneAt(e.clientY); if (k >= 0 && onAxis(e, k)) { chart.priceScale('right', k).setAutoScale(true); e.stopPropagation(); } };
+    box.addEventListener('wheel', box._atlw, { passive: false, capture: true });
+    box.addEventListener('dblclick', box._atld, true);
+  }
+
+  window.ATLCB = { ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; } }, wheelFix: wheelFix };
 })();

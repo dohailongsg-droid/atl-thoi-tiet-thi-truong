@@ -379,6 +379,21 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .dthi-head b{color:var(--color-fg);font-size:var(--cds-font-size-heading)}
 .dthi-head .u{color:var(--sem-up)} .dthi-head .d{color:var(--sem-down)}
 #dthi-box{width:100%;position:relative}
+#dthi-wrap{display:flex;gap:8px;align-items:flex-start}
+#dthi-main{flex:1;min-width:0;position:relative}
+#dthi-tool{display:flex;flex-direction:column;gap:2px;padding:4px;border:1px solid var(--cds-chart-grid,#444);border-radius:8px;position:sticky;top:8px;flex:none}
+#dthi-tool button{appearance:none;border:0;background:none;color:var(--color-fg-muted);width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+#dthi-tool button:hover{background:rgba(128,128,128,.18);color:var(--color-fg)}
+#dthi-tool button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-panel)}
+@media (max-width:700px){#dthi-wrap{flex-direction:column;gap:6px}#dthi-tool{flex-direction:row;flex-wrap:wrap;position:static}}
+#dthi-stage.dthi-ex{position:fixed;inset:0;z-index:2147483000;margin:0;max-width:none;width:auto;border-radius:0;overflow:auto;background:var(--color-panel);padding:10px 14px;box-sizing:border-box}
+#dthi-stage.dthi-ex .dthi-head{min-height:2.4em}
+#dthi-stage.dthi-ex #dthi-note{display:none}
+#dthi-stage.dthi-ex #dthi-tbl{position:absolute;top:8px;right:78px;z-index:6;flex-direction:column;gap:6px;margin:0;pointer-events:none}
+#dthi-stage.dthi-ex .cb-tbl{font-size:11.5px}
+#dthi-stage.dthi-ex .cb-tbl td,#dthi-stage.dthi-ex .cb-tbl th{padding:3px 9px}
+#dthi-stage.dthi-ex .cb-k{background:rgba(20,20,20,.78)}
+html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .cb-btn{appearance:none;border:1px solid var(--cds-chart-grid,#444);background:none;color:var(--color-fg);border-radius:6px;padding:5px 10px;font:inherit;font-size:var(--cds-font-size-caption);cursor:pointer}
 .cb-btn:hover{border-color:var(--color-fg-muted)}
 .cb-lb{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
@@ -2078,13 +2093,15 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     </div>
   </section>
   <section class="atl-sec" id="do-thi" role="tabpanel" aria-labelledby="tab-do-thi" hidden>
-    <div class="atl-card atl-wide">
+    <div class="atl-card atl-wide" id="dthi-stage">
       <div class="dthi-bar">
         <input type="search" id="dthi-in" list="dthi-dl" placeholder="Nhập mã: HAH, FPT, VNINDEX…" autocomplete="off" spellcheck="false" maxlength="8" aria-label="Mã cổ phiếu">
         <datalist id="dthi-dl"></datalist>
         <div class="atl-seg" id="dthi-tf" role="group" aria-label="Khung nến"><button type="button" data-v="D" aria-pressed="true">Ngày</button><button type="button" data-v="W" aria-pressed="false">Tuần</button></div>
         <div class="atl-seg" id="dthi-rg" role="group" aria-label="Khoảng xem"><button type="button" data-v="60" aria-pressed="false">3T</button><button type="button" data-v="125" aria-pressed="false">6T</button><button type="button" data-v="250" aria-pressed="true">1N</button><button type="button" data-v="0" aria-pressed="false">Tất cả</button></div>
         <div class="atl-seg" id="dthi-ind" role="group" aria-label="Chỉ báo"><button type="button" data-v="ma20" aria-pressed="true">MA20</button><button type="button" data-v="ma50" aria-pressed="true">MA50</button><button type="button" data-v="ma200" aria-pressed="false">MA200</button><button type="button" data-v="bb" aria-pressed="false">Bollinger</button><button type="button" data-v="vol" aria-pressed="true">KL</button><button type="button" data-v="macd" aria-pressed="true">MACD</button><button type="button" data-v="rsi" aria-pressed="false">RSI</button></div>
+        <button type="button" class="cb-btn" id="dthi-ex" title="Mở rộng khung trong trang (phím Esc để thoát)">⤢ Mở rộng</button>
+        <button type="button" class="cb-btn" id="dthi-fs" title="Toàn màn hình (phím Esc để thoát)">⛶ Toàn màn hình</button>
       </div>
       <div class="dthi-bar" id="cb-bar"><span class="cb-lb">Chỉ báo ATL (khung Ngày):</span><div class="atl-seg" id="cb-seg" role="group" aria-label="Chỉ báo ATL"></div><button type="button" class="cb-btn" id="cb-edit" aria-expanded="false">＋ Soạn code</button></div>
       <div id="cb-ed" hidden>
@@ -2102,8 +2119,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       </div>
       <div id="cb-msg" role="status"></div>
       <div class="dthi-head" id="dthi-head">Nhập mã để xem đồ thị.</div>
-      <div id="dthi-box"></div>
-      <div id="dthi-tbl"></div>
+      <div id="dthi-wrap"><div id="dthi-tool" role="toolbar" aria-label="Công cụ vẽ"><button type="button" data-t="cursor" title="Con trỏ (Esc)" aria-label="Con trỏ (Esc)" aria-pressed="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></button><button type="button" data-t="trend" title="Đường xu hướng: bấm 2 điểm" aria-label="Đường xu hướng: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg></button><button type="button" data-t="ray" title="Tia: bấm 2 điểm, kéo dài sang phải" aria-label="Tia: bấm 2 điểm, kéo dài sang phải" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17L21 7"/><circle cx="5" cy="17" r="2"/></svg></button><button type="button" data-t="hline" title="Đường ngang: bấm 1 điểm" aria-label="Đường ngang: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><circle cx="12" cy="12" r="2"/></svg></button><button type="button" data-t="fib" title="Fibonacci hồi quy: bấm 2 điểm" aria-label="Fibonacci hồi quy: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/></svg></button><button type="button" data-t="rect" title="Hình chữ nhật: bấm 2 điểm" aria-label="Hình chữ nhật: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="1"/></svg></button><button type="button" data-t="text" title="Ghi chú chữ: bấm 1 điểm" aria-label="Ghi chú chữ: bấm 1 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h12M12 6v13"/></svg></button><button type="button" data-t="ruler" title="Thước đo: bấm 2 điểm" aria-label="Thước đo: bấm 2 điểm" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16L16 4l4 4L8 20z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg></button><button type="button" data-t="magnet" title="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-label="Nam châm: hít vào giá mở/cao/thấp/đóng" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v8a5 5 0 0010 0V4h-3v8a2 2 0 01-4 0V4z"/></svg></button><button type="button" data-t="delete" title="Xoá từng nét: bấm vào nét muốn xoá" aria-label="Xoá từng nét: bấm vào nét muốn xoá" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" data-t="clear" title="Xoá hết nét vẽ của mã này" aria-label="Xoá hết nét vẽ của mã này" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button></div>
+        <div id="dthi-main"><div id="dthi-box"></div><div id="dthi-tbl"></div></div></div>
       <p class="atl-note" id="dthi-note">Nến ngày đã chốt, thêm nến phiên đang chạy khi sàn mở cửa (cập nhật khoảng 5 phút một lần), giá đã điều chỉnh cổ tức/chia tách, đơn vị nghìn đồng; VN-Index tính bằng điểm. Kéo để dịch, lăn chuột để phóng to. Biểu đồ dùng thư viện TradingView Lightweight Charts™. Chỉ báo ATL là bản dịch từ Pine sang JavaScript nên có thể lệch nhẹ so với TradingView. Chỉ để tham khảo.</p>
     </div>
   </section>
@@ -2184,7 +2201,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       var act=activeInds();
       var extra=(I.macd?1:0)+(I.rsi?1:0)+act.filter(function(x){return ATLCB.meta(x.code).pane==='sub';}).length;
       $('dthi-tbl').textContent='';cbmsg(S.tf!=='D'&&anyOn()?'Chỉ báo ATL chỉ chạy ở khung Ngày, bấm "Ngày" để xem.':'');
-      box.style.height=(430+extra*140)+'px';
+      box.style.height=(S.ex?exH():430+extra*140)+'px';
       chart=L.createChart(box,{autoSize:true,layout:{background:{type:'solid',color:bg},textColor:fg,fontSize:11,panes:{separatorColor:grid,enableResize:true}},
         grid:{vertLines:{color:grid},horzLines:{color:grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:4,timeVisible:false},
         localization:{locale:'vi-VN',priceFormatter:function(p){return p.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});}}});
@@ -2206,6 +2223,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       if(I.rsi){var rl=line(function(d){return rsi(d.c,14);},'#b57bee',1.4,pane,0,14);
         [30,70].forEach(function(v){rl.createPriceLine({price:v,color:fg,lineWidth:1,lineStyle:2,axisLabelVisible:false,title:''});});pane++;}
       if(act.length)ATLCB.mount({L:L,chart:chart,candle:cd,feeds:feeds,data:d,active:act,getIdx:getIdx,tblBox:$('dthi-tbl'),onError:function(en,e){cbmsg(ATLCB.meta(en.code).name+': '+((e&&e.message)||e),1);}});
+      if(window.ATLCB){ATLCB.draw.mount({L:L,chart:chart,candle:cd,box:box,getData:view,sym:S.ma,fg:fg,onTool:syncTools});ATLCB.wheelFix(chart,box);}
       var ps=chart.panes();if(ps.length>1){ps[0].setStretchFactor(4);for(var q=1;q<ps.length;q++)ps[q].setStretchFactor(1.3);}
       feeds.forEach(function(f){f(d);});
       var N=S.rg?(S.tf==='W'?Math.ceil(S.rg/5):S.rg):0;
@@ -2237,6 +2255,30 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
         if(!j||!j.nen)return;var first=!liveD||liveD.cap_nhat!==j.cap_nhat;liveD=j;if(first&&chart&&raw)fill();
       }).catch(function(){});}
     function tick(){if(window.atlTab==='do-thi'&&!document.hidden)pollLive();}
+    /* ---- mở rộng khung / toàn màn hình / thanh công cụ vẽ ---- */
+    function exH(){var st=$('dthi-stage'),b=$('dthi-box'),top=b.getBoundingClientRect().top-st.getBoundingClientRect().top;return Math.max(320,window.innerHeight-top-24);}
+    function syncTools(t){[].forEach.call($('dthi-tool').children,function(b){var k=b.dataset.t;if(k==='magnet')b.setAttribute('aria-pressed',String(!!(window.ATLCB&&ATLCB.draw.state.magnet)));else if(k!=='clear')b.setAttribute('aria-pressed',String(k===t));});}
+    function setEx(on,viaFs){
+      S.ex=!!on;var st=$('dthi-stage');st.classList.toggle('dthi-ex',S.ex);document.documentElement.classList.toggle('dthi-lock',S.ex);
+      $('dthi-ex').textContent=S.ex?'⤡ Thu nhỏ':'⤢ Mở rộng';
+      if(!S.ex&&!viaFs&&document.fullscreenElement){try{document.exitFullscreen();}catch(e){}}
+      var b=$('dthi-box');if(raw)b.style.height=(S.ex?exH():(430+((S.ind.macd?1:0)+(S.ind.rsi?1:0)+activeInds().filter(function(x){return ATLCB.meta(x.code).pane==='sub';}).length)*140))+'px';
+      if(window.scrollTo&&S.ex)st.scrollTop=0;}
+    function toolsInit(){
+      $('dthi-ex').addEventListener('click',function(){setEx(!S.ex);});
+      $('dthi-fs').addEventListener('click',function(){
+        var st=$('dthi-stage');
+        if(document.fullscreenElement){try{document.exitFullscreen();}catch(e){}return;}
+        setEx(true,true);if(st.requestFullscreen){st.requestFullscreen().catch(function(){});}});
+      document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&S.ex&&S.fsMode){S.fsMode=false;setEx(false,true);}else if(document.fullscreenElement){S.fsMode=true;}});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.ex&&!document.fullscreenElement&&window.atlTab==='do-thi'&&!(window.ATLCB&&(ATLCB.draw.state.tool!=='cursor')))setEx(false);});
+      window.addEventListener('resize',function(){if(S.ex&&raw){$('dthi-box').style.height=exH()+'px';}});
+      $('dthi-tool').addEventListener('click',function(e){
+        var b=e.target.closest('button');if(!b||!window.ATLCB)return;var k=b.dataset.t;
+        if(k==='magnet'){ATLCB.draw.state.magnet=!ATLCB.draw.state.magnet;syncTools(ATLCB.draw.state.tool);return;}
+        if(k==='clear'){if(ATLCB.draw.count()&&window.confirm('Xoá hết nét vẽ của mã '+S.ma+'?'))ATLCB.draw.clearAll();return;}
+        ATLCB.draw.tool(k);syncTools(k);});
+      syncTools('cursor');}
     function cbName(x){return ATLCB.meta(x.code).name;}
     function cbRender(){
       var seg=$('cb-seg'),sel=$('cb-sel'),cur=sel.value;seg.textContent='';sel.textContent='';
@@ -2279,7 +2321,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       [].forEach.call($('dthi-tf').children,function(x){x.setAttribute('aria-pressed',String(x.dataset.v===S.tf));});
       [].forEach.call($('dthi-rg').children,function(x){x.setAttribute('aria-pressed',String(+x.dataset.v===S.rg));});
       [].forEach.call($('dthi-ind').children,function(x){x.setAttribute('aria-pressed',String(!!S.ind[x.dataset.v]));});
-      cbInit();
+      cbInit();toolsInit();
       var inp=$('dthi-in');inp.value=S.ma;
       inp.addEventListener('change',function(){loadSym(inp.value);});
       inp.addEventListener('keydown',function(e){if(e.key==='Enter'){loadSym(inp.value);inp.blur();}});
