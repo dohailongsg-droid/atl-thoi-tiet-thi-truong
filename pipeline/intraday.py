@@ -188,6 +188,8 @@ def main():
         val = float(mp.get("accumulatedValue") or 0) / 1000.0           # triệu đồng -> tỷ đồng
         pct = (p / r - 1) * 100 if p else 0.0
         rows.append({"ma": s, "gia": p, "ref": r, "pct": pct, "gt": val,
+                     "o": mp.get("openPrice") or 0, "hi": mp.get("highest") or 0, "lo": mp.get("lowest") or 0,
+                     "kl": float(mp.get("accumulatedVolume") or 0),
                      "nn_mua": float(mp.get("foreignBuyValue") or 0) / 1e9,
                      "nn_ban": float(mp.get("foreignSellValue") or 0) / 1e9})
     if len(rows) < 300:
@@ -285,12 +287,24 @@ def main():
 
     # đường VN-Index theo từng phút + GTGD lũy kế HOSE của hôm nay và phiên liền trước (không phụ thuộc lịch chạy)
     vni_phut, gt_phut = [], None
+    nen = {}
+    for x in traded:                     # nến ngày đang chạy (nghìn đồng) cho tab Đồ thị: [mở, cao, thấp, đóng, khối lượng]
+        p_ = x["gia"]
+        o_ = x["o"] or p_
+        nen[x["ma"]] = [round(o_ / 1000.0, 2), round(max(x["hi"] or p_, p_, o_) / 1000.0, 2),
+                        round(min(x["lo"] or p_, p_, o_) / 1000.0, 2), round(p_ / 1000.0, 2), int(x["kl"])]
     try:
         j = call(f"{BASE}/chart/OHLCChart/gap-chart",
                  {"timeFrame": "ONE_MINUTE", "symbols": ["VNINDEX"], "to": int(now_utc.timestamp()) + 300, "countBack": 800})
         it = j[0] if j else None
         if it:
             byday = {}
+            td = [(float(o_), float(h_), float(l_), float(c_), float(av)) for t, o_, h_, l_, c_, av, vv in
+                  zip(it["t"], it["o"], it["h"], it["l"], it["c"], it["accumulatedVolume"], it["v"])
+                  if dt.datetime.fromtimestamp(int(t), ICT).date().isoformat() == today]
+            if td:
+                nen["VNINDEX"] = [round(td[0][0], 2), round(max(x[1] for x in td), 2), round(min(x[2] for x in td), 2),
+                                  round(td[-1][3], 2), int(td[-1][4])]
             for t, c, av in zip(it["t"], it["c"], it["accumulatedValue"]):
                 bar = dt.datetime.fromtimestamp(int(t), ICT)
                 d0 = bar.date().isoformat()
@@ -345,6 +359,9 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
     with open(os.path.join(OUTDIR, "trong_phien.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    with open(os.path.join(OUTDIR, "nen_nay.json"), "w", encoding="utf-8") as f:     # nến hôm nay mọi mã, tách file để tab Bảng giá không phải tải thêm
+        json.dump({"ngay": today, "cap_nhat": now_utc.isoformat(timespec="seconds"), "gio": gio, "phien": label, "nen": nen},
+                  f, ensure_ascii=False, separators=(",", ":"))
     print(f"intraday {gio}: VNI {vni['price']} | tăng/giảm {tang}/{giam} | trần/sàn {tran}/{san} | "
           f"GTGD {gtgd:,.0f} tỷ | điểm tạm {diem} | tin {len(tin_moi)} | cảnh báo {len(canh_bao)}")
 
