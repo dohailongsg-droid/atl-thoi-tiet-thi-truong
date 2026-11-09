@@ -50,3 +50,8 @@ if __name__ == "__main__":
         macro_tg.main()
     except Exception as e:
         print("macro_tg lỗi, bỏ qua:", e, file=sys.stderr)
+    try:
+        import gio_data
+        gio_data.main()
+    except Exception as e:
+        print("gio_data lỗi, bỏ qua:", e, file=sys.stderr)
