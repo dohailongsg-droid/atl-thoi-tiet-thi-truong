@@ -139,7 +139,7 @@
 
   /* ================= ngữ cảnh chạy ================= */
   function makeCtx(d, idx) {
-    var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [] };
+    var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [] };
     var c = {
       n: n, time: d.t, open: d.o, high: d.h, low: d.l, close: d.c, volume: d.v,
       o: d.o, h: d.h, l: d.l, c: d.c, v: d.v, ta: ta, NA: NA, isna: isna, rgba: rgba,
@@ -161,6 +161,7 @@
     c.barColor = function (i, col) { out.bar.push([i, col]); };
     c.hline = function (v, o) { out.hl.push({ v: v, o: o || {} }); };
     c.table = function (name, rows) { out.tables.push({ name: name, rows: rows }); };
+    c.fill = function (a, b, o) { out.fills.push({ a: a, b: b, o: o || {} }); };
     return c;
   }
 
@@ -238,15 +239,15 @@
       if (tSell) { hasBuy = false; hasStrong = false; isHolding = false; }
       if (emaBullTrig) { emaBullActive = true; emaBearActive = false; }
       if (emaBearTrig) { emaBearActive = true; emaBullActive = false; }
-      if (tBuy) c.mark(i, { pos: 'below', text: 'MÚC', color: '#4caf50', shape: 'arrowUp' });
-      if (tStrong) c.mark(i, { pos: 'below', text: 'XÚC', color: '#00e676', shape: 'arrowUp' });
-      if (tSell) c.mark(i, { pos: 'above', text: 'SÚT', color: '#ff5252', shape: 'arrowDown' });
+      if (tBuy) c.mark(i, { pos: 'below', text: 'MÚC', box: true, bg: '#2e9e4f', fg: '#fff' });
+      if (tStrong) c.mark(i, { pos: 'below', text: 'XÚC', box: true, bg: '#00e676', fg: '#06210f' });
+      if (tSell) c.mark(i, { pos: 'above', text: 'SÚT', box: true, bg: '#f23645', fg: '#fff' });
       if (emaBullTrig) c.barColor(i, '#9c27b0'); if (emaBearTrig) c.barColor(i, '#00bcd4');
       /* ---- đường ---- */
-      stLine[i] = st; stCol[i] = holdSt ? rgba0(0, 120, 255, .6) : rgba0(255, 82, 82, .6);
+      stLine[i] = st; stCol[i] = holdSt ? rgba0(41, 160, 255, .95) : rgba0(255, 99, 99, .95);
       var flip = p >= 0 && dirW[i] !== dirW[p];
       stWline[i] = flip ? NA : stW[i];
-      if (dirW[i] > 0 && p >= 0 && C[i] > stW[i] && C[p] <= stW[p]) c.mark(i, { pos: 'below', text: '⚑', color: '#673ab7', shape: 'square' });
+      if (dirW[i] > 0 && p >= 0 && C[i] > stW[i] && C[p] <= stW[p]) c.mark(i, { pos: 'below', text: '⚑ ST tuần', box: true, bg: '#673ab7', fg: '#fff' });
       /* ---- phơi nhiễm & nền ---- */
       var holdEma = e21[i] > e55[i];
       var exposure = (holdSt ? 20 : 0) + (holdMacd ? 20 : 0) + (holdDmi ? 20 : 0) + (holdEma ? 20 : 0) + (holdCs ? 20 : 0);
@@ -256,7 +257,7 @@
       if (exposure < 100) expStartPx = NA;
       prevExp = exposure;
       var profit = !isna(expStartPx) && C[i] >= expStartPx * 1.3, above2 = C[i] >= e233[i] * 2, deep = !isna(expLowPx) && C[i] <= expLowPx * 0.65;
-      var bgc = deep ? rgba0(144, 238, 144, .2) : above2 ? rgba0(255, 82, 82, .1) : exposure === 0 ? rgba0(173, 216, 230, .15) : profit ? rgba0(255, 255, 153, .25) : C[i] <= hi52[i] * 0.5 ? rgba0(200, 150, 255, .1) : null;
+      var bgc = deep ? rgba0(110, 230, 120, .28) : above2 ? rgba0(255, 82, 82, .2) : exposure === 0 ? rgba0(120, 190, 255, .24) : profit ? rgba0(255, 235, 59, .24) : C[i] <= hi52[i] * 0.5 ? rgba0(190, 120, 255, .22) : null;
       if (bgc && i >= 200) c.bg(i, bgc);
       stateLast = { holdSt: holdSt, holdMacd: holdMacd, holdDmi: holdDmi, holdMcdx: holdMcdx, holdCs: holdCs, holdEma: holdEma, exposure: exposure };
       /* ---- TD Sequential (đếm 9 và lead-up 13) ---- */
@@ -372,8 +373,8 @@
       fcol.push(fast[i] > slow[i] ? '#00e676' : '#ff5252');
       if (i >= from) {
         var pos = h >= 0, acc = h > hp, dec = h < hp;
-        if (xUp[i] && pos && acc) c.mark(i, { pos: 'below', color: '#00e676', shape: 'square', text: '', target: 'fast' });
-        if (xDn[i] && !pos && dec) c.mark(i, { pos: 'above', color: '#ff5252', shape: 'square', text: '', target: 'fast' });
+        if (xUp[i] && pos && acc) c.mark(i, { loc: 'bottom', kind: 'diamond', color: '#00e676' });
+        if (xDn[i] && !pos && dec) c.mark(i, { loc: 'top', kind: 'diamond', color: '#ff5252' });
       }
       var s = fin[i];
       var tSp = s === 6 && !hasSp, tSt = s === 5 && !hasSt, tBr = s === 4 && !hasBr, tBu = s === 1 && !hasBu, sell = s === -1 && holding;
@@ -381,17 +382,18 @@
       if (sell) { hasSp = hasSt = hasBr = hasBu = false; holding = false; }
       if (i >= from) {
         var T = 'fast';
-        if (tSp) c.mark(i, { pos: 'below', color: '#00e676', shape: 'arrowUp', text: 'SPr', target: T });
-        if (tSt) c.mark(i, { pos: 'below', color: '#4caf50', shape: 'arrowUp', text: 'SB', target: T });
-        if (tBr) c.mark(i, { pos: 'below', color: '#2962ff', shape: 'arrowUp', text: 'BR', target: T });
-        if (tBu) c.mark(i, { pos: 'below', color: '#00897b', shape: 'arrowUp', text: 'B', target: T });
-        if (sell) c.mark(i, { pos: 'above', color: '#ff5252', shape: 'arrowDown', text: 'SELL', target: T });
-        if (s === 3 && holding) c.mark(i, { pos: 'above', color: '#ff9800', shape: 'arrowDown', text: 'TP', target: T });
+        if (tSp) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#00e676', text: 'SPr' });
+        if (tSt) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#4caf50', text: 'SB' });
+        if (tBr) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#3d7bff', text: 'BR' });
+        if (tBu) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#26a69a', text: 'B' });
+        if (sell) c.mark(i, { loc: 'top', kind: 'triDown', color: '#ff5252', text: 'SELL' });
+        if (s === 3 && holding) c.mark(i, { loc: 'top', kind: 'triDown', color: '#ff9800', text: 'TP' });
       }
     }
     c.plot('Momentum Histogram', hist, { style: 'hist', colors: hcol, from: from, color: BULL });
     c.plot('Signal Line', fast, { colors: fcol, color: '#00e676', width: 2, from: from });
     c.plot('Base Line', slow, { color: 'rgba(120,123,134,.7)', width: 1, from: from });
+    c.fill(fast, slow, { up: 'rgba(0,230,118,.20)', down: 'rgba(255,82,82,.20)', from: from });
     c.hline(3, { color: 'rgba(76,175,80,.6)', dash: true }); c.hline(0, { color: 'rgba(120,123,134,.8)' }); c.hline(-2.5, { color: 'rgba(255,82,82,.6)', dash: true });
     /* bảng */
     function rg(v) { return v === 2 ? 'UP' : v === -2 ? 'DOWN' : v === 1 ? 'UpTrans' : v === -1 ? 'DownTrans' : 'RANGE'; }
@@ -430,9 +432,81 @@
   function compile(code) { return new Function('c', '"use strict";\nvar isna = c.isna, rgba = c.rgba;\n' + code); }
   function exec(fn, d, idx) { var c = makeCtx(d, idx); fn(c); return c._out; }
 
+
+  /* ================= lớp phủ tự vẽ: dải nền liền, ô nhãn, hình ở đáy/đỉnh khung, mây giữa 2 đường ================= */
+  function Overlay(chart, series) {
+    var self = this; this.chart = chart; this.series = series; this.t = []; this.bg = []; this.boxes = []; this.shapes = []; this.fills = [];
+    this._v = [
+      { zOrder: function () { return 'bottom'; }, renderer: function () { return { draw: function (tg) { self.draw(tg, true); } }; } },
+      { zOrder: function () { return 'top'; }, renderer: function () { return { draw: function (tg) { self.draw(tg, false); } }; } }
+    ];
+  }
+  Overlay.prototype.attached = function (p) { this.req = p.requestUpdate; };
+  Overlay.prototype.detached = function () { this.req = null; };
+  Overlay.prototype.updateAllViews = function () {};
+  Overlay.prototype.paneViews = function () { return this._v; };
+  Overlay.prototype.set = function (o) { this.t = o.t; this.bg = o.bg || []; this.boxes = o.boxes || []; this.shapes = o.shapes || []; this.fills = o.fills || []; if (this.req) this.req(); };
+  function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+  Overlay.prototype.draw = function (tg, bottom) {
+    var self = this, ts = this.chart.timeScale(), se = this.series, t = this.t, n = t.length;
+    if (!n) return;
+    tg.useMediaCoordinateSpace(function (sc) {
+      var ctx = sc.context, W = sc.mediaSize.width, H = sc.mediaSize.height, X = new Array(n), i;
+      for (i = 0; i < n; i++) { var v = ts.timeToCoordinate(t[i]); X[i] = v == null ? NaN : v; }
+      var sp = 6; for (i = 1; i < n; i++) if (!isna(X[i]) && !isna(X[i - 1])) { sp = Math.abs(X[i] - X[i - 1]); break; }
+      function vis(x) { return !isna(x) && x > -40 && x < W + 40; }
+      if (bottom) {
+        function edge(k) { if (k <= 0) return !isna(X[0]) ? Math.round(X[0] - sp / 2) : NaN; if (k >= n) return !isna(X[n - 1]) ? Math.round(X[n - 1] + sp / 2) : NaN; return !isna(X[k - 1]) && !isna(X[k]) ? Math.round((X[k - 1] + X[k]) / 2) : NaN; }
+        self.bg.forEach(function (b) {
+          var x = X[b[0]]; if (!vis(x)) return;
+          var xl = edge(b[0]), xr = edge(b[0] + 1); if (isna(xl) || isna(xr)) return;
+          ctx.fillStyle = b[1]; ctx.fillRect(xl, 0, xr - xl, H);
+        });
+        self.fills.forEach(function (f) {
+          var ya = f.a.map(function (v) { return isna(v) ? NaN : se.priceToCoordinate(v); }), yb = f.b.map(function (v) { return isna(v) ? NaN : se.priceToCoordinate(v); });
+          for (var j = Math.max(1, f.o.from || 1); j < n; j++) {
+            if (isna(X[j]) || isna(X[j - 1]) || isna(ya[j]) || isna(yb[j]) || isna(ya[j - 1]) || isna(yb[j - 1]) || !vis(X[j])) continue;
+            ctx.fillStyle = f.a[j] >= f.b[j] ? f.o.up : f.o.down;
+            ctx.beginPath(); ctx.moveTo(X[j - 1], ya[j - 1]); ctx.lineTo(X[j], ya[j]); ctx.lineTo(X[j], yb[j]); ctx.lineTo(X[j - 1], yb[j - 1]); ctx.closePath(); ctx.fill();
+          }
+        });
+        return;
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var stack = {};
+      self.boxes.forEach(function (b) {
+        var x = X[b.i]; if (!vis(x)) return;
+        var y = se.priceToCoordinate(b.price); if (y == null || isna(y)) return;
+        var key = b.i + (b.above ? 'a' : 'b'), off = stack[key] || 0;
+        ctx.font = 'bold 10.5px system-ui,sans-serif';
+        var w = Math.max(ctx.measureText(b.text).width + 10, 18), h = 16;
+        var by = b.above ? y - 8 - off - h : y + 8 + off;
+        ctx.fillStyle = b.bg; rrect(ctx, x - w / 2, by, w, h, 3); ctx.fill();
+        ctx.beginPath();
+        if (b.above) { ctx.moveTo(x - 4, by + h); ctx.lineTo(x + 4, by + h); ctx.lineTo(x, by + h + 4); }
+        else { ctx.moveTo(x - 4, by); ctx.lineTo(x + 4, by); ctx.lineTo(x, by - 4); }
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = b.fg || '#fff'; ctx.fillText(b.text, x, by + h / 2 + 0.5);
+        stack[key] = off + h + 6;
+      });
+      var st2 = {};
+      self.shapes.forEach(function (s) {
+        var x = X[s.i]; if (!vis(x)) return;
+        var key = s.i + s.loc, off = st2[key] || 0, bot = s.loc === 'bottom', y = bot ? H - 16 - off : 16 + off, r = 6;
+        ctx.fillStyle = s.color; ctx.beginPath();
+        if (s.kind === 'diamond') { ctx.moveTo(x, y - r - 1); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r + 1); ctx.lineTo(x - r, y); }
+        else if (s.kind === 'triUp') { ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r - 1); ctx.lineTo(x - r, y + r - 1); }
+        else { ctx.moveTo(x - r, y - r + 1); ctx.lineTo(x + r, y - r + 1); ctx.lineTo(x, y + r); }
+        ctx.closePath(); ctx.fill();
+        if (s.text) { ctx.font = 'bold 9px system-ui,sans-serif'; ctx.fillStyle = s.color; ctx.fillText(s.text, x, bot ? y - r - 6 : y + r + 7); }
+        st2[key] = off + (s.text ? 26 : 16);
+      });
+    });
+  };
+
   /* ================= vẽ lên biểu đồ ================= */
   function mount(env) {
-    var L = env.L, chart = env.chart, insts = [], mainMk = null, bgSer = null;
+    var L = env.L, chart = env.chart, insts = [], mainMk = null, ovMain = null;
     function err(en, e) { if (env.onError) env.onError(en, e); }
     function mkSeries(I, p, pane) {
       var o = p.o, col = o.color || '#ccc', s;
@@ -459,11 +533,14 @@
       if (!I.hl) { I.hl = true; var tgt = I.first; if (tgt) out.hl.forEach(function (h) { tgt.createPriceLine({ price: h.v, color: h.o.color || '#888', lineWidth: 1, lineStyle: h.o.dash ? 2 : 0, axisLabelVisible: false, title: '' }); }); }
       I.out = out;
       /* dấu / nhãn */
-      var mk = out.marks.map(function (m) {
-        var o = m.o, sh = o.shape === 'none' ? 'circle' : (o.shape || 'circle');
-        return { time: d.t[m.i], position: o.pos === 'above' ? 'aboveBar' : 'belowBar', color: o.color || '#ccc', shape: sh, text: o.text || '', size: o.shape === 'none' ? 0 : 1, _t: o.target };
+      var mk = [], boxes = [], shapes = [];
+      out.marks.forEach(function (m) {
+        var o = m.o, above = o.pos === 'above';
+        if (o.box) boxes.push({ i: m.i, price: above ? d.h[m.i] : d.l[m.i], above: above, text: o.text || '', bg: o.bg || o.color || '#888', fg: o.fg || '#fff' });
+        else if (o.loc) shapes.push({ i: m.i, loc: o.loc, kind: o.kind || 'diamond', color: o.color || '#ccc', text: o.text || '' });
+        else { var sh = o.shape === 'none' ? 'circle' : (o.shape || 'circle'); mk.push({ time: d.t[m.i], position: above ? 'aboveBar' : 'belowBar', color: o.color || '#ccc', shape: sh, text: o.text || '', size: o.shape === 'none' ? 0 : 1 }); }
       });
-      I.mk = mk;
+      I.mk = mk; I.boxes = boxes; I.shapes = shapes;
     }
     function flushMarks(d) {
       var main = [];
@@ -480,16 +557,21 @@
       mainMk.setMarkers(sortMk(main));
     }
     function sortMk(a) { return a.slice().sort(function (x, y) { return x.time < y.time ? -1 : x.time > y.time ? 1 : 0; }).map(function (m) { return { time: m.time, position: m.position, color: m.color, shape: m.shape, text: m.text, size: m.size }; }); }
-    function applyBg(d) {
-      var rows = [];
-      insts.forEach(function (I) { if (I.out) I.out.bg.forEach(function (b) { rows.push({ time: d.t[b[0]], value: 1, color: b[1] }); }); });
-      if (!rows.length && !bgSer) return;
-      if (!bgSer) {
-        bgSer = chart.addSeries(L.HistogramSeries, { priceScaleId: 'cbbg', lastValueVisible: false, priceLineVisible: false, priceFormat: { type: 'volume' }, autoscaleInfoProvider: function () { return { priceRange: { minValue: 0, maxValue: 1 } }; } }, 0);
-        chart.priceScale('cbbg').applyOptions({ scaleMargins: { top: 0, bottom: 0 }, visible: false });
+    function flushOverlays(d) {
+      var bg = [], boxes = [], any = false;
+      insts.forEach(function (I) {
+        if (!I.out) return;
+        if (I.meta.pane === 'main') {
+          I.out.bg.forEach(function (b) { bg.push(b); }); boxes = boxes.concat(I.boxes || []); any = true;
+        } else if (I.first) {
+          if (!I.ov) { I.ov = new Overlay(chart, I.first); I.first.attachPrimitive(I.ov); }
+          I.ov.set({ t: d.t, shapes: I.shapes, fills: I.out.fills });
+        }
+      });
+      if (any || ovMain) {
+        if (!ovMain) { ovMain = new Overlay(chart, env.candle); env.candle.attachPrimitive(ovMain); }
+        ovMain.set({ t: d.t, bg: bg, boxes: boxes });
       }
-      rows.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
-      bgSer.setData(rows);
     }
     function applyBars(d) {
       var map = {}, any = false;
@@ -531,7 +613,7 @@
     env.feeds.push(function (d) {
       env.onClear && env.onClear();
       insts.forEach(function (I) { update(I, d); });
-      applyBars(d); applyBg(d); flushMarks(d); renderTables();
+      applyBars(d); flushMarks(d); flushOverlays(d); renderTables();
     });
     return insts;
   }
