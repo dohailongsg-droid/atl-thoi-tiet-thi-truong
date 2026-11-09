@@ -267,10 +267,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
   <nav class="atl-tabs" role="tablist" aria-label="Phần">
     <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="true">Bảng giá</button>
-    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Thị trường</button>
     <button class="atl-tab" role="tab" id="tab-nganh" data-sec="nganh" aria-selected="false">Ngành &amp; dòng tiền</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
+    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
     <button class="atl-tab" role="tab" id="tab-danh-muc" data-sec="danh-muc" aria-selected="false">Danh mục</button>
   </nav>
 
@@ -361,6 +361,16 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 .tin-date{float:right;text-transform:none;letter-spacing:0;font-weight:400}
 .lv-spark{width:100%;height:96px;display:block;color:var(--color-fg-muted)}
+.lv-g3{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));margin-bottom:var(--cds-gap-md)}
+.lv-grid+.lv-grid{margin-top:var(--cds-gap-md)}
+.lv-lg{display:inline-flex;align-items:center;gap:4px;margin-right:10px}
+.lv-lg i{display:inline-block;width:8px;height:8px;border-radius:2px}
+.lv-ax{position:relative;height:13px;margin-top:2px;font-size:10px;color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.lv-ax span{position:absolute;top:0;white-space:nowrap}
+.lv-bar.tdc{grid-template-columns:6.6rem 1fr 3.2rem}
+.lv-bar.tdc .n b{font-weight:600;cursor:pointer}
+.lv-bar.tdc .n em{font-style:normal;color:var(--color-fg-muted);font-size:11px;margin-left:5px}
+.lv-bar.tdc .n b:hover{text-decoration:underline}
 </style>
 <div class="atl-card atl-wide"><div class="lv" id="lv">
   <div class="lv-head"><h2>Bảng giá</h2><div class="lv-stat"><span class="lv-dot" id="lv-dot"></span><span id="lv-stat">Đang tải…</span></div></div>
@@ -814,6 +824,41 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var base=ref!=null?ref:vals[0],up=vals[vals.length-1]>=base;
     var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke',up?'var(--sem-up)':'var(--sem-down)');pl.setAttribute('stroke-width','1.6');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
     var b=box(title);b.appendChild(s);b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
+  function liq(d){
+    var g=d.gt_phut;if(!g||!g.hom_nay||g.hom_nay.length<2)return null;
+    function X(hm){var p=hm.split(':'),m=(+p[0])*60+(+p[1]);var x=m<=690?m-540:(m>=780?150+(m-780):150);return Math.max(0,Math.min(255,x));}
+    var cur=g.hom_nay,prv=g.truoc||[],W=300,H=70,pd=4,vs=cur.map(function(a){return a[1];}).concat(prv.map(function(a){return a[1];}),[1]),mx=Math.max.apply(null,vs);
+    function P(a){return (X(a[0])/255*W).toFixed(1)+','+(H-pd-a[1]/mx*(H-2*pd)).toFixed(1);}
+    var ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 '+W+' '+H);s.setAttribute('class','lv-spark');s.setAttribute('preserveAspectRatio','none');
+    function mk(t,a){var e=document.createElementNS(ns,t);for(var k in a)e.setAttribute(k,a[k]);s.appendChild(e);return e;}
+    function area(L,fill,op){if(L.length<2)return;var pts=L.map(P),x0=(X(L[0][0])/255*W).toFixed(1),x1=(X(L[L.length-1][0])/255*W).toFixed(1);mk('polygon',{points:x0+','+(H-pd)+' '+pts.join(' ')+' '+x1+','+(H-pd),fill:fill,'fill-opacity':op});}
+    function line(L,col,w,op){if(L.length<2)return;mk('polyline',{points:L.map(P).join(' '),fill:'none',stroke:col,'stroke-width':w,'stroke-opacity':op,'stroke-linejoin':'round','vector-effect':'non-scaling-stroke'});}
+    mk('line',{x1:150/255*W,x2:150/255*W,y1:0,y2:H,stroke:'currentColor','stroke-opacity':'.18','stroke-dasharray':'2 3','vector-effect':'non-scaling-stroke'});
+    area(prv,'currentColor','.16');line(prv,'currentColor',1.2,.55);
+    area(cur,'var(--z4)','.28');line(cur,'var(--z4)',1.8,1);
+    var b=box('Thanh khoản trong phiên (HOSE, tỷ đồng lũy kế)');b.appendChild(s);
+    var ax=el('div','lv-ax');[['09:00',0,'0'],['11:30–13:00',150/255*100,'-50%'],['14:45',100,'-100%']].forEach(function(q){var t=el('span',null,q[0]);t.style.left=q[1]+'%';t.style.transform='translateX('+q[2]+')';ax.appendChild(t);});b.appendChild(ax);
+    var last=cur[cur.length-1],lx=X(last[0]),pv=null;prv.forEach(function(a){if(X(a[0])<=lx)pv=a;});
+    var nt=el('p','lv-note'),l1=el('span','lv-lg'),i1=el('i');i1.style.background='var(--z4)';l1.appendChild(i1);l1.appendChild(document.createTextNode('Hôm nay'));nt.appendChild(l1);
+    if(prv.length){var l2=el('span','lv-lg'),i2=el('i');i2.style.background='currentColor';i2.style.opacity='.45';l2.appendChild(i2);l2.appendChild(document.createTextNode('Phiên trước'+(g.ngay_truoc?' ('+g.ngay_truoc.slice(8)+'/'+g.ngay_truoc.slice(5,7)+')':'')));nt.appendChild(l2);}
+    var tx=' '+n0(last[1])+' tỷ lúc '+last[0];
+    if(pv&&pv[1]>0){var r=(last[1]/pv[1]-1)*100;tx+=' · cùng giờ phiên trước '+n0(pv[1])+' tỷ ('+sg(r,0)+'%)';}
+    if(prv.length)tx+=' · cả phiên trước '+n0(prv[prv.length-1][1])+' tỷ';
+    nt.appendChild(document.createTextNode('· '+tx.trim()));b.appendChild(nt);
+    b.appendChild(el('p','lv-note','Theo biểu đồ VN-Index của Vietcap; có thể lớn hơn ô "GTGD đến giờ" do cách tính khác nhau.'));
+    return b;}
+  function tacDong(d){
+    var t=d.tac_dong;if(!t||!(t.ds||[]).length)return null;
+    var b=box('Mã tác động đến VN-Index (điểm)');
+    var mx=Math.max.apply(null,t.ds.map(function(x){return Math.abs(x[1]);}))||1;
+    t.ds.forEach(function(x){
+      var row=el('div','lv-bar tdc'),n=el('span','n'),bb=el('b',null,x[0]);bb.title='Mở hồ sơ '+x[0];
+      bb.addEventListener('click',function(){if(window.atlOpenProfile)window.atlOpenProfile(x[0]);});
+      n.appendChild(bb);n.appendChild(el('em',cl(x[2]),sg(x[2],1)+'%'));row.appendChild(n);
+      var tr=el('span','tr'),i=el('i'),w=Math.max(Math.abs(x[1])/mx*50,1.2);i.style.width=w+'%';i.style.left=x[1]>=0?'50%':(50-w)+'%';i.style.background=x[1]>=0?'var(--sem-up)':'var(--sem-down)';tr.appendChild(i);row.appendChild(tr);
+      row.appendChild(el('span','p '+cl(x[1]),sg(x[1],2)));b.appendChild(row);});
+    b.appendChild(el('p','lv-note','Kéo lên '+sg(t.tang_diem,2)+' · kéo xuống '+sg(t.giam_diem,2)+' điểm (cả sàn). Ước tính theo vốn hóa tự do chuyển nhượng, có thể lệch nhẹ so với số chính thức của sở.'));
+    return b;}
   var bdOpen=true,bdSort='gt',bdAll={};
   function bdCol(p){
     if(p>=6.5)return {bg:'#9b5de5',fg:'#fff'};
@@ -881,21 +926,24 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     var kn=d.khoi_ngoai||{};
     k.appendChild(kpi('Khối ngoại ròng',sg(kn.rong_ty,0)+' tỷ','Mua '+n0(kn.mua_ty)+' · bán '+n0(kn.ban_ty),cl(kn.rong_ty)));
     body.appendChild(k);
-    var g=el('div','lv-grid');
     var pm=d.vni_phut||[],s1=chart('VN-Index trong ngày',pm.map(function(p){return p[1];}),pm.map(function(p){return p[0];}),d.vni_ref,null);
     var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng) qua các lần cập nhật',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
-    if(s1){if(!s2)s1.style.gridColumn='1/-1';g.appendChild(s1);}if(s2)g.appendChild(s2);
-    var b1=box('Tăng mạnh (GTGD ≥ 10 tỷ)');b1.appendChild(tbl(d.top_tang||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b1);
-    var b2=box('Giảm mạnh (GTGD ≥ 10 tỷ)');b2.appendChild(tbl(d.top_giam||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b2);
-    var b3=box('Giao dịch lớn nhất');b3.appendChild(tbl(d.top_gtgd||[],function(x){return [{t:x.ma},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b3);
-    var b4=box('Khối ngoại: mua ròng / bán ròng');
-    b4.appendChild(tbl((kn.top_mua||[]).concat(kn.top_ban||[]),function(x){return [{t:x.ma},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:sg(x.rong_ty,1)+' tỷ',c:cl(x.rong_ty)}];}));g.appendChild(b4);
-    body.appendChild(g);
+    var s3=liq(d),gc=el('div','lv-g3');[s1,s2,s3].forEach(function(q){if(q)gc.appendChild(q);});if(gc.childNodes.length)body.appendChild(gc);
+    var gr=el('div','lv-grid'),bt2=tacDong(d);if(bt2)gr.appendChild(bt2);
     if((d.nganh||[]).length){
-      var bn=box('Ngành trong phiên (bình quân theo GTGD)');bn.style.marginTop='var(--cds-gap-md)';
+      var bn=box('Ngành trong phiên (bình quân theo GTGD)');if(!bt2)bn.style.gridColumn='1/-1';
       var mx=Math.max.apply(null,d.nganh.map(function(x){return Math.abs(x.pct);}))||1;
       d.nganh.forEach(function(x){var row=el('div','lv-bar');row.appendChild(el('span','n',x.nganh));var tr=el('span','tr'),i=el('i');var w=Math.abs(x.pct)/mx*50;i.style.width=w+'%';i.style.left=x.pct>=0?'50%':(50-w)+'%';i.style.background=x.pct>=0?'var(--sem-up)':'var(--sem-down)';tr.appendChild(i);row.appendChild(tr);row.appendChild(el('span','p '+cl(x.pct),sg(x.pct,2)+'%'));bn.appendChild(row);});
-      body.appendChild(bn);}
+      if(bt2)bn.appendChild(el('p','lv-note','% = bình quân các mã trong ngành, trọng số theo GTGD.'));
+      gr.appendChild(bn);}
+    if(gr.childNodes.length)body.appendChild(gr);
+    var g=el('div','lv-grid');
+    var b1=box('Tăng mạnh (GTGD ≥ 10 tỷ)');b1.appendChild(tbl(d.top_tang||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b1);
+    var b2=box('Giảm mạnh (GTGD ≥ 10 tỷ)');b2.appendChild(tbl(d.top_giam||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b2);
+    var b3=box('Giao dịch lớn nhất');b3.appendChild(tbl(d.top_gtgd||[],function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:n0(x.gtgd_ty)+' tỷ'}];}));g.appendChild(b3);
+    var b4=box('Khối ngoại: mua ròng / bán ròng');
+    b4.appendChild(tbl((kn.top_mua||[]).concat(kn.top_ban||[]),function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:sg(x.rong_ty,1)+' tỷ',c:cl(x.rong_ty)}];}));g.appendChild(b4);
+    body.appendChild(g);
     bangDien(d,body);
     if((d.tin_moi||[]).length){
       var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');
