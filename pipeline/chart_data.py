@@ -45,3 +45,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    try:
+        import macro_tg
+        macro_tg.main()
+    except Exception as e:
+        print("macro_tg lỗi, bỏ qua:", e, file=sys.stderr)
