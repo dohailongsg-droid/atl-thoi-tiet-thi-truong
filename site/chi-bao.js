@@ -127,11 +127,13 @@
     var h = hex.replace('#', ''); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
     return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + op + ')';
   }
-  function toWeekly(d) {
-    var w = { time: [], open: [], high: [], low: [], close: [], volume: [] }, map = [], key = null, n = d.t.length;
+  function dayOf(t) { return typeof t === 'number' ? new Date(t * 1000).toISOString().slice(0, 10) : t; }
+  /* gom nến theo khoá (tuần hoặc ngày); d.k = mảng ngày YYYY-MM-DD của từng nến khi dữ liệu là nến giờ */
+  function toGroup(d, daily) {
+    var w = { time: [], open: [], high: [], low: [], close: [], volume: [] }, map = [], key = null, n = d.t.length, tk = d.k || d.t;
     for (var i = 0; i < n; i++) {
-      var dt = new Date(d.t[i] + 'T00:00:00Z'), wd = (dt.getUTCDay() + 6) % 7, mon = new Date(dt.getTime() - wd * 864e5).toISOString().slice(0, 10);
-      if (mon !== key) { key = mon; w.time.push(d.t[i]); w.open.push(d.o[i]); w.high.push(d.h[i]); w.low.push(d.l[i]); w.close.push(d.c[i]); w.volume.push(d.v[i]); }
+      var day = dayOf(tk[i]), kk = daily ? day : monKey(day);
+      if (kk !== key) { key = kk; w.time.push(d.t[i]); w.open.push(d.o[i]); w.high.push(d.h[i]); w.low.push(d.l[i]); w.close.push(d.c[i]); w.volume.push(d.v[i]); }
       else { var j = w.time.length - 1; w.time[j] = d.t[i]; w.high[j] = Math.max(w.high[j], d.h[i]); w.low[j] = Math.min(w.low[j], d.l[i]); w.close[j] = d.c[i]; w.volume[j] += d.v[i]; }
       map.push(w.time.length - 1);
     }
@@ -139,26 +141,29 @@
     var last = map.map(function (m, i) { return i === n - 1 || map[i + 1] !== m; });
     return { w: w, map: map, last: last };
   }
+  function toWeekly(d) { return toGroup(d, false); }
 
   /* ================= ngữ cảnh chạy ================= */
   var WORLD = null;
   function monKey(t) { var dt = new Date(t + 'T00:00:00Z'), wd = (dt.getUTCDay() + 6) % 7; return new Date(dt.getTime() - wd * 864e5).toISOString().slice(0, 10); }
   function makeCtx(d, idx, settings) {
-    var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [], inputs: [] };
+    var n = d.t.length, WK = toWeekly(d), DK = d.tf === 'H' ? toGroup(d, true) : null, out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [], inputs: [] };
     var c = {
       n: n, time: d.t, open: d.o, high: d.h, low: d.l, close: d.c, volume: d.v,
       o: d.o, h: d.h, l: d.l, c: d.c, v: d.v, ta: ta, NA: NA, isna: isna, rgba: rgba,
-      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out
+      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out, tf: d.tf || 'D', daily: DK ? DK.w : null, indexDaily: null, wmap: WK.map, wlast: WK.last, tk: d.k || d.t
     };
     if (idx) {
       var ic = [], seen = -1;
       WK.map.forEach(function (m, i) { if (WK.last[i]) ic[m] = idx.c[i]; });
       c.indexW = { close: ic };
+      if (DK) { var id2 = []; DK.map.forEach(function (m, i) { if (DK.last[i]) id2[m] = idx.c[i]; }); c.indexDaily = { close: id2 }; }
     }
     /* Giá trị khung tuần đưa về từng nến ngày, giống request.security(…,"W") không nhìn trước:
        nến ngày cuối tuần (hoặc nến cuối cùng) nhận tuần hiện tại, các ngày còn lại nhận tuần đã đóng gần nhất. */
     c.fromWeekly = function (a) { return WK.map.map(function (m, i) { return (WK.last[i] || i === n - 1) ? a[m] : (m > 0 ? a[m - 1] : NA); }); };
     /* Giống request.security(…,"W", expr[1], lookahead_on): mọi ngày trong tuần nhận giá trị tuần đã đóng trước đó. */
+    c.fromDaily = function (a) { return DK ? DK.map.map(function (m, i) { return (DK.last[i] || i === n - 1) ? a[m] : (m > 0 ? a[m - 1] : NA); }) : a; };
     c.fromWeeklyPrev = function (a) { return WK.map.map(function (m) { return m > 0 ? a[m - 1] : NA; }); };
     /* Chuỗi thế giới (SPX, VIX, DXY…) đổi sang tuần rồi đưa về từng nến ngày như request.security(sym,"W",fn(close)):
        fn nhận mảng giá đóng cửa tuần, trả mảng cùng độ dài. Cần dữ liệu data/chart/_macro.json. */
@@ -168,7 +173,7 @@
       for (j = 0; j < W.t.length; j++) { k = monKey(W.t[j]); if (!keys.length || keys[keys.length - 1] !== k) { keys.push(k); vals.push(W.c[j]); } else vals[vals.length - 1] = W.c[j]; }
       var res = fn(vals), outA = new Array(n), p = -1;
       for (var i = 0; i < n; i++) {
-        var key = monKey(d.t[i]), isLast = WK.last[i] || i === n - 1;
+        var key = monKey(dayOf(c.tk[i])), isLast = WK.last[i] || i === n - 1;
         while (p + 1 < keys.length && keys[p + 1] <= key) p++;
         var q = p; if (!isLast) { q = p; while (q >= 0 && keys[q] >= key) q--; }
         outA[i] = q >= 0 ? res[q] : NA;
@@ -391,9 +396,12 @@
     }
     var idxD = c.index ? c.index.close : c.close, idxW = c.indexW ? c.indexW.close : c.weekly.close;
     var G1 = 'Khung ngày', G2 = 'Khung tuần';
-    var D = fcalc({ open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume }, idxD, {
+    var PD = {
       adx: c.input('Ngày · chu kỳ ADX', 14, { min: 2, max: 60, step: 1, group: G1 }), stAtr: c.input('Ngày · Supertrend ATR', 11, { min: 1, max: 60, step: 1, group: G1 }),
-      stMult: c.input('Ngày · Supertrend hệ số', 2, { min: 0.5, max: 10, step: 0.1, group: G1 }), vw: c.input('Ngày · VWMA', 20, { min: 2, max: 100, step: 1, group: G1 }), base: c.input('Ngày · chu kỳ nền (breakout/spring)', 20, { min: 6, max: 100, step: 1, group: G1 }) });
+      stMult: c.input('Ngày · Supertrend hệ số', 2, { min: 0.5, max: 10, step: 0.1, group: G1 }), vw: c.input('Ngày · VWMA', 20, { min: 2, max: 100, step: 1, group: G1 }), base: c.input('Ngày · chu kỳ nền (breakout/spring)', 20, { min: 6, max: 100, step: 1, group: G1 }) };
+    var D = fcalc({ open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume }, idxD, PD);
+    var Dd = c.tf === 'H' && c.daily ? fcalc(c.daily, c.indexDaily ? c.indexDaily.close : c.daily.close, PD) : null;
+    var dR = Dd ? c.fromDaily(Dd.regime) : null, dS = Dd ? c.fromDaily(Dd.sent) : null, dA = Dd ? c.fromDaily(Dd.action) : null;
     var Wk = fcalc(c.weekly, idxW, {
       adx: c.input('Tuần · chu kỳ ADX', 14, { min: 2, max: 60, step: 1, group: G2 }), stAtr: c.input('Tuần · Supertrend ATR', 10, { min: 1, max: 60, step: 1, group: G2 }),
       stMult: c.input('Tuần · Supertrend hệ số', 3, { min: 0.5, max: 10, step: 0.1, group: G2 }), vw: c.input('Tuần · VWMA', 20, { min: 2, max: 100, step: 1, group: G2 }), base: c.input('Tuần · chu kỳ nền', 20, { min: 6, max: 100, step: 1, group: G2 }) });
@@ -452,10 +460,10 @@
     var k = n - 1;
     c.table('VN TIMING', [
       ['TF', ['Regime', null], ['Sentiment', null], ['ACTION', null]],
-      ['1D', [rg(D.regime[k]), rgc(D.regime[k])], [sn(D.sent[k]), snc(D.sent[k])], [ac(fin[k]), acc2(fin[k])]],
-      ['1W', [rg(wR[k]), rgc(wR[k])], [sn(wS[k]), snc(wS[k])], [ac(wA[k]), acc2(wA[k])]],
-      ['Điểm động 1D', [(Math.round(dyn[k] * 100) / 100) + '', null], ['Hist ' + (Math.round(hist[k] * 100) / 100), null], ['', null]]
-    ]);
+      [c.tf === 'H' ? '1H' : c.tf === 'W' ? '1W' : '1D', [rg(D.regime[k]), rgc(D.regime[k])], [sn(D.sent[k]), snc(D.sent[k])], [ac(fin[k]), acc2(fin[k])]]
+    ].concat(Dd ? [['1D', [rg(dR[k]), rgc(dR[k])], [sn(dS[k]), snc(dS[k])], [ac(dA[k]), acc2(dA[k])]]] : [], c.tf === 'W' ? [] : [['1W', [rg(wR[k]), rgc(wR[k])], [sn(wS[k]), snc(wS[k])], [ac(wA[k]), acc2(wA[k])]]], [
+      ['Điểm động ' + (c.tf === 'H' ? '1H' : c.tf === 'W' ? '1W' : '1D'), [(Math.round(dyn[k] * 100) / 100) + '', null], ['Hist ' + (Math.round(hist[k] * 100) / 100), null], ['', null]]
+    ]));
   }
 
 
@@ -488,13 +496,7 @@
     /* ema(5) trên chuỗi tuần: lấy giá trị cuối mỗi tuần (và nến hiện tại) rồi đưa lại về ngày */
     var wk = c.weekly, wv = new Array(wk.n);
     for (var j = 0; j < wk.n; j++) wv[j] = NA;
-    var wi = -1, wkeys = wk.time;
-    for (i = 0; i < n; i++) { while (wi + 1 < wk.n && wk.time[wi + 1] < c.time[i]) wi++; }
-    /* map tuần: dùng chính cách c.fromWeekly để lấy chỉ số tuần của từng nến */
-    var lastOfWeek = c.fromWeekly(c.close.map(function (_, k) { return k; })), rem = {};
-    for (i = 0; i < n; i++) { if (!isna(lastOfWeek[i]) && lastOfWeek[i] === i) { /* nến cuối tuần */ } }
-    var wkIdx = 0;
-    for (i = 0; i < n; i++) { var isEnd = (i === n - 1) || (c.weekly.time.indexOf(c.time[i]) >= 0); if (isEnd) { var widx = c.weekly.time.indexOf(c.time[i]); if (widx < 0) widx = wk.n - 1; wv[widx] = idxv[i]; } }
+    for (i = 0; i < n; i++) { if (c.wlast[i] || i === n - 1) wv[c.wmap[i]] = idxv[i]; }
     var we = ta.ema(wv, 5), rema = c.fromWeekly(we);
     var alloc = '', cur = rema[n - 1];
     if (cur < L2) alloc = '30%'; else if (cur < 50) alloc = '50% - 70%'; else if (cur > L3) alloc = '>100%';
@@ -814,7 +816,7 @@
   function drSave(o) { try { localStorage.setItem(DR_KEY, JSON.stringify(o)); } catch (e) {} }
   var FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1], FIBC = ['#9e9e9e', '#f23645', '#ff9800', '#4caf50', '#089981', '#00bcd4', '#9e9e9e'];
   function fnum(x) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5); }
+  function dayDiff(a, b) { if (typeof a === 'number') return Math.round((b - a) / 86400); return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5); }
 
   function drawMount(env) {
     var chart = env.chart, se = env.candle, box = env.box, ts = chart.timeScale(), sym = env.sym;
