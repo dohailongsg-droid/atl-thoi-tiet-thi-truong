@@ -39,6 +39,8 @@ python3 mo_phong.py || echo "mo_phong.py lỗi, bỏ qua"
 python3 long_dau_mo_phong.py || echo "long_dau_mo_phong.py lỗi, bỏ qua"
 # cấu trúc thị trường (% mã trên MA) và ngành chuyển pha (lỗi không làm dừng pipeline)
 python3 cau_truc.py || echo "cau_truc.py lỗi, bỏ qua"
+# dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
+python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # sang thư mục trang (co_ban.json cập nhật riêng theo quý nên không bị ghi đè)
 cp dash_out/*.json ../site/data/
 python3 -c "
