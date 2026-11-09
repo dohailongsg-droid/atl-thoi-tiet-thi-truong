@@ -138,8 +138,8 @@
   }
 
   /* ================= ngữ cảnh chạy ================= */
-  function makeCtx(d, idx) {
-    var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [] };
+  function makeCtx(d, idx, settings) {
+    var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [], inputs: [] };
     var c = {
       n: n, time: d.t, open: d.o, high: d.h, low: d.l, close: d.c, volume: d.v,
       o: d.o, h: d.h, l: d.l, c: d.c, v: d.v, ta: ta, NA: NA, isna: isna, rgba: rgba,
@@ -161,6 +161,14 @@
     c.barColor = function (i, col) { out.bar.push([i, col]); };
     c.hline = function (v, o) { out.hl.push({ v: v, o: o || {} }); };
     c.table = function (name, rows) { out.tables.push({ name: name, rows: rows }); };
+    /* Đầu vào chỉnh được trong hộp Cài đặt: c.input("Tên", mặc_định, {min, max, step, options:[...], group}) */
+    c.input = function (name, def, o) {
+      o = o || {}; var v = settings && settings[name], type = typeof def === 'boolean' ? 'bool' : (o.options ? 'select' : (typeof def === 'number' ? 'number' : 'text'));
+      if (v === undefined || v === null || (type === 'number' && (typeof v !== 'number' || isna(v))) || (type === 'bool' && typeof v !== 'boolean')) v = def;
+      else if (type === 'number') { if (o.min != null && v < o.min) v = o.min; if (o.max != null && v > o.max) v = o.max; }
+      out.inputs.push({ name: name, def: def, type: type, min: o.min, max: o.max, step: o.step, options: o.options, group: o.group || '' });
+      return v;
+    };
     c.fill = function (a, b, o) { out.fills.push({ a: a, b: b, o: o || {} }); };
     return c;
   }
@@ -168,19 +176,33 @@
   /* ================= chỉ báo mẫu: DRAGON CODE ================= */
   function DRAGON(c) {
     var ta = c.ta, n = c.n, C = c.close, H = c.high, L = c.low, V = c.volume, NA = c.NA;
-    var ST_MULT = 2, ST_ATR = 11;                     // Supertrend chính (11, 2)
-    var CS_LEN = 22, CS_ATR = 22, CS_MULT = 3;        // Chandelier
-    var PREP_LEN = 9, PREP_CMP = 4, LEAD_LEN = 13, LEAD_CMP = 2; // TD Sequential
+    var ST_MULT = c.input('Supertrend chính · hệ số', 2, { min: 0.5, max: 10, step: 0.1, group: 'Supertrend' });
+    var ST_ATR = c.input('Supertrend chính · chu kỳ ATR', 11, { min: 1, max: 100, step: 1, group: 'Supertrend' });
+    var ST2_MULT = c.input('Supertrend mạnh và tuần · hệ số', 3, { min: 0.5, max: 10, step: 0.1, group: 'Supertrend' });
+    var ST2_ATR = c.input('Supertrend mạnh và tuần · chu kỳ ATR', 10, { min: 1, max: 100, step: 1, group: 'Supertrend' });
+    var CS_LEN = c.input('Chandelier · số nến đỉnh/đáy', 22, { min: 2, max: 200, step: 1, group: 'Chandelier' });
+    var CS_ATR = c.input('Chandelier · chu kỳ ATR', 22, { min: 1, max: 200, step: 1, group: 'Chandelier' });
+    var CS_MULT = c.input('Chandelier · hệ số ATR', 3, { min: 0.5, max: 10, step: 0.1, group: 'Chandelier' });
+    var EMA_A = c.input('EMA ngắn', 20, { min: 2, max: 400, step: 1, group: 'EMA' });
+    var EMA_B = c.input('EMA vừa', 50, { min: 2, max: 400, step: 1, group: 'EMA' });
+    var EMA_C = c.input('EMA dài', 200, { min: 2, max: 600, step: 1, group: 'EMA' });
+    var MACD_F = c.input('MACD · nhanh', 12, { min: 2, max: 100, step: 1, group: 'MACD' });
+    var MACD_S = c.input('MACD · chậm', 26, { min: 3, max: 200, step: 1, group: 'MACD' });
+    var MACD_G = c.input('MACD · tín hiệu', 9, { min: 1, max: 100, step: 1, group: 'MACD' });
+    var PREP_LEN = c.input('TD · độ dài đếm (setup)', 9, { min: 2, max: 30, step: 1, group: 'TD Sequential' });
+    var PREP_CMP = c.input('TD · so với nến cách', 4, { min: 1, max: 20, step: 1, group: 'TD Sequential' });
+    var LEAD_LEN = c.input('TD · độ dài lead-up', 13, { min: 2, max: 40, step: 1, group: 'TD Sequential' });
+    var LEAD_CMP = c.input('TD · lead-up so với nến cách', 2, { min: 1, max: 20, step: 1, group: 'TD Sequential' });
     var atrCs = ta.atr(H, L, C, CS_ATR), hiH = ta.highest(H, CS_LEN), loL = ta.lowest(L, CS_LEN);
     var acc = ta.accdist(H, L, C, V), osc = ta.sub(ta.ema(acc, 3), ta.ema(acc, 10));
-    var M = ta.macd(C, 12, 26, 9), stk = ta.sma(ta.stoch(C, H, L, 20), 5);
-    var S1 = ta.supertrend(H, L, C, ST_MULT, ST_ATR), S2 = ta.supertrend(H, L, C, 3, 10);
+    var M = ta.macd(C, MACD_F, MACD_S, MACD_G), stk = ta.sma(ta.stoch(C, H, L, 20), 5);
+    var S1 = ta.supertrend(H, L, C, ST_MULT, ST_ATR), S2 = ta.supertrend(H, L, C, ST2_MULT, ST2_ATR);
     var banker = ta.rsi(C, 50).map(function (r) { return Math.min(Math.max(1.5 * (r - 50), 0), 20); });
     var dm = ta.dmi(H, L, C, 14, 14);
-    var e21 = ta.ema(C, 20), e55 = ta.ema(C, 50), e233 = ta.ema(C, 200), ma150 = ta.sma(C, 150);
+    var e21 = ta.ema(C, EMA_A), e55 = ta.ema(C, EMA_B), e233 = ta.ema(C, EMA_C), ma150 = ta.sma(C, 150);
     var hi52 = ta.highest(C, 252), lo52 = ta.lowest(C, 252);
     /* Supertrend tuần (10,3): tính trên nến tuần, lấy tuần đã đóng để không vẽ lại */
-    var W = c.weekly, SW = ta.supertrend(W.high, W.low, W.close, 3, 10);
+    var W = c.weekly, SW = ta.supertrend(W.high, W.low, W.close, ST2_MULT, ST2_ATR);
     var stW = c.fromWeeklyPrev(SW.st), dirW = c.fromWeeklyPrev(SW.dir);
 
     var csS = arr(n), csLg = arr(n), cs = arr(n), csDir = 0;
@@ -276,12 +298,12 @@
     function rgba0(r, g, b, a) { return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; }
     [tdBull, tdBear, tdLuB, tdLuR].forEach(function (s) { s.all().forEach(function (it) { c.mark(it.i, { pos: it.pos, text: it.text, color: it.color, shape: 'none' }); }); });
     /* ---- vẽ ---- */
-    var from = Math.max(ST_ATR, 10);
-    c.plot('Supertrend 11-2', stLine, { color: '#0078ff', colors: stCol, width: 2, from: from });
-    c.plot('Supertrend 10-3', S2.st, { color: '#9c27b0', width: 2, from: 10 });
-    c.plot('Supertrend tuần 10-3', stWline, { color: '#ffeb3b', width: 2, style: 'dotted' });
+    var from = Math.max(ST_ATR, ST2_ATR);
+    c.plot('Supertrend chính', stLine, { color: '#0078ff', colors: stCol, width: 2, from: from });
+    c.plot('Supertrend mạnh', S2.st, { color: '#9c27b0', width: 2, from: ST2_ATR });
+    c.plot('Supertrend tuần', stWline, { color: '#ffeb3b', width: 2, style: 'dotted' });
     c.plot('Chandelier Stop', cs, { color: '#00bcd4', width: 2, from: CS_LEN });
-    c.plot('EMA 200', e233, { color: '#ffaa00', width: 2 });
+    c.plot('EMA dài', e233, { color: '#ffaa00', width: 2 });
     /* ---- bảng ---- */
     var sm = stateLast, regime = ['Dead', 'Early Phase', 'Trending', 'Strong Trend'][moneyStarsLast];
     var regCol = ['rgba(120,123,134,.7)', 'rgba(255,235,59,.7)', 'rgba(0,230,118,.8)', 'rgba(224,64,251,.9)'][moneyStarsLast];
@@ -348,8 +370,13 @@
       return R;
     }
     var idxD = c.index ? c.index.close : c.close, idxW = c.indexW ? c.indexW.close : c.weekly.close;
-    var D = fcalc({ open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume }, idxD, { adx: 14, stAtr: 11, stMult: 2, vw: 20, base: 20 });
-    var Wk = fcalc(c.weekly, idxW, { adx: 14, stAtr: 10, stMult: 3, vw: 20, base: 20 });
+    var G1 = 'Khung ngày', G2 = 'Khung tuần';
+    var D = fcalc({ open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume }, idxD, {
+      adx: c.input('Ngày · chu kỳ ADX', 14, { min: 2, max: 60, step: 1, group: G1 }), stAtr: c.input('Ngày · Supertrend ATR', 11, { min: 1, max: 60, step: 1, group: G1 }),
+      stMult: c.input('Ngày · Supertrend hệ số', 2, { min: 0.5, max: 10, step: 0.1, group: G1 }), vw: c.input('Ngày · VWMA', 20, { min: 2, max: 100, step: 1, group: G1 }), base: c.input('Ngày · chu kỳ nền (breakout/spring)', 20, { min: 6, max: 100, step: 1, group: G1 }) });
+    var Wk = fcalc(c.weekly, idxW, {
+      adx: c.input('Tuần · chu kỳ ADX', 14, { min: 2, max: 60, step: 1, group: G2 }), stAtr: c.input('Tuần · Supertrend ATR', 10, { min: 1, max: 60, step: 1, group: G2 }),
+      stMult: c.input('Tuần · Supertrend hệ số', 3, { min: 0.5, max: 10, step: 0.1, group: G2 }), vw: c.input('Tuần · VWMA', 20, { min: 2, max: 100, step: 1, group: G2 }), base: c.input('Tuần · chu kỳ nền', 20, { min: 6, max: 100, step: 1, group: G2 }) });
     var wR = c.fromWeekly(Wk.regime), wA = c.fromWeekly(Wk.action), wS = c.fromWeekly(Wk.sent);
     /* điểm động theo regime tuần */
     var dyn = [], fin = [];
@@ -362,7 +389,7 @@
       if (a !== 6 && a !== 3) { if (a === 5 && r === 0) a = 4; else if (ds >= 3) a = 5; else if (ds >= 1) a = 1; else if (ds <= -2.5) a = -1; else a = 0; }
       dyn.push(ds); fin.push(a);
     }
-    var fast = ta.ema(dyn, 8), slow = ta.ema(dyn, 13), hist = ta.sub(fast, slow);
+    var fast = ta.ema(dyn, c.input('Đường nhanh (EMA điểm động)', 8, { min: 2, max: 50, step: 1, group: 'Đường tín hiệu' })), slow = ta.ema(dyn, c.input('Đường chậm (EMA điểm động)', 13, { min: 3, max: 100, step: 1, group: 'Đường tín hiệu' })), hist = ta.sub(fast, slow);
     var xUp = ta.crossover(fast, slow), xDn = ta.crossunder(fast, slow);
     var BULL = '#00c853', BEAR = '#d32f2f', hcol = [], fcol = [];
     var hasSp = false, hasSt = false, hasBr = false, hasBu = false, holding = false;
@@ -430,7 +457,7 @@
     return { pane: p ? p[1] : 'sub', name: nm ? nm[1].trim() : 'Chỉ báo' };
   }
   function compile(code) { return new Function('c', '"use strict";\nvar isna = c.isna, rgba = c.rgba;\n' + code); }
-  function exec(fn, d, idx) { var c = makeCtx(d, idx); fn(c); return c._out; }
+  function exec(fn, d, idx, settings) { var c = makeCtx(d, idx, settings); fn(c); return c._out; }
 
 
   /* ================= lớp phủ tự vẽ: dải nền liền, ô nhãn, hình ở đáy/đỉnh khung, mây giữa 2 đường ================= */
@@ -516,7 +543,7 @@
     }
     function update(I, d) {
       var idx = env.getIdx ? env.getIdx(d) : null, out;
-      try { out = exec(I.fn, d, idx); } catch (e) { err(I.en, e); return; }
+      try { out = exec(I.fn, d, idx, env.getSettings ? env.getSettings(I.en.id) : null); } catch (e) { err(I.en, e); return; }
       var pane = 0;
       if (I.meta.pane === 'sub') { if (I.pane == null) I.pane = chart.panes().length; pane = I.pane; }
       out.plots.forEach(function (p) {
@@ -529,7 +556,13 @@
           var pt = { time: d.t[i], value: v }; if (p.o.colors && p.o.colors[i]) pt.color = p.o.colors[i]; data.push(pt);
         }
         s.setData(data);
+        var ov = ((env.getStyle && env.getStyle(I.en.id)) || {})[p.name] || {};
+        var ao = { visible: !ov.hidden };
+        if (ov.color && !p.o.colors) ao.color = ov.color;
+        if (ov.width && p.o.style !== 'hist') ao.lineWidth = ov.width;
+        s.applyOptions(ao);
       });
+      if (env.onSpecs) env.onSpecs(I.en.id, out.inputs, out.plots.map(function (p) { return { name: p.name, color: p.o.color || '#cccccc', width: p.o.width || 1, hist: p.o.style === 'hist', multi: !!p.o.colors }; }));
       if (!I.hl) { I.hl = true; var tgt = I.first; if (tgt) out.hl.forEach(function (h) { tgt.createPriceLine({ price: h.v, color: h.o.color || '#888', lineWidth: 1, lineStyle: h.o.dash ? 2 : 0, axisLabelVisible: false, title: '' }); }); }
       I.out = out;
       /* dấu / nhãn */
