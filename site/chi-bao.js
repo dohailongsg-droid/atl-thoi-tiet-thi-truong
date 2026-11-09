@@ -13,6 +13,7 @@
   function arr(n, v) { var o = new Array(n); for (var i = 0; i < n; i++) o[i] = v; return o; }
   function bin(a, b, f) { var n = a.length, o = new Array(n); for (var i = 0; i < n; i++) o[i] = f(a[i], typeof b === 'number' ? b : b[i], i); return o; }
   ta.add = function (a, b) { return bin(a, b, function (x, y) { return x + y; }); };
+  ta.roc = function (a, len) { return a.map(function (v, i) { var p = i >= len ? a[i - len] : NA; return (isna(v) || isna(p) || p === 0) ? NA : 100 * (v - p) / p; }); };
   ta.sub = function (a, b) { return bin(a, b, function (x, y) { return x - y; }); };
   ta.mul = function (a, b) { return bin(a, b, function (x, y) { return x * y; }); };
   ta.div = function (a, b) { return bin(a, b, function (x, y) { return x / y; }); };
@@ -120,7 +121,9 @@
   ta.bb = function (a, len, m) { var mid = ta.sma(a, len), sd = ta.stdev(a, len); return { mid: mid, up: mid.map(function (x, i) { return x + m * sd[i]; }), lo: mid.map(function (x, i) { return x - m * sd[i]; }) }; };
 
   /* ================= tiện ích ================= */
+  function hex6(c) { c = String(c || ''); return /^#[0-9a-f]{6}/i.test(c) ? c.slice(0, 7) : '#cccccc'; }
   function rgba(hex, op) {
+    if (/^rgba?\(/i.test(hex)) return hex;
     var h = hex.replace('#', ''); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
     return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + op + ')';
   }
@@ -138,6 +141,8 @@
   }
 
   /* ================= ngữ cảnh chạy ================= */
+  var WORLD = null;
+  function monKey(t) { var dt = new Date(t + 'T00:00:00Z'), wd = (dt.getUTCDay() + 6) % 7; return new Date(dt.getTime() - wd * 864e5).toISOString().slice(0, 10); }
   function makeCtx(d, idx, settings) {
     var n = d.t.length, WK = toWeekly(d), out = { plots: [], marks: [], bg: [], bar: [], hl: [], tables: [], fills: [], inputs: [] };
     var c = {
@@ -155,6 +160,21 @@
     c.fromWeekly = function (a) { return WK.map.map(function (m, i) { return (WK.last[i] || i === n - 1) ? a[m] : (m > 0 ? a[m - 1] : NA); }); };
     /* Giống request.security(…,"W", expr[1], lookahead_on): mọi ngày trong tuần nhận giá trị tuần đã đóng trước đó. */
     c.fromWeeklyPrev = function (a) { return WK.map.map(function (m) { return m > 0 ? a[m - 1] : NA; }); };
+    /* Chuỗi thế giới (SPX, VIX, DXY…) đổi sang tuần rồi đưa về từng nến ngày như request.security(sym,"W",fn(close)):
+       fn nhận mảng giá đóng cửa tuần, trả mảng cùng độ dài. Cần dữ liệu data/chart/_macro.json. */
+    c.worldW = function (sym, fn) {
+      var W = WORLD && WORLD[sym]; if (!W || !W.t || W.t.length < 30) throw new Error('Thiếu dữ liệu thế giới "' + sym + '" (file data/chart/_macro.json do pipeline tạo, chạy cập nhật hằng ngày để có).');
+      var keys = [], vals = [], k, j;
+      for (j = 0; j < W.t.length; j++) { k = monKey(W.t[j]); if (!keys.length || keys[keys.length - 1] !== k) { keys.push(k); vals.push(W.c[j]); } else vals[vals.length - 1] = W.c[j]; }
+      var res = fn(vals), outA = new Array(n), p = -1;
+      for (var i = 0; i < n; i++) {
+        var key = monKey(d.t[i]), isLast = WK.last[i] || i === n - 1;
+        while (p + 1 < keys.length && keys[p + 1] <= key) p++;
+        var q = p; if (!isLast) { q = p; while (q >= 0 && keys[q] >= key) q--; }
+        outA[i] = q >= 0 ? res[q] : NA;
+      }
+      return outA;
+    };
     c.plot = function (name, a, o) { out.plots.push({ name: name, a: a, o: o || {} }); };
     c.mark = function (i, o) { out.marks.push({ i: i, o: o || {} }); };
     c.bg = function (i, col) { out.bg.push([i, col]); };
@@ -308,11 +328,11 @@
     var sm = stateLast, regime = ['Dead', 'Early Phase', 'Trending', 'Strong Trend'][moneyStarsLast];
     var regCol = ['rgba(120,123,134,.7)', 'rgba(255,235,59,.7)', 'rgba(0,230,118,.8)', 'rgba(224,64,251,.9)'][moneyStarsLast];
     function row(name, on, pct) { return [name, [on ? pct : '0%', on ? 'rgba(76,175,80,.8)' : 'rgba(255,82,82,.8)']]; }
-    c.table('DRAGON CODE · hệ thống (nến cuối)', [
+    c.table('DRAGON CODE', [
       ['REGIME', [regime + ' (' + trendScoreLast + '/7)', regCol]],
       row('Supertrend+', sm.holdSt, '40%'), row('MACD Clean', sm.holdMacd, '30%'), row('Chandelier', sm.holdCs, '30%'),
       row('Chaikin', sm.holdDmi, '10%'), row('MCDX', sm.holdMcdx, '20%'), row('EMA Trend', sm.holdEma, '20%'),
-      ['Exposure (5 hệ thống × 20)', [sm.exposure + '%', sm.exposure >= 60 ? 'rgba(76,175,80,.8)' : sm.exposure >= 20 ? 'rgba(255,152,0,.8)' : 'rgba(255,82,82,.8)']]
+      ['Exposure', [sm.exposure + '%', sm.exposure >= 60 ? 'rgba(76,175,80,.8)' : sm.exposure >= 20 ? 'rgba(255,152,0,.8)' : 'rgba(255,82,82,.8)']]
     ]);
   }
 
@@ -430,12 +450,141 @@
     function ac(v) { return v === 6 ? 'SPRING BUY' : v === 5 ? 'STRONG BUY' : v === 4 ? 'BREAKOUT' : v === 1 ? 'BUY' : v === -1 ? 'SELL' : v === 3 ? 'Take Profit' : 'WAIT'; }
     function acc2(v) { return v === 6 ? '#9c27b0' : v === 5 ? '#00c853' : v === 4 ? '#2196f3' : v === 1 ? '#4caf50' : v === -1 ? '#f44336' : v === 3 ? '#ff9800' : '#9e9e9e'; }
     var k = n - 1;
-    c.table('VIETNAM TIMING COMPOSITE (nến cuối)', [
+    c.table('VN TIMING', [
       ['TF', ['Regime', null], ['Sentiment', null], ['ACTION', null]],
       ['1D', [rg(D.regime[k]), rgc(D.regime[k])], [sn(D.sent[k]), snc(D.sent[k])], [ac(fin[k]), acc2(fin[k])]],
       ['1W', [rg(wR[k]), rgc(wR[k])], [sn(wS[k]), snc(wS[k])], [ac(wA[k]), acc2(wA[k])]],
       ['Điểm động 1D', [(Math.round(dyn[k] * 100) / 100) + '', null], ['Hist ' + (Math.round(hist[k] * 100) / 100), null], ['', null]]
     ]);
+  }
+
+
+  /* ================= chỉ báo mẫu: Relative Strength VN (minhnguyen) ================= */
+  function RSVN(c) {
+    var ta = c.ta, n = c.n, NA = c.NA;
+    var EL = c.input('EMA tín hiệu', 20, { min: 2, max: 200, step: 1 });
+    var ix = c.index ? c.index.close : null;
+    if (!ix) throw new Error('Chưa có dữ liệu VN-Index để so sánh.');
+    var rs = c.close.map(function (v, i) { return isna(ix[i]) || ix[i] === 0 ? NA : v / ix[i]; });
+    c.plot('RS (mã / VN-Index)', rs, { color: '#00c853', width: 3 });
+    c.plot('EMA RS', ta.ema(rs, EL), { color: '#e0e0e0', width: 1 });
+  }
+
+  /* ================= chỉ báo mẫu: WORLD MACRO RISK ================= */
+  function WMR(c) {
+    var ta = c.ta, n = c.n, NA = c.NA;
+    var LB = c.input('Z-Score lookback', 120, { min: 10, max: 400, step: 1 });
+    var ROC = c.input('Momentum length', 20, { min: 1, max: 100, step: 1 });
+    var L1 = c.input('Fear Level', 20, { min: 0, max: 100, step: 1, group: 'Mức' });
+    var L2 = c.input('Risk-Off Level', 40, { min: 0, max: 100, step: 1, group: 'Mức' });
+    var L3 = c.input('Risk-On Level', 60, { min: 0, max: 100, step: 1, group: 'Mức' });
+    var L4 = c.input('Greed Level', 80, { min: 0, max: 100, step: 1, group: 'Mức' });
+    function z(a) { var m = ta.sma(a, LB), sd = ta.stdev(a, LB); return a.map(function (v, i) { var x = (v - m[i]) / sd[i]; return isna(x) ? NA : Math.max(Math.min(x, 3), -3); }); }
+    function zw(sym) { return c.worldW(sym, function (w) { return z(ta.roc(w, ROC)); }); }
+    var zs = zw('SPX'), zv = zw('VIX'), zd = zw('DXY'), zy = zw('US10Y'), zo = zw('UKOIL');
+    var eq = zs, vol = zv.map(function (x) { return -x; }), dx = zd.map(function (x) { return -x; }), yl = zy.map(function (x) { return -x; }), oil = zo.map(function (x) { return -x; });
+    var idxv = [];
+    for (var i = 0; i < n; i++) { var raw = (eq[i] + vol[i] + dx[i] + yl[i] + oil[i]) / 5; idxv.push(isna(raw) ? NA : (raw + 2) / 4 * 100); }
+    /* ema(5) trên chuỗi tuần: lấy giá trị cuối mỗi tuần (và nến hiện tại) rồi đưa lại về ngày */
+    var wk = c.weekly, wv = new Array(wk.n);
+    for (var j = 0; j < wk.n; j++) wv[j] = NA;
+    var wi = -1, wkeys = wk.time;
+    for (i = 0; i < n; i++) { while (wi + 1 < wk.n && wk.time[wi + 1] < c.time[i]) wi++; }
+    /* map tuần: dùng chính cách c.fromWeekly để lấy chỉ số tuần của từng nến */
+    var lastOfWeek = c.fromWeekly(c.close.map(function (_, k) { return k; })), rem = {};
+    for (i = 0; i < n; i++) { if (!isna(lastOfWeek[i]) && lastOfWeek[i] === i) { /* nến cuối tuần */ } }
+    var wkIdx = 0;
+    for (i = 0; i < n; i++) { var isEnd = (i === n - 1) || (c.weekly.time.indexOf(c.time[i]) >= 0); if (isEnd) { var widx = c.weekly.time.indexOf(c.time[i]); if (widx < 0) widx = wk.n - 1; wv[widx] = idxv[i]; } }
+    var we = ta.ema(wv, 5), rema = c.fromWeekly(we);
+    var alloc = '', cur = rema[n - 1];
+    if (cur < L2) alloc = '30%'; else if (cur < 50) alloc = '50% - 70%'; else if (cur > L3) alloc = '>100%';
+    c.plot('World Risk Index', rema, { color: '#2962ff', width: 2 });
+    c.hline(L1, { color: '#4caf50', dash: true }); c.hline(L2, { color: '#ff9800', dash: true }); c.hline(50, { color: '#787b86', dash: true });
+    c.hline(L3, { color: '#2962ff', dash: true }); c.hline(L4, { color: '#f44336', dash: true });
+    for (i = 0; i < n; i++) { var v = rema[i]; if (isna(v)) continue; c.bg(i, v > 60 ? 'rgba(76,175,80,.35)' : v < 40 ? 'rgba(244,67,54,.35)' : 'rgba(120,123,134,.2)'); }
+    function r1(x) { return isna(x) ? 'n/a' : (Math.round(x * 100) / 100).toFixed(2); }
+    var cr = Math.round(cur * 10) / 10, hc = cr <= 40 ? '#f44336' : cr >= 60 ? '#2962ff' : '#787b86';
+    var ac = cur < 40 ? '#f44336' : cur < 51 ? '#ff9800' : '#4caf50', k = n - 1;
+    c.table('WORLD MACRO RISK', [
+      ['U.S RISK', [isna(cr) ? 'n/a' : cr.toFixed(1), hc]],
+      ['SP500', r1(eq[k])], ['VIX', r1(vol[k])], ['Dollar', r1(dx[k])], ['BondYield', r1(yl[k])], ['Brent Oil', r1(oil[k])],
+      ['Gợi ý tỷ trọng', [alloc, ac]]
+    ]);
+  }
+
+  /* ================= chỉ báo mẫu: VIETNAM MACRO RISK ================= */
+  function VMR(c) {
+    var ta = c.ta, n = c.n, NA = c.NA;
+    var LB = c.input('Z-Score lookback', 120, { min: 10, max: 400, step: 1 });
+    var ROC = c.input('Momentum length', 20, { min: 1, max: 100, step: 1 });
+    var EL = c.input('EMA smoothing', 5, { min: 1, max: 50, step: 1 });
+    function z(a) { var m = ta.sma(a, LB), sd = ta.stdev(a, LB); return a.map(function (v, i) { var x = (v - m[i]) / sd[i]; return isna(x) ? NA : Math.max(Math.min(x, 3), -3); }); }
+    function zw(sym) { return c.worldW(sym, function (w) { return z(ta.roc(w, ROC)); }); }
+    var spx = zw('SPX'), sox = zw('SOXX'), dxy = zw('DXY'), yld = zw('US10Y'), cop = zw('HG'), oil = zw('UKOIL'), sh = zw('SSE'), kos = zw('KOSPI'), gas = zw('NG');
+    /* tỷ lệ đồng/dầu tính theo giá tuần rồi z-score trên chuỗi ngày, đúng như bản Pine gốc */
+    var hg = c.worldW('HG', function (w) { return w; }), br = c.worldW('UKOIL', function (w) { return w; });
+    var ratio = hg.map(function (v, i) { return isna(v) || isna(br[i]) || br[i] === 0 ? NA : v / br[i]; });
+    var zr = z(ta.roc(ratio, ROC));
+    var raw = [], dem = [], liq = [], gro = [], inf = [];
+    for (var i = 0; i < n; i++) {
+      raw.push((spx[i] + sox[i] - dxy[i] - yld[i] + cop[i] - oil[i] + sh[i] + kos[i] + zr[i] - gas[i]) / 10);
+      dem.push((spx[i] + sox[i] + sh[i] + kos[i]) / 4); liq.push((-dxy[i] - yld[i]) / 2); gro.push((cop[i] + zr[i]) / 2); inf.push(-(oil[i] + gas[i]) / 2);
+    }
+    var mi = raw.map(function (r) { return isna(r) ? NA : (r + 2) / 4 * 100; }), me = ta.ema(mi, EL);
+    function pts(zv) { if (isna(zv)) return NA; var q = Math.max(Math.min(zv, 2), -2); return Math.round((q + 2) / 4 * 100); }
+    function col(s) { return isna(s) ? null : s > 60 ? 'rgba(76,175,80,.8)' : s < 40 ? 'rgba(244,67,54,.8)' : 'rgba(255,152,0,.8)'; }
+    c.plot('Vietnam Macro Risk', me, { color: '#2962ff', width: 2 });
+    c.hline(60, { color: '#4caf50', dash: true }); c.hline(50, { color: '#787b86', dash: true }); c.hline(40, { color: '#f44336', dash: true });
+    for (i = 0; i < n; i++) { var v = me[i]; if (isna(v)) continue; c.bg(i, v > 60 ? 'rgba(76,175,80,.35)' : v < 40 ? 'rgba(244,67,54,.35)' : 'rgba(120,123,134,.2)'); }
+    var k = n - 1, sd = pts(dem[k]), sl = pts(liq[k]), sg = pts(gro[k]), si = pts(inf[k]), m = me[k];
+    function t(x) { return isna(x) ? 'n/a' : String(x); }
+    c.table('VIETNAM MACRO RISK', [
+      ['VN RISK', [isna(m) ? 'n/a' : String(Math.round(m)), m > 50 ? 'rgba(76,175,80,.95)' : 'rgba(244,67,54,.95)']],
+      ['Global Demand', [t(sd), col(sd)]], ['Liquidity (DXY/Y)', [t(sl), col(sl)]], ['Ind. Growth', [t(sg), col(sg)]], ['Inflation Press.', [t(si), col(si)]]
+    ]);
+  }
+
+
+  /* ================= chỉ báo mẫu: Stochastic (20 · 5 · 3) ================= */
+  function STOCH(c) {
+    var ta = c.ta, NA = c.NA;
+    var KL = c.input('%K chu kỳ', 20, { min: 1, max: 200, step: 1 });
+    var KS = c.input('%K làm mượt', 5, { min: 1, max: 50, step: 1 });
+    var DL = c.input('%D làm mượt', 3, { min: 1, max: 50, step: 1 });
+    var OB = c.input('Quá mua', 80, { min: 50, max: 100, step: 1, group: 'Mức' });
+    var OS = c.input('Quá bán', 20, { min: 0, max: 50, step: 1, group: 'Mức' });
+    var k = ta.sma(ta.stoch(c.close, c.high, c.low, KL), KS), d = ta.sma(k, DL);
+    c.plot('%K', k, { color: '#2962ff', width: 1 });
+    c.plot('%D', d, { color: '#ff6d00', width: 1 });
+    c.hline(OB, { color: '#787b86', dash: true }); c.hline(50, { color: 'rgba(120,123,134,.5)', dash: true }); c.hline(OS, { color: '#787b86', dash: true });
+  }
+
+  /* ================= chỉ báo mẫu: DMI (dạng vùng) ================= */
+  function DMI(c) {
+    var ta = c.ta;
+    var L1 = c.input('Độ dài DI', 14, { min: 1, max: 100, step: 1 });
+    var L2 = c.input('Làm mượt ADX', 14, { min: 1, max: 100, step: 1 });
+    var dm = ta.dmi(c.high, c.low, c.close, L1, L2);
+    c.plot('+DI', dm.plus, { color: '#2e7d32', width: 1, style: 'area' });
+    c.plot('-DI', dm.minus, { color: '#b71c1c', width: 1, style: 'area' });
+    c.plot('ADX', dm.adx, { color: '#ff9800', width: 1 });
+  }
+
+  /* ================= chỉ báo mẫu: MCDX (Mango2Juice) ================= */
+  function MCDX(c) {
+    var ta = c.ta, NA = c.NA, n = c.n;
+    var BB = c.input('Banker Base', 50, { min: 10, max: 200, step: 1 });
+    var BP = c.input('Banker RSI Period', 50, { min: 10, max: 200, step: 1 });
+    var HB = c.input('Hot Money RSI Base', 30, { min: 10, max: 200, step: 1 });
+    var HP = c.input('Hot Money RSI Period', 40, { min: 10, max: 200, step: 1 });
+    var SB = c.input('Sensitivity Banker', 1.5, { min: 0.1, max: 10, step: 0.1 });
+    var SH = c.input('Sensitivity Hot Money', 0.7, { min: 0.1, max: 10, step: 0.1 });
+    function f(sens, per, base) { return ta.rsi(c.close, per).map(function (r) { if (isna(r)) return NA; var v = sens * (r - base); return v > 20 ? 20 : v < 0 ? 0 : v; }); }
+    var banker = f(SB, BP, BB), hot = f(SH, HP, HB), ret = c.close.map(function () { return 20; });
+    c.plot('Retailer', ret, { style: 'hist', color: '#005e07' });
+    c.plot('Hot Money', hot, { style: 'hist', color: '#d8c200' });
+    c.plot('Banker', banker, { style: 'hist', color: '#ff0000' });
+    c.hline(5, { color: '#c0c0c0' }); c.hline(10, { color: '#ff00ff' }); c.hline(15, { color: '#c0c0c0' });
   }
 
   /* ================= đăng ký, mã nguồn, chạy ================= */
@@ -447,14 +596,20 @@
   }
   var PRESETS = [
     { id: 'dragon', name: 'DRAGON CODE', pane: 'main', code: '//@pane main\n//@name DRAGON CODE\n' + body(DRAGON) },
-    { id: 'vnt', name: 'VN TIMING', pane: 'sub', code: '//@pane sub\n//@name VN TIMING\n' + body(VNT) }
+    { id: 'vnt', name: 'VN TIMING', pane: 'sub', code: '//@pane sub\n//@name VN TIMING\n' + body(VNT) },
+    { id: 'stoch', name: 'Stochastic', pane: 'sub', code: '//@pane sub\n//@name Stochastic 20-5-3\n' + body(STOCH) },
+    { id: 'dmi', name: 'DMI', pane: 'sub', code: '//@pane sub\n//@name DMI\n' + body(DMI) },
+    { id: 'mcdx', name: 'MCDX', pane: 'sub', code: '//@pane sub\n//@name MCDX\n' + body(MCDX) },
+    { id: 'rsvn', name: 'RS VN', pane: 'sub', code: '//@pane sub\n//@name Relative Strength VN\n' + body(RSVN) },
+    { id: 'wmr', name: 'WORLD MACRO', pane: 'sub', code: '//@pane sub\n//@name WORLD MACRO RISK\n//@world\n' + body(WMR) },
+    { id: 'vmr', name: 'VN MACRO', pane: 'sub', code: '//@pane sub\n//@name VIETNAM MACRO RISK\n//@world\n' + body(VMR) }
   ];
   var TEMPLATE = '//@pane sub\n//@name Chỉ báo của tôi\n// Mảng theo nến: c.open, c.high, c.low, c.close, c.volume, c.time (ngày dạng YYYY-MM-DD)\n' +
     'var ta = c.ta;\nvar r = ta.rsi(c.close, 14);\nc.plot("RSI 14", r, { color: "#b57bee", width: 2 });\nc.hline(70, { color: "#888", dash: true });\nc.hline(30, { color: "#888", dash: true });\n' +
     'for (var i = 1; i < c.n; i++) {\n  if (r[i] < 30 && r[i - 1] >= 30) c.mark(i, { pos: "below", text: "Quá bán", color: "#3f9a62", shape: "arrowUp" });\n}\n';
   function meta(code) {
     var p = code.match(/^\s*\/\/@pane\s+(main|sub)/m), nm = code.match(/^\s*\/\/@name\s+(.+)$/m);
-    return { pane: p ? p[1] : 'sub', name: nm ? nm[1].trim() : 'Chỉ báo' };
+    return { pane: p ? p[1] : 'sub', name: nm ? nm[1].trim() : 'Chỉ báo', world: /^\s*\/\/@world\b/m.test(code) };
   }
   function compile(code) { return new Function('c', '"use strict";\nvar isna = c.isna, rgba = c.rgba;\n' + code); }
   function exec(fn, d, idx, settings) { var c = makeCtx(d, idx, settings); fn(c); return c._out; }
@@ -537,7 +692,8 @@
     function err(en, e) { if (env.onError) env.onError(en, e); }
     function mkSeries(I, p, pane) {
       var o = p.o, col = o.color || '#ccc', s;
-      if (o.style === 'hist') s = chart.addSeries(L.HistogramSeries, { color: col, lastValueVisible: false, priceLineVisible: false, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } }, pane);
+      if (o.style === 'area') s = chart.addSeries(L.AreaSeries, { lineColor: col, topColor: rgba(col, .55), bottomColor: rgba(col, .55), lineWidth: o.width || 1, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } }, pane);
+      else if (o.style === 'hist') s = chart.addSeries(L.HistogramSeries, { color: col, lastValueVisible: false, priceLineVisible: false, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } }, pane);
       else s = chart.addSeries(L.LineSeries, { color: col, lineWidth: o.width || 1, lineStyle: o.style === 'dotted' ? 1 : o.style === 'dashed' ? 2 : 0, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false }, pane);
       return s;
     }
@@ -558,7 +714,7 @@
         s.setData(data);
         var ov = ((env.getStyle && env.getStyle(I.en.id)) || {})[p.name] || {};
         var ao = { visible: !ov.hidden };
-        if (ov.color && !p.o.colors) ao.color = ov.color;
+        if (ov.color && !p.o.colors) { if (p.o.style === 'area') { ao.lineColor = ov.color; ao.topColor = rgba(hex6(ov.color), .55); ao.bottomColor = rgba(hex6(ov.color), .55); } else ao.color = ov.color; }
         if (ov.width && p.o.style !== 'hist') ao.lineWidth = ov.width;
         s.applyOptions(ao);
       });
@@ -598,7 +754,7 @@
           I.out.bg.forEach(function (b) { bg.push(b); }); boxes = boxes.concat(I.boxes || []); any = true;
         } else if (I.first) {
           if (!I.ov) { I.ov = new Overlay(chart, I.first); I.first.attachPrimitive(I.ov); }
-          I.ov.set({ t: d.t, shapes: I.shapes, fills: I.out.fills });
+          I.ov.set({ t: d.t, shapes: I.shapes, fills: I.out.fills, bg: I.out.bg });
         }
       });
       if (any || ovMain) {
@@ -686,6 +842,7 @@
     /* ---- hình học & hit-test ---- */
     function dseg(px_, py_, x1, y1, x2, y2) { var dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((px_ - x1) * dx + (py_ - y1) * dy) / L2)) : 0; return Math.hypot(px_ - (x1 + t * dx), py_ - (y1 + t * dy)); }
     function hit(it, x, y, W) {
+      if (it.type === 'vpvr') return x > W * 0.68 ? 8 : 1e9;
       var A = px(it.a), B = it.b ? px(it.b) : null; if (!A) return 1e9;
       if (it.type === 'hline') return Math.abs(y - A.y);
       if (it.type === 'text') return (Math.abs(x - A.x) < 70 && Math.abs(y - A.y) < 12) ? 0 : 1e9;
@@ -693,11 +850,52 @@
       if (it.type === 'trend') return dseg(x, y, A.x, A.y, B.x, B.y);
       if (it.type === 'ray') { var k = Math.max(W, 1) * 4, dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1; return dseg(x, y, A.x, A.y, A.x + dx / L * k, A.y + dy / L * k); }
       var x1 = Math.min(A.x, B.x), x2 = Math.max(A.x, B.x), y1 = Math.min(A.y, B.y), y2 = Math.max(A.y, B.y);
-      if (it.type === 'rect') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
+      if (it.type === 'rect' || it.type === 'vpfr') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
       if (it.type === 'fib') return (x >= x1 - 6 && x <= x2 + 6 && y >= y1 - 6 && y <= y2 + 6) ? 0 : 1e9;
       return 1e9;
     }
     function pick(x, y, W) { var best = null, bd = 9; for (var i = list.length - 1; i >= 0; i--) { var d = hit(list[i], x, y, W); if (d <= bd) { best = list[i]; bd = d; if (d === 0) break; } } return best; }
+
+    /* ---- Volume at price: chia khối lượng từng nến theo các mức giá nó đi qua, tách nến tăng / nến giảm ---- */
+    var VP_ROWS = 24;
+    function vpCompute(i0, i1) {
+      var d = data(), n = d.t.length; i0 = Math.max(0, Math.ceil(i0)); i1 = Math.min(n - 1, Math.floor(i1)); if (i1 < i0) return null;
+      var lo = 1e18, hi = -1e18, i; for (i = i0; i <= i1; i++) { if (d.l[i] < lo) lo = d.l[i]; if (d.h[i] > hi) hi = d.h[i]; }
+      if (!(hi > lo)) return null;
+      var N = VP_ROWS, st = (hi - lo) / N, up = [], dn = [], r; for (r = 0; r < N; r++) { up.push(0); dn.push(0); }
+      for (i = i0; i <= i1; i++) {
+        var l = d.l[i], h = d.h[i], v = d.v[i] || 0, isUp = d.c[i] >= d.o[i], tgt = isUp ? up : dn;
+        if (h === l) { var rr = Math.min(N - 1, Math.max(0, Math.floor((l - lo) / st))); tgt[rr] += v; continue; }
+        var a = Math.max(0, Math.floor((l - lo) / st)), b = Math.min(N - 1, Math.floor((h - lo) / st));
+        for (r = a; r <= b; r++) { var ov = Math.min(h, lo + (r + 1) * st) - Math.max(l, lo + r * st); if (ov > 0) tgt[r] += v * ov / (h - l); }
+      }
+      var tot = up.map(function (x, k) { return x + dn[k]; }), mx = 0, poc = 0, sum = 0;
+      tot.forEach(function (x, k) { sum += x; if (x > mx) { mx = x; poc = k; } });
+      var vl = poc, vh = poc, acc = tot[poc];
+      while (acc < sum * 0.7 && (vl > 0 || vh < N - 1)) {
+        var below = vl > 0 ? tot[vl - 1] : -1, above = vh < N - 1 ? tot[vh + 1] : -1;
+        if (above >= below) { vh++; acc += tot[vh]; } else { vl--; acc += tot[vl]; }
+      }
+      return { lo: lo, st: st, up: up, dn: dn, tot: tot, mx: mx, poc: poc, vl: vl, vh: vh };
+    }
+    function vpDraw(ctx, P, x0, dir, maxW, xEnd) {
+      if (!P || !P.mx) return;
+      for (var r = 0; r < P.tot.length; r++) {
+        var yT = se.priceToCoordinate(P.lo + (r + 1) * P.st), yB = se.priceToCoordinate(P.lo + r * P.st); if (yT == null || yB == null) continue;
+        var inVA = r >= P.vl && r <= P.vh, hh = Math.max(1, Math.abs(yB - yT) - 1), y = Math.min(yT, yB);
+        var wU = P.up[r] / P.mx * maxW, wD = P.dn[r] / P.mx * maxW;
+        ctx.fillStyle = inVA ? 'rgba(41,98,255,.62)' : 'rgba(41,98,255,.30)';
+        ctx.fillRect(dir > 0 ? x0 : x0 - wU, y, wU, hh);
+        ctx.fillStyle = inVA ? 'rgba(251,192,45,.62)' : 'rgba(251,192,45,.30)';
+        ctx.fillRect(dir > 0 ? x0 + wU : x0 - wU - wD, y, wD, hh);
+      }
+      var yp = se.priceToCoordinate(P.lo + (P.poc + 0.5) * P.st);
+      if (yp != null) { ctx.strokeStyle = 'rgba(239,83,80,.9)'; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x0, yp); ctx.lineTo(xEnd, yp); ctx.stroke(); }
+    }
+    function vpvrPaint(ctx, W) {
+      var vr = ts.getVisibleLogicalRange(); if (!vr) return;
+      var P = vpCompute(vr.from, vr.to); vpDraw(ctx, P, W, -1, W * 0.3, W - W * 0.3);
+    }
     /* ---- vẽ ---- */
     function paint(sc) {
       var ctx = sc.context, W = sc.mediaSize.width, H = sc.mediaSize.height, fg = env.fg || '#ddd';
@@ -718,6 +916,11 @@
         } else if (B) {
           if (it.type === 'trend') { ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
           else if (it.type === 'ray') { var dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, k = (W + 400) * 4; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x + dx / L * k, A.y + dy / L * k); ctx.stroke(); }
+          else if (it.type === 'vpfr') {
+            var P = vpCompute(Math.min(toLogical(it.a), toLogical(it.b)), Math.max(toLogical(it.a), toLogical(it.b))), vx1 = Math.min(A.x, B.x), vx2 = Math.max(A.x, B.x);
+            vpDraw(ctx, P, vx1, 1, (vx2 - vx1) * 0.7, vx2);
+            if (P) { var yT = se.priceToCoordinate(P.lo + P.st * P.up.length), yB = se.priceToCoordinate(P.lo); if (yT != null && yB != null) { ctx.strokeStyle = on || ghost ? 'rgba(180,180,180,.8)' : 'rgba(150,150,150,.35)'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.strokeRect(vx1, yT, vx2 - vx1, yB - yT); ctx.setLineDash([]); } }
+          }
           else if (it.type === 'rect') { var rx = Math.min(A.x, B.x), ry = Math.min(A.y, B.y), rw = Math.abs(A.x - B.x), rh = Math.abs(A.y - B.y); ctx.fillStyle = 'rgba(74,163,255,.16)'; ctx.fillRect(rx, ry, rw, rh); ctx.strokeRect(rx, ry, rw, rh); }
           else if (it.type === 'fib') {
             var fx1 = Math.min(A.x, B.x), fx2 = Math.max(A.x, B.x) + 0, prev = null;
@@ -734,7 +937,7 @@
         }
         ctx.globalAlpha = 1;
       }
-      list.forEach(function (it) { one(it, false); });
+      list.forEach(function (it) { if (it.type === 'vpvr') vpvrPaint(ctx, W); else one(it, false); });
       if (pend && hov) one({ type: pend.type, a: pend.a, b: hov, color: pend.type === 'ruler' ? '#bbb' : undefined }, true);
       if (ruler) rulerPaint(ctx, ruler);
     }
@@ -797,7 +1000,8 @@
     if (ATLCB_KEY.fn) document.removeEventListener('keydown', ATLCB_KEY.fn);
     ATLCB_KEY.fn = onKey; document.addEventListener('keydown', onKey);
     box.style.cursor = DS.tool === 'cursor' ? '' : 'crosshair';
-    CUR = { setTool: setTool, clearAll: function () { list = []; sel = null; ruler = null; persist(); redraw(); }, count: function () { return list.length; }, redraw: redraw };
+    function vpIdx() { for (var i = 0; i < list.length; i++) if (list[i].type === 'vpvr') return i; return -1; }
+    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; sel = null; ruler = null; persist(); redraw(); }, count: function () { return list.length; }, redraw: redraw };
     return CUR;
   }
   var ATLCB_KEY = { fn: null };
@@ -819,5 +1023,5 @@
     box.addEventListener('dblclick', box._atld, true);
   }
 
-  window.ATLCB = { ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; } }, wheelFix: wheelFix };
+  window.ATLCB = { setWorld: function (w) { WORLD = w; }, hasWorld: function () { return !!WORLD; }, ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { toggleVP: function () { if (CUR) CUR.toggleVP(); }, vpOn: function () { return !!(CUR && CUR.vpOn()); }, mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; } }, wheelFix: wheelFix };
 })();
