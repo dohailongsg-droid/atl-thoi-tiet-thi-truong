@@ -192,6 +192,21 @@ def main():
     nn_mua_top = [lite(x, {"rong_ty": round(x["nn_rong"], 1)}) for x in sorted(rows, key=lambda x: -x["nn_rong"])[:5]]
     nn_ban_top = [lite(x, {"rong_ty": round(x["nn_rong"], 1)}) for x in sorted(rows, key=lambda x: x["nn_rong"])[:5]]
 
+    # mã tác động đến VN-Index (điểm) = VN-Index tham chiếu × Δ(vốn hóa tự do chuyển nhượng của mã) / tổng vốn hóa tự do chuyển nhượng
+    tac_dong = None
+    ff = ref.get("ff") or {}
+    vref = vni.get("refPrice")
+    if len(ff) >= 200 and vref:
+        tot_ff = sum(ff[x["ma"]] * x["ref"] for x in rows if x["ma"] in ff)
+        if tot_ff > 0:
+            pts = sorted(((x["ma"], vref * ff[x["ma"]] * (x["gia"] - x["ref"]) / tot_ff, x["pct"], x["gia"])
+                          for x in traded if x["ma"] in ff), key=lambda t: -t[1])
+            ups, dns = [t for t in pts if t[1] > 0], [t for t in pts if t[1] < 0]
+            tac_dong = {"tang_diem": round(sum(t[1] for t in ups), 2), "giam_diem": round(sum(t[1] for t in dns), 2),
+                        "ds": [[t[0], round(t[1], 2), round(t[2], 2), t[3]] for t in ups[:9] + dns[-9:]]}
+    elif not ff:
+        canh_bao.append("thiếu tỷ lệ free-float trong state/live_ref.json: chưa có 'mã tác động chỉ số' (chạy lại cập nhật hằng ngày)")
+
     grp = {}
     for x in traded:
         n = sec_map.get(x["ma"])
@@ -226,19 +241,34 @@ def main():
         if x["symbol"] in ("VNINDEX", "VN30", "HNXIndex") and x.get("price"):
             chi_so.append({"ma": x["symbol"], "gia": x["price"], "pct": round(x.get("changePercent") or 0, 2)})
 
-    # đường VN-Index theo từng phút trong ngày (toàn bộ phiên, không phụ thuộc lịch chạy)
-    vni_phut = []
+    # đường VN-Index theo từng phút + GTGD lũy kế HOSE của hôm nay và phiên liền trước (không phụ thuộc lịch chạy)
+    vni_phut, gt_phut = [], None
     try:
         j = call(f"{BASE}/chart/OHLCChart/gap-chart",
-                 {"timeFrame": "ONE_MINUTE", "symbols": ["VNINDEX"], "to": int(now_utc.timestamp()) + 300, "countBack": 400})
+                 {"timeFrame": "ONE_MINUTE", "symbols": ["VNINDEX"], "to": int(now_utc.timestamp()) + 300, "countBack": 800})
         it = j[0] if j else None
         if it:
-            for t, c in zip(it["t"], it["c"]):
+            byday = {}
+            for t, c, av in zip(it["t"], it["c"], it["accumulatedValue"]):
                 bar = dt.datetime.fromtimestamp(int(t), ICT)
-                if bar.date().isoformat() == today:
-                    vni_phut.append([bar.strftime("%H:%M"), round(float(c), 2)])
+                d0 = bar.date().isoformat()
+                hm = bar.strftime("%H:%M")
+                if d0 == today:
+                    vni_phut.append([hm, round(float(c), 2)])
+                byday.setdefault(d0, []).append((bar, hm, float(av) / 1000.0))      # triệu đồng -> tỷ đồng
+
+            def thin(L):   # giữ mỗi 5 phút + điểm cuối
+                out = [[hm, round(v)] for b, hm, v in L if b.minute % 5 == 0]
+                if L and (not out or out[-1][0] != L[-1][1]):
+                    out.append([L[-1][1], round(L[-1][2])])
+                return out
+            days = sorted(byday)
+            if today in byday:
+                prevs = [d0 for d0 in days if d0 < today and len(byday[d0]) >= 150]    # bỏ ngày chỉ có vài nến đầu cửa sổ
+                gt_phut = {"hom_nay": thin(byday[today]), "ngay_truoc": prevs[-1] if prevs else None,
+                           "truoc": thin(byday[prevs[-1]]) if prevs else []}
     except Exception as e:
-        canh_bao.append(f"đường VN-Index theo phút: {str(e)[:80]}")
+        canh_bao.append(f"đường VN-Index/GTGD theo phút: {str(e)[:80]}")
 
     tin_moi, tin_warn = headlines(now_utc)
     canh_bao += tin_warn
@@ -260,7 +290,7 @@ def main():
     label, live = phien(now)
     out = {"ngay": today, "cap_nhat": now_utc.isoformat(timespec="seconds"), "gio": gio,
            "phien": label, "dang_giao_dich": live,
-           "chi_so": chi_so, "vni_ref": vni.get("refPrice"), "vni_phut": vni_phut,
+           "chi_so": chi_so, "vni_ref": vni.get("refPrice"), "vni_phut": vni_phut, "gt_phut": gt_phut, "tac_dong": tac_dong,
            "do_rong": {"tang": tang, "giam": giam, "dung": dung, "tran": tran, "san": san},
            "nhiet_ke": {"diem_tam": diem, "thanh_phan": tp, "trong_so_dung": w,
                         "hukt_tb_pct": None if hukt_n is None else round(hukt_n, 2),
