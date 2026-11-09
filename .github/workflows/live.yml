@@ -31,6 +31,7 @@ jobs:
         run: |
           mkdir -p live_out
           git fetch --depth=1 origin live 2>/dev/null && git show FETCH_HEAD:trong_phien.json > live_out/prev.json 2>/dev/null || echo "chưa có nhánh live"
+          git show FETCH_HEAD:ff.json > live_out/ff.json 2>/dev/null || echo "chưa có ff.json (sẽ tự lấy free-float một lần)"
 
       - name: Lấy số liệu trong phiên
         run: python3 pipeline/intraday.py
@@ -38,11 +39,12 @@ jobs:
       - name: Đẩy lên nhánh live (chỉ 1 commit, ghi đè)
         run: |
           if [ ! -f live_out/trong_phien.json ]; then echo "Không có dữ liệu mới (ngày nghỉ/ngày lễ), bỏ qua"; exit 0; fi
-          mkdir -p push_tmp && cp live_out/trong_phien.json push_tmp/
+          mkdir -p push_tmp && cp live_out/trong_phien.json push_tmp/ && { [ -f live_out/ff.json ] && cp live_out/ff.json push_tmp/ || true; }
           cd push_tmp
           git init -q && git checkout -q -b live
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
           git add trong_phien.json
+          [ -f ff.json ] && git add ff.json || true
           git commit -qm "live $(date -u +%FT%TZ)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" live
