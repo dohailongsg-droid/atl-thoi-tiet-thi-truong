@@ -151,7 +151,7 @@
     var c = {
       n: n, time: d.t, open: d.o, high: d.h, low: d.l, close: d.c, volume: d.v,
       o: d.o, h: d.h, l: d.l, c: d.c, v: d.v, ta: ta, NA: NA, isna: isna, rgba: rgba,
-      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out, tf: d.tf || 'D', daily: DK ? DK.w : null, indexDaily: null, wmap: WK.map, wlast: WK.last, tk: d.k || d.t
+      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out, tf: d.tf || 'D', hr: d.hr || null, daily: DK ? DK.w : null, indexDaily: null, wmap: WK.map, wlast: WK.last, tk: d.k || d.t
     };
     if (idx) {
       var ic = [], seen = -1;
@@ -401,6 +401,7 @@
       stMult: c.input('Ngày · Supertrend hệ số', 2, { min: 0.5, max: 10, step: 0.1, group: G1 }), vw: c.input('Ngày · VWMA', 20, { min: 2, max: 100, step: 1, group: G1 }), base: c.input('Ngày · chu kỳ nền (breakout/spring)', 20, { min: 6, max: 100, step: 1, group: G1 }) };
     var D = fcalc({ open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume }, idxD, PD);
     var Dd = c.tf === 'H' && c.daily ? fcalc(c.daily, c.indexDaily ? c.indexDaily.close : c.daily.close, PD) : null;
+    var Hh = c.hr && c.tf !== 'H' && c.hr.c && c.hr.c.length > 40 ? fcalc({ open: c.hr.o, high: c.hr.h, low: c.hr.l, close: c.hr.c, volume: c.hr.v }, c.hr.idx || c.hr.c, PD) : null, hk = Hh ? c.hr.c.length - 1 : 0;
     var dR = Dd ? c.fromDaily(Dd.regime) : null, dS = Dd ? c.fromDaily(Dd.sent) : null, dA = Dd ? c.fromDaily(Dd.action) : null;
     var Wk = fcalc(c.weekly, idxW, {
       adx: c.input('Tuần · chu kỳ ADX', 14, { min: 2, max: 60, step: 1, group: G2 }), stAtr: c.input('Tuần · Supertrend ATR', 10, { min: 1, max: 60, step: 1, group: G2 }),
@@ -459,9 +460,10 @@
     function acc2(v) { return v === 6 ? '#9c27b0' : v === 5 ? '#00c853' : v === 4 ? '#2196f3' : v === 1 ? '#4caf50' : v === -1 ? '#f44336' : v === 3 ? '#ff9800' : '#9e9e9e'; }
     var k = n - 1;
     c.table('VN TIMING', [
-      ['TF', ['Regime', null], ['Sentiment', null], ['ACTION', null]],
+      ['TF', ['Regime', null], ['Sentiment', null], ['ACTION', null]]
+    ].concat(Hh ? [['1H', [rg(Hh.regime[hk]), rgc(Hh.regime[hk])], [sn(Hh.sent[hk]), snc(Hh.sent[hk])], [ac(Hh.action[hk]), acc2(Hh.action[hk])]]] : [], [
       [c.tf === 'H' ? '1H' : c.tf === 'W' ? '1W' : '1D', [rg(D.regime[k]), rgc(D.regime[k])], [sn(D.sent[k]), snc(D.sent[k])], [ac(fin[k]), acc2(fin[k])]]
-    ].concat(Dd ? [['1D', [rg(dR[k]), rgc(dR[k])], [sn(dS[k]), snc(dS[k])], [ac(dA[k]), acc2(dA[k])]]] : [], c.tf === 'W' ? [] : [['1W', [rg(wR[k]), rgc(wR[k])], [sn(wS[k]), snc(wS[k])], [ac(wA[k]), acc2(wA[k])]]], [
+    ], Dd ? [['1D', [rg(dR[k]), rgc(dR[k])], [sn(dS[k]), snc(dS[k])], [ac(dA[k]), acc2(dA[k])]]] : [], c.tf === 'W' ? [] : [['1W', [rg(wR[k]), rgc(wR[k])], [sn(wS[k]), snc(wS[k])], [ac(wA[k]), acc2(wA[k])]]], [
       ['Điểm động ' + (c.tf === 'H' ? '1H' : c.tf === 'W' ? '1W' : '1D'), [(Math.round(dyn[k] * 100) / 100) + '', null], ['Hist ' + (Math.round(hist[k] * 100) / 100), null], ['', null]]
     ]));
   }
@@ -910,16 +912,16 @@
       function one(it, ghost) {
         var A = px(it.a), B = it.b ? px(it.b) : null; if (!A) return;
         var on = it === sel, c = it.color || '#4aa3ff';
-        ctx.globalAlpha = ghost ? 0.7 : 1; ctx.lineWidth = on ? 2.4 : 1.7; ctx.strokeStyle = c; ctx.setLineDash([]);
+        ctx.globalAlpha = ghost ? 0.7 : 1; ctx.lineWidth = (it.w || 1.7) + (on ? 0.8 : 0); ctx.strokeStyle = c; ctx.setLineDash([]);
         if (it.type === 'hline') {
           ctx.beginPath(); ctx.moveTo(0, A.y); ctx.lineTo(W, A.y); ctx.stroke();
-          tag(fnum(it.a.p), W - 62, A.y, c, '#fff'); if (on) dot({ x: A.x, y: A.y });
+          tag(fnum(it.a.p), W - 62, A.y, c, '#fff'); if (on) dot({ x: W * 0.5, y: A.y });
         } else if (it.type === 'vline') {
-          ctx.beginPath(); ctx.moveTo(A.x, 0); ctx.lineTo(A.x, H); ctx.stroke(); if (on) dot({ x: A.x, y: A.y });
+          ctx.beginPath(); ctx.moveTo(A.x, 0); ctx.lineTo(A.x, H); ctx.stroke(); if (on) dot({ x: A.x, y: Math.min(80, H / 2) });
         } else if (it.type === 'text') {
           ctx.font = '600 12px system-ui,sans-serif'; var tw = ctx.measureText(it.text || '').width + 12;
           ctx.fillStyle = 'rgba(30,30,30,.82)'; rrect(ctx, A.x - 6, A.y - 11, tw, 22, 4); ctx.fill(); ctx.strokeStyle = on ? '#2962ff' : '#f5a623'; ctx.lineWidth = 1; ctx.stroke();
-          ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.text || '', A.x, A.y + 0.5);
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.text || '', A.x, A.y + 0.5); if (on) dot({ x: A.x - 6, y: A.y });
         } else if (B) {
           if (it.type === 'trend') { ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
           else if (it.type === 'arrow') {
@@ -942,7 +944,7 @@
             vpDraw(ctx, P, vx1, 1, (vx2 - vx1) * 0.7, vx2);
             if (P) { var yT = se.priceToCoordinate(P.lo + P.st * P.up.length), yB = se.priceToCoordinate(P.lo); if (yT != null && yB != null) { ctx.strokeStyle = on || ghost ? 'rgba(180,180,180,.8)' : 'rgba(150,150,150,.35)'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.strokeRect(vx1, yT, vx2 - vx1, yB - yT); ctx.setLineDash([]); } }
           }
-          else if (it.type === 'rect') { var rx = Math.min(A.x, B.x), ry = Math.min(A.y, B.y), rw = Math.abs(A.x - B.x), rh = Math.abs(A.y - B.y); ctx.fillStyle = 'rgba(74,163,255,.16)'; ctx.fillRect(rx, ry, rw, rh); ctx.strokeRect(rx, ry, rw, rh); }
+          else if (it.type === 'rect') { var rx = Math.min(A.x, B.x), ry = Math.min(A.y, B.y), rw = Math.abs(A.x - B.x), rh = Math.abs(A.y - B.y); ctx.fillStyle = (/^#[0-9a-f]{6}$/i.test(c) ? c : '#4aa3ff') + '29'; ctx.fillRect(rx, ry, rw, rh); ctx.strokeRect(rx, ry, rw, rh); }
           else if (it.type === 'fib') {
             var fx1 = Math.min(A.x, B.x), fx2 = Math.max(A.x, B.x) + 0, prev = null;
             FIB.forEach(function (lv, k) {
@@ -954,7 +956,7 @@
             });
             ctx.strokeStyle = 'rgba(180,180,180,.55)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); ctx.setLineDash([]);
           }
-          if (on || ghost) { dot(A); dot(B); }
+          if (on || ghost) { dot(A); dot(B); if (it.type === 'channel' && it.off != null) { var yc = se.priceToCoordinate(it.b.p + it.off); if (yc != null) dot({ x: B.x, y: yc }); } }
         }
         ctx.globalAlpha = 1;
       }
@@ -979,15 +981,71 @@
     };
     se.attachPrimitive(layer);
     /* ---- thao tác ---- */
-    function setTool(t) { DS.tool = t; pend = null; hov = null; box.style.cursor = t === 'cursor' ? '' : 'crosshair'; if (env.onTool) env.onTool(t); redraw(); }
+    var tbEl = null;
+    function tbBuild() {
+      var host = box.parentElement; if (!host) return;
+      var old = host.querySelector('.cb-dtb'); if (old) old.remove();
+      tbEl = document.createElement('div'); tbEl.className = 'cb-dtb'; tbEl.hidden = true;
+      ['#4aa3ff', '#f5a623', '#26a69a', '#ef5350', '#b57bee', '#e0e0e0'].forEach(function (col) { var b = document.createElement('button'); b.type = 'button'; b.className = 'c'; b.style.background = col; b.title = 'Đổi màu'; b.setAttribute('aria-label', 'Đổi màu ' + col); b.addEventListener('click', function () { if (sel) { sel.color = col; persist(); redraw(); } }); tbEl.appendChild(b); });
+      var w = document.createElement('button'); w.type = 'button'; w.textContent = 'Nét'; w.title = 'Đổi độ dày nét'; w.addEventListener('click', function () { if (sel) { sel.w = sel.w >= 3.4 ? 1.2 : (sel.w >= 2.3 ? 3.4 : 2.4); if (!sel.w) sel.w = 2.4; persist(); redraw(); } }); tbEl.appendChild(w);
+      var t = document.createElement('button'); t.type = 'button'; t.textContent = 'Sửa chữ'; t.className = 'tx'; t.addEventListener('click', function () { editText(sel); }); tbEl.appendChild(t);
+      var x = document.createElement('button'); x.type = 'button'; x.textContent = 'Xoá'; x.className = 'x'; x.title = 'Xoá nét này (Delete)'; x.addEventListener('click', function () { delSel(); }); tbEl.appendChild(x);
+      ['pointerdown', 'pointerup', 'mousedown', 'click', 'dblclick', 'wheel'].forEach(function (ev) { tbEl.addEventListener(ev, function (e) { e.stopPropagation(); }); });
+      host.appendChild(tbEl);
+    }
+    function syncTb() { if (!tbEl || !tbEl.isConnected) tbBuild(); if (!tbEl) return; tbEl.hidden = !sel; if (sel) { var tx = tbEl.querySelector('.tx'); if (tx) tx.hidden = sel.type !== 'text'; } }
+    function select(it) { sel = it || null; syncTb(); redraw(); }
+    function delSel() { if (!sel) return; var i = list.indexOf(sel); if (i >= 0) { list.splice(i, 1); persist(); } select(null); }
+    function editText(it) { if (!it || it.type !== 'text') return; var tx = window.prompt('Sửa chữ ghi chú:', it.text || ''); if (tx != null) { it.text = String(tx).slice(0, 60); persist(); redraw(); } }
+    function handlesOf(it, W) {
+      var A = px(it.a), B = it.b ? px(it.b) : null, hs = []; if (!A) return hs;
+      if (it.type === 'hline') hs.push({ k: 'a', x: W * 0.5, y: A.y });
+      else if (it.type === 'vline') hs.push({ k: 'a', x: A.x, y: 80 });
+      else if (it.type === 'text') hs.push({ k: 'a', x: A.x - 6, y: A.y });
+      else if (it.type === 'vpvr') return hs;
+      else { hs.push({ k: 'a', x: A.x, y: A.y }); if (B) hs.push({ k: 'b', x: B.x, y: B.y }); if (it.type === 'channel' && it.off != null && B) { var yc = se.priceToCoordinate(it.b.p + it.off); if (yc != null) hs.push({ k: 'c', x: B.x, y: yc }); } }
+      return hs;
+    }
+    var drag = null;
+    function dragStart(e, x, y, W) {
+      var h = null, k;
+      if (sel) { var hs = handlesOf(sel, W); for (k = 0; k < hs.length; k++) if (Math.hypot(hs[k].x - x, hs[k].y - y) <= 9) { h = { it: sel, mode: hs[k].k }; break; } }
+      if (!h) { var it = pick(x, y, W); if (!it || it.type === 'vpvr') return false; if (it !== sel) select(it); h = { it: it, mode: 'move' }; }
+      var l0 = ts.coordinateToLogical(x), p0 = se.coordinateToPrice(y);
+      drag = { it: h.it, mode: h.mode, l0: l0, p0: p0, a0: Object.assign({}, h.it.a), b0: h.it.b ? Object.assign({}, h.it.b) : null, off0: h.it.off, moved: false };
+      return true;
+    }
+    function dragMove(e) {
+      if (!drag) return;
+      var r = box.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, it = drag.it, m = drag.mode;
+      var l = ts.coordinateToLogical(x), p = se.coordinateToPrice(y); if (l == null || p == null) return;
+      drag.moved = true;
+      if (m === 'move') {
+        var dl = l - drag.l0, dp = p - drag.p0;
+        function sh(a0, ax, ay) { return toAnchor(ax ? toLogical(a0) + dl : toLogical(a0), ay ? a0.p + dp : a0.p); }
+        var ax = it.type !== 'hline', ay = it.type !== 'vline';
+        it.a = sh(drag.a0, ax, ay); if (it.b) it.b = sh(drag.b0, ax, ay);
+      } else if (m === 'c') { it.off = p - it.b.p; }
+      else {
+        var na = resolve({ x: x, y: y }); if (!na) return;
+        if (it.type === 'hline') na = { t: drag.a0.t, f: drag.a0.f, p: na.p };
+        else if (it.type === 'vline') na = { t: na.t, f: na.f, p: drag.a0.p };
+        it[m] = na;
+      }
+      redraw();
+    }
+    function dragEnd() { if (drag && drag.moved) persist(); drag = null; }
+    window.addEventListener('pointermove', function (e) { if (drag) dragMove(e); });
+    window.addEventListener('pointerup', function () { dragEnd(); });
+    function setTool(t) { DS.tool = t; pend = null; hov = null; if (t !== 'cursor') select(null); box.style.cursor = t === 'cursor' ? '' : 'crosshair'; if (env.onTool) env.onTool(t); redraw(); }
     function add(it) { it.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5); list.push(it); persist(); }
     function onClick(pm) {
       if (!pm || !pm.point) return;
       var t = DS.tool, W = box.clientWidth;
       if (ruler && !(t === 'ruler' && !pend)) { ruler = null; redraw(); if (t === 'cursor') return; }
-      if (t === 'cursor') { var h = pick(pm.point.x, pm.point.y, W); sel = h; redraw(); return; }
+      if (t === 'cursor') { var h = pick(pm.point.x, pm.point.y, W); select(h && h.type !== 'vpvr' ? h : null); return; }
       if (pm.paneIndex > 0) return;
-      if (t === 'delete') { var d = pick(pm.point.x, pm.point.y, W); if (d) { list.splice(list.indexOf(d), 1); persist(); redraw(); } return; }
+      if (t === 'delete') { var d = pick(pm.point.x, pm.point.y, W); if (d) { list.splice(list.indexOf(d), 1); if (sel === d) select(null); persist(); redraw(); } return; }
       var a = resolve(pm.point); if (!a) return;
       if (t === 'hline') { add({ type: 'hline', a: a, color: '#f5a623' }); setTool('cursor'); return; }
       if (t === 'text') { var tx = window.prompt('Nhập chữ ghi chú:', ''); if (tx) add({ type: 'text', a: a, text: String(tx).slice(0, 60) }); setTool('cursor'); return; }
@@ -1006,7 +1064,13 @@
     if (box._atlclk) { box.removeEventListener('pointerdown', box._atlclk.d, true); box.removeEventListener('pointerup', box._atlclk.u, true); }
     var down = null;
     box._atlclk = {
-      d: function (e) { down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; },
+      d: function (e) {
+        down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null;
+        if (!down || DS.tool !== 'cursor') return;
+        var r0 = box.getBoundingClientRect(), x0 = e.clientX - r0.left, y0 = e.clientY - r0.top, pw0 = chart.priceScale('right', 0).width(), p0el = chart.panes()[0].getHTMLElement().getBoundingClientRect();
+        if (x0 >= r0.width - pw0 || e.clientY < p0el.top || e.clientY > p0el.bottom) return;
+        if (dragStart(e, x0, y0, box.clientWidth)) { e.stopPropagation(); e.preventDefault(); }
+      },
       u: function (e) {
         if (!down || e.button !== 0) return; var dx = e.clientX - down.x, dy = e.clientY - down.y; down = null;
         if (Math.hypot(dx, dy) > 5) return;
@@ -1018,17 +1082,21 @@
       }
     };
     box.addEventListener('pointerdown', box._atlclk.d, true); box.addEventListener('pointerup', box._atlclk.u, true);
+    if (box._atldb) box.removeEventListener('dblclick', box._atldb, true);
+    box._atldb = function (e) { if (DS.tool !== 'cursor') return; var r = box.getBoundingClientRect(), it = pick(e.clientX - r.left, e.clientY - r.top, box.clientWidth); if (it && it.type === 'text') { e.stopPropagation(); select(it); editText(it); } };
+    box.addEventListener('dblclick', box._atldb, true);
     chart.subscribeCrosshairMove(function (pm) { if (!pend || !pm || !pm.point) return; var a = resolve(pm.point); if (a) { hov = a; redraw(); } });
     function onKey(e) {
       var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
-      if (e.key === 'Escape') { if (pend || DS.tool !== 'cursor') { setTool('cursor'); } sel = null; ruler = null; redraw(); }
-      else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { var i = list.indexOf(sel); if (i >= 0) { list.splice(i, 1); persist(); } sel = null; redraw(); e.preventDefault(); }
+      if (e.key === 'Escape') { if (pend || DS.tool !== 'cursor') { setTool('cursor'); } ruler = null; select(null); }
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { delSel(); e.preventDefault(); }
     }
     if (ATLCB_KEY.fn) document.removeEventListener('keydown', ATLCB_KEY.fn);
     ATLCB_KEY.fn = onKey; document.addEventListener('keydown', onKey);
     box.style.cursor = DS.tool === 'cursor' ? '' : 'crosshair';
     function vpIdx() { for (var i = 0; i < list.length; i++) if (list[i].type === 'vpvr') return i; return -1; }
-    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; sel = null; ruler = null; persist(); redraw(); }, count: function () { return list.length; }, redraw: redraw };
+    tbBuild();
+    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; ruler = null; persist(); select(null); }, count: function () { return list.length; }, redraw: redraw };
     return CUR;
   }
   var ATLCB_KEY = { fn: null };
