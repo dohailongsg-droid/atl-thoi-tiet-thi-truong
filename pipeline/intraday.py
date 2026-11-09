@@ -7,7 +7,8 @@ Không ghi file khi không có phiên giao dịch hôm nay (cuối tuần, ngày
 Điểm "tạm tính" CHỈ là chỉ báo tham khảo trong phiên (chưa kiểm định như nhiệt kế v1.2, thiếu thanh khoản/làm mượt TB7);
 vùng và tỷ trọng chính thức vẫn lấy từ nhiệt kế sau phiên.
 """
-import csv, gzip, json, os, re, sys, datetime as dt, urllib.request
+import csv, gzip, json, os, re, sys, time, datetime as dt, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -107,6 +108,49 @@ def headlines(now_utc):
     return out, warn
 
 
+IQ = "https://iq.vietcap.com.vn/api/iq-insight-service/v1/company/"
+
+
+def lay_free_float(syms):
+    """Số cổ phiếu tự do chuyển nhượng (Vietcap IQ) của từng mã; mã lỗi thì bỏ qua."""
+    def one(t):
+        for a in range(3):
+            try:
+                req = urllib.request.Request(IQ + t, headers={"User-Agent": "Mozilla/5.0", "Referer": "https://trading.vietcap.com.vn/", "Accept-Encoding": "identity"})
+                v = json.loads(urllib.request.urlopen(req, timeout=30).read())["data"].get("freeFloat")
+                return t, (int(v) if v else None)
+            except Exception:
+                time.sleep(1 + a)
+        return t, None
+    with ThreadPoolExecutor(12) as ex:
+        return {t: v for t, v in ex.map(one, syms) if v}
+
+
+def free_float_cache(ref, syms, today, canh_bao):
+    """Ưu tiên bản của lượt cập nhật hằng ngày (live_ref.json). Nếu chưa có thì dùng bản lưu trên nhánh live (live_out/ff.json),
+    quá 5 ngày hoặc chưa có thì tự lấy lại một lần rồi lưu."""
+    if len(ref.get("ff") or {}) >= 200:
+        return ref["ff"]
+    path = os.path.join(OUTDIR, "ff.json")
+    try:
+        c = json.load(open(path, encoding="utf-8"))
+        age = (dt.date.fromisoformat(today) - dt.date.fromisoformat(c["ngay"])).days
+        if len(c.get("ff") or {}) >= 200 and age <= 5:
+            return c["ff"]
+    except Exception:
+        pass
+    try:
+        ff = lay_free_float(syms)
+        if len(ff) >= 200:
+            os.makedirs(OUTDIR, exist_ok=True)
+            json.dump({"ngay": today, "ff": ff}, open(path, "w", encoding="utf-8"), separators=(",", ":"))
+            return ff
+        canh_bao.append(f"lấy free-float chỉ được {len(ff)} mã")
+    except Exception as e:
+        canh_bao.append(f"free-float: {str(e)[:80]}")
+    return {}
+
+
 def main():
     now_utc = dt.datetime.now(dt.timezone.utc)
     now = now_utc.astimezone(ICT)
@@ -194,7 +238,7 @@ def main():
 
     # mã tác động đến VN-Index (điểm) = VN-Index tham chiếu × Δ(vốn hóa tự do chuyển nhượng của mã) / tổng vốn hóa tự do chuyển nhượng
     tac_dong = None
-    ff = ref.get("ff") or {}
+    ff = free_float_cache(ref, syms, today, canh_bao)
     vref = vni.get("refPrice")
     if len(ff) >= 200 and vref:
         tot_ff = sum(ff[x["ma"]] * x["ref"] for x in rows if x["ma"] in ff)
@@ -204,8 +248,6 @@ def main():
             ups, dns = [t for t in pts if t[1] > 0], [t for t in pts if t[1] < 0]
             tac_dong = {"tang_diem": round(sum(t[1] for t in ups), 2), "giam_diem": round(sum(t[1] for t in dns), 2),
                         "ds": [[t[0], round(t[1], 2), round(t[2], 2), t[3]] for t in ups[:9] + dns[-9:]]}
-    elif not ff:
-        canh_bao.append("thiếu tỷ lệ free-float trong state/live_ref.json: chưa có 'mã tác động chỉ số' (chạy lại cập nhật hằng ngày)")
 
     grp = {}
     for x in traded:
