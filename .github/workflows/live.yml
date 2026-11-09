@@ -39,12 +39,13 @@ jobs:
       - name: Đẩy lên nhánh live (chỉ 1 commit, ghi đè)
         run: |
           if [ ! -f live_out/trong_phien.json ]; then echo "Không có dữ liệu mới (ngày nghỉ/ngày lễ), bỏ qua"; exit 0; fi
-          mkdir -p push_tmp && cp live_out/trong_phien.json push_tmp/ && { [ -f live_out/ff.json ] && cp live_out/ff.json push_tmp/ || true; }
+          mkdir -p push_tmp && cp live_out/trong_phien.json push_tmp/ && { [ -f live_out/ff.json ] && cp live_out/ff.json push_tmp/ || true; } && cp live_out/nen_nay.json push_tmp/
           cd push_tmp
           git init -q && git checkout -q -b live
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
           git add trong_phien.json
           [ -f ff.json ] && git add ff.json || true
+          git add nen_nay.json
           git commit -qm "live $(date -u +%FT%TZ)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" live
