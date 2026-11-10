@@ -239,7 +239,7 @@
     var tdPrev = { bull: 0, bear: 0 };
     var bullC = 0, bearC = 0, luB = 0, luR = 0, prevLuB = 0, prevLuR = 0;
     function LS() { var pend = [], fin = []; return { step: function (hl, clear, del, it) { if (del) pend = []; if (hl) pend.push(it); if (clear) { fin = fin.concat(pend); pend = []; } }, all: function () { return fin.concat(pend); } }; }
-    var tdBull = LS(), tdBear = LS(), tdLuB = LS(), tdLuR = LS();
+    var tdBull = LS(), tdBear = LS(), tdLuB = LS(), tdLuR = LS(), TDB = '#4da3ff', TDA = '#ff9800';
     var stLine = arr(n), stCol = new Array(n), stWline = arr(n);
     var moneyStarsLast = 0, trendScoreLast = 0;
 
@@ -274,7 +274,7 @@
       var score = 0; tt.forEach(function (b) { if (b) score++; });
       var stars = score >= 7 ? 3 : score >= 4 ? 2 : score >= 2 ? 1 : 0;
       moneyStarsLast = stars; trendScoreLast = score;
-      /* ---- tín hiệu MÚC / XÚC / SÚT ---- */
+      /* ---- tín hiệu MÚC / THÊM / SÚT ---- */
       var cond_buy = C[i] > st && hist > 0 && sk > 21;
       var cond_strong = C[i] > cs[i] && mac > 0 && sk > 21 && bv >= 5 && dm.plus[i] > dm.minus[i];
       var cond_sell = C[i] < st && mac < 0;
@@ -287,7 +287,7 @@
       if (emaBullTrig) { emaBullActive = true; emaBearActive = false; }
       if (emaBearTrig) { emaBearActive = true; emaBullActive = false; }
       if (tBuy) c.mark(i, { pos: 'below', text: 'MÚC', box: true, bg: '#2e9e4f', fg: '#fff' });
-      if (tStrong) c.mark(i, { pos: 'below', text: 'XÚC', box: true, bg: '#00e676', fg: '#06210f' });
+      if (tStrong) c.mark(i, { pos: 'below', text: 'THÊM', box: true, bg: '#00e676', fg: '#06210f' });
       if (tSell) c.mark(i, { pos: 'above', text: 'SÚT', box: true, bg: '#f23645', fg: '#fff' });
       if (emaBullTrig) c.barColor(i, '#9c27b0'); if (emaBearTrig) c.barColor(i, '#00bcd4');
       /* ---- đường ---- */
@@ -311,17 +311,17 @@
       bullC = i >= PREP_CMP && C[i] < C[i - PREP_CMP] ? bullC + 1 : 0;
       bearC = i >= PREP_CMP && C[i] > C[i - PREP_CMP] ? bearC + 1 : 0;
       var cBull = bullC === PREP_LEN, cBear = bearC === PREP_LEN, pb = p >= 0 ? tdPrev.bull : 0, pr = p >= 0 ? tdPrev.bear : 0;
-      tdBull.step(bullC > 0 && bullC <= PREP_LEN, cBull, bullC < pb, { i: i, pos: 'below', color: '#089981', text: bullC + (bullC === 9 ? '▲' : '') });
-      tdBear.step(bearC > 0 && bearC <= PREP_LEN, cBear, bearC < pr, { i: i, pos: 'above', color: '#f23645', text: (bearC === 9 ? '▼' : '') + bearC });
+      tdBull.step(bullC > 0 && bullC <= PREP_LEN, cBull, bullC < pb, { i: i, pos: 'below', color: TDB, text: bullC + (bullC === 9 ? '▲' : '') });
+      tdBear.step(bearC > 0 && bearC <= PREP_LEN, cBear, bearC < pr, { i: i, pos: 'above', color: TDA, text: (bearC === 9 ? '▼' : '') + bearC });
       luB = cBear ? NA : cBull ? 1 : (i >= LEAD_CMP && C[i] < L[i - LEAD_CMP] ? luB + 1 : luB);
       luR = cBull ? NA : cBear ? 1 : (i >= LEAD_CMP && C[i] > H[i - LEAD_CMP] ? luR + 1 : luR);
       var cLb = luB === LEAD_LEN, cLr = luR === LEAD_LEN;
-      tdLuB.step(cBull || (luB > prevLuB && luB <= LEAD_LEN), cLb, cBull || cBear, { i: i, pos: 'below', color: '#2962ff', text: String(luB) });
-      tdLuR.step(cBear || (luR > prevLuR && luR <= LEAD_LEN), cLr, cBear || cBull, { i: i, pos: 'above', color: '#ff5d00', text: String(luR) });
+      tdLuB.step(cBull || (luB > prevLuB && luB <= LEAD_LEN), cLb, cBull || cBear, { i: i, pos: 'below', color: TDB, text: String(luB) });
+      tdLuR.step(cBear || (luR > prevLuR && luR <= LEAD_LEN), cLr, cBear || cBull, { i: i, pos: 'above', color: TDA, text: String(luR) });
       prevLuB = luB; prevLuR = luR; tdPrev = { bull: bullC, bear: bearC };
     }
     function rgba0(r, g, b, a) { return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; }
-    [tdBull, tdBear, tdLuB, tdLuR].forEach(function (s) { s.all().forEach(function (it) { c.mark(it.i, { pos: it.pos, text: it.text, color: it.color, shape: 'none' }); }); });
+    [tdBull, tdBear, tdLuB, tdLuR].forEach(function (s) { s.all().forEach(function (it) { c.mark(it.i, { pos: it.pos, text: it.text, box: true, plain: true, bg: it.color, fg: it.color }); }); });
     /* ---- vẽ ---- */
     var from = Math.max(ST_ATR, ST2_ATR);
     c.plot('Supertrend chính', stLine, { color: '#0078ff', colors: stCol, width: 2, from: from });
@@ -664,6 +664,7 @@
         var x = X[b.i]; if (!vis(x)) return;
         var y = se.priceToCoordinate(b.price); if (y == null || isna(y)) return;
         var key = b.i + (b.above ? 'a' : 'b'), off = stack[key] || 0;
+        if (b.plain) { ctx.font = '600 8px system-ui,sans-serif'; ctx.fillStyle = b.fg; ctx.fillText(b.text, x, b.above ? y - 6 - off : y + 6 + off); stack[key] = off + 9; return; }
         ctx.font = 'bold 10.5px system-ui,sans-serif';
         var w = Math.max(ctx.measureText(b.text).width + 10, 18), h = 16;
         var by = b.above ? y - 8 - off - h : y + 8 + off;
@@ -729,7 +730,7 @@
       var mk = [], boxes = [], shapes = [];
       out.marks.forEach(function (m) {
         var o = m.o, above = o.pos === 'above';
-        if (o.box) boxes.push({ i: m.i, price: above ? d.h[m.i] : d.l[m.i], above: above, text: o.text || '', bg: o.bg || o.color || '#888', fg: o.fg || '#fff' });
+        if (o.box) boxes.push({ i: m.i, price: above ? d.h[m.i] : d.l[m.i], above: above, text: o.text || '', bg: o.bg || o.color || '#888', fg: o.fg || '#fff', plain: !!o.plain });
         else if (o.loc) shapes.push({ i: m.i, loc: o.loc, kind: o.kind || 'diamond', color: o.color || '#ccc', text: o.text || '' });
         else { var sh = o.shape === 'none' ? 'circle' : (o.shape || 'circle'); mk.push({ time: d.t[m.i], position: above ? 'aboveBar' : 'belowBar', color: o.color || '#ccc', shape: sh, text: o.text || '', size: o.shape === 'none' ? 0 : 1 }); }
       });

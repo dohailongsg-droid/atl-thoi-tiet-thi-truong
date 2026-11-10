@@ -2522,7 +2522,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var COL={RB:'#26a69a',HB:'#7fd6c2',RS:'#ef5350',HS:'#f48fb1'},mks=[];
       function seg(t1,v1,t2,v2,pn,col,dash){var x=ch.addSeries(L.LineSeries,{color:col,lineWidth:1.6,lineStyle:dash?2:0,lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false},pn);x.setData([{time:t1,value:v1},{time:t2,value:v2}]);st.s.push(x);}
       found.forEach(function(f){var col=COL[f.typ],dash=f.typ.charAt(0)==='H',bull=f.typ.charAt(1)==='B';
-        seg(d.t[f.i1],f.o1,d.t[f.i2],f.o2,op.pane,col,dash);seg(d.t[f.p1],f.y1,d.t[f.p2],f.y2,0,col,dash);
         mks.push({time:d.t[f.i2],position:bull?'belowBar':'aboveBar',shape:bull?'arrowUp':'arrowDown',color:col,text:(dash?'ẩn':'PK')+(bull?'+':'−')});});
       mks.sort(function(a,b){return a.time<b.time?-1:a.time>b.time?1:0;});
       if(!st.mk&&L.createSeriesMarkers)st.mk=L.createSeriesMarkers(se,[]);if(st.mk)st.mk.setMarkers(mks);}
