@@ -364,6 +364,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
 .tin-date{float:right;text-transform:none;letter-spacing:0;font-weight:400}
 .lv-spark{width:100%;height:96px;display:block;color:var(--color-fg-muted)}
+.lv-hv{position:relative}.lv-hl{position:absolute;top:0;bottom:0;width:1px;background:currentColor;opacity:.45;pointer-events:none;display:none}.lv-ht{position:absolute;top:2px;z-index:6;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:4px 8px;font-size:11.5px;line-height:1.5;white-space:nowrap;pointer-events:none;display:none;color:var(--color-fg);box-shadow:0 2px 10px rgba(0,0,0,.25)}.lv-ht b{font-weight:700}.lv-hv{touch-action:pan-y}
 .lv-g3{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));margin-bottom:var(--cds-gap-md)}
 @media(min-width:1000px){.lv-g3{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .lv-grid+.lv-grid{margin-top:var(--cds-gap-md)}
@@ -956,6 +957,13 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   function kpi(k,v,s,c){var d=el('div','lv-k');d.appendChild(el('span','k',k));var vv=el('span','v'+(c?' '+c:''),v);d.appendChild(vv);if(s)d.appendChild(el('span','s',s));return d;}
   function box(title){var b=el('div','lv-box');b.appendChild(el('h3',null,title));return b;}
   function tbl(rows,fn){var t=el('table','lv-t'),tb=el('tbody');rows.forEach(function(r){var tr=el('tr');fn(r).forEach(function(c,i){var td=el('td',c.c||'',c.t);tr.appendChild(td);});tb.appendChild(tr);});t.appendChild(tb);return t;}
+  function hover(wrap,tipFn){
+    var ln=el('div','lv-hl'),tp=el('div','lv-ht');wrap.appendChild(ln);wrap.appendChild(tp);
+    function mv(e){var r=wrap.getBoundingClientRect(),x=Math.max(0,Math.min(r.width,e.clientX-r.left)),o=tipFn(x/r.width);if(!o){off();return;}
+      var px=o.x!=null?o.x*r.width:x;ln.style.left=px+'px';ln.style.display='block';tp.textContent='';o.lines.forEach(function(t,i){var d=el('div');if(i===0){var b=el('b',null,t);d.appendChild(b);}else d.textContent=t;tp.appendChild(d);});tp.style.display='block';
+      var w=tp.offsetWidth;tp.style.left=(px+10+w>r.width?Math.max(0,px-10-w):px+10)+'px';}
+    function off(){ln.style.display='none';tp.style.display='none';}
+    wrap.addEventListener('pointermove',mv);wrap.addEventListener('pointerdown',mv);wrap.addEventListener('pointerleave',off);wrap.addEventListener('pointercancel',off);}
   function chart(title,vals,labs,ref){
     if(!vals||vals.length<3)return null;
     var all=ref!=null?vals.concat([ref]):vals,mn=Math.min.apply(null,all),mx=Math.max.apply(null,all),rg=(mx-mn)||1,W=300,H=70,pd=6;
@@ -965,7 +973,15 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var d=vals.map(function(v,i){return (i/(vals.length-1)*W).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');
     var base=ref!=null?ref:vals[0],up=vals[vals.length-1]>=base;
     var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d);pl.setAttribute('fill','none');pl.setAttribute('stroke',up?'var(--sem-up)':'var(--sem-down)');pl.setAttribute('stroke-width','1.6');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('vector-effect','non-scaling-stroke');s.appendChild(pl);
-    var b=box(title);b.appendChild(s);b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
+    var b=box(title),wr=el('div','lv-hv');wr.appendChild(s);b.appendChild(wr);
+    var isV=title.indexOf('VN-Index')===0,isR=title.indexOf('Độ rộng')===0;
+    hover(wr,function(f){var i=Math.max(0,Math.min(vals.length-1,Math.round(f*(vals.length-1)))),v=vals[i],L=[labs[i]];
+      if(isV){L.push('VN-Index '+n1(v));if(ref!=null)L.push('So với tham chiếu '+sg((v/ref-1)*100,2)+'%');}
+      else if(isR){L.push(n1(v)+'% số mã tăng');}
+      else{L.push('Khối ngoại lũy kế '+sg(v,1)+' tỷ');}
+      if(i>0){var dv=v-vals[i-1];L.push(isV?'So với lần trước '+sg(dv,1)+' điểm':isR?'So với lần trước '+sg(dv,1)+' điểm %':(dv<0?'Bán ròng thêm ':'Mua ròng thêm ')+n1(Math.abs(dv))+' tỷ so với lần trước ('+labs[i-1]+')');}
+      return {x:i/(vals.length-1),lines:L};});
+    b.appendChild(el('p','lv-note',labs[0]+' → '+labs[labs.length-1]+' · thấp '+n1(mn)+' · cao '+n1(mx)+(ref!=null?' · tham chiếu '+n1(ref)+' (nét đứt)':'')));return b;}
   function liq(d){
     var g=d.gt_phut;if(!g||!g.hom_nay||g.hom_nay.length<2)return null;
     function X(hm){var p=hm.split(':'),m=(+p[0])*60+(+p[1]);var x=m<=690?m-540:(m>=780?150+(m-780):150);return Math.max(0,Math.min(255,x));}
@@ -978,7 +994,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     mk('line',{x1:150/255*W,x2:150/255*W,y1:0,y2:H,stroke:'currentColor','stroke-opacity':'.18','stroke-dasharray':'2 3','vector-effect':'non-scaling-stroke'});
     area(prv,'currentColor','.16');line(prv,'currentColor',1.2,.55);
     area(cur,'var(--z4)','.28');line(cur,'var(--z4)',1.8,1);
-    var b=box('Thanh khoản trong phiên (HOSE, tỷ đồng lũy kế)');b.appendChild(s);
+    var b=box('Thanh khoản trong phiên (HOSE, tỷ đồng lũy kế)'),wr=el('div','lv-hv');wr.appendChild(s);b.appendChild(wr);
+    function hm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+Math.round(m%60)).slice(-2);}
+    function at(L,xs){var r=null;L.forEach(function(a){if(X(a[0])<=xs+0.5)r=a;});return r;}
+    hover(wr,function(f){var xs=f*255,m=xs<=150?540+xs:780+(xs-150);if(m>870)m=870;var c=at(cur,xs),pq=at(prv,xs),L=[hm(m)];
+      if(c)L.push('Hôm nay '+n0(c[1])+' tỷ');else L.push('Hôm nay: chưa có');
+      if(pq){var t='Phiên trước cùng giờ '+n0(pq[1])+' tỷ';if(c&&pq[1]>0)t+=' ('+sg((c[1]/pq[1]-1)*100,0)+'%)';L.push(t);}
+      if(c){var k=cur.indexOf(c);if(k>0){var dd=c[1]-cur[k-1][1];L.push('Thêm '+n0(dd)+' tỷ kể từ '+cur[k-1][0]);}}
+      return {x:xs/255,lines:L};});
     var ax=el('div','lv-ax');[['09:00',0,'0'],['11:30–13:00',150/255*100,'-50%'],['14:45',100,'-100%']].forEach(function(q){var t=el('span',null,q[0]);t.style.left=q[1]+'%';t.style.transform='translateX('+q[2]+')';ax.appendChild(t);});b.appendChild(ax);
     var last=cur[cur.length-1],lx=X(last[0]),pv=null;prv.forEach(function(a){if(X(a[0])<=lx)pv=a;});
     var nt=el('p','lv-note'),l1=el('span','lv-lg'),i1=el('i');i1.style.background='var(--z4)';l1.appendChild(i1);l1.appendChild(document.createTextNode('Hôm nay'));nt.appendChild(l1);
