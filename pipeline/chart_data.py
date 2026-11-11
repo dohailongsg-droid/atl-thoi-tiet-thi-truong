@@ -55,3 +55,8 @@ if __name__ == "__main__":
         gio_data.main()
     except Exception as e:
         print("gio_data lỗi, bỏ qua:", e, file=sys.stderr)
+    try:
+        import chi_bao_phu
+        chi_bao_phu.main()
+    except Exception as e:
+        print("chi_bao_phu lỗi, bỏ qua:", e, file=sys.stderr)
