@@ -1039,6 +1039,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng) qua các lần cập nhật',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
     var cn=(d.chuoi||[]).filter(function(p){return p.ngoai!=null;}),s4=chart('Khối ngoại ròng qua các lần cập nhật (tỷ đồng, lũy kế trong phiên)',cn.map(function(p){return p.ngoai;}),cn.map(function(p){return p.gio;}),0);
     var s3=liq(d),gc=el('div','lv-g3');[s1,s2,s3,s4].forEach(function(q){if(q)gc.appendChild(q);});if(gc.childNodes.length)body.appendChild(gc);
+    bangDien(d,body);
     var gr=el('div','lv-grid'),bt2=tacDong(d);if(bt2)gr.appendChild(bt2);
     if((d.nganh||[]).length){
       var bn=box('Ngành trong phiên (bình quân theo GTGD)');if(!bt2)bn.style.gridColumn='1/-1';
@@ -1054,7 +1055,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var b4=box('Khối ngoại: mua ròng / bán ròng');
     b4.appendChild(tbl((kn.top_mua||[]).concat(kn.top_ban||[]),function(x){return [{t:x.ma},{t:n1(x.gia/1000)},{t:sg(x.pct,2)+'%',c:cl(x.pct)},{t:sg(x.rong_ty,1)+' tỷ',c:cl(x.rong_ty)}];}));g.appendChild(b4);
     body.appendChild(g);
-    bangDien(d,body);
     if((d.tin_moi||[]).length){
       var bt=box('Tin mới (tiêu đề từ RSS, chưa qua AI)');
       var ul=el('ul','lv-news');d.tin_moi.forEach(function(t){var li=el('li');li.appendChild(el('span','tm',t.luc));var w=el('div');var a=el('a',null,t.tieu_de);a.href=t.link;a.target='_blank';a.rel='noopener';w.appendChild(a);w.appendChild(el('span','sr',t.nguon));li.appendChild(w);ul.appendChild(li);});
