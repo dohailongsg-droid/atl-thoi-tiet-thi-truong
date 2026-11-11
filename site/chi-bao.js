@@ -790,7 +790,7 @@
       if (I.meta.pane === 'sub') { if (I.pane == null) I.pane = chart.panes().length; pane = I.pane; }
       out.plots.forEach(function (p) {
         var pp = p.o.pane === 'main' ? 0 : pane, key = p.name;
-        var s = I.series[key]; if (!s) { s = I.series[key] = mkSeries(I, p, pp); if (!I.first) I.first = s; if (!I.fast && /signal/i.test(key)) I.fast = s; }
+        var s = I.series[key]; if (!s) { s = I.series[key] = mkSeries(I, p, pp); if (!env.noLab) s._atl = { key: I.en.id, ind: I.meta.name, name: p.name, def: I.meta.pane === 'sub' }; if (!I.first) I.first = s; if (!I.fast && /signal/i.test(key)) I.fast = s; }
         var data = [], from = p.o.from || 0;
         for (var i = from; i < p.a.length; i++) {
           var v = p.a[i];
@@ -802,6 +802,7 @@
         var ao = { visible: !ov.hidden };
         if (ov.color && !p.o.colors) { if (p.o.style === 'area') { ao.lineColor = ov.color; ao.topColor = rgba(hex6(ov.color), .55); ao.bottomColor = rgba(hex6(ov.color), .55); } else ao.color = ov.color; }
         if (ov.width && p.o.style !== 'hist') ao.lineWidth = ov.width;
+        if (!env.noLab) { var lb = (env.getLab && env.getLab(I.en.id)) || {}, lv = lb.v == null ? I.meta.pane === 'sub' : !!lb.v; ao.lastValueVisible = lv; ao.title = lv && lb.n ? p.name : ''; }
         s.applyOptions(ao);
       });
       if (env.onSpecs) env.onSpecs(I.en.id, out.inputs, out.plots.map(function (p) { return { name: p.name, color: p.o.color || '#cccccc', width: p.o.width || 1, hist: p.o.style === 'hist', multi: !!p.o.colors }; }));
