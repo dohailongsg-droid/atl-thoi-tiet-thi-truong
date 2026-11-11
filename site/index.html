@@ -2552,74 +2552,59 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     </div>
   </section>
 <style>
-#atl-dock{position:fixed;top:120px;right:0;z-index:40;display:none;align-items:flex-start;font-size:13px}
-#atl-dock.on{display:flex}
-#atl-dock .dk-strip{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+#atl-dock{position:fixed;top:0;right:0;bottom:0;z-index:40;display:none;pointer-events:none}
+#atl-dock.on{display:block}
+#atl-dock .dk-strip{position:absolute;top:120px;right:0;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
 #atl-dock .dk-tab{appearance:none;writing-mode:vertical-rl;border:1px solid var(--color-border-line);border-right:0;background:var(--color-bg);color:var(--color-fg);font:inherit;font-size:12.5px;font-weight:600;padding:10px 6px;border-radius:8px 0 0 8px;cursor:pointer;box-shadow:-2px 2px 8px rgba(0,0,0,.12)}
 #atl-dock .dk-tab[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg)}
-#atl-dock .dk-pan{display:none;width:min(360px,86vw);max-height:calc(100vh - 150px);overflow:auto;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:10px 0 0 10px;padding:10px 12px;box-shadow:-4px 4px 18px rgba(0,0,0,.22)}
-#atl-dock.open .dk-pan{display:block}
-#atl-dock .dk-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-#atl-dock .dk-x{appearance:none;border:0;background:none;color:var(--color-fg);font-size:18px;cursor:pointer}
-#atl-dock select{font:inherit;font-size:12.5px;width:100%;background:transparent;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:6px;padding:4px 6px;margin-bottom:6px}
-#atl-dock table{width:100%;border-collapse:collapse}
-#atl-dock td,#atl-dock th{padding:4px 5px;border-bottom:1px solid var(--color-border-line);text-align:left;font-size:12.5px}
-#atl-dock td.n,#atl-dock th.n{text-align:right}
-#atl-dock .dk-m{appearance:none;border:0;background:none;color:var(--color-fg);font:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline dotted}
-#atl-dock .dk-s{font-size:11.5px;color:var(--color-fg-muted);margin:4px 0}
-@media(max-width:700px){#atl-dock{top:auto;bottom:90px}}
+#atl-dock .dk-pan{display:none;position:absolute;top:0;bottom:0;right:30px;width:var(--dkw,560px);background:var(--color-bg);border-left:1px solid var(--color-border-line);box-shadow:-6px 0 20px rgba(0,0,0,.18);pointer-events:auto;flex-direction:column}
+#atl-dock.open .dk-pan{display:flex}
+#atl-dock .dk-h{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--color-border-line);font-size:13px}
+#atl-dock .dk-x{appearance:none;border:0;background:none;color:var(--color-fg);font-size:20px;cursor:pointer;line-height:1}
+#atl-dock .dk-body{flex:1;overflow:auto;padding:8px 10px 40px}
+#atl-dock .dk-rz{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize}
+#atl-dock .dk-rz:hover{background:rgba(120,120,120,.25)}
+.atl-docked{display:block}
+.atl-docked[hidden]{display:none}
+#atl-dock .dk-body .atl-card{margin-top:0}
+@media(max-width:900px){#atl-dock .dk-pan{width:min(100vw - 30px,var(--dkw,560px))}}
 </style>
 <div id="atl-dock" aria-label="Bảng phụ">
-  <div class="dk-pan" id="dk-pan"></div>
-  <div class="dk-strip"><button type="button" class="dk-tab" data-t="bl" aria-pressed="false">Bộ lọc</button><button type="button" class="dk-tab" data-t="tt" aria-pressed="false">Thị trường</button><button type="button" class="dk-tab" data-t="ng" aria-pressed="false">Ngành &amp; dòng tiền</button></div>
+  <div class="dk-pan" id="dk-pan"><div class="dk-rz" id="dk-rz" title="Kéo để đổi độ rộng"></div><div class="dk-h"><b id="dk-t"></b><button type="button" class="dk-x" id="dk-x" aria-label="Thu gọn">×</button></div><div class="dk-body" id="dk-body"></div></div>
+  <div class="dk-strip" id="dk-strip"></div>
 </div>
 <script>
 (function(){
-  var dock=document.getElementById('atl-dock'),pan=document.getElementById('dk-pan'),cur=null,NG=null,sel=0;
-  var f2=function(x,d){return x==null?'—':x.toLocaleString('vi-VN',{maximumFractionDigits:d==null?1:d,minimumFractionDigits:d==null?1:d});};
-  var PRE=[
-    ['VN Timing + Dragon cùng Buy',function(r){return r.vnt&&r.vnt[1]<=1&&r.drg&&r.drg[1]<=1;}],
-    ['VN Timing Buy',function(r){return r.vnt&&r.vnt[1]<=1;}],
-    ['Dragon MÚC / THÊM',function(r){return r.drg&&r.drg[1]<=1;}],
-    ['Khối ngoại mua ròng 2 phiên ≥ 3 tỷ',function(r){return r.nn&&r.nn[0]>=3&&r.nn[1]>=3;}],
-    ['Stoch 20-5-3 cắt lên 20',function(r){return r.st20!=null&&r.st20<=1;}],
-    ['MACD phân kỳ dương',function(r){return r.pk&&(r.pk[0]==='RB'||r.pk[0]==='HB');}],
-    ['Dưới dải BB + RS60 > 80',function(r){return r.bbd===1&&r.r60>=80;}],
-    ['RS ≥ 70 và tăng ≥ 10 điểm',function(r){return r.rs>=70&&r.rs5!=null&&r.rs-r.rs5>=10;}]];
-  function go(m){if(window.atlOpenChart)window.atlOpenChart(m);}
-  function btn(m){var b=document.createElement('button');b.type='button';b.className='dk-m';b.textContent=m;b.addEventListener('click',function(){go(m);});return b;}
-  function head(t){pan.textContent='';var h=document.createElement('div');h.className='dk-h';var s=document.createElement('b');s.textContent=t;var x=document.createElement('button');x.type='button';x.className='dk-x';x.textContent='×';x.setAttribute('aria-label','Thu gọn');x.addEventListener('click',function(){set(null);});h.appendChild(s);h.appendChild(x);pan.appendChild(h);}
-  function drawBL(){head('Bộ lọc nhanh');var D=window.atlBL;
-    if(!D){var p=document.createElement('p');p.className='dk-s';p.textContent='Đang tải dữ liệu bộ lọc…';pan.appendChild(p);window.atlBLready=function(){if(cur==='bl')drawBL();};if(window.atlBLload)window.atlBLload();return;}
-    var s=document.createElement('select');PRE.forEach(function(p,i){var o=document.createElement('option');o.value=i;o.textContent=p[0];s.appendChild(o);});s.value=sel;s.addEventListener('change',function(){sel=+s.value;drawBL();});pan.appendChild(s);
-    var rs=D.ma.filter(function(r){return r.gt20!=null&&r.gt20>=10&&PRE[sel][1](r);}).sort(function(a,b){return (b.rs||0)-(a.rs||0);});
-    var n=document.createElement('p');n.className='dk-s';n.textContent=rs.length+' mã (GTGD TB20 ≥ 10 tỷ) · phiên '+D.ngay+' · tín hiệu hôm nay hoặc hôm qua. Chi tiết và ghép điều kiện ở tab Bộ lọc.';pan.appendChild(n);
-    var t=document.createElement('table');t.innerHTML='<thead><tr><th>Mã</th><th class="n">%1p</th><th class="n">RS</th><th class="n">GTGD</th></tr></thead>';var tb=document.createElement('tbody');
-    rs.slice(0,60).forEach(function(r){var tr=document.createElement('tr'),a=document.createElement('td');a.appendChild(btn(r.ma));tr.appendChild(a);
-      [[(r.p1>0?'+':'')+f2(r.p1)+'%',r.p1>0?'var(--color-ok)':r.p1<0?'var(--color-bad)':''],[r.rs==null?'—':r.rs,''],[r.gt==null?'—':Math.round(r.gt),'']].forEach(function(v){var d=document.createElement('td');d.className='n';d.textContent=v[0];if(v[1])d.style.color=v[1];tr.appendChild(d);});tb.appendChild(tr);});
-    t.appendChild(tb);pan.appendChild(t);}
-  function drawNG(){head('Dòng chủ đạo');
-    if(!NG){var p=document.createElement('p');p.className='dk-s';p.textContent='Đang tải…';pan.appendChild(p);fetch('data/dong_chu_dao.json',{cache:'no-cache'}).then(function(r){return r.json();}).then(function(j){NG=j;if(cur==='ng')drawNG();}).catch(function(){p.textContent='Chưa có dữ liệu ngành.';});return;}
-    var t=document.createElement('table');t.innerHTML='<thead><tr><th>#</th><th>Ngành</th><th class="n">Dòng tiền</th><th class="n">Điểm</th></tr></thead>';var tb=document.createElement('tbody');
-    NG.slice().sort(function(a,b){return a.hang-b.hang;}).forEach(function(g){var tr=document.createElement('tr'),c=document.createElement('td');c.textContent=g.hang;tr.appendChild(c);
-      var n=document.createElement('td');n.appendChild(document.createTextNode(g.nganh));var sm=document.createElement('div');sm.className='dk-s';sm.style.margin='2px 0 0';sm.appendChild(document.createTextNode((g.rrg_nhom||'')+' · Long đầu: '));(g.long_dau||'').split(',').forEach(function(m,i){m=m.trim();if(!m)return;if(i)sm.appendChild(document.createTextNode(', '));sm.appendChild(btn(m));});n.appendChild(sm);tr.appendChild(n);
-      var dt=document.createElement('td');dt.className='n';dt.textContent=g.dong_tien==null?'—':f2(g.dong_tien,2)+'x';tr.appendChild(dt);var d=document.createElement('td');d.className='n';d.textContent=g.diem==null?'—':Math.round(g.diem);tr.appendChild(d);tb.appendChild(tr);});
-    t.appendChild(tb);pan.appendChild(t);var p2=document.createElement('p');p2.className='dk-s';p2.textContent='Dòng tiền = GTGD ngành so với trung bình. Dùng để ưu tiên ngành và mã dẫn đầu, không phải tín hiệu mua. Chi tiết ở tab Ngành & dòng tiền.';pan.appendChild(p2);}
-  var NK=null;
-  function drawTT(){head('Thị trường');
-    if(!NK){var p=document.createElement('p');p.className='dk-s';p.textContent='Đang tải…';pan.appendChild(p);fetch('data/nhiet_ke.json',{cache:'no-cache'}).then(function(r){return r.json();}).then(function(j){NK=j;if(cur==='tt')drawTT();}).catch(function(){p.textContent='Chưa có dữ liệu nhiệt kế.';});return;}
-    var n=NK[NK.length-1],pv=NK.length>1?NK[NK.length-2]:null,z=(window.atlZ||{})[Math.round(n.vung)]||null;
-    var b=document.createElement('div');b.style.cssText='border:1px solid var(--color-border-line);border-radius:8px;padding:8px 10px;margin-bottom:8px';
-    b.innerHTML='<div class="dk-s" style="margin:0">Nhiệt kế ATL · '+n.ngay+'</div><div style="font-size:20px;font-weight:700">TB7 '+f2(n.tb7,1)+'</div><div>'+(z?'Vùng '+z.vung+' · '+z.ten+' · tỷ trọng tối đa <b>'+z.tt+'</b>':'Vùng '+Math.round(n.vung))+'</div>'+(pv?'<div class="dk-s">Hôm trước TB7 '+f2(pv.tb7,1)+(n.tb7>pv.tb7?' (đang lên)':n.tb7<pv.tb7?' (đang xuống)':'')+'</div>':'');
-    pan.appendChild(b);
-    var rows=[['Điểm ngày',f2(n.diem,0)],['Độ rộng (% mã tăng)',f2(n.do_rong,1)+'%'],['Mã tăng / giảm',(n.tang==null?'—':n.tang)+' / '+(n.giam==null?'—':n.giam)],['Trần / sàn',(n.tran==null?'—':n.tran)+' / '+(n.san==null?'—':n.san)],['Điểm trần − sàn',f2(n.tran_san,0)],['Điểm thanh khoản',f2(n.thanh_khoan,0)],['GTGD HOSE',n.gtgd==null?'—':Math.round(n.gtgd).toLocaleString('vi-VN')+' tỷ'],['VN-Index',f2(n.vni,2)]];
-    var t=document.createElement('table'),tb=document.createElement('tbody');rows.forEach(function(r){var tr=document.createElement('tr'),a=document.createElement('td'),d=document.createElement('td');a.textContent=r[0];d.className='n';d.textContent=r[1];tr.appendChild(a);tr.appendChild(d);tb.appendChild(tr);});t.appendChild(tb);pan.appendChild(t);
-    var p2=document.createElement('p');p2.className='dk-s';p2.textContent='Số liệu chốt phiên gần nhất. Bảng giá trong phiên ở tab Bảng giá, chi tiết ở tab Thị trường.';pan.appendChild(p2);}
-  function set(k){cur=k;dock.classList.toggle('open',!!k);Array.prototype.forEach.call(dock.querySelectorAll('.dk-tab'),function(b){b.setAttribute('aria-pressed',String(b.dataset.t===k));});if(k==='bl')drawBL();else if(k==='ng')drawNG();else if(k==='tt')drawTT();try{localStorage.setItem('atl-dock',k||'');}catch(e){}}
-  Array.prototype.forEach.call(dock.querySelectorAll('.dk-tab'),function(b){b.addEventListener('click',function(){set(cur===b.dataset.t?null:b.dataset.t);});});
-  function vis(){var s=document.getElementById('do-thi');dock.classList.toggle('on',!!s&&!s.hidden);}
-  var s=document.getElementById('do-thi');if(s)new MutationObserver(vis).observe(s,{attributes:true,attributeFilter:['hidden']});vis();
-  try{var sv=localStorage.getItem('atl-dock');if(sv)set(sv);}catch(e){}
+  var dock=document.getElementById('atl-dock'),body=document.getElementById('dk-body'),T=document.getElementById('dk-t'),strip=document.getElementById('dk-strip'),pg=document.getElementById('do-thi');
+  var TABS=[['dong-tien','Thị trường'],['nganh','Ngành & dòng tiền'],['hom-nay','Hôm nay mua gì'],['bo-loc','Bộ lọc']];
+  var cur=null,home=null,W=560;
+  try{var w0=+localStorage.getItem('atl-dock-w');if(w0>=360&&w0<=1100)W=w0;else W=Math.max(420,Math.min(720,Math.round(innerWidth*0.42)));}catch(e){}
+  function setW(w){W=Math.max(360,Math.min(Math.round(innerWidth-120),w));dock.style.setProperty('--dkw',W+'px');if(cur&&innerWidth>900&&pg)pg.style.marginRight=(W+34)+'px';try{localStorage.setItem('atl-dock-w',String(W));}catch(e){}}
+  function redraw(){try{if(window.atlRedraw)window.atlRedraw();}catch(e){}try{window.dispatchEvent(new Event('resize'));}catch(e){}}
+  function undock(){
+    if(!cur)return;var s=document.getElementById(cur);
+    if(s&&home){s.classList.remove('atl-docked');s.classList.add('atl-sec');home.p.insertBefore(s,home.n);s.hidden=(window.atlTab!==cur);}
+    window.atlDocked=null;home=null;var k=cur;cur=null;dock.classList.remove('open');if(pg)pg.style.marginRight='';
+    Array.prototype.forEach.call(strip.children,function(b){b.setAttribute('aria-pressed','false');});redraw();try{localStorage.setItem('atl-dock','');}catch(e){}
+  }
+  function open(k){
+    if(cur===k){undock();return;}
+    if(cur)undock();
+    var s=document.getElementById(k);if(!s)return;
+    home={p:s.parentNode,n:s.nextSibling};s.classList.remove('atl-sec');s.classList.add('atl-docked');s.hidden=false;body.textContent='';body.appendChild(s);
+    cur=k;window.atlDocked=k;T.textContent=TABS.filter(function(x){return x[0]===k;})[0][1];dock.classList.add('open');setW(W);
+    Array.prototype.forEach.call(strip.children,function(b){b.setAttribute('aria-pressed',String(b.dataset.s===k));});
+    if(k==='bo-loc'&&window.atlBLload)window.atlBLload();
+    body.scrollTop=0;redraw();setTimeout(redraw,250);try{localStorage.setItem('atl-dock',k);}catch(e){}
+  }
+  TABS.forEach(function(t){var b=document.createElement('button');b.type='button';b.className='dk-tab';b.dataset.s=t[0];b.setAttribute('aria-pressed','false');b.textContent=t[1];b.addEventListener('click',function(){open(t[0]);});strip.appendChild(b);});
+  document.getElementById('dk-x').addEventListener('click',undock);
+  var rz=document.getElementById('dk-rz');
+  rz.addEventListener('pointerdown',function(e){e.preventDefault();rz.setPointerCapture(e.pointerId);var mv=function(ev){setW(innerWidth-30-ev.clientX);};var up=function(){rz.removeEventListener('pointermove',mv);rz.removeEventListener('pointerup',up);redraw();};rz.addEventListener('pointermove',mv);rz.addEventListener('pointerup',up);});
+  function vis(){var on=!!pg&&!pg.hidden;dock.classList.toggle('on',on);if(!on)undock();}
+  if(pg)new MutationObserver(vis).observe(pg,{attributes:true,attributeFilter:['hidden']});vis();
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur&&!document.fullscreenElement)undock();});
+  try{var sv=localStorage.getItem('atl-dock');if(sv&&pg&&!pg.hidden)open(sv);}catch(e){}
 })();
 </script>
 
@@ -3193,7 +3178,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   const VSEC = { mua: 'dong-tien', tg: 'dong-tien', th: 'dong-tien', nh: 'nganh', tm: 'nganh', rrg: 'nganh', tk: 'nganh', xh: 'nganh' };
   const dvState = { 'dong-tien': 'all', nganh: 'all' };
   try { const o = JSON.parse(localStorage.getItem('atl-dv2') || '{}'); Object.keys(dvState).forEach((k) => { if (o[k] === 'all' || VSEC[o[k]] === k) dvState[k] = o[k]; }); } catch (e) {}
-  window.atlVis = (v) => { const s = VSEC[v]; return window.atlTab === s && (dvState[s] === 'all' || dvState[s] === v); };
+  window.atlVis = (v) => { const s = VSEC[v]; return (window.atlTab === s || window.atlDocked === s) && (dvState[s] === 'all' || dvState[s] === v); };
   window.atlDV = (v, scroll, sec) => {
     sec = VSEC[v] || sec; if (!sec) return;
     dvState[sec] = v;
@@ -3204,7 +3189,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     if (window.atlRedraw) window.atlRedraw();
     if (scroll) { const sub = root.querySelector('.atl-subnav'); if (sub) sub.scrollIntoView({ block: 'start' }); }
   };
-  document.querySelectorAll('.atl-subnav button[data-v]').forEach((b) => b.addEventListener('click', () => window.atlDV(b.dataset.v, true, b.closest('.atl-sec').id)));
+  document.querySelectorAll('.atl-subnav button[data-v]').forEach((b) => b.addEventListener('click', () => window.atlDV(b.dataset.v, true, b.closest('.atl-sec,.atl-docked').id)));
   Object.keys(dvState).forEach((k) => window.atlDV(dvState[k], false, k));
 
   const tip = (box) => {
