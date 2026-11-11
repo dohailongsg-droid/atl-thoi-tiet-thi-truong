@@ -12,7 +12,9 @@ const sb = { console: console, setTimeout: setTimeout, clearTimeout: clearTimeou
   document: { createElement: el, addEventListener: noop, getElementById: function () { return null; }, body: el() }, addEventListener: noop };
 sb.window = sb; sb.self = sb;
 vm.createContext(sb);
+vm.runInContext(fs.readFileSync(path.join(SITE, 'tin-hieu.js'), 'utf8'), sb);
 vm.runInContext(fs.readFileSync(path.join(SITE, 'chi-bao.js'), 'utf8'), sb);
+const TH = sb.ATLTH;
 const A = sb.ATLCB, ta = A.ta;
 const FN = {};
 ['dragon', 'vnt'].forEach(function (id) { const p = A.presets.find(function (q) { return q.id === id; }); FN[id] = A.compile(p.code); });
@@ -110,11 +112,26 @@ function main() {
         row.gt20 = c ? r1(s / c) : null; row.gvol = row.gt20 ? r2(row.gt / row.gt20) : null;
         row.pe = g('pe', 0); row.pb2 = g('pb', 0);
       } else { row.rs = null; row.nn = null; row.gt = null; row.gt20 = null; row.gvol = null; }
+      /* tín hiệu MUA/BÁN của mọi chỉ báo trong thư viện chung (thông số mặc định), tuổi 0 = hôm nay, 1 = hôm qua, 2 = hôm kia */
+      try {
+        const xi = {}; if (xs) xs.t.forEach(function (t, i) { xi[t] = i; });
+        const al = function (k) { return xs && xs[k] ? j.t.map(function (t) { const q = xi[t]; const v = q == null ? null : xs[k][q]; return v == null ? NaN : v; }) : null; };
+        const pre = { vb: new Uint8Array(n), vs: new Uint8Array(n), db: new Uint8Array(n), ds: new Uint8Array(n) };
+        oV.marks.forEach(function (m) { const t = m.o.text; if (vb[t]) pre.vb[m.i] = 1; if (t === 'SELL' || t === 'TP') pre.vs[m.i] = 1; });
+        oD.marks.forEach(function (m) { const t = m.o.text; if (t === 'MÚC' || t === 'THÊM') pre.db[m.i] = 1; if (t === 'SÚT') pre.ds[m.i] = 1; });
+        const D = { t: j.t, o: j.o, h: j.h, l: j.l, c: j.c, v: j.v, idx: idx.c, r60: al('r60'), rsd: al('rs'), nn: al('nn'), pre: pre };
+        const sg = {}, ss = {};
+        TH.list.forEach(function (df) {
+          if (df.need && !D[df.need]) return;
+          try { const r = TH.calc(df.id, D); for (let a = 0; a <= 2; a++) { if (r.buy[e - a]) { sg[df.id] = a; break; } } if (r.sell) for (let a = 0; a <= 2; a++) { if (r.sell[e - a]) { ss[df.id] = a; break; } } } catch (er) { }
+        });
+        row.sg = sg; row.ss = ss;
+      } catch (er) { row.sg = {}; row.ss = {}; }
       rows.push(row);
     } catch (err) { fail++; if (fail < 4) console.error('bo_loc_ct:', sym, err && err.message); }
   });
   const nk = rd(path.join(SITE, 'data', 'nhiet_ke.json')), nkl = nk && nk.length ? nk[nk.length - 1] : null;
-  const out = { ngay: last, so_ma: rows.length, nhiet: nkl ? { ngay: nkl.ngay, diem: nkl.diem, tb7: nkl.tb7, vung: nkl.vung } : null, ma: rows };
+  const out = { ngay: last, so_ma: rows.length, chi_bao: TH.list.map(function (d) { return [d.id, d.name, d.grp, d.buy_t, d.sell_t]; }), nhiet: nkl ? { ngay: nkl.ngay, diem: nkl.diem, tb7: nkl.tb7, vung: nkl.vung } : null, ma: rows };
   fs.writeFileSync(path.join(SITE, 'data', 'bo_loc_ct.json'), JSON.stringify(out));
   console.log('bo_loc_ct: ' + rows.length + ' mã, phiên cuối ' + last + (fail ? ', lỗi ' + fail : ''));
 }
