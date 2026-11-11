@@ -294,7 +294,7 @@
       stLine[i] = st; stCol[i] = holdSt ? rgba0(41, 160, 255, .95) : rgba0(255, 99, 99, .95);
       var flip = p >= 0 && dirW[i] !== dirW[p];
       stWline[i] = flip ? NA : stW[i];
-      if (dirW[i] > 0 && p >= 0 && C[i] > stW[i] && C[p] <= stW[p]) c.mark(i, { pos: 'below', text: '⚑ ST tuần', box: true, bg: '#673ab7', fg: '#fff' });
+      if (dirW[i] > 0 && p >= 0 && C[i] > stW[i] && C[p] <= stW[p]) c.mark(i, { pos: 'below', text: '⚑ ST', box: true, bg: '#673ab7', fg: '#fff' });
       /* ---- phơi nhiễm & nền ---- */
       var holdEma = e21[i] > e55[i];
       var exposure = (holdSt ? 20 : 0) + (holdMacd ? 20 : 0) + (holdDmi ? 20 : 0) + (holdEma ? 20 : 0) + (holdCs ? 20 : 0);
@@ -856,9 +856,21 @@
       env.candle.setData(d.t.map(function (t, i) { var o = { time: t, open: d.o[i], high: d.h[i], low: d.l[i], close: d.c[i] }; if (map[i]) { o.color = map[i]; o.borderColor = map[i]; o.wickColor = map[i]; } return o; }));
     }
     function renderTables() {
-      var box = env.tblBox; if (!box) return; box.textContent = '';
+      var box = env.tblBox; if (!box) return; box.textContent = ''; var miss = false;
       insts.forEach(function (I) {
+        if (I.tblEl && I.tblEl.parentNode) I.tblEl.parentNode.removeChild(I.tblEl); I.tblEl = null;
         if (!I.out) return;
+        var host = null;
+        try {
+          var pn = I.meta && I.meta.pane === 'sub' && I.pane != null ? chart.panes()[I.pane] : null, pe = pn && pn.getHTMLElement && pn.getHTMLElement();
+          if (pe && pe.nodeType === 1) {
+            host = document.createElement('div'); host.className = 'cb-pt';
+            host.style.cssText = 'position:absolute;top:3px;right:' + (chart.priceScale('right', I.pane).width() + 62) + 'px;z-index:6;pointer-events:none;background:rgba(19,23,34,.85);padding:2px 3px;border-radius:3px;font-size:9.5px;line-height:1.15;opacity:.95';
+            if (getComputedStyle(pe).position === 'static') pe.style.position = 'relative';
+            pe.appendChild(host); I.tblEl = host;
+          }
+        } catch (e) { host = null; }
+        if (!host && I.meta && I.meta.pane === 'sub' && I.out.tables.length) miss = true;
         I.out.tables.forEach(function (T) {
           var wrap = document.createElement('div'); wrap.className = 'cb-tw';
           var h = document.createElement('div'); h.className = 'cb-th'; h.textContent = T.name; wrap.appendChild(h);
@@ -875,9 +887,10 @@
             });
             tb.appendChild(tr);
           });
-          wrap.appendChild(tb); box.appendChild(wrap);
+          wrap.appendChild(tb); (host || box).appendChild(wrap);
         });
       });
+      if (miss && (renderTables.n = (renderTables.n || 0) + 1) <= 12) setTimeout(renderTables, 150); else if (!miss) renderTables.n = 0;
     }
     env.active.forEach(function (en) {
       var fn; try { fn = compile(en.code); } catch (e) { err(en, e); return; }
