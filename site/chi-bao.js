@@ -689,6 +689,11 @@
     { id: 'wmr', name: 'WORLD MACRO', pane: 'sub', code: '//@pane sub\n//@name WORLD MACRO RISK\n//@world\n' + body(WMR) },
     { id: 'vmr', name: 'VN MACRO', pane: 'sub', code: '//@pane sub\n//@name VIETNAM MACRO RISK\n//@world\n' + body(VMR) }
   ];
+  /* chỉ báo phổ biến lấy từ thư viện tín hiệu chung (tin-hieu.js): cùng công thức và điểm MUA/BÁN với Backtest và Bộ lọc */
+  if (typeof ATLTH !== 'undefined') ATLTH.list.forEach(function (d) {
+    if (!d.chart) return;
+    PRESETS.push({ id: 'th_' + d.id, name: d.name, pane: d.pane, code: '//@pane ' + d.pane + '\n//@name ' + d.name + '\n// Công thức và điểm MUA/BÁN nằm trong tin-hieu.js (dùng chung với Backtest, Bộ lọc).\n// MUA: ' + d.buy_t + '\n// BÁN: ' + d.sell_t + '\n// Nguồn: ' + d.src + '\nATLTH.preset(c, "' + d.id + '");\n' });
+  });
   var TEMPLATE = '//@pane sub\n//@name Chỉ báo của tôi\n// Mảng theo nến: c.open, c.high, c.low, c.close, c.volume, c.time (ngày dạng YYYY-MM-DD)\n' +
     'var ta = c.ta;\nvar r = ta.rsi(c.close, 14);\nc.plot("RSI 14", r, { color: "#b57bee", width: 2 });\nc.hline(70, { color: "#888", dash: true });\nc.hline(30, { color: "#888", dash: true });\n' +
     'for (var i = 1; i < c.n; i++) {\n  if (r[i] < 30 && r[i - 1] >= 30) c.mark(i, { pos: "below", text: "Quá bán", color: "#3f9a62", shape: "arrowUp" });\n}\n';
@@ -780,6 +785,7 @@
       var o = p.o, col = o.color || '#ccc', s;
       if (o.style === 'area') s = chart.addSeries(L.AreaSeries, { lineColor: col, topColor: rgba(col, .55), bottomColor: rgba(col, .55), lineWidth: o.width || 1, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } }, pane);
       else if (o.style === 'hist') s = chart.addSeries(L.HistogramSeries, { color: col, lastValueVisible: false, priceLineVisible: false, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } }, pane);
+      else if (o.style === 'dots') s = chart.addSeries(L.LineSeries, { color: col, lineWidth: 1, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 1.6, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false }, pane);
       else s = chart.addSeries(L.LineSeries, { color: col, lineWidth: o.width || 1, lineStyle: o.style === 'dotted' ? 1 : o.style === 'dashed' ? 2 : 0, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false }, pane);
       return s;
     }

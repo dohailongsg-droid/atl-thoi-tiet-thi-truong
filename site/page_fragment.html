@@ -225,6 +225,9 @@
 
 </style>
 
+<script>
+window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(window.__thq=[]);q.push(cb);if(q.length>1)return;var s=document.createElement('script');s.src='tin-hieu.js?v=52';s.onload=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};s.onerror=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};document.head.appendChild(s);};
+</script>
 <div class="atl">
   <header class="atl-head" id="tong-quan">
     <div class="atl-titlebar"><img src="logo-atl.png" alt="ATL Investment" width="40" height="40" style="border-radius:8px;flex:none"><span class="atl-ico atl-ico-t"><span class="ico-w ico-1"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12M16 20l-6-6M16 16l5-5M16 24l-5-4M16 22l6-5"/><path d="M6 6l1 2M26 5l-1 2M9 3v3M23 9v3M5 12h3"/></svg></span><span class="ico-w ico-2"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24M8 25c2-3 5-3 8-3s6 0 8 3"/><path d="M16 22v-5M16 19c-4-1-6-3-6-6M16 19c4-1 6-3 6-6"/></svg></span><span class="ico-w ico-7"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 25h24"/><path d="M16 25V15"/><path d="M16 17c-5 0-7-3-7-7 5 0 7 3 7 7zM16 15c0-4 2-7 7-7 0 4-2 7-7 7z"/></svg></span><span class="ico-w ico-3"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 27c5-3 9-8 12-17"/><circle cx="18" cy="9" r="2"/><path d="M18 5v-2M22 9h2M12 9h-2M21 6l1-1M15 6l-1-1M21 12l1 1M15 12l-1 1"/><circle cx="10" cy="19" r="1.5"/><circle cx="23" cy="17" r="1.5"/></svg></span><span class="ico-w ico-4"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 28V12"/><path d="M16 12c-1-4 1-7 5-8 0 4-1 7-5 8zM16 16c-4 0-7-2-8-6 4 0 7 2 8 6zM16 20c4 0 7-2 8-6-4 0-7 2-8 6zM16 24c-4 0-7-2-8-6 4 0 7 2 8 6z"/></svg></span><span class="ico-w ico-5"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 29V16M16 16l-10-5 3-4 3 1 1-5 3 3 3-3 1 5 3-1 3 4z"/><path d="M16 22l-4-3M16 25l5-4"/></svg></span><span class="ico-w ico-6"><svg class="ico" viewBox="0 0 32 32" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4a9 9 0 1 0 7 13c-8 1-13-5-7-13z"/><path d="M4 26h24M7 26c0-4 2-7 4-8M14 26c0-4 1-6 3-8M21 26c0-3 1-5 3-6"/></svg></span></span><h1 class="atl-title">Thời tiết thị trường</h1></div>
@@ -237,10 +240,10 @@
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Thị trường</button>
     <button class="atl-tab" role="tab" id="tab-nganh" data-sec="nganh" aria-selected="false">Ngành &amp; dòng tiền</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
-    <button class="atl-tab" role="tab" id="tab-do-thi" data-sec="do-thi" aria-selected="false">Đồ thị</button>
     <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
     <button class="atl-tab" role="tab" id="tab-bo-loc" data-sec="bo-loc" aria-selected="false">Bộ lọc</button>
     <button class="atl-tab" role="tab" id="tab-backtest" data-sec="backtest" aria-selected="false">Backtest</button>
+    <button class="atl-tab" role="tab" id="tab-do-thi" data-sec="do-thi" aria-selected="false">Đồ thị</button>
     <button class="atl-tab" role="tab" id="tab-danh-muc" data-sec="danh-muc" aria-selected="false">Danh mục</button>
   </nav>
 
@@ -388,6 +391,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 #dthi-sp{flex:0 0 7px;align-self:stretch;cursor:col-resize;border-radius:4px;touch-action:none}#dthi-sp:hover,#dthi-sp.on{background:var(--cds-chart-grid,#555)}#dthi-sp[hidden]{display:none}
 .dthi-vsp{flex:0 0 7px;cursor:row-resize;border-radius:4px;touch-action:none}.dthi-vsp:hover,.dthi-vsp.on{background:var(--cds-chart-grid,#555)}
 #dthi-side[hidden]{display:none}
+#dthi-wrap.lay2{flex-wrap:wrap}#dthi-wrap.lay2 #dthi-side{order:9;flex:0 0 100%!important;margin-top:8px}#dthi-wrap.lay2 #dthi-sp{display:none}#dthi-wrap.lay2 .dthi-vsp{height:7px}
 .dthi-mini{display:flex;flex-direction:column;min-width:0;border:1px solid var(--cds-chart-grid,#333);border-radius:8px;overflow:hidden}
 .dthi-mh{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:11.5px;color:var(--color-fg-muted);flex-wrap:wrap}
 .dthi-mh b{color:var(--color-fg);font-size:12.5px}
@@ -2217,6 +2221,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       <div class="bl-row"><span style="font-size:13px">Tín hiệu mới trong</span>
         <select id="bl-win" aria-label="Khoảng thời gian tín hiệu"><option value="1">hôm nay hoặc hôm qua</option><option value="0">chỉ hôm nay</option><option value="2">3 phiên gần nhất</option></select></div>
       <div class="bl-crit" id="bl-crit"></div>
+      <div class="bl-lb">Tín hiệu MUA theo chỉ báo (công thức và thông số mặc định như tab Backtest, Đồ thị)</div>
+      <div class="bl-row"><span style="font-size:13px">Cần đúng ít nhất</span><input type="number" id="bl-libk" min="1" max="9" value="1" style="width:3.6em;font:inherit;font-size:12.5px;padding:1px 4px;background:transparent;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:4px"><span style="font-size:13px">trong số chỉ báo đã chọn</span></div>
+      <div id="bl-lib"></div>
       <p class="bl-note" id="bl-how"></p>
       <p class="atl-note" id="bl-sum" style="margin-top:10px;font-weight:600">—</p>
       <div class="atl-tablebox" style="max-height:44rem">
@@ -2229,8 +2236,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     <script>
     (function () {
       var $ = function (i) { return document.getElementById(i); }, D = null, ST = { on: {}, p: {}, win: 1, sort: 'nsig', dir: -1 };
-      try { var sv = JSON.parse(localStorage.getItem('atl-bl') || 'null'); if (sv) { ST.on = sv.on || {}; ST.p = sv.p || {}; ST.win = sv.win == null ? 1 : sv.win; } } catch (e) {}
-      function save() { try { localStorage.setItem('atl-bl', JSON.stringify({ on: ST.on, p: ST.p, win: ST.win })); } catch (e) {} }
+      ST.lib = {}; ST.libk = 1;
+      try { var sv = JSON.parse(localStorage.getItem('atl-bl') || 'null'); if (sv) { ST.on = sv.on || {}; ST.p = sv.p || {}; ST.win = sv.win == null ? 1 : sv.win; ST.lib = sv.lib || {}; ST.libk = sv.libk || 1; } } catch (e) {}
+      function save() { try { localStorage.setItem('atl-bl', JSON.stringify({ on: ST.on, p: ST.p, win: ST.win, lib: ST.lib, libk: ST.libk })); } catch (e) {} }
       function P(k, d) { var v = ST.p[k]; return v == null ? d : v; }
       var W = function () { return +ST.win; };
       /* 6 tín hiệu cốt lõi để đếm hội tụ */
@@ -2278,8 +2286,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           (Math.round(n.vung) === 2 ? ' <b>Vùng 45–55 là vùng tệ nhất của cổ phiếu:</b> chỉ mua mã RS cao ở dải Bollinger dưới, các tín hiệu khác để theo dõi.' : '') + ' Bộ lọc chỉ trả lời "đánh mã nào", còn tỷ trọng do pha quyết định.';
       }
       function rowsF() {
-        var act = CR.filter(function (c) { return ST.on[c.k]; });
-        return D.ma.filter(function (r) { return act.every(function (c) { return c.f(r); }); });
+        var act = CR.filter(function (c) { return ST.on[c.k]; }), lb = libSel(), need = Math.min(ST.libk || 1, lb.length);
+        return D.ma.filter(function (r) { if (!act.every(function (c) { return c.f(r); })) return false; if (!lb.length) return true; var k = 0; lb.forEach(function (id) { if (r.sg && r.sg[id] != null && r.sg[id] <= W()) k++; }); return k >= need; });
       }
       var $e = function (t, c, x) { var e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
       function drawPre() {
@@ -2322,6 +2330,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         if (r.brk) b('Vượt đỉnh', 'b');
         if (r.vnt_ban != null && r.vnt_ban <= 1) b('VNT SELL', 'r');
         if (r.drg_ban != null && r.drg_ban <= 1) b('SÚT', 'r');
+        var lb = libSel(); lb.forEach(function (id) { if (r.sg && r.sg[id] != null && r.sg[id] <= W()) b(libName(id) + ag(r.sg[id]), 't'); });
         return o.join('');
       }
       var f1 = function (x) { return x == null ? '—' : x.toLocaleString('vi-VN', { maximumFractionDigits: 1, minimumFractionDigits: 1 }); };
@@ -2329,7 +2338,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         var rs = rowsF(); rs.forEach(function (r) { r.nsig = nsig(r); r.nn2 = r.nn && r.nn[0] != null && r.nn[1] != null ? r.nn[0] + r.nn[1] : null; });
         var k = ST.sort, dir = ST.dir;
         rs.sort(function (a, b) { var x = a[k], y = b[k]; if (x == null) return 1; if (y == null) return -1; if (typeof x === 'string') return dir * x.localeCompare(y); return dir * (x - y) || (b.nsig - a.nsig); });
-        var act = CR.filter(function (c) { return ST.on[c.k]; });
+        var act = CR.filter(function (c) { return ST.on[c.k]; }).concat(libSel().map(function (id) { return { k: id }; }));
         $('bl-sum').textContent = act.length ? ('Có ' + rs.length + ' / ' + D.so_ma + ' mã thỏa ' + act.length + ' điều kiện.') : ('Chưa chọn điều kiện nào: đang hiện toàn bộ ' + D.so_ma + ' mã, xếp theo số tín hiệu.');
         var how = ST.pre != null && ST.pre >= 0 && PRE[ST.pre] ? PRE[ST.pre].note : (act.length ? act.map(function (c) { return c.h || ''; }).filter(Boolean).join(' · ') : '');
         $('bl-how').textContent = how;
@@ -2352,8 +2361,25 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         });
         if (rs.length > 250) { var tr2 = document.createElement('tr'), t2 = $e('td', '', 'Còn ' + (rs.length - 250) + ' mã nữa, thêm điều kiện để thu hẹp.'); t2.colSpan = 11; tr2.appendChild(t2); tb.appendChild(tr2); }
       }
-      function drawAll() { drawPre(); drawCrit(); drawTb(); $('bl-win').value = String(ST.win); }
+      function libSel() { return Object.keys(ST.lib || {}).filter(function (k) { return ST.lib[k]; }); }
+      function libName(id) { var L = (D && D.chi_bao) || []; for (var i = 0; i < L.length; i++) if (L[i][0] === id) return L[i][1]; return id; }
+      function drawLib() {
+        var box = $('bl-lib'); if (!box) return; box.textContent = ''; var L = (D && D.chi_bao) || [];
+        if (!L.length) { box.appendChild($e('p', 'bl-note', 'Có sau lần chạy "Cập nhật số liệu hằng ngày" kế tiếp.')); return; }
+        var cnt = {}; D.ma.forEach(function (r) { for (var k in (r.sg || {})) if (r.sg[k] <= W()) cnt[k] = (cnt[k] || 0) + 1; });
+        ['Cơ bản', 'ATL', 'Phổ biến'].forEach(function (g) {
+          var w = $e('div', 'bl-row');
+          L.filter(function (x) { return x[2] === g; }).forEach(function (x) { var b = $e('button', 'bl-chip', x[1] + ' (' + (cnt[x[0]] || 0) + ')'); b.type = 'button'; b.title = 'MUA: ' + x[3] + '\nBÁN: ' + x[4]; b.setAttribute('aria-pressed', String(!!ST.lib[x[0]]));
+            b.addEventListener('click', function () { ST.lib[x[0]] = ST.lib[x[0]] ? 0 : 1; ST.pre = -1; save(); drawAll(); }); w.appendChild(b); });
+          if (w.childNodes.length) box.appendChild(w); });
+        $('bl-libk').value = ST.libk || 1;
+      }
+      window.atlBLsetLib = function (ids, k) { ST.lib = {}; ids.forEach(function (id) { ST.lib[id] = 1; }); ST.libk = k || 1; ST.on = {}; ST.on.liq = 1; ST.pre = -1; save();
+        if (window.atlDocked === 'backtest' && window.atlDockOpen) window.atlDockOpen('bo-loc'); else if (window.atlShow) window.atlShow('bo-loc'); else { var t = document.getElementById('tab-bo-loc'); if (t) t.click(); }
+        load(); if (D) drawAll(); };
+      function drawAll() { drawPre(); drawCrit(); drawLib(); drawTb(); $('bl-win').value = String(ST.win); }
       $('bl-win').addEventListener('change', function () { ST.win = +$('bl-win').value; save(); drawAll(); });
+      $('bl-libk').addEventListener('change', function () { ST.libk = Math.max(1, +$('bl-libk').value || 1); save(); drawAll(); });
       document.querySelectorAll('#bl-tb th[data-k]').forEach(function (th) { th.addEventListener('click', function () { var k = th.dataset.k; if (ST.sort === k) ST.dir = -ST.dir; else { ST.sort = k; ST.dir = (k === 'ma' || k === 'nganh') ? 1 : -1; } drawTb(); }); });
       function dmy(s) { return s ? s.slice(8) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) : ''; }
       var loaded = false;
@@ -2381,115 +2407,242 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     .bt-k b{font-size:18px}
     .bt-box{border:1px solid var(--color-border-line);border-radius:10px;padding:10px 12px;margin:8px 0}
     .bt-box h3{margin:0 0 6px;font-size:13px;letter-spacing:.3px;text-transform:uppercase;color:var(--color-fg-muted)}
-    .bt-r{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:4px 0;font-size:13px}
+    .bt-r{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:5px 0;font-size:13px}
     .bt-r label{display:inline-flex;gap:5px;align-items:center}
-    .bt-r input[type=number],.bt-r input[type=date],.bt-r select{font:inherit;font-size:12.5px;background:transparent;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:5px;padding:2px 5px}
-    .bt-r input[type=number]{width:4.2em}
-    #bt-run{appearance:none;border:0;background:var(--color-fg);color:var(--color-bg);font:inherit;font-weight:700;padding:7px 18px;border-radius:8px;cursor:pointer}
+    .bt-r input[type=number],.bt-r input[type=date],.bt-r input[type=text],.bt-r select,.bt-pr input,.bt-pr select{font:inherit;font-size:12.5px;background:transparent;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:5px;padding:2px 5px}
+    .bt-r input[type=number],.bt-pr input[type=number]{width:4.4em}
+    .bt-ig{font-size:11px;font-weight:700;letter-spacing:.3px;color:var(--color-fg-muted);text-transform:uppercase;margin:8px 0 3px}
+    .bt-chips{display:flex;flex-wrap:wrap;gap:5px}
+    .bt-chip{appearance:none;border:1px solid var(--color-border-line);background:none;color:var(--color-fg);font:inherit;font-size:12.5px;padding:3px 9px;border-radius:999px;cursor:pointer}
+    .bt-chip[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
+    .bt-chip.na{opacity:.45;cursor:not-allowed}
+    .bt-pr{border-left:3px solid var(--color-border-line);padding:4px 10px;margin:6px 0;font-size:12.5px;line-height:1.5}
+    .bt-pr .t{color:var(--color-fg-muted)}
+    .bt-pr label{display:inline-flex;gap:4px;align-items:center;margin-right:10px}
+    .bt-btn{appearance:none;border:0;background:var(--color-fg);color:var(--color-bg);font:inherit;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer}
+    .bt-btn.s{background:none;color:var(--color-fg);border:1px solid var(--color-border-line);font-weight:600}
     #bt-eq{width:100%;height:150px;display:block}
+    .bt-tb{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .bt-tb table{min-width:520px}
+    .bt-sym{appearance:none;border:0;background:none;color:var(--color-fg);font:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline dotted}
+    #bt-cmp tr.on td{font-weight:700}
     </style>
     <div class="atl-card atl-wide">
       <h2 class="atl-h">Backtest bộ lọc và chỉ báo</h2>
-      <p class="atl-note" id="bt-src">Đang tải lịch sử giá và tín hiệu (khoảng 3,6 MB, tải một lần)…</p>
-      <div class="bt-r"><b>Mẫu có sẵn:</b><span id="bt-pre" class="bl-row" style="margin:0"></span></div>
-      <div class="bt-box"><h3>1 · Điều kiện mua</h3>
-        <div class="bt-r" id="bt-sg"></div>
-        <div class="bt-r"><label>Cần đúng ít nhất <input type="number" id="bt-k" min="1" max="9" value="1"> tín hiệu trong số đã chọn</label>
-          <label>Tín hiệu còn mới trong <select id="bt-w"><option value="0">đúng phiên đó</option><option value="1">2 phiên</option><option value="2">3 phiên</option></select></label>
+      <p class="atl-note" id="bt-src">Bấm vào tab để tải lịch sử giá (khoảng 5 MB, tải một lần).</p>
+      <div class="bt-r"><b>Mẫu có sẵn:</b><span id="bt-pre" class="bt-chips"></span></div>
+      <div class="bt-box"><h3>1 · Điều kiện mua (theo tác giả của từng chỉ báo)</h3>
+        <div class="bt-r"><input type="text" id="bt-q" placeholder="Tìm chỉ báo…" style="width:12rem"><span class="atl-note" style="margin:0">Bấm để chọn. Chọn nhiều thì đặt "cần đúng ít nhất" bên dưới.</span></div>
+        <div id="bt-sg"></div>
+        <div id="bt-ps"></div>
+        <div class="bt-r"><label>Cần đúng ít nhất <input type="number" id="bt-k" min="1" max="9" value="1"> tín hiệu</label>
+          <label>trong vòng <select id="bt-w"><option value="0">cùng phiên</option><option value="1">2 phiên</option><option value="2">3 phiên</option><option value="4">5 phiên</option></select></label></div>
+        <div class="bt-ig">Lọc thêm</div>
+        <div class="bt-r"><label>GTGD TB20 ≥ <input type="number" id="bt-lq" min="0" max="2000" value="10"> tỷ</label>
           <label>RS60 ≥ <input type="number" id="bt-rs" min="0" max="99" value="0"></label>
-          <label><input type="checkbox" id="bt-lq" checked> GTGD TB20 ≥ 10 tỷ</label></div>
-        <div class="bt-r"><span>Chỉ mua khi nhiệt kế ở vùng:</span><span id="bt-zs"></span>
+          <label>RS điểm ≥ <input type="number" id="bt-rsd" min="0" max="99" value="0"></label>
+          <label><input type="checkbox" id="bt-m200"> Giá trên MA200</label>
+          <label>Mã <input type="text" id="bt-sym" placeholder="tất cả" style="width:5.5rem;text-transform:uppercase"></label><button type="button" class="bt-btn s" id="bt-cur" style="padding:3px 9px" hidden>Mã đang xem</button></div>
+        <div class="bt-r"><span>Vùng nhiệt kế lúc mua:</span><span id="bt-zs"></span>
           <label>Từ <input type="date" id="bt-d0" value="2020-01-01"></label><label>đến <input type="date" id="bt-d1"></label></div>
       </div>
       <div class="bt-box"><h3>2 · Điều kiện bán (cái nào đến trước thì bán, sớm nhất sau 2 phiên theo T+2)</h3>
-        <div class="bt-r" id="bt-ex"></div>
-        <div class="bt-r"><label>Cắt lỗ −<input type="number" id="bt-sl" min="0" max="30" step="0.5" value="7">% (0 = không cắt)</label>
-          <label>Chốt lời +<input type="number" id="bt-tp" min="0" max="100" step="1" value="0">% (0 = không chốt)</label>
-          <label>Bán sau <input type="number" id="bt-n" min="0" max="250" value="0"> phiên (0 = không)</label>
-          <label>Giữ tối đa <input type="number" id="bt-mh" min="5" max="250" value="60"> phiên</label>
+        <div class="bt-r"><label><input type="checkbox" id="bt-au" checked> <b>Bán theo tác giả</b> (tín hiệu bán của chỉ báo mua)</label><span class="atl-note" style="margin:0" id="bt-aut"></span></div>
+        <div class="bt-r"><span>Bán khi có tín hiệu bán của chỉ báo khác:</span><select id="bt-xs"><option value="">+ thêm chỉ báo…</option></select><span id="bt-xl" class="bt-chips"></span></div>
+        <div class="bt-r"><label>Cắt lỗ −<input type="number" id="bt-sl" min="0" max="50" step="0.5" value="7">%</label>
+          <label>Chốt lời +<input type="number" id="bt-tp" min="0" max="200" step="1" value="0">%</label>
+          <label>Dừng lỗ di động −<input type="number" id="bt-tr" min="0" max="50" step="0.5" value="0">% từ đỉnh</label>
+          <label>Dừng theo ATR <input type="number" id="bt-atr" min="0" max="10" step="0.5" value="0">×ATR22 từ đỉnh</label></div>
+        <div class="bt-r"><label>Bán sau <input type="number" id="bt-n" min="0" max="250" value="0"> phiên</label>
+          <label>Đóng cửa dưới MA <input type="number" id="bt-ma" min="0" max="250" value="0"></label>
+          <label><input type="checkbox" id="bt-m20"> Giá về MA20 (chốt lời)</label>
+          <label><input type="checkbox" id="bt-bu"> Đóng cửa trên dải BB trên</label>
+          <label>Giữ tối đa <input type="number" id="bt-mh" min="5" max="500" value="60"> phiên</label>
           <label>Phí khứ hồi <input type="number" id="bt-fee" min="0" max="2" step="0.05" value="0.3">%</label></div>
+        <p class="atl-note" style="margin:2px 0">0 = tắt. Mọi mức tính theo giá đóng cửa. Để so sánh logic MUA của các chỉ báo, hãy tắt "Bán theo tác giả" và dùng cùng một cách bán cho tất cả.</p>
       </div>
-      <div class="bt-r"><button id="bt-run" type="button">Chạy backtest</button><span class="atl-note" id="bt-t"></span></div>
+      <div class="bt-r"><button id="bt-run" class="bt-btn" type="button">Chạy backtest</button><button id="bt-all" class="bt-btn s" type="button">So sánh tất cả chỉ báo (cùng cách bán)</button><button id="bt-tobl" class="bt-btn s" type="button">Tìm mã có tín hiệu này ở Bộ lọc →</button><span class="atl-note" id="bt-t" style="margin:0"></span></div>
       <div id="bt-out" hidden>
         <p class="atl-note" id="bt-d" style="margin-top:12px"></p>
         <div class="bt-g" id="bt-kp"></div>
-        <h3 class="atl-h" style="font-size:15px">Lãi lũy kế (cộng dồn lãi từng lệnh theo ngày bán, chưa tính vốn và tỷ trọng)</h3>
+        <h3 class="atl-h" style="font-size:15px">Lãi lũy kế</h3>
+        <p class="atl-note" style="margin:0 0 4px">Cộng dồn % lãi/lỗ (sau phí) của từng lệnh theo ngày bán. Đây không phải lãi của tài khoản: chỉ xem hình dáng, đi lên là giai đoạn chiến lược có lãi, đi ngang hoặc xuống là giai đoạn kém. Đường chấm là mốc 0.</p>
         <svg id="bt-eq" viewBox="0 0 800 150" preserveAspectRatio="none" role="img" aria-label="Đường lãi lũy kế"></svg>
         <h3 class="atl-h" style="font-size:15px">Theo vùng nhiệt kế lúc mua</h3>
-        <div class="atl-tablebox"><table id="bt-zt"><thead><tr><th>Vùng</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div>
+        <div class="atl-tablebox bt-tb"><table id="bt-zt"><thead><tr><th>Vùng</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div>
         <h3 class="atl-h" style="font-size:15px">Theo năm</h3>
-        <div class="atl-tablebox"><table id="bt-yt"><thead><tr><th>Năm</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div>
-        <h3 class="atl-h" style="font-size:15px">10 lệnh tốt nhất và 10 lệnh tệ nhất</h3>
-        <div class="atl-tablebox"><table id="bt-tl"><thead><tr><th>Mã</th><th>Ngày mua</th><th>Ngày bán</th><th class="num">Phiên giữ</th><th class="num">Lãi sau phí</th><th>Lý do bán</th></tr></thead><tbody></tbody></table></div>
+        <div class="atl-tablebox bt-tb"><table id="bt-yt"><thead><tr><th>Năm</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div>
+        <h3 class="atl-h" style="font-size:15px" id="bt-tlh">10 lệnh tốt nhất và 10 lệnh tệ nhất</h3>
+        <div class="atl-tablebox bt-tb"><table id="bt-tl"><thead><tr><th>Mã</th><th>Ngày mua</th><th>Ngày bán</th><th class="num">Phiên giữ</th><th class="num">Lãi sau phí</th><th>Lý do bán</th></tr></thead><tbody></tbody></table></div>
         <p class="atl-note" id="bt-w2"></p>
+      </div>
+      <div id="bt-cmpw" hidden>
+        <h3 class="atl-h" style="font-size:15px">So sánh logic MUA của các chỉ báo (cùng điều kiện bán, cùng bộ lọc)</h3>
+        <p class="atl-note" id="bt-cmpn"></p>
+        <div class="atl-tablebox bt-tb"><table id="bt-cmp"><thead><tr><th>Chỉ báo</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB</th><th class="num">Trung vị</th><th class="num">PF</th><th class="num">PF 2023+</th><th class="num">Năm lỗ</th><th class="num">Giữ TB</th></tr></thead><tbody></tbody></table></div>
       </div>
     </div>
     <script>
     (function(){
-      var $=function(i){return document.getElementById(i);},H=null;
-      var SG=[['vnt',0,'VN Timing Buy'],['drg',1,'Dragon MÚC/THÊM'],['st',2,'Stoch 20-5-3 cắt lên 20'],['rb',3,'Phân kỳ thường dương'],['hb',4,'Phân kỳ ẩn dương'],['bb',5,'Dưới dải BB + RS60>80'],['don',6,'Đáy 20 phiên + RS60>80'],['brk',7,'Vượt đỉnh 20 phiên'],['rsu',8,'RS≥70 tăng tốc, giá>MA20']];
-      var EXS=[['vs','VN Timing SELL/TP'],['ds','Dragon SÚT'],['ma','Đóng cửa dưới MA20'],['bu','Đóng cửa trên dải BB trên']];
-      var PRE=[
-        ['ATL vùng 1 (băng điểm)',{sg:['bb'],k:1,z:[1],ex:['bu'],sl:7}],['ATL vùng 2',{sg:['bb'],k:1,z:[2],ex:['ma'],sl:7}],['ATL vùng 3',{sg:['bb','don'],k:1,z:[3],ex:['ma'],sl:7}],
-        ['VN Timing Buy → SELL',{sg:['vnt'],k:1,ex:['vs'],sl:7}],['Dragon MÚC → SÚT',{sg:['drg'],k:1,ex:['ds'],sl:7}],['VNT + Dragon',{sg:['vnt','drg'],k:2,w:1,ex:['vs','ds'],sl:7}],
-        ['Stoch cắt lên 20',{sg:['st'],k:1,ex:[],n:10,sl:7}],['Phân kỳ thường dương',{sg:['rb'],k:1,ex:['ma'],sl:7}],['Hội tụ ≥ 3 tín hiệu',{sg:['vnt','drg','st','rb','hb','rsu'],k:3,w:1,ex:['ma'],sl:7}]];
+      var $=function(i){return document.getElementById(i);},M=null,SY=null,TH=null,loading=false,CACHE={};
       var ZN={1:'1 · Nghỉ đông (<45)',2:'2 · Hỗn độn (45–55)',3:'3 · Ra hoa (55–65)',4:'4+ · ≥65'};
-      var ST={sg:['vnt'],k:1,w:0,rs:0,lq:1,z:[1,2,3,4],ex:['vs'],sl:7,tp:0,n:0,mh:60,fee:0.3,d0:'2020-01-01',d1:''};
-      try{var sv=JSON.parse(localStorage.getItem('atl-bt2')||'null');if(sv)for(var q in sv)ST[q]=sv[q];}catch(e){}
-      function mk(id,L,key,pref){var b=$(id);b.textContent='';L.forEach(function(x){var l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.value=x[0];c.checked=ST[key].indexOf(x[0])>=0||ST[key].indexOf(+x[0])>=0;c.addEventListener('change',function(){});l.appendChild(c);l.appendChild(document.createTextNode(' '+(x[2]||x[1])));b.appendChild(l);});}
-      function mkSg(){var b=$('bt-sg');b.textContent='';SG.forEach(function(x){var l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.value=x[0];c.checked=ST.sg.indexOf(x[0])>=0;l.appendChild(c);l.appendChild(document.createTextNode(' '+x[2]));b.appendChild(l);});
-        var e=$('bt-ex');e.textContent='';EXS.forEach(function(x){var l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.value=x[0];c.checked=ST.ex.indexOf(x[0])>=0;l.appendChild(c);l.appendChild(document.createTextNode(' '+x[1]));e.appendChild(l);});
-        var z=$('bt-zs');z.textContent='';[1,2,3,4].forEach(function(k){var l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.value=k;c.checked=ST.z.indexOf(k)>=0;l.appendChild(c);l.appendChild(document.createTextNode(' '+ZN[k].split(' ·')[0]));l.style.marginRight='8px';z.appendChild(l);});}
-      function put(){$('bt-k').value=ST.k;$('bt-w').value=ST.w;$('bt-rs').value=ST.rs;$('bt-lq').checked=!!ST.lq;$('bt-sl').value=ST.sl;$('bt-tp').value=ST.tp;$('bt-n').value=ST.n;$('bt-mh').value=ST.mh;$('bt-fee').value=ST.fee;$('bt-d0').value=ST.d0;$('bt-d1').value=ST.d1||'';mkSg();}
-      function get(){var chk=function(id){return Array.prototype.map.call($(id).querySelectorAll('input:checked'),function(c){return c.value;});};
-        ST.sg=chk('bt-sg');ST.ex=chk('bt-ex');ST.z=chk('bt-zs').map(Number);ST.k=Math.max(1,+$('bt-k').value||1);ST.w=+$('bt-w').value;ST.rs=+$('bt-rs').value||0;ST.lq=$('bt-lq').checked?1:0;ST.sl=+$('bt-sl').value||0;ST.tp=+$('bt-tp').value||0;ST.n=+$('bt-n').value||0;ST.mh=Math.max(5,+$('bt-mh').value||60);ST.fee=+$('bt-fee').value||0;ST.d0=$('bt-d0').value||'2020-01-01';ST.d1=$('bt-d1').value||'';
-        try{localStorage.setItem('atl-bt2',JSON.stringify(ST));}catch(e){}}
+      var NOH={nn:'chưa có dữ liệu khối ngoại từ 2020'};
+      var ST={sg:['vnt'],P:{},k:1,w:0,lq:10,rs:0,rsd:0,m200:0,sym:'',z:[1,2,3,4],d0:'2020-01-01',d1:'',au:1,xs:[],sl:7,tp:0,tr:0,atr:0,n:0,ma:0,m20:0,bu:0,mh:60,fee:0.3};
+      try{var sv=JSON.parse(localStorage.getItem('atl-bt3')||'null');if(sv)for(var q in sv)ST[q]=sv[q];}catch(e){}
+      var PRE=[
+        ['ATL vùng 1 (bán dải trên)',{sg:['bb'],z:[1],au:0,bu:1,sl:7}],['ATL vùng 2 (bán khi về MA20)',{sg:['bb'],z:[2],au:1,sl:7}],['ATL vùng 3',{sg:['bb','dbot'],k:1,z:[3],au:1,sl:7}],
+        ['VN Timing',{sg:['vnt'],au:1,sl:7}],['Dragon Code',{sg:['drg'],au:1,sl:7}],['VNT + Dragon',{sg:['vnt','drg'],k:2,w:1,au:1,sl:7}],
+        ['MCDX 5→15→5',{sg:['mcdx'],au:1,sl:7}],['Supertrend',{sg:['st'],au:1,sl:7}],['Parabolic 3 chấm',{sg:['psar'],P:{psar:{cf:3}},au:1,sl:7}],['Ichimoku',{sg:['ichi'],au:1,sl:7}],['GMMA',{sg:['gmma'],au:1,sl:7}]];
+      function save(){try{localStorage.setItem('atl-bt3',JSON.stringify(ST));}catch(e){}}
+      function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+      function fm(x,s){return x==null||x!==x?'—':(s&&x>0?'+':'')+x.toLocaleString('vi-VN',{maximumFractionDigits:2,minimumFractionDigits:2});}
+      function nameOf(id){var d=TH.get(id);return d?d.name:id;}
+      /* ---------- giao diện chọn chỉ báo ---------- */
+      function drawSg(){
+        var box=$('bt-sg'),q=($('bt-q').value||'').toLowerCase().trim();box.textContent='';
+        ['Cơ bản','ATL','Phổ biến'].forEach(function(g){
+          var L=TH.list.filter(function(d){return d.grp===g&&(!q||d.name.toLowerCase().indexOf(q)>=0||d.id.indexOf(q)>=0);});if(!L.length)return;
+          box.appendChild(el('div','bt-ig',g==='ATL'?'Chỉ báo ATL':g==='Cơ bản'?'Chỉ báo cơ bản':'Chỉ báo phổ biến'));var w=el('div','bt-chips');
+          L.forEach(function(d){var b=el('button','bt-chip'+(NOH[d.id]?' na':''),d.name);b.type='button';b.setAttribute('aria-pressed',String(ST.sg.indexOf(d.id)>=0));b.title=NOH[d.id]?'Không backtest được: '+NOH[d.id]:'MUA: '+d.buy_t+'\nBÁN: '+d.sell_t+'\nNguồn: '+d.src;
+            b.addEventListener('click',function(){if(NOH[d.id])return;var i=ST.sg.indexOf(d.id);if(i>=0)ST.sg.splice(i,1);else ST.sg.push(d.id);save();drawSg();drawPs();});w.appendChild(b);});
+          box.appendChild(w);});
+      }
+      function drawPs(){
+        var box=$('bt-ps');box.textContent='';
+        ST.sg.forEach(function(id){var d=TH.get(id);if(!d)return;var w=el('div','bt-pr');var h=el('div');var b=el('b',null,d.name+': ');h.appendChild(b);h.appendChild(el('span','t','MUA '+d.buy_t+' · BÁN '+d.sell_t+'. '+d.src+'.'));w.appendChild(h);
+          if(d.p.length){var r=el('div');d.p.forEach(function(p){var lb=el('label');lb.appendChild(document.createTextNode(p.n+' '));var cur=(ST.P[id]||{})[p.k];var inp;
+            if(p.opt){inp=el('select');p.opt.forEach(function(o){var op=el('option',null,o);op.value=o;inp.appendChild(op);});inp.value=cur!=null?cur:p.d;}
+            else if(typeof p.d==='boolean'){inp=el('input');inp.type='checkbox';inp.checked=cur!=null?!!cur:p.d;}
+            else{inp=el('input');inp.type='number';inp.step=p.step||1;if(p.min!=null)inp.min=p.min;if(p.max!=null)inp.max=p.max;inp.value=cur!=null?cur:p.d;}
+            inp.addEventListener('change',function(){ST.P[id]=ST.P[id]||{};ST.P[id][p.k]=inp.type==='checkbox'?inp.checked:(inp.tagName==='SELECT'?inp.value:+inp.value);save();});
+            lb.appendChild(inp);r.appendChild(lb);});w.appendChild(r);}
+          box.appendChild(w);});
+        $('bt-aut').textContent=ST.sg.length?'= '+ST.sg.map(function(id){var d=TH.get(id);return d?(d.sell_t):'';}).join(' | '):'';
+      }
+      function drawXs(){
+        var s=$('bt-xs');while(s.options.length>1)s.remove(1);
+        TH.list.forEach(function(d){if(NOH[d.id]||ST.xs.indexOf(d.id)>=0)return;var o=el('option',null,d.name+' — '+d.sell_t);o.value=d.id;s.appendChild(o);});
+        var l=$('bt-xl');l.textContent='';ST.xs.forEach(function(id){var b=el('button','bt-chip',nameOf(id)+' ×');b.type='button';b.setAttribute('aria-pressed','true');b.addEventListener('click',function(){ST.xs.splice(ST.xs.indexOf(id),1);save();drawXs();});l.appendChild(b);});
+      }
+      function put(){
+        ['k','w','lq','rs','rsd','sl','tp','tr','atr','n','ma','mh','fee','d0','d1','sym'].forEach(function(k){$('bt-'+k).value=ST[k]==null?'':ST[k];});
+        $('bt-m200').checked=!!ST.m200;$('bt-au').checked=!!ST.au;$('bt-m20').checked=!!ST.m20;$('bt-bu').checked=!!ST.bu;
+        var z=$('bt-zs');z.textContent='';[1,2,3,4].forEach(function(k){var l=el('label'),c=el('input');c.type='checkbox';c.value=k;c.checked=ST.z.indexOf(k)>=0;c.addEventListener('change',get);l.appendChild(c);l.appendChild(document.createTextNode(' '+ZN[k].split(' ·')[0]));l.style.marginRight='8px';z.appendChild(l);});
+        drawSg();drawPs();drawXs();
+      }
+      function get(){
+        ['k','w','lq','rs','rsd','sl','tp','tr','atr','n','ma','mh','fee'].forEach(function(k){var v=parseFloat($('bt-'+k).value);ST[k]=isNaN(v)?0:v;});
+        ST.k=Math.max(1,ST.k);ST.mh=Math.max(5,ST.mh||60);ST.d0=$('bt-d0').value||'2020-01-01';ST.d1=$('bt-d1').value||'';ST.sym=($('bt-sym').value||'').toUpperCase().trim();
+        ST.m200=$('bt-m200').checked?1:0;ST.au=$('bt-au').checked?1:0;ST.m20=$('bt-m20').checked?1:0;ST.bu=$('bt-bu').checked?1:0;
+        ST.z=Array.prototype.map.call($('bt-zs').querySelectorAll('input:checked'),function(c){return +c.value;});save();
+      }
+      /* ---------- dữ liệu ---------- */
+      var DS={};
+      function dOf(sym){
+        if(DS[sym])return DS[sym];var r=SY[sym];if(!r)return null;var n=r.c.length,a=r.a,c=new Array(n),o=new Array(n),h=new Array(n),l=new Array(n),v=new Array(n),x=0,i;
+        for(i=0;i<n;i++){x+=r.c[i];c[i]=x*10;o[i]=c[i]-r.o[i]*10;h[i]=c[i]+r.h[i]*10;l[i]=c[i]-r.l[i]*10;v[i]=r.v[i]*100;}
+        var vb=new Uint8Array(n),vs=new Uint8Array(n),db=new Uint8Array(n),dsl=new Uint8Array(n);for(i=0;i<n;i++){var f=r.f[i];vb[i]=f&1;vs[i]=(f>>1)&1;db[i]=(f>>2)&1;dsl[i]=(f>>3)&1;}
+        var D={a:a,t:M.d.slice(a,a+n),o:o,h:h,l:l,c:c,v:v,idx:M.x.slice(a,a+n),r60:r.r.map(function(z){return z||NaN;}),rsd:r.R.map(function(z){return z||NaN;}),nn:null,pre:{vb:vb,vs:vs,db:db,ds:dsl}};
+        var gv=c.map(function(z,i){return z*v[i]/1e9;}),s=0;D.g20=new Array(n);for(i=0;i<n;i++){s+=gv[i];if(i>=20)s-=gv[i-20];D.g20[i]=i>=19?s/20:NaN;}
+        DS[sym]=D;return D;
+      }
+      function sig(sym,id,P){
+        var key=sym+'|'+id+'|'+JSON.stringify(P||{});if(CACHE[key])return CACHE[key];
+        var D=dOf(sym),r;try{r=TH.calc(id,D,P);}catch(e){r={buy:new Uint8Array(D.c.length),sell:null};}
+        var o={b:r.buy,s:r.sell,sa:r.sellAt||null};CACHE[key]=o;return o;
+      }
+      function aux(D,key,f){D._x=D._x||{};if(!D._x[key])D._x[key]=f();return D._x[key];}
       function agg(tr){var n=tr.length;if(!n)return{n:0};var rt=tr.map(function(x){return x.r;}).sort(function(a,b){return a-b;}),w=0,gp=0,gl=0,sm=0,hd=0,sl=0;tr.forEach(function(x){sm+=x.r;hd+=x.h;if(x.r>0){w++;gp+=x.r;}else gl-=x.r;if(x.why==='Cắt lỗ')sl++;});return{n:n,w:w/n*100,a:sm/n,m:rt[n>>1],pf:gl>0?gp/gl:null,h:hd/n,sl:sl/n*100,wo:rt[0]};}
-      function run(){
-        get();var sgb=ST.sg.map(function(k){return SG.filter(function(x){return x[0]===k;})[0][1];}),need=Math.min(ST.k,sgb.length||1);
-        var mask=0;sgb.forEach(function(b){mask|=1<<b;});var D=H.d,tr=[],t0=performance.now();
-        var i0=0;while(i0<D.length&&D[i0]<ST.d0)i0++;var i1=D.length-1;if(ST.d1)while(i1>0&&D[i1]>ST.d1)i1--;
-        var useVs=ST.ex.indexOf('vs')>=0,useDs=ST.ex.indexOf('ds')>=0,useMa=ST.ex.indexOf('ma')>=0,useBu=ST.ex.indexOf('bu')>=0;
-        function pc(x){var c=0;x&=mask;while(x){c+=x&1;x>>=1;}return c;}
-        Object.keys(H.s).forEach(function(sym){var S=H.s[sym],a=S.a,n=S.c.length,c=S.c,f=S.f,busy=-1;
-          for(var i=0;i<n-1;i++){var di=a+i;if(i<=busy||di+1<i0||di+1>i1)continue;
-            if(ST.lq&&!((f[i]>>11)&1))continue;if(ST.rs&&S.r[i]<ST.rs)continue;
-            if(sgb.length){var acc=0;for(var q=0;q<=ST.w&&i-q>=0;q++)acc|=f[i-q];if(pc(acc)<need)continue;}
-            var z=H.z[di+1];if(ST.z.indexOf(z)<0&&!(z===0&&ST.z.length===4))continue;
-            var e=i+1,pe=c[e],x=-1,why='Hết hạn giữ';
-            for(var k=e+1;k<n&&k<=e+ST.mh;k++){if(k<e+2)continue;var ret=(c[k]/pe-1)*100;
+      /* ---------- mô phỏng ---------- */
+      function simulate(buyIds,opt){
+        var D0=M.d,tr=[],i0=0,i1=D0.length-1;while(i0<D0.length&&D0[i0]<ST.d0)i0++;if(ST.d1)while(i1>0&&D0[i1]>ST.d1)i1--;
+        var need=Math.min(ST.k,buyIds.length||1),syms=ST.sym?[ST.sym]:Object.keys(SY);
+        syms.forEach(function(sym){var D=dOf(sym);if(!D)return;var n=D.c.length,a=D.a,c=D.c;
+          var S=buyIds.map(function(id){return sig(sym,id,ST.P[id]);});
+          var cnt=null;if(S.length>1){cnt=new Uint8Array(n);S.forEach(function(s){var last=-99;for(var i=0;i<n;i++){if(s.b[i])last=i;if(i-last<=ST.w)cnt[i]++;}});}
+          var ex=new Uint8Array(n),sas=[];
+          function addSell(s){if(s.sa){sas.push(s.sa);return;}if(s.s)for(var i=0;i<n;i++)if(s.s[i])ex[i]=1;}
+          if(opt.au)S.forEach(addSell);
+          (opt.xs||[]).forEach(function(id){addSell(sig(sym,id,ST.P[id]));});
+          var mA=ST.ma>0?aux(D,'ma'+ST.ma,function(){return TH.ta.sma(c,ST.ma);}):null,m20=(ST.m20||ST.bu)?aux(D,'ma20',function(){return TH.ta.sma(c,20);}):null,bu=ST.bu?aux(D,'bu',function(){var s=TH.ta.stdev(c,20);return m20.map(function(x,i){return x+2*s[i];});}):null;
+          var at=ST.atr>0?aux(D,'atr22',function(){return TH.ta.atr(D.h,D.l,c,22);}):null,m200=ST.m200?aux(D,'ma200',function(){return TH.ta.sma(c,200);}):null;
+          var busy=-1;
+          for(var i=1;i<n-1;i++){
+            if(i<=busy)continue;var gi=a+i;if(gi+1<i0||gi+1>i1)continue;
+            if(cnt){if(cnt[i]<need)continue;}else if(!S[0].b[i])continue;
+            if(ST.lq&&!(D.g20[i]>=ST.lq))continue;if(ST.rs&&!(D.r60[i]>=ST.rs))continue;if(ST.rsd&&!(D.rsd[i]>=ST.rsd))continue;if(m200&&!(c[i]>m200[i]))continue;
+            var z=M.z[gi+1];if(ST.z.length<4&&ST.z.indexOf(z)<0)continue;
+            var e=i+1,pe=c[e],x=-1,why='Hết hạn giữ',pk=pe;
+            for(var k=e+1;k<n&&k<=e+ST.mh;k++){var ck=c[k];if(ck>pk&&k>e)pk=Math.max(pk,ck);if(k<e+2)continue;var ret=(ck/pe-1)*100;
               if(ST.sl&&ret<=-ST.sl){x=k;why='Cắt lỗ';break;}
               if(ST.tp&&ret>=ST.tp){x=k;why='Chốt lời';break;}
-              if(useVs&&((f[k]>>9)&1)){x=k;why='VN Timing SELL';break;}
-              if(useDs&&((f[k]>>10)&1)){x=k;why='Dragon SÚT';break;}
-              if(useMa&&S.m[k]>0){x=k;why='Dưới MA20';break;}
-              if(useBu&&S.u[k]<0){x=k;why='Trên dải BB';break;}
+              if(ST.tr&&(ck/pk-1)*100<=-ST.tr){x=k;why='Dừng lỗ di động';break;}
+              if(at&&ck<pk-ST.atr*at[k]){x=k;why='Dừng theo ATR';break;}
+              if(ex[k]){x=k;why='Tín hiệu bán';break;}
+              var hit=false;for(var q=0;q<sas.length;q++)if(sas[q](k,e)){hit=true;break;}if(hit){x=k;why='Tín hiệu bán';break;}
+              if(mA&&ck<mA[k]){x=k;why='Dưới MA'+ST.ma;break;}
+              if(ST.m20&&ck>=m20[k]){x=k;why='Về MA20';break;}
+              if(bu&&ck>bu[k]){x=k;why='Trên dải BB';break;}
               if(ST.n&&k-e>=ST.n){x=k;why='Hết '+ST.n+' phiên';break;}}
-            if(x<0){x=Math.min(n-1,e+ST.mh);why='Hết hạn giữ';}
-            busy=x;tr.push({s:sym,e:a+e,x:a+x,h:x-e,r:(c[x]/pe-1)*100-ST.fee,why:why,z:z,y:D[a+e].slice(0,4)});}});
-        var o=agg(tr);$('bt-out').hidden=false;
-        $('bt-t').textContent='Chạy '+tr.length.toLocaleString('vi-VN')+' lệnh trong '+Math.round(performance.now()-t0)+' ms.';
-        if(!tr.length){$('bt-kp').textContent='Không có lệnh nào thỏa điều kiện.';return;}
-        var fm=function(x,s){return (s&&x>0?'+':'')+x.toLocaleString('vi-VN',{maximumFractionDigits:2,minimumFractionDigits:2});};
-        $('bt-d').textContent='Mua: '+(sgb.length?ST.sg.map(function(k){return SG.filter(function(x){return x[0]===k;})[0][2];}).join(' · ')+(sgb.length>1?' (đúng ít nhất '+need+')':''):'mọi mã đủ điều kiện lọc')+'. Bán: '+(ST.ex.length?EXS.filter(function(x){return ST.ex.indexOf(x[0])>=0;}).map(function(x){return x[1];}).join(', '):'không có chỉ báo bán')+(ST.sl?', cắt lỗ −'+ST.sl+'%':'')+(ST.tp?', chốt lời +'+ST.tp+'%':'')+(ST.n?', sau '+ST.n+' phiên':'')+', giữ tối đa '+ST.mh+' phiên.';
+            if(x<0){x=Math.min(n-1,e+ST.mh);why=x===n-1&&x<e+ST.mh?'Đang giữ (chưa bán)':'Hết hạn giữ';}
+            busy=x;tr.push({s:sym,e:a+e,x:a+x,h:x-e,r:(c[x]/pe-1)*100-ST.fee,why:why,z:z,y:D0[a+e].slice(0,4)});}
+        });
+        return tr;
+      }
+      function row(tb,lab,q){var tr2=el('tr');function td(t,c,col){var e=el('td',c||'',t);if(col)e.style.color=col;tr2.appendChild(e);return e;}if(lab.nodeType)tr2.appendChild(lab);else td(lab);if(!q.n){td('0','num');for(var i=0;i<4;i++)td('—','num');}else{td(q.n.toLocaleString('vi-VN'),'num');td(q.w.toFixed(1)+'%','num');td(fm(q.a,1)+'%','num',q.a>0?'var(--color-ok)':'var(--color-bad)');td(fm(q.m,1)+'%','num',q.m>0?'var(--color-ok)':'var(--color-bad)');td(q.pf==null?'—':q.pf.toFixed(2),'num');}tb.appendChild(tr2);return tr2;}
+      function symBtn(s){var b=el('button','bt-sym',s);b.type='button';b.title='Mở đồ thị '+s;b.addEventListener('click',function(){if(window.atlOpenChart)window.atlOpenChart(s);});return b;}
+      function show(tr){
+        var D0=M.d,o=agg(tr);$('bt-out').hidden=false;
+        if(!tr.length){$('bt-kp').textContent='Không có lệnh nào thỏa điều kiện.';$('bt-d').textContent='';return;}
+        var ex=[];if(ST.au)ex.push('theo tác giả');ST.xs.forEach(function(id){ex.push('bán của '+nameOf(id));});if(ST.sl)ex.push('cắt lỗ −'+ST.sl+'%');if(ST.tp)ex.push('chốt lời +'+ST.tp+'%');if(ST.tr)ex.push('dừng di động −'+ST.tr+'%');if(ST.atr)ex.push(ST.atr+'×ATR');if(ST.n)ex.push('sau '+ST.n+' phiên');if(ST.ma)ex.push('dưới MA'+ST.ma);if(ST.m20)ex.push('về MA20');if(ST.bu)ex.push('trên dải BB');ex.push('giữ tối đa '+ST.mh+' phiên');
+        $('bt-d').textContent='Mua: '+ST.sg.map(nameOf).join(' · ')+(ST.sg.length>1?' (đúng ít nhất '+Math.min(ST.k,ST.sg.length)+')':'')+(ST.sym?' · mã '+ST.sym:'')+'. Bán: '+ex.join(', ')+'.';
         var K=[['Số lệnh',o.n.toLocaleString('vi-VN')],['Tỷ lệ thắng',o.w.toFixed(1)+'%'],['Lãi TB/lệnh (sau phí)',fm(o.a,1)+'%'],['Trung vị',fm(o.m,1)+'%'],['Profit factor',o.pf==null?'—':o.pf.toFixed(2)],['Giữ TB',o.h.toFixed(1)+' phiên'],['Bị cắt lỗ',o.sl.toFixed(1)+'% lệnh'],['Lệnh tệ nhất',fm(o.wo,1)+'%']];
-        var kb=$('bt-kp');kb.textContent='';K.forEach(function(k){var d=document.createElement('div');d.className='bt-k';var s=document.createElement('small');s.textContent=k[0];var b=document.createElement('b');b.textContent=k[1];d.appendChild(s);d.appendChild(b);kb.appendChild(d);});
-        function row(tb,lab,q){var tr2=document.createElement('tr');function td(t,c,col){var e=document.createElement('td');e.textContent=t;if(c)e.className=c;if(col)e.style.color=col;tr2.appendChild(e);}td(lab);if(!q.n){td('0','num');for(var i=0;i<4;i++)td('—','num');}else{td(q.n.toLocaleString('vi-VN'),'num');td(q.w.toFixed(1)+'%','num');td(fm(q.a,1)+'%','num',q.a>0?'var(--color-ok)':'var(--color-bad)');td(fm(q.m,1)+'%','num',q.m>0?'var(--color-ok)':'var(--color-bad)');td(q.pf==null?'—':q.pf.toFixed(2),'num');}tb.appendChild(tr2);}
+        var kb=$('bt-kp');kb.textContent='';K.forEach(function(k){var d=el('div','bt-k');d.appendChild(el('small',null,k[0]));d.appendChild(el('b',null,k[1]));kb.appendChild(d);});
         var zt=$('bt-zt').tBodies[0];zt.textContent='';[1,2,3,4].forEach(function(k){row(zt,ZN[k],agg(tr.filter(function(x){return x.z===k;})));});
         var yt=$('bt-yt').tBodies[0];yt.textContent='';var ys=[];tr.forEach(function(x){if(ys.indexOf(x.y)<0)ys.push(x.y);});ys.sort().forEach(function(y){row(yt,y,agg(tr.filter(function(x){return x.y===y;})));});
-        var by=tr.slice().sort(function(a,b){return b.r-a.r;}),tl=$('bt-tl').tBodies[0];tl.textContent='';
-        by.slice(0,10).concat(by.slice(-10)).forEach(function(x){var r=document.createElement('tr');[x.s,D[x.e],D[x.x],x.h,fm(x.r,1)+'%',x.why].forEach(function(v,i){var e=document.createElement('td');e.textContent=v;if(i===3||i===4)e.className='num';if(i===4)e.style.color=x.r>0?'var(--color-ok)':'var(--color-bad)';r.appendChild(e);});tl.appendChild(r);});
-        /* đường lãi lũy kế */
+        var tl=$('bt-tl').tBodies[0];tl.textContent='';var L;
+        if(ST.sym){L=tr.slice().sort(function(a,b){return b.e-a.e;});$('bt-tlh').textContent='Tất cả lệnh của '+ST.sym+' (mới nhất trước)';}
+        else{var by=tr.slice().sort(function(a,b){return b.r-a.r;});L=by.slice(0,10).concat(by.length>10?by.slice(-10):[]);$('bt-tlh').textContent='10 lệnh tốt nhất và 10 lệnh tệ nhất';}
+        L.forEach(function(x){var r=el('tr'),a=el('td');a.appendChild(symBtn(x.s));r.appendChild(a);[D0[x.e],D0[x.x],x.h,fm(x.r,1)+'%',x.why].forEach(function(v,i){var e=el('td',i===2||i===3?'num':'',String(v));if(i===3)e.style.color=x.r>0?'var(--color-ok)':'var(--color-bad)';r.appendChild(e);});tl.appendChild(r);});
         var bd=tr.slice().sort(function(a,b){return a.x-b.x;}),cum=0,pts=[];bd.forEach(function(x){cum+=x.r;pts.push([x.x,cum]);});
-        var xs=pts.map(function(p){return p[0];}),mn=Math.min(0,Math.min.apply(null,pts.map(function(p){return p[1];}))),mx=Math.max(0,Math.max.apply(null,pts.map(function(p){return p[1];}))),x0=xs[0],x1=xs[xs.length-1]||1,sv=$('bt-eq');
+        var mn=Math.min(0,Math.min.apply(null,pts.map(function(p){return p[1];}))),mx=Math.max(0,Math.max.apply(null,pts.map(function(p){return p[1];}))),x0=pts[0][0],x1=pts[pts.length-1][0],sv=$('bt-eq');
         var X=function(v){return 4+(v-x0)/Math.max(1,x1-x0)*792;},Y=function(v){return 143-(v-mn)/Math.max(1e-9,mx-mn)*136;};
-        sv.innerHTML='<line x1="0" x2="800" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="3 3"/><polyline fill="none" stroke="'+(cum>=0?'#2e9e4f':'#c9483b')+'" stroke-width="1.6" vector-effect="non-scaling-stroke" points="'+pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' ')+'"/><text x="6" y="12" font-size="11" fill="currentColor">'+fm(cum,1)+'% tổng cộng</text>';
+        sv.innerHTML='<line x1="0" x2="800" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="3 3"/><polyline fill="none" stroke="'+(cum>=0?'#2e9e4f':'#c9483b')+'" stroke-width="1.6" vector-effect="non-scaling-stroke" points="'+pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' ')+'"/>';
         var w=[];if(o.n<300)w.push('Mẫu nhỏ ('+o.n+' lệnh): kết quả dễ do may rủi.');
-        $('bt-w2').textContent=(w.length?w.join(' ')+' ':'')+'Mua ở giá đóng cửa phiên sau tín hiệu, mỗi mã giữ tối đa 1 vị thế, cắt lỗ/chốt lời tính theo giá đóng cửa nên có thể trượt sâu hơn mức đặt. Danh sách mã là các mã đang niêm yết (thiếu mã đã hủy nên kết quả đẹp hơn thực tế). Các lệnh cùng ngày thường cùng nhịp thị trường nên số lệnh nhiều không đồng nghĩa nhiều mẫu độc lập. Chưa có Khối ngoại vì thiếu dữ liệu từ 2020. Tham khảo, không phải khuyến nghị đầu tư.';
+        $('bt-w2').textContent=(w.length?w.join(' ')+' ':'')+'Mua ở giá đóng cửa phiên sau tín hiệu, mỗi mã giữ tối đa 1 vị thế, mọi mức bán tính theo giá đóng cửa nên có thể trượt sâu hơn mức đặt. Danh sách mã là các mã đang niêm yết (thiếu mã đã hủy nên kết quả đẹp hơn thực tế). Các lệnh cùng ngày thường cùng nhịp thị trường nên số lệnh nhiều không đồng nghĩa nhiều mẫu độc lập. Tham khảo, không phải khuyến nghị đầu tư.';
       }
-      var pb=$('bt-pre');PRE.forEach(function(p){var b=document.createElement('button');b.type='button';b.className='bl-chip';b.textContent=p[0];b.addEventListener('click',function(){var d={sg:[],k:1,w:0,rs:0,lq:1,z:[1,2,3,4],ex:[],sl:7,tp:0,n:0,mh:60,fee:0.3};for(var q in p[1])d[q]=p[1][q];for(var q2 in d)ST[q2]=d[q2];put();if(H)run();});pb.appendChild(b);});
-      $('bt-run').addEventListener('click',function(){if(H)run();});
-      var ld=false;function load(){if(ld)return;ld=true;put();fetch('bt_hist.json').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){H=j;$('bt-d1').max=j.d[j.d.length-1];$('bt-src').textContent='Dữ liệu '+j.d[0]+' → '+j.d[j.d.length-1]+' · '+Object.keys(j.s).length+' mã HOSE. Chọn điều kiện rồi bấm "Chạy backtest": tính ngay trên máy bạn.';run();}).catch(function(){ld=false;$('bt-src').textContent='Chưa tải được dữ liệu backtest.';});}
+      function opt(){return {au:ST.au,xs:ST.xs};}
+      function run(){get();if(!ST.sg.length){$('bt-t').textContent='Chọn ít nhất một chỉ báo mua.';return;}var t0=performance.now();$('bt-t').textContent='Đang tính…';
+        setTimeout(function(){var tr=simulate(ST.sg,opt());$('bt-t').textContent='Chạy '+tr.length.toLocaleString('vi-VN')+' lệnh trong '+Math.round(performance.now()-t0)+' ms.';show(tr);},20);}
+      function runAll(){get();var L=TH.list.filter(function(d){return !NOH[d.id];}),res=[],i=0,t0=performance.now(),k0=ST.k;$('bt-cmpw').hidden=false;
+        if(!ST.au&&!ST.xs.length&&!ST.sl&&!ST.tp&&!ST.tr&&!ST.atr&&!ST.n&&!ST.ma&&!ST.m20&&!ST.bu){$('bt-cmpn').textContent='Hãy đặt ít nhất một điều kiện bán (ngoài "giữ tối đa").';}
+        function step(){if(i>=L.length){ST.k=k0;res.sort(function(a,b){return (b.o.pf||0)-(a.o.pf||0);});var tb=$('bt-cmp').tBodies[0];tb.textContent='';
+            res.forEach(function(r){var o=r.o,tr=el('tr');if(ST.sg.indexOf(r.d.id)>=0)tr.className='on';var a=el('td');var b=el('button','bt-sym',r.d.name);b.type='button';b.title='Chọn chỉ báo này làm điều kiện mua';b.addEventListener('click',function(){ST.sg=[r.d.id];save();drawSg();drawPs();run();});a.appendChild(b);tr.appendChild(a);
+              function td(t,col){var e=el('td','num',t);if(col)e.style.color=col;tr.appendChild(e);}
+              if(!o.n){td('0');for(var j=0;j<7;j++)td('—');}else{td(o.n.toLocaleString('vi-VN'));td(o.w.toFixed(1)+'%');td(fm(o.a,1)+'%',o.a>0?'var(--color-ok)':'var(--color-bad)');td(fm(o.m,1)+'%',o.m>0?'var(--color-ok)':'var(--color-bad)');td(o.pf==null?'—':o.pf.toFixed(2));td(r.p23==null?'—':r.p23.toFixed(2));td(String(r.ly)+'/'+r.ny);td(o.h.toFixed(1));}
+              tb.appendChild(tr);});
+            $('bt-cmpn').textContent='Mỗi dòng: chỉ dùng một chỉ báo để mua (thông số của bạn hoặc mặc định), cùng điều kiện bán và bộ lọc đang chọn'+(ST.au?' (đang bật "bán theo tác giả": mỗi chỉ báo bán theo cách riêng của nó, nên chưa phải so sánh cùng cách bán)':'')+'. Xếp theo PF. "PF 2023+" là PF từ 2023 đến nay, "Năm lỗ" là số năm có lãi TB âm. Bấm tên để chạy chi tiết. Tính trong '+Math.round((performance.now()-t0)/1000)+' giây.';
+            return;}
+          var d=L[i++];$('bt-t').textContent='So sánh '+i+'/'+L.length+': '+d.name+'…';ST.k=1;var tr=simulate([d.id],opt());var by={};tr.forEach(function(x){(by[x.y]=by[x.y]||[]).push(x);});var ly=0,ny=0;Object.keys(by).forEach(function(y){ny++;if(agg(by[y]).a<0)ly++;});
+          res.push({d:d,o:agg(tr),p23:agg(tr.filter(function(x){return x.y>='2023';})).pf,ly:ly,ny:ny});setTimeout(step,0);}
+        step();}
+      function load(){
+        if(M||loading)return;loading=true;$('bt-src').textContent='Đang tải lịch sử giá…';
+        window.atlLoadTH(function(){TH=window.ATLTH;if(!TH){$('bt-src').textContent='Không tải được tin-hieu.js.';loading=false;return;}
+          Promise.all([0,1,2,3].map(function(k){return fetch('bt_px_'+k+'.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();});})).then(function(a){
+            M=a[0];SY={};a.slice(1).forEach(function(p){for(var s in p.s)SY[s]=p.s[s];});ST.sg=ST.sg.filter(function(id){return TH.get(id)&&!NOH[id];});if(!ST.sg.length)ST.sg=['vnt'];ST.xs=ST.xs.filter(function(id){return TH.get(id);});
+            $('bt-src').textContent='Dữ liệu '+M.d[0]+' → '+M.d[M.d.length-1]+' · '+Object.keys(SY).length+' mã HOSE (lệnh mua tính từ 2020). Tín hiệu tính ngay trên máy bạn bằng cùng công thức với tab Đồ thị và Bộ lọc.';
+            $('bt-d1').max=M.d[M.d.length-1];put();run();}).catch(function(){loading=false;$('bt-src').textContent='Chưa tải được dữ liệu backtest (bt_px_0…3.json).';});});
+      }
+      var pb=$('bt-pre');PRE.forEach(function(p){var b=el('button','bt-chip',p[0]);b.type='button';b.addEventListener('click',function(){if(!M)return;var d={sg:[],P:{},k:1,w:0,z:[1,2,3,4],au:1,xs:[],sl:7,tp:0,tr:0,atr:0,n:0,ma:0,m20:0,bu:0,mh:60};for(var q in p[1])d[q]=p[1][q];for(var q2 in d)ST[q2]=d[q2];put();run();});pb.appendChild(b);});
+      $('bt-run').addEventListener('click',function(){if(M)run();});
+      $('bt-all').addEventListener('click',function(){if(M)runAll();});
+      $('bt-q').addEventListener('input',function(){if(TH)drawSg();});
+      $('bt-xs').addEventListener('change',function(){var v=$('bt-xs').value;if(v&&ST.xs.indexOf(v)<0){ST.xs.push(v);save();}drawXs();});
+      $('bt-tobl').addEventListener('click',function(){get();if(window.atlBLsetLib)window.atlBLsetLib(ST.sg.slice(),Math.min(ST.k,ST.sg.length));});
+      $('bt-cur').addEventListener('click',function(){var s=window.atlCurSym&&window.atlCurSym();if(s){$('bt-sym').value=s;run();}});
+      setInterval(function(){$('bt-cur').hidden=!(window.atlDocked==='backtest'&&window.atlCurSym);},1000);
+      window.atlBTload=load;
       var t=document.getElementById('tab-backtest');if(t)t.addEventListener('click',load);if(location.hash==='#backtest')load();
     })();
     </script>
@@ -2505,7 +2658,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-seg" id="dthi-rg" role="group" aria-label="Khoảng xem"><button type="button" data-v="60" aria-pressed="false">3T</button><button type="button" data-v="125" aria-pressed="false">6T</button><button type="button" data-v="250" aria-pressed="true">1N</button><button type="button" data-v="0" aria-pressed="false">Tất cả</button></div>
         <div class="atl-seg" id="dthi-ind" hidden role="group" aria-label="Chỉ báo"><button type="button" data-v="ma20" aria-pressed="true">MA20</button><button type="button" data-v="ma50" aria-pressed="true">MA50</button><button type="button" data-v="ma200" aria-pressed="false">MA200</button><button type="button" data-v="bb" aria-pressed="false">Bollinger</button><button type="button" data-v="vol" aria-pressed="true">KL</button><button type="button" data-v="macd" aria-pressed="true">MACD</button><button type="button" data-v="rsi" aria-pressed="false">RSI</button></div>
         <button type="button" class="cb-btn" id="dthi-ex" title="Mở rộng khung trong trang (phím Esc để thoát)">⤢ Mở rộng</button>
-        <button type="button" class="cb-btn" id="dthi-lay" aria-pressed="false" title="Bố cục 3 khung: biểu đồ chính + VN-Index cố định + mã chính theo tuần">▥ 3 khung</button>
+        <div class="atl-seg" id="dthi-lay" role="group" aria-label="Bố cục"><button type="button" data-l="1" aria-pressed="false" title="Chỉ biểu đồ chính">1 khung</button><button type="button" data-l="2" aria-pressed="false" title="2 khung trên dưới: biểu đồ chính + một biểu đồ ngang bên dưới (chọn mã, khung nến, chỉ báo riêng)">2 khung</button><button type="button" data-l="3" aria-pressed="false" title="3 khung: biểu đồ chính + VN-Index + mã chính theo tuần ở bên trái">3 khung</button></div>
         <button type="button" class="cb-btn" id="dthi-grid" aria-pressed="false" title="Bật/tắt lưới ô vuông">▦ Lưới</button>
         <button type="button" class="cb-btn" id="dthi-fs" title="Toàn màn hình (phím Esc để thoát)">⛶ Toàn màn hình</button>
       </div>
@@ -2567,7 +2720,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 <script>
 (function(){
   var dock=document.getElementById('atl-dock'),body=document.getElementById('dk-body'),T=document.getElementById('dk-t'),strip=document.getElementById('dk-strip'),pg=document.getElementById('do-thi');
-  var TABS=[['dong-tien','Thị trường'],['nganh','Ngành & dòng tiền'],['hom-nay','Hôm nay mua gì'],['bo-loc','Bộ lọc']];
+  var TABS=[['dong-tien','Thị trường'],['nganh','Ngành & dòng tiền'],['hom-nay','Hôm nay mua gì'],['bo-loc','Bộ lọc'],['backtest','Backtest']];
   var cur=null,home=null,W=560;
   try{var w0=+localStorage.getItem('atl-dock-w');if(w0>=360&&w0<=1100)W=w0;else W=Math.max(420,Math.min(720,Math.round(innerWidth*0.42)));}catch(e){}
   function fit(){if(!pg)return;if(!cur||innerWidth<=900){pg.style.marginRight='';return;}var at=document.querySelector('.atl'),ar=at?at.getBoundingClientRect().right:innerWidth,left=innerWidth-30-W;pg.style.marginRight=Math.max(0,Math.round(ar-left+10))+'px';}
@@ -2587,10 +2740,12 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     cur=k;window.atlDocked=k;T.textContent=TABS.filter(function(x){return x[0]===k;})[0][1];dock.classList.add('open');setW(W);
     Array.prototype.forEach.call(strip.children,function(b){b.setAttribute('aria-pressed',String(b.dataset.s===k));});
     if(k==='bo-loc'&&window.atlBLload)window.atlBLload();
+    if(k==='backtest'&&window.atlBTload)window.atlBTload();
     body.scrollTop=0;redraw();setTimeout(redraw,250);try{localStorage.setItem('atl-dock',k);}catch(e){}
   }
   TABS.forEach(function(t){var b=document.createElement('button');b.type='button';b.className='dk-tab';b.dataset.s=t[0];b.setAttribute('aria-pressed','false');b.textContent=t[1];b.addEventListener('click',function(){open(t[0]);});strip.appendChild(b);});
   document.getElementById('dk-x').addEventListener('click',undock);
+  window.atlDockOpen=function(k){if(cur!==k)open(k);};
   window.addEventListener('resize',function(){if(cur)fit();});
   document.getElementById('dk-rz').addEventListener('dblclick',function(){setW(Math.max(420,Math.min(720,Math.round(innerWidth*0.42))));redraw();});
   var rz=document.getElementById('dk-rz');
@@ -2607,8 +2762,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var BASE='data/chart/',LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/nen_nay.json',UP='#3f9a62',DN='#c9483b';
     var S={ma:'HAH',tf:'D',rg:250,ind:{ma20:1,ma50:1,ma200:0,bb:0,vol:1,macd:1,rsi:0}};
     try{var sv=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv){S.tf=sv.tf==='W'?'W':(sv.tf==='H'?'H':'D');S.rg=[0,60,125,250].indexOf(+sv.rg)>=0?+sv.rg:250;if(sv.ind)for(var k in S.ind)if(k in sv.ind)S.ind[k]=sv.ind[k]?1:0;if(sv.ma&&/^[A-Z0-9]{2,8}$/.test(sv.ma))S.ma=sv.ma;}}catch(e){}
-    try{var sv2=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv2){S.grid=sv2.grid?1:0;S.lgc=sv2.lgc?1:0;S.lay=sv2.lay===3?3:1;if(sv2.sw>0.15&&sv2.sw<0.65)S.sw=sv2.sw;if(sv2.sh>0.2&&sv2.sh<0.8)S.sh=sv2.sh;if(sv2.m1&&/^[A-Z0-9]{2,8}$/.test(sv2.m1.s||''))S.m1={s:sv2.m1.s,tf:['H','W'].indexOf(sv2.m1.tf)>=0?sv2.m1.tf:'D',ind:sv2.m1.ind||{ma20:1,ma50:1,vol:1},on:sv2.m1.on||{},hid:sv2.m1.hid||{}};if(sv2.m2)S.m2={tf:['H','D'].indexOf(sv2.m2.tf)>=0?sv2.m2.tf:'W',ind:sv2.m2.ind||{ma20:1,ma50:1,vol:1},on:sv2.m2.on||{},hid:sv2.m2.hid||{}};if(sv2.ph&&typeof sv2.ph==='object'){S.ph={};Object.keys(sv2.ph).slice(0,40).forEach(function(k){var v=+sv2.ph[k];if(v>0.2&&v<30)S.ph[k]=v;});}if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
-    S.m1=S.m1||{s:'VNINDEX',tf:'D',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};S.m2=S.m2||{tf:'W',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};
+    try{var sv2=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv2){S.grid=sv2.grid?1:0;S.lgc=sv2.lgc?1:0;S.lay=[1,2,3].indexOf(sv2.lay)>=0?sv2.lay:1;if(sv2.m3)S.m3={s:/^[A-Z0-9]{2,8}$/.test(sv2.m3.s||'')?sv2.m3.s:'',tf:['H','D','W'].indexOf(sv2.m3.tf)>=0?sv2.m3.tf:'D',ind:sv2.m3.ind||{ma20:1,ma50:1,vol:1,macd:1},on:sv2.m3.on||{},hid:sv2.m3.hid||{},h:sv2.m3.h>200&&sv2.m3.h<1400?sv2.m3.h:420,lgc:sv2.m3.lgc};if(sv2.sw>0.15&&sv2.sw<0.65)S.sw=sv2.sw;if(sv2.sh>0.2&&sv2.sh<0.8)S.sh=sv2.sh;if(sv2.m1&&/^[A-Z0-9]{2,8}$/.test(sv2.m1.s||''))S.m1={s:sv2.m1.s,tf:['H','W'].indexOf(sv2.m1.tf)>=0?sv2.m1.tf:'D',ind:sv2.m1.ind||{ma20:1,ma50:1,vol:1},on:sv2.m1.on||{},hid:sv2.m1.hid||{}};if(sv2.m2)S.m2={tf:['H','D'].indexOf(sv2.m2.tf)>=0?sv2.m2.tf:'W',ind:sv2.m2.ind||{ma20:1,ma50:1,vol:1},on:sv2.m2.on||{},hid:sv2.m2.hid||{}};if(sv2.ph&&typeof sv2.ph==='object'){S.ph={};Object.keys(sv2.ph).slice(0,40).forEach(function(k){var v=+sv2.ph[k];if(v>0.2&&v<30)S.ph[k]=v;});}if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
+    S.m1=S.m1||{s:'VNINDEX',tf:'D',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};S.m2=S.m2||{tf:'W',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};S.m3=S.m3||{s:'',tf:'D',ind:{ma20:1,ma50:1,vol:1,macd:1},on:{},hid:{},h:420};
     function save(){try{localStorage.setItem('atl-dthi',JSON.stringify(S));}catch(e){}}
     function $(i){return document.getElementById(i);}
     /* ---- chỉ báo ATL (chi-bao.js): chỉ báo mẫu + mã người dùng soạn, lưu trên trình duyệt này ---- */
@@ -2618,10 +2773,10 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     function cbmsg(t,er){var m=$('cb-msg');m.textContent=t||'';m.className=er?'er':'';}
     function loadCBjs(cb){
       if(window.ATLCB)return cb();cbq.push(cb);if(cbState===1)return;cbState=1;
-      var s=document.createElement('script');s.src='chi-bao.js';
+      window.atlLoadTH(function(){var s=document.createElement('script');s.src='chi-bao.js';
       s.onload=function(){cbState=0;var q=cbq;cbq=[];q.forEach(function(f){f();});};
       s.onerror=function(){cbState=2;cbq=[];cbmsg('Không tải được chi-bao.js. Tải lại trang (Ctrl+F5) rồi thử lại.',1);};
-      document.head.appendChild(s);}
+      document.head.appendChild(s);});}
     function inds(){return (window.ATLCB?ATLCB.presets:[]).concat(CB.user);}
     var wldS=0;
     function loadWorld(){if(wldS)return;wldS=1;fetch(BASE+'_macro.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){ATLCB.setWorld(j);rebuild();}).catch(function(){wldS=2;cbmsg('Chưa có dữ liệu thế giới (SPX, VIX, DXY…) cho chỉ báo Macro: chạy "Cập nhật số liệu hằng ngày" một lần để pipeline tạo file.',1);});}
@@ -2715,14 +2870,18 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var bs=BI.filter(function(z){return !q||z[1].toLowerCase().indexOf(q)>=0||z[0].indexOf(q)>=0;});
       if(bs.length){any=true;grp('Chỉ báo cơ bản');bs.forEach(function(z){item(z[1],!!st.ind[z[0]],function(){toggleInd(z[0],true);});});}
       var as=window.ATLCB?inds().filter(function(x){return !q||cbName(x).toLowerCase().indexOf(q)>=0;}):[];
-      if(as.length){any=true;grp('Chỉ báo ATL và của tôi');as.forEach(function(x){item(cbName(x),!!st.on[x.id],function(){toggleInd(x.id,false);});});}
+      var as1=as.filter(function(x){return x.id.indexOf('th_')!==0;}),as2=as.filter(function(x){return x.id.indexOf('th_')===0;});
+      if(as1.length){any=true;grp('Chỉ báo ATL và của tôi');as1.forEach(function(x){item(cbName(x),!!st.on[x.id],function(){toggleInd(x.id,false);});});}
+      if(as2.length){any=true;grp('Chỉ báo phổ biến (có dấu MUA/BÁN, backtest và lọc được)');as2.forEach(function(x){item(cbName(x),!!st.on[x.id],function(){toggleInd(x.id,false);});});}
+      var vt=[['vpvr','Volume Profile vùng đang xem (bật/tắt)'],['vpfr','Volume Profile vùng cố định (bấm 2 điểm trên đồ thị)']].filter(function(z){return !q||z[1].toLowerCase().indexOf(q)>=0||'volume profile'.indexOf(q)>=0;});
+      if(vt.length&&indTarget==='main'){any=true;grp('Công cụ khối lượng theo giá');vt.forEach(function(z){item(z[1],z[0]==='vpvr'&&window.ATLCB&&ATLCB.draw.vpOn(),function(){closeInd();var b=document.querySelector('#dthi-tool [data-t="'+z[0]+'"]');if(b)b.click();});});}
       if(!any){var n=document.createElement('div');n.className='cb-note';n.style.padding='12px';n.textContent='Không tìm thấy chỉ báo nào.';L.appendChild(n);}}
     function toggleInd(k,basic){
       var st=tgtState(indTarget),bag=basic?st.ind:st.on;bag[k]=bag[k]?0:1;
       if(indTarget==='main'){if(basic){[].forEach.call($('dthi-ind').children,function(x){if(x.dataset.v===k)x.setAttribute('aria-pressed',String(!!bag[k]));});save();}else{saveCB();cbRender();}rebuild();}
       else{save();buildMinis(true);}
       indList();}
-    function openInd(t){indTarget=t;$('cb-it').textContent='Chỉ báo'+(t==='main'?'':(t==='m1'?' · khung phụ trên':' · khung phụ dưới'));$('cb-is').value='';$('cb-ind').hidden=false;indList();setTimeout(function(){$('cb-is').focus();},30);}
+    function openInd(t){indTarget=t;$('cb-it').textContent='Chỉ báo'+(t==='main'?'':(t==='m1'?' · khung phụ trên':(t==='m3'?' · khung dưới (2 khung)':' · khung phụ dưới')));$('cb-is').value='';$('cb-ind').hidden=false;indList();setTimeout(function(){$('cb-is').focus();},30);}
     function closeInd(){$('cb-ind').hidden=true;}
     function indInit(){
       $('dthi-indbtn').addEventListener('click',function(){openInd('main');});
@@ -2793,12 +2952,33 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         r.appendChild(lgBtn('del','Gỡ khỏi khung này',delFn));lg.appendChild(r);}
       bk.forEach(function(k){chip(bname(k),MCOL[k],!!cfg.hid[k],k,'b:'+k,function(){cfg.ind[k]=0;save();buildMinis(true);});});
       at.forEach(function(x){chip(cbName(x),null,!!cfg.hid[x.id],x.id,x.id,function(){cfg.on[x.id]=0;save();buildMinis(true);});});}
+    function build2(side){
+      var o={cfg:S.m3,fixed:false,k:'m3'},cfg=S.m3,sym=cfg.s||S.ma;
+      var wrap=document.createElement('div');wrap.className='dthi-mini';var hd=document.createElement('div');hd.className='dthi-mh';
+      var inp=document.createElement('input');inp.value=cfg.s||'';inp.placeholder=S.ma;inp.title='Để trống = theo mã chính';inp.setAttribute('aria-label','Mã khung dưới');
+      inp.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){var v=inp.value.toUpperCase().trim();if(!v||/^[A-Z0-9]{2,8}$/.test(v)){S.m3.s=v;save();buildMinis(true);}}});hd.appendChild(inp);
+      var nt=document.createElement('span');nt.textContent=cfg.s?'':'theo mã chính';hd.appendChild(nt);
+      var sg=document.createElement('span');sg.className='mseg';
+      [['H','Giờ'],['D','Ngày'],['W','Tuần']].forEach(function(z){var bt=document.createElement('button');bt.type='button';bt.textContent=z[1];bt.setAttribute('aria-pressed',String(cfg.tf===z[0]));bt.addEventListener('click',function(){cfg.tf=z[0];save();buildMinis(true);});sg.appendChild(bt);});hd.appendChild(sg);
+      var fx=document.createElement('button');fx.type='button';fx.className='mx';fx.textContent='ƒx';fx.title='Chỉ báo của khung dưới';fx.addEventListener('click',function(){openInd('m3');});hd.appendChild(fx);
+      var ov=document.createElement('span');ov.className='dthi-mo';hd.appendChild(ov);
+      var cb=document.createElement('div');cb.style.position='relative';cb.style.height=(cfg.h||420)+'px';wrap.appendChild(hd);wrap.appendChild(cb);miniLegend(cb,o);
+      var vs=document.createElement('div');vs.className='dthi-vsp';vs.title='Kéo để đổi chiều cao khung dưới';wrap.appendChild(vs);
+      vs.addEventListener('pointerdown',function(e){e.preventDefault();var y0=e.clientY,h0=cb.offsetHeight;vs.classList.add('on');try{vs.setPointerCapture(e.pointerId);}catch(x){}
+        function mv(ev){cb.style.height=Math.max(220,Math.min(1200,h0+ev.clientY-y0))+'px';}
+        function up(){vs.classList.remove('on');vs.removeEventListener('pointermove',mv);vs.removeEventListener('pointerup',up);S.m3.h=cb.offsetHeight;save();}
+        vs.addEventListener('pointermove',mv);vs.addEventListener('pointerup',up);});
+      side.appendChild(wrap);var slot={chart:null};minis.push(slot);
+      miniData(sym,cfg.tf).then(function(d){return miniIdxFor(d,sym,cfg.tf).then(function(ix){return [d,ix];});}).then(function(z){if(minis.indexOf(slot)<0)return;slot.chart=miniChart(cb,sym,cfg,z[0],z[1],ov);}).catch(function(){ov.textContent=cfg.tf==='H'?'Chưa có dữ liệu giờ '+sym:'Không có dữ liệu '+sym;});
+    }
     function buildMinis(force){
       var side=$('dthi-side');if(!side)return;
-      var key=[S.lay,S.ma,JSON.stringify(S.m1),JSON.stringify(S.m2),liveD&&liveD.cap_nhat,$('dthi-box').offsetHeight,S.grid,css('--color-panel'),JSON.stringify(CB.on)+JSON.stringify(CB.hid)+JSON.stringify(CB.set)+JSON.stringify(CB.sty)].join('|');
+      var key=[S.lay,S.ma,JSON.stringify(S.m1),JSON.stringify(S.m2),JSON.stringify(S.m3),liveD&&liveD.cap_nhat,$('dthi-box').offsetHeight,S.grid,css('--color-panel'),JSON.stringify(CB.on)+JSON.stringify(CB.hid)+JSON.stringify(CB.set)+JSON.stringify(CB.sty)].join('|');
       if(!force&&key===miniKey)return;miniKey=key;
       minis.forEach(function(m){try{m.chart.remove();}catch(e){}});minis=[];side.textContent='';
-      side.hidden=S.lay!==3;if($('dthi-sp'))$('dthi-sp').hidden=S.lay!==3;spInit();if(S.lay!==3||!window.LightweightCharts)return;
+      var wrp=$('dthi-wrap');if(wrp)wrp.classList.toggle('lay2',S.lay===2);
+      side.hidden=S.lay===1;if($('dthi-sp'))$('dthi-sp').hidden=S.lay!==3;spInit();if(S.lay===1||!window.LightweightCharts)return;
+      if(S.lay===2){side.style.flexBasis='100%';build2(side);return;}
       var HH=Math.max(260,$('dthi-box').offsetHeight),sh=S.sh||0.5,hh1=Math.floor((HH-7)*sh),hh2=HH-7-hh1,sp=$('dthi-sp');side.style.flexBasis=((S.sw||0.34)*100)+'%';if(sp)sp.hidden=false;var cbs=[];
       [{cfg:S.m1,fixed:false,k:'m1'},{cfg:S.m2,fixed:true,k:'m2'}].forEach(function(o){
         var wrap=document.createElement('div');wrap.className='dthi-mini';var hd=document.createElement('div');hd.className='dthi-mh';
@@ -2912,7 +3092,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       if(window.scrollTo&&S.ex)st.scrollTop=0;}
     function toolsInit(){
       $('dthi-ex').addEventListener('click',function(){setEx(!S.ex);});
-      var lb=$('dthi-lay');lb.setAttribute('aria-pressed',String(S.lay===3));lb.addEventListener('click',function(){S.lay=S.lay===3?1:3;lb.setAttribute('aria-pressed',String(S.lay===3));save();buildMinis(true);});
+      var lb=$('dthi-lay');function lbs(){[].forEach.call(lb.children,function(b){b.setAttribute('aria-pressed',String(+b.dataset.l===S.lay));});}lbs();[].forEach.call(lb.children,function(b){b.addEventListener('click',function(){S.lay=+b.dataset.l;lbs();save();buildMinis(true);});});
       var gb=$('dthi-grid');gb.setAttribute('aria-pressed',String(!!S.grid));gb.addEventListener('click',function(){S.grid=S.grid?0:1;gb.setAttribute('aria-pressed',String(!!S.grid));save();if(raw)build();});
       $('dthi-fs').addEventListener('click',function(){
         var st=$('dthi-stage');
@@ -3116,6 +3296,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       if(!timer)timer=setInterval(tick,60000);
       loadSym(S.ma);}
     window.atlDrawCH=function(){if(window.atlTab!=='do-thi')return;if(!ready)init();else if(raw&&!chart)prep(build);else tick();};
+    window.atlCurSym=function(){return S.ma;};
     window.atlOpenChart=function(m){if(window.atlShow)window.atlShow('do-thi');if(window.dash&&dash.setLink)dash.setLink('do-thi');if(!ready)init();if(m&&m.toUpperCase()!==S.ma)loadSym(m);};
     var lk=$('hs-do-thi');if(lk)lk.addEventListener('click',function(){var m=($('hs-ma').textContent||'').trim();if(/^[A-Z0-9]{2,8}$/.test(m))window.atlOpenChart(m);});
   })();
