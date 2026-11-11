@@ -151,7 +151,7 @@
     var c = {
       n: n, time: d.t, open: d.o, high: d.h, low: d.l, close: d.c, volume: d.v,
       o: d.o, h: d.h, l: d.l, c: d.c, v: d.v, ta: ta, NA: NA, isna: isna, rgba: rgba,
-      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out, tf: d.tf || 'D', hr: d.hr || null, daily: DK ? DK.w : null, indexDaily: null, wmap: WK.map, wlast: WK.last, tk: d.k || d.t
+      weekly: WK.w, index: idx ? { close: idx.c } : null, indexW: null, _out: out, tf: d.tf || 'D', hr: d.hr || null, x: d.x || null, sym: d.sym || '', daily: DK ? DK.w : null, indexDaily: null, wmap: WK.map, wlast: WK.last, tk: d.k || d.t
     };
     if (idx) {
       var ic = [], seen = -1;
@@ -591,6 +591,82 @@
     c.hline(5, { color: '#c0c0c0' }); c.hline(10, { color: '#ff00ff' }); c.hline(15, { color: '#c0c0c0' });
   }
 
+
+  /* ================= chỉ báo dữ liệu phụ: RS điểm 1–99, GTGD, khối ngoại, P/E, P/B (dữ liệu: data/chart/x/<MÃ>.json) ================= */
+  function RSD(c) {
+    var NA = c.NA, isna = c.isna, n = c.n;
+    var MODE = c.input('Cách tính (1 = 3-6-9-12 tháng kiểu IBD/FireAnt, 2 = 60 phiên như bộ lọc)', 1, { min: 1, max: 2, step: 1 });
+    var TH = c.input('Ngưỡng mạnh', 70, { min: 1, max: 99, step: 1, group: 'Mức' });
+    var WKN = c.input('Ngưỡng yếu', 30, { min: 1, max: 99, step: 1, group: 'Mức' });
+    var SM = c.input('Đường TB (nến)', 5, { min: 1, max: 60, step: 1 });
+    if (!c.x) throw new Error('Chưa có dữ liệu điểm RS của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
+    var rs = MODE === 2 ? c.x.r60 : c.x.rs, cols = new Array(n), i;
+    for (i = 0; i < n; i++) { var v = rs[i]; cols[i] = isna(v) ? null : v >= TH ? '#00e676' : v <= WKN ? '#ff5252' : '#90a4ae'; }
+    c.plot('RS điểm', rs, { color: '#90a4ae', colors: cols, width: 2 });
+    c.plot('TB RS', c.ta.sma(rs, SM), { color: '#e0e0e0', width: 1 });
+    c.hline(TH, { color: '#00e676', dash: true }); c.hline(50, { color: '#787b86', dash: true }); c.hline(WKN, { color: '#ff5252', dash: true });
+    for (i = 1; i < n; i++) {
+      if (isna(rs[i]) || isna(rs[i - 1])) continue;
+      if (rs[i] >= TH && rs[i - 1] < TH) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#00e676', text: '' });
+      if (rs[i] < TH && rs[i - 1] >= TH) c.mark(i, { loc: 'top', kind: 'triDown', color: '#ff5252', text: '' });
+    }
+  }
+
+  function GTGD(c) {
+    var n = c.n, NA = c.NA, isna = c.isna;
+    var L = c.input('Đường MA (nến)', 20, { min: 2, max: 200, step: 1 });
+    if (c.sym === 'VNINDEX') throw new Error('Giá trị giao dịch chỉ dùng cho cổ phiếu.');
+    var g = new Array(n), cols = new Array(n), i;
+    for (i = 0; i < n; i++) {
+      var v = c.x && !isna(c.x.gt[i]) ? c.x.gt[i] : c.close[i] * c.volume[i] / 1e6;
+      g[i] = isna(v) ? NA : Math.round(v * 10) / 10;
+      cols[i] = c.close[i] >= c.open[i] ? '#26a69acc' : '#ef5350cc';
+    }
+    c.plot('GTGD (tỷ)', g, { style: 'hist', color: '#26a69a', colors: cols });
+    c.plot('MA GTGD', c.ta.sma(g, L), { color: '#ffb300', width: 1 });
+  }
+
+  function NN(c) {
+    var n = c.n, isna = c.isna;
+    var L = c.input('Đường TB (nến)', 10, { min: 2, max: 100, step: 1 });
+    if (!c.x) throw new Error('Chưa có dữ liệu khối ngoại của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
+    var nn = c.x.nn, cols = new Array(n), i;
+    for (i = 0; i < n; i++) cols[i] = isna(nn[i]) ? null : nn[i] >= 0 ? '#26a69acc' : '#ef5350cc';
+    c.plot('NN mua bán ròng (tỷ)', nn, { style: 'hist', color: '#26a69a', colors: cols });
+    c.plot('TB NN ròng', c.ta.sma(nn, L), { color: '#ffb300', width: 1 });
+    c.hline(0, { color: 'rgba(120,123,134,.8)' });
+  }
+
+  function PE(c) {
+    var n = c.n, NA = c.NA, isna = c.isna;
+    var K = c.input('Dải ± độ lệch chuẩn (0 = ẩn)', 1, { min: 0, max: 3, step: 0.5 });
+    if (!c.x) throw new Error('Chưa có dữ liệu P/E của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
+    var v = c.x.pe, s = 0, q = 0, k = 0, i;
+    for (i = 0; i < n; i++) if (!isna(v[i])) { s += v[i]; k++; }
+    var m = k ? s / k : NA;
+    for (i = 0; i < n; i++) if (!isna(v[i])) q += (v[i] - m) * (v[i] - m);
+    var sd = k ? Math.sqrt(q / k) : NA, mid = [], up = [], lo = [];
+    for (i = 0; i < n; i++) { mid.push(m); up.push(m + K * sd); lo.push(m - K * sd); }
+    c.plot('P/E', v, { color: '#42a5f5', width: 2 });
+    c.plot('P/E trung bình', mid, { color: '#ffb300', width: 1 });
+    if (K > 0) { c.plot('P/E +σ', up, { color: '#ef5350', width: 1, style: 'dotted' }); c.plot('P/E −σ', lo, { color: '#26a69a', width: 1, style: 'dotted' }); }
+  }
+
+  function PB(c) {
+    var n = c.n, NA = c.NA, isna = c.isna;
+    var K = c.input('Dải ± độ lệch chuẩn (0 = ẩn)', 1, { min: 0, max: 3, step: 0.5 });
+    if (!c.x) throw new Error('Chưa có dữ liệu P/B của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
+    var v = c.x.pb, s = 0, q = 0, k = 0, i;
+    for (i = 0; i < n; i++) if (!isna(v[i])) { s += v[i]; k++; }
+    var m = k ? s / k : NA;
+    for (i = 0; i < n; i++) if (!isna(v[i])) q += (v[i] - m) * (v[i] - m);
+    var sd = k ? Math.sqrt(q / k) : NA, mid = [], up = [], lo = [];
+    for (i = 0; i < n; i++) { mid.push(m); up.push(m + K * sd); lo.push(m - K * sd); }
+    c.plot('P/B', v, { color: '#ab47bc', width: 2 });
+    c.plot('P/B trung bình', mid, { color: '#ffb300', width: 1 });
+    if (K > 0) { c.plot('P/B +σ', up, { color: '#ef5350', width: 1, style: 'dotted' }); c.plot('P/B −σ', lo, { color: '#26a69a', width: 1, style: 'dotted' }); }
+  }
+
   /* ================= đăng ký, mã nguồn, chạy ================= */
   function body(fn) {
     var s = String(fn), a = s.indexOf('{'), b = s.lastIndexOf('}'), t = s.slice(a + 1, b).replace(/^\n/, '').replace(/\s+$/, '');
@@ -605,6 +681,11 @@
     { id: 'dmi', name: 'DMI', pane: 'sub', code: '//@pane sub\n//@name DMI\n' + body(DMI) },
     { id: 'mcdx', name: 'MCDX', pane: 'sub', code: '//@pane sub\n//@name MCDX\n' + body(MCDX) },
     { id: 'rsvn', name: 'RS VN', pane: 'sub', code: '//@pane sub\n//@name Relative Strength VN\n' + body(RSVN) },
+    { id: 'rsd', name: 'RS ĐIỂM (1–99)', pane: 'sub', code: '//@pane sub\n//@name RS ĐIỂM (1–99)\n' + body(RSD) },
+    { id: 'gtgd', name: 'GIÁ TRỊ GIAO DỊCH', pane: 'sub', code: '//@pane sub\n//@name GIÁ TRỊ GIAO DỊCH\n' + body(GTGD) },
+    { id: 'nn', name: 'KHỐI NGOẠI', pane: 'sub', code: '//@pane sub\n//@name KHỐI NGOẠI\n' + body(NN) },
+    { id: 'pe', name: 'P/E', pane: 'sub', code: '//@pane sub\n//@name P/E\n' + body(PE) },
+    { id: 'pb', name: 'P/B', pane: 'sub', code: '//@pane sub\n//@name P/B\n' + body(PB) },
     { id: 'wmr', name: 'WORLD MACRO', pane: 'sub', code: '//@pane sub\n//@name WORLD MACRO RISK\n//@world\n' + body(WMR) },
     { id: 'vmr', name: 'VN MACRO', pane: 'sub', code: '//@pane sub\n//@name VIETNAM MACRO RISK\n//@world\n' + body(VMR) }
   ];
@@ -787,7 +868,7 @@
               var td = document.createElement(ri === 0 && T.rows[0][0] === 'TF' ? 'th' : 'td'), txt, bg = null;
               if (cell && typeof cell === 'object') { txt = cell[0]; bg = cell[1]; } else txt = cell;
               td.textContent = txt == null ? '' : String(txt);
-              if (bg) td.style.background = bg;
+              if (bg) { td.style.background = bg; td.style.color = '#fff'; }
               if (ci === 0) td.className = 'cb-k';
               tr.appendChild(td);
             });
