@@ -32,6 +32,8 @@ python3 gia_hose.py || echo "gia_hose.py lỗi, bỏ qua"
 python3 hieu_suat_thang.py || echo "hieu_suat_thang.py lỗi, bỏ qua"
 # hiệu suất ngành so với VN-Index (lỗi không làm dừng pipeline)
 python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
+# dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
+python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # thị trường thế giới: chỉ số, hàng hóa, bitcoin (lỗi không làm dừng pipeline)
 python3 the_gioi.py || echo "the_gioi.py lỗi, bỏ qua"
 # danh mục mô phỏng ATL (vốn 1 tỷ, theo tín hiệu trong nhật ký; lỗi không làm dừng pipeline)
@@ -39,10 +41,10 @@ python3 mo_phong.py || echo "mo_phong.py lỗi, bỏ qua"
 python3 long_dau_mo_phong.py || echo "long_dau_mo_phong.py lỗi, bỏ qua"
 # cấu trúc thị trường (% mã trên MA) và ngành chuyển pha (lỗi không làm dừng pipeline)
 python3 cau_truc.py || echo "cau_truc.py lỗi, bỏ qua"
-# dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
-python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # sang thư mục trang (co_ban.json cập nhật riêng theo quý nên không bị ghi đè)
 cp dash_out/*.json ../site/data/
+# bộ lọc chỉ báo cho tab Bộ lọc (chạy đúng mã chỉ báo của trang; lỗi không làm dừng pipeline)
+node bo_loc_ct.js || echo "bo_loc_ct.js lỗi, bỏ qua"
 python3 -c "
 import json,os
 for f in sorted(x for x in os.listdir('../site/data') if x.endswith('.json')):
