@@ -1692,16 +1692,20 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     if(role==='bot'&&lastUser&&lastUser.parentNode===log)log.scrollTop+=lastUser.getBoundingClientRect().top-log.getBoundingClientRect().top-4;// đưa câu hỏi lên đầu khung để đọc từ câu hỏi xuống câu trả lời
     else log.scrollTop=log.scrollHeight;
     return m;}
-  function post(url,headers,body){return fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){return {ok:r.ok,status:r.status,j:j};},function(){return {ok:r.ok,status:r.status,j:null};});});}
+  function post(url,headers,body,ms){// có giới hạn thời gian: quá hạn thì coi như lỗi (status 0) để chuyển sang cách gọi/model kế tiếp thay vì chờ mãi
+    ms=ms||40000;var ac=new AbortController(),tm=setTimeout(function(){ac.abort();},ms),to=function(){return {ok:false,status:0,j:{error:{message:'quá '+Math.round(ms/1000)+' giây không phản hồi'}}};};
+    return fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ac.signal}).then(function(r){return r.json().then(function(j){clearTimeout(tm);return {ok:r.ok,status:r.status,j:j};},function(){clearTimeout(tm);return {ok:r.ok,status:r.status,j:null};});},function(e){clearTimeout(tm);if(ac.signal.aborted)return to();throw e;});}
   function msgs(){return hist.slice(-8);}
+  var toolOffUntil=0;
   function askGemini(key,sys){
     var contents=msgs().map(function(m){return {role:m.role==='user'?'user':'model',parts:[{text:m.text}]};});
-    var i=0,errs=[],rl=false;
+    var i=0,errs=[],rl=false,noTool=Date.now()<toolOffUntil;
     function next(){if(i>=MG.length)return Promise.reject(new Error(rl?'Gemini báo hết hạn mức (429) ở mọi model của khóa này. Thử lại sau ít phút hoặc dùng khóa khác.':(errs.join(' | ')||'Gemini không phản hồi')));
       var mod=MG[i++];
       function call(useTool){var b={systemInstruction:{parts:[{text:sys}]},contents:contents,generationConfig:{temperature:0.4,maxOutputTokens:2500}};if(useTool)b.tools=[{google_search:{}}];
-        return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},b);}
-      return call(true).then(function(r0){return (!r0.ok&&r0.status!==401&&r0.status!==403)?call(false):r0;}).then(function(r){
+        return post('https://generativelanguage.googleapis.com/v1beta/models/'+mod+':generateContent',{'Content-Type':'application/json','x-goog-api-key':key},b,useTool?30000:25000);}
+      return (noTool?call(false):call(true).then(function(r0){if(r0.status===0){noTool=true;toolOffUntil=Date.now()+300000;}// tra web bị treo: các lượt sau của khóa này bỏ qua tra web cho nhanh
+        return (!r0.ok&&r0.status!==401&&r0.status!==403)?call(false):r0;})).then(function(r){
         if(r.ok&&r.j&&r.j.candidates&&r.j.candidates[0]&&r.j.candidates[0].content){var c=r.j.candidates[0],web=[],gm=c.groundingMetadata;((gm&&gm.groundingChunks)||[]).forEach(function(g){var t=g.web&&(g.web.title||g.web.uri);if(t&&web.indexOf(t)<0&&web.length<5)web.push(t);});return {text:c.content.parts.map(function(p){return p.text||'';}).join(''),model:mod,web:web};}
         var em=r.j&&r.j.error&&r.j.error.message||('HTTP '+r.status);errs.push(mod+': '+em);
         if(r.status===401||r.status===403||(r.status===400&&/API key/i.test(em)))return Promise.reject(new Error('Khóa Gemini không hợp lệ hoặc chưa được cấp quyền: '+em));
@@ -1798,7 +1802,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     busy=true;$('ai-send').disabled=true;
     lastUser=addMsg('user',text);hist.push({role:'user',text:text});
     var wait=addMsg('sys','Đang đọc…');
-    var sys='',readNote='';
+    var sys='',readNote='',t0=Date.now(),base='Đang đọc…';
+    var tick=setInterval(function(){var s=Math.round((Date.now()-t0)/1000);if(s>=8&&wait.firstChild)wait.firstChild.textContent=base+' đã chờ '+s+' giây'+(s>=30?' (quá lâu thì tự chuyển sang cách khác, tối đa khoảng 1 phút mỗi model)':'');},1000);
     var tried=[];
     function run(k){
       if(k>=order.length)return Promise.reject(new Error(tried.join(' | ')));
@@ -1811,19 +1816,20 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var lab=function(k){var t=TABS.filter(function(q){return q[0]===k;})[0],b=document.querySelector('.atl-tab[data-sec="'+t[1]+'"]');return b?b.textContent.trim():t[1];};
       if(keys){var nm=keys.map(lab).join(', ');anchorTx=keys.indexOf('hn')<0?headOf('hom-nay',1500):'';
         scopeNote='PHẠM VI ĐỌC LƯỢT NÀY: chỉ tab '+nm+(anchorTx?' (kèm tóm tắt pha thị trường)':'')+'. Các tab khác CHƯA được đọc: không bịa số của chúng. Nếu câu hỏi cần dữ liệu ở tab khác, nói ngắn gọn cần mở tab nào (hoặc chọn "Tất cả tab" trong ô Phạm vi đọc, hoặc gõ "đọc tất cả tab") rồi hỏi lại. Vẫn được tra web theo quy tắc (2).';
-        readNote='Đã đọc: tab '+nm+'.';wait.firstChild.textContent='Đang đọc tab '+nm+'…';}
-      else{anchorTx='';scopeNote='';readNote='Đã đọc cả '+names.length+' tab.';wait.firstChild.textContent='Đang đọc cả '+names.length+' tab…';}
+        readNote='Đã đọc: tab '+nm+'.';base='Đang chờ AI, '+'đã đọc tab '+nm;wait.firstChild.textContent='Đang đọc tab '+nm+'…';}
+      else{anchorTx='';scopeNote='';readNote='Đã đọc cả '+names.length+' tab.';base='Đang chờ AI, đã đọc cả '+names.length+' tab';wait.firstChild.textContent='Đang đọc cả '+names.length+' tab…';}
       ctxT=collect(keys);sys=sysText(LIM_G,ctxT);return compareCtx(text);}).then(function(x){cmpCtx=x||null;sys=sysText(LIM_G,ctxT);return run(0);}).then(function(r){
-      wait.remove();
+      clearInterval(tick);wait.remove();
       var bad=checkNums(r.text,sys),notes=[];
       if(bad.length)notes.push('Số chưa thấy trên trang: '+bad.slice(0,6).join(', ')+' (có thể từ web ngoài hoặc AI tự tính), hãy kiểm tra lại.');
       if(/\[Ngoài trang/i.test(r.text)||(r.web&&r.web.length))notes.push('Có thông tin ngoài trang (web hoặc kiến thức AI), cần kiểm chứng thêm.');
       if(r.web&&r.web.length)notes.push('Nguồn web: '+r.web.join(', ')+'.');
+      if(r.prov==='gemini'&&Date.now()<toolOffUntil)notes.push('Tra web tạm tắt ít phút vì lần trước quá chậm, câu trả lời này chỉ dựa trên số liệu trang.');
       if(r.prov==='claude')notes.push('Đang dùng Claude dự phòng (Gemini hết hạn mức hoặc lỗi): không tra web, chỉ dựa trên số liệu trang.');
       notes.push(readNote+' Do AI tư vấn từ số liệu trên trang ('+PROV[r.prov].n+', '+r.model+'). Chỉ để tham khảo.');
       addMsg('bot',r.text.trim()||'(AI không trả lời)',notes.join(' '));
       hist.push({role:'model',text:r.text});
-    },function(e){wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
+    },function(e){clearInterval(tick);wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
   var CHIPS=['Hôm nay thị trường đang ở pha nào, được mua tối đa bao nhiêu?','Mã này thuộc nhóm nào, dòng tiền ngành đang ra sao?','Tóm tắt kỹ thuật và cơ bản của mã này','Các góc nhìn kỹ thuật đang đồng thuận hay mâu thuẫn?','Tóm tắt phân tích cơ bản','Giải thích các cờ cảnh báo','Vì sao giá trị ước tính ra mức này?','Lợi nhuận quý này tốt thì quý sau cần điều kiện gì?','Chỉ tiêu nào đáng chú ý nhất?','Giải thích biên an toàn và chi phí vốn Ke','Có nên mua mã này lúc này không, mua bao nhiêu, cắt lỗ ở đâu?','Tìm thêm tin tức và sự kiện mới nhất của mã này'];
   function reset(x){cur=x;curAuto=false;updTitle();}
   function boot(){
