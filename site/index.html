@@ -1377,6 +1377,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           .ai-ma label{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
           .ai-ma input{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);text-transform:uppercase;width:7.5rem}
           .ai-ma button{font:inherit;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-fg);color:var(--color-bg);cursor:pointer}
+          .ai-scope{display:flex;align-items:center;gap:8px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:6px 0 0}
+          .ai-scope select{font:inherit;padding:4px 8px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
           .ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
           .ai-chip{font:inherit;font-size:var(--cds-font-size-caption);padding:5px 10px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer;text-align:left}
           .ai-chip:hover{border-color:var(--color-fg-muted)}
@@ -1424,8 +1426,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         </div>
         <div class="atl-card" id="card-hs-ai" hidden>
           <div class="ai-head"><h2 class="atl-h" id="ai-title" style="margin:0">Trợ lý ATL</h2><span><button type="button" id="ai-new" class="ai-mini">Hội thoại mới</button><button type="button" id="ai-close" class="ai-mini" aria-label="Đóng">✕</button></span></div>
-          <p class="dg-note">AI đọc cả 6 tab của trang (Bảng giá, Hôm nay mua gì, Thị trường, Ngành &amp; dòng tiền, Hồ sơ mã, Danh mục) rồi trả lời theo khung 3 lớp. Gõ tên mã (VD: DGW) thì trang tự mở hồ sơ mã đó và AI đọc kèm. Thông tin ngoài trang được gắn thẻ [Ngoài trang, cần kiểm chứng]. Chỉ để tham khảo, quyết định và rủi ro do bạn.</p>
+          <p class="dg-note">Mặc định AI chỉ đọc tab bạn đang xem (kèm tóm tắt pha thị trường) nên trả lời nhanh hơn. Muốn đọc cả 6 tab, chọn ở ô Phạm vi đọc hoặc gõ "đọc tất cả tab"; nhắc tên tab (VD: "tab Ngành") để đọc thêm tab đó. Vẫn tra web khi cần. Gõ tên mã (VD: DGW) thì trang tự mở hồ sơ mã đó và AI đọc kèm. Thông tin ngoài trang được gắn thẻ [Ngoài trang, cần kiểm chứng]. Chỉ để tham khảo, quyết định và rủi ro do bạn.</p>
           <form class="ai-ma" id="ai-ma-form"><label for="ai-ma">Mã cổ phiếu</label><input type="search" id="ai-ma" list="hs-ds" placeholder="VD: DGW" size="7" maxlength="5" autocomplete="off"><button type="submit">Đổi mã</button><span class="dg-note" id="ai-ma-msg" aria-live="polite"></span></form>
+          <label class="ai-scope" for="ai-scope">Phạm vi đọc <select id="ai-scope"><option value="tab">Tab đang xem (nhanh)</option><option value="all">Tất cả 6 tab (chậm hơn)</option></select></label>
           <div class="ai-chips" id="ai-chips"></div>
           <div class="ai-log" id="ai-log" aria-live="polite"></div>
           <form class="ai-form" id="ai-form"><textarea id="ai-in" rows="2" placeholder="Hỏi về thị trường, ngành hoặc một mã (VD: DGW có nên mua?)" maxlength="500"></textarea><button type="submit" id="ai-send">Gửi</button></form>
@@ -1634,14 +1637,26 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     return s.length>lim?s.slice(0,lim)+'\n[đã cắt bớt phần cuối]':s;}
   var TABS=[['tp','trong-phien','BẢNG GIÁ TRONG PHIÊN (VN-Index, độ rộng, trần/sàn, khối ngoại, top tăng giảm, ngành trong phiên; có thể là số giữa phiên, chưa chốt)'],['ho','ho-so','HỒ SƠ MÃ'],['hn','hom-nay','HÔM NAY MUA GÌ (nhiệt kế, tín hiệu bộ lọc, chế độ Trứng rồng)'],['dt','dong-tien','THỊ TRƯỜNG (VN-Index theo mùa, cấu trúc thị trường, thị trường thế giới, theo tháng)'],['ng','nganh','NGÀNH VÀ DÒNG TIỀN (ngành vs VN-Index, bản đồ nhiệt, vòng quay RRG, thanh khoản, long đầu và xếp hạng trong nhóm: long đầu, nhãn giá, tam tài)'],['dm','danh-muc','DANH MỤC MÔ PHỎNG ATL (mã đang giữ, lệnh gần đây)']];
   var LIM_G={tp:5000,ho:16000,hn:6000,dt:5500,ng:12000,dm:4000},LIM_Q={tp:700,ho:3400,hn:1400,dt:600,ng:1500,dm:500};
-  function collect(){// mở lần lượt từng tab (đồng bộ, không kịp vẽ ra màn hình) để các tab đã được dựng nội dung rồi mới đọc
+  function collect(keys){// keys: danh sách tab cần đọc (mặc định tất cả). Tab đang xem đọc thẳng; tab khác mở lần lượt (đồng bộ, không kịp vẽ ra màn hình) để được dựng nội dung rồi mới đọc
     var cur0=window.atlTab||'hom-nay',o={},y=window.pageYOffset||0,bd=document.body,h=document.documentElement.scrollHeight;
+    var need=TABS.filter(function(t){return !keys||keys.indexOf(t[0])>=0;});
+    if(!need.some(function(t){return t[1]!==cur0;})||!window.atlShow){need.forEach(function(t){o[t[0]]=textOf(t[1],30000);});return o;}
     lockSet=true;bd.style.minHeight=h+'px';// giữ nguyên chiều cao trang khi đổi tab tạm thời để trang không bị kéo xuống
-    try{TABS.forEach(function(t){if(window.atlShow)window.atlShow(t[1]);o[t[0]]=textOf(t[1],30000);});}
-    finally{if(window.atlShow)window.atlShow(cur0);lockSet=false;bd.style.minHeight='';window.scrollTo(0,y);}
+    try{need.forEach(function(t){window.atlShow(t[1]);o[t[0]]=textOf(t[1],30000);});}
+    finally{window.atlShow(cur0);lockSet=false;bd.style.minHeight='';window.scrollTo(0,y);}
     return o;}
+  var scopeNote='',anchorTx='';
+  var TABKW={tp:/tab\s+(bảng giá|trong phiên)/i,ho:/tab\s+hồ sơ/i,hn:/tab\s+hôm nay/i,dt:/tab\s+thị trường/i,ng:/tab\s+ngành/i,dm:/tab\s+danh mục/i};
+  function scopeFor(t){// trả về null = đọc tất cả tab, hoặc danh sách tab cần đọc (mặc định chỉ tab đang xem)
+    if(LS.get('atl-ai-scope')==='all'||/(tất cả|toàn bộ|mọi|cả|các)\s+(6\s+|sáu\s+)?tab|đọc (hết|toàn bộ|tất cả)|toàn cảnh/i.test(t))return null;
+    var id=window.atlTab,x=TABS.filter(function(q){return q[1]===id;})[0],k=[x?x[0]:'hn'];
+    Object.keys(TABKW).forEach(function(q){if(TABKW[q].test(t)&&k.indexOf(q)<0)k.push(q);});
+    return k;}
+  function headOf(id,n){var r=document.getElementById(id);return r?textOf(id,n).replace(/\n\[đã cắt bớt phần cuối\]$/,''):'';}
   function sysText(lim,T){T=T||collect();var parts=[RULES,'GIẢI THÍCH THUẬT NGỮ: '+GLOSS];
-    TABS.forEach(function(t){var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
+    if(scopeNote)parts.push(scopeNote);
+    if(anchorTx)parts.push('=== TÓM TẮT PHA THỊ TRƯỜNG (phần đầu tab HÔM NAY MUA GÌ, chỉ để xác định pha và tỷ trọng tối đa) ===\n'+anchorTx);
+    TABS.forEach(function(t){if(!(t[0] in T))return;var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
       parts.push('=== NỘI DUNG TAB '+t[2]+(t[0]==='ho'&&cur?' CỦA MÃ '+cur.ma:'')+' ===\n'+(tx||'(tab này chưa có dữ liệu)'));});
     if(cur)parts.push('SỐ LIỆU 12 QUÝ CỦA '+cur.ma+' (JSON, doanh thu/lợi nhuận: tỷ đồng): '+series(cur));
     if(cmpCtx)parts.push(lim===LIM_Q?cmpCtx.q:cmpCtx.g);
@@ -1782,8 +1797,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     if(!order.length){addMsg('sys','Chưa có khóa API. Mở mục "Cài đặt khóa API" bên dưới, dán khóa Gemini (hoặc Claude, Groq, Mistral) của bạn (khóa chỉ lưu trong trình duyệt này).');$('ai-set').open=true;return;}
     busy=true;$('ai-send').disabled=true;
     lastUser=addMsg('user',text);hist.push({role:'user',text:text});
-    var wait=addMsg('sys','Đang đọc 6 tab (Bảng giá, Hôm nay mua gì, Thị trường, Ngành và dòng tiền, Hồ sơ mã, Danh mục)…');
-    var sys='';
+    var wait=addMsg('sys','Đang đọc…');
+    var sys='',readNote='';
     var tried=[];
     function run(k){
       if(k>=order.length)return Promise.reject(new Error(tried.join(' | ')));
@@ -1791,14 +1806,21 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       if(!key)return run(k+1);
       return PROV[p].f(key,sys).then(function(r){r.prov=p;return r;},function(e){tried.push(PROV[p].n+': '+(e.message==='Failed to fetch'?'không kết nối được (mạng hoặc trình duyệt chặn)':e.message));return run(k+1);});}
     cmpCtx=null;
-    pickCur(text).then(function(){ctxT=collect();sys=sysText(LIM_G,ctxT);return compareCtx(text);}).then(function(x){cmpCtx=x||null;sys=sysText(LIM_G,ctxT);return run(0);}).then(function(r){
+    pickCur(text).then(function(){
+      var keys=scopeFor(text),names=TABS.map(function(t){return t[0];});
+      var lab=function(k){var t=TABS.filter(function(q){return q[0]===k;})[0],b=document.querySelector('.atl-tab[data-sec="'+t[1]+'"]');return b?b.textContent.trim():t[1];};
+      if(keys){var nm=keys.map(lab).join(', ');anchorTx=keys.indexOf('hn')<0?headOf('hom-nay',1500):'';
+        scopeNote='PHẠM VI ĐỌC LƯỢT NÀY: chỉ tab '+nm+(anchorTx?' (kèm tóm tắt pha thị trường)':'')+'. Các tab khác CHƯA được đọc: không bịa số của chúng. Nếu câu hỏi cần dữ liệu ở tab khác, nói ngắn gọn cần mở tab nào (hoặc chọn "Tất cả tab" trong ô Phạm vi đọc, hoặc gõ "đọc tất cả tab") rồi hỏi lại. Vẫn được tra web theo quy tắc (2).';
+        readNote='Đã đọc: tab '+nm+'.';wait.firstChild.textContent='Đang đọc tab '+nm+'…';}
+      else{anchorTx='';scopeNote='';readNote='Đã đọc cả '+names.length+' tab.';wait.firstChild.textContent='Đang đọc cả '+names.length+' tab…';}
+      ctxT=collect(keys);sys=sysText(LIM_G,ctxT);return compareCtx(text);}).then(function(x){cmpCtx=x||null;sys=sysText(LIM_G,ctxT);return run(0);}).then(function(r){
       wait.remove();
       var bad=checkNums(r.text,sys),notes=[];
       if(bad.length)notes.push('Số chưa thấy trên trang: '+bad.slice(0,6).join(', ')+' (có thể từ web ngoài hoặc AI tự tính), hãy kiểm tra lại.');
       if(/\[Ngoài trang/i.test(r.text)||(r.web&&r.web.length))notes.push('Có thông tin ngoài trang (web hoặc kiến thức AI), cần kiểm chứng thêm.');
       if(r.web&&r.web.length)notes.push('Nguồn web: '+r.web.join(', ')+'.');
       if(r.prov==='claude')notes.push('Đang dùng Claude dự phòng (Gemini hết hạn mức hoặc lỗi): không tra web, chỉ dựa trên số liệu trang.');
-      notes.push('Do AI tư vấn từ số liệu trên trang ('+PROV[r.prov].n+', '+r.model+'). Chỉ để tham khảo.');
+      notes.push(readNote+' Do AI tư vấn từ số liệu trên trang ('+PROV[r.prov].n+', '+r.model+'). Chỉ để tham khảo.');
       addMsg('bot',r.text.trim()||'(AI không trả lời)',notes.join(' '));
       hist.push({role:'model',text:r.text});
     },function(e){wait.remove();hist.pop();addMsg('sys','Không hỏi được AI. '+e.message);}).then(function(){busy=false;$('ai-send').disabled=false;});}
@@ -1812,6 +1834,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     $('ai-close').addEventListener('click',function(){tog(false);});
     $('ai-new').addEventListener('click',function(){hist=[];$('ai-log').textContent='';if(curAuto){cur=null;curAuto=false;}updTitle();});
     renderChips();
+    var sc=$('ai-scope');sc.value=LS.get('atl-ai-scope')==='all'?'all':'tab';sc.addEventListener('change',function(){LS.set('atl-ai-scope',sc.value);});
     $('ai-ma-form').addEventListener('submit',function(e){e.preventDefault();
       var v=($('ai-ma').value||'').trim().toUpperCase(),msg=$('ai-ma-msg');msg.textContent='';if(!v)return;
       var D=(typeof dash!=='undefined')?dash.data('ho_so'):null;
