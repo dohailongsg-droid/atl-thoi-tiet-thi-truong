@@ -273,7 +273,7 @@
       techRows.push(['Xu hướng (Minervini)', hs.tt_diem + '/8 tiêu chí', +hs.tt_diem >= 6 ? 'Xu hướng tăng đã xác nhận' : 'Chưa ở xu hướng tăng: không mua đuổi']);
       techRows.push(['Đường trung bình', 'MA20 ' + n0(hs.ma20 * 1000) + ' · MA50 ' + n0(hs.ma50 * 1000) + ' · MA200 ' + n0(hs.ma200 * 1000), P > hs.ma50 * 1000 ? 'Giá trên MA50' : 'Giá dưới MA50']);
       if (hs.bb_duoi) techRows.push(['Dải Bollinger 20 phiên', n0(hs.bb_duoi * 1000) + ' – ' + n0(hs.bb_tren * 1000), 'Vùng mua theo bộ lọc: đóng cửa dưới dải dưới khi RS > 80']);
-      techRows.push(['Wyckoff', hs.wy_pha || '—', hs.wy_diem != null ? hs.wy_diem + '/8 mục' : '']);
+      techRows.push(['Wyckoff', hs.wy_pha || '—', hs.wy_diem != null ? hs.wy_diem + (hs.wy_bo === 'pp' ? '/8 dấu hiệu phân phối' : hs.wy_bo === 'tang' ? '/8 tiêu chí sức khoẻ xu hướng' : '/8 mục tích luỹ') : '']);
       if (hs.tl_zd) techRows.push(['Triền Luận', 'Trung tâm ' + n0(hs.tl_zd * 1000) + ' – ' + n0(hs.tl_zg * 1000) + ' · ' + (hs.tl_huong || ''), P > hs.tl_zg * 1000 ? 'Trên ZG: chờ nhịp chỉnh không quay lại trung tâm (điểm mua 3)' : P < hs.tl_zd * 1000 ? 'Dưới ZD: chưa có điểm mua' : 'Trong trung tâm: chờ thoát lên']);
     }
     if (xh) techRows.push(['Long đầu nhóm', 'Hạng ' + xh.hang + '/' + xh.so_ma_nhom + ' · RS60 ' + n0(xh.rs60), (xh.pha_gia || '') + (xh.tren_ma50 ? ' · trên MA50' : '')]);
