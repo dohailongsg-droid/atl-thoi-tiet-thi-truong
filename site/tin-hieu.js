@@ -381,7 +381,7 @@
       return { buy: xUp(c, vah), sell: xDn(c, poc), plots: [['VAH', vah, { color: '#26a69a', style: 'dashed' }], ['POC', poc, { color: '#ffb300', width: 1.6 }], ['VAL', val, { color: '#ef5350', style: 'dashed' }]] }; } });
 
   /* ========== CẤU TRÚC: Triền Luận và sóng MACD ========== */
-  def({ id: 'chan', name: 'Triền Luận (Mua 3 sát trung tâm)', grp: 'ATL', chart: false,
+  def({ id: 'chan', name: 'Triền Luận: Mua 3 sát trung tâm', grp: 'ATL', chart: false,
     p: [{ k: 'ext', n: 'Mua 3: giá cách ZG tối đa (%)', d: 6, min: 1, max: 30, step: 0.5 }, { k: 'm2', n: 'Mua thêm ở điểm Mua 2', d: false }, { k: 'm1', n: 'Mua thêm ở điểm Mua 1', d: false }],
     buy_t: 'Điểm Mua 3: bút đi lên thoát khỏi trung tâm (vùng chồng lấn của ít nhất 3 bút), nhịp chỉnh đầu tiên giữ đáy trên ZG và giá đóng cửa còn cách ZG không quá 6%. Tuỳ chọn bật thêm Mua 1 (xu hướng giảm từ 2 trung tâm, bút cuối tạo đáy mới với diện tích MACD nhỏ hơn bút giảm trước) và Mua 2 (nhịp chỉnh đầu tiên sau Mua 1 giữ đáy cao hơn)',
     sell_t: 'Điểm Bán 1 (xu hướng tăng từ 2 trung tâm, đỉnh mới nhưng diện tích MACD nhỏ hơn), Bán 2, Bán 3 (hồi lên không vào lại được trung tâm), hoặc giá đóng cửa quay xuống dưới mức cắt lỗ cấu trúc (ZG với Mua 3, đáy Mua 1 với Mua 1 và Mua 2)',
@@ -395,6 +395,17 @@
         if (o.s1[i]) marks.push([i, 'B1', -1]); if (o.s2[i]) marks.push([i, 'B2', -1]); if (o.s3[i]) marks.push([i, 'B3', -1]); if (o.st[i]) marks.push([i, 'CẮT', -1]);
       }
       return { buy: buy, sell: sell, marks: marks, plots: [['ZG (cận trên trung tâm)', o.zg, { color: O, style: 'dashed' }], ['ZD (cận dưới trung tâm)', o.zd, { color: B, style: 'dashed' }]] }; } });
+  var CHAN_SELL = 'Điểm Bán 1, Bán 2, Bán 3 của Triền Luận, hoặc giá đóng cửa thủng mức cắt lỗ cấu trúc (đáy Mua 1)';
+  var CHAN_SRC = 'Triền Trung Thuyết Thiền (缠中说禅): cùng bộ máy với "Triền Luận: Mua 3 sát trung tâm". Kiểm định HOSE 2020 đến 10/2026 cho kết quả kém hơn Mua 3 sát trung tâm';
+  [['chan1', 'Triền Luận: Mua 1 (phân kỳ đáy)', 'b1', 'M1', 'Điểm Mua 1: xu hướng giảm từ 2 trung tâm, bút giảm cuối tạo đáy mới dưới trung tâm nhưng diện tích histogram MACD nhỏ hơn bút giảm trước (phân kỳ); phát tín hiệu khi phân hình đáy được xác nhận'],
+   ['chan2', 'Triền Luận: Mua 2 (đáy cao hơn Mua 1)', 'b2', 'M2', 'Điểm Mua 2: sau Mua 1 giá hồi lên một bút, nhịp chỉnh đầu tiên giữ đáy cao hơn đáy Mua 1; phát tín hiệu khi phân hình đáy được xác nhận']].forEach(function (z) {
+    def({ id: z[0], name: z[1], grp: 'ATL', chart: false, p: [], buy_t: z[4], sell_t: CHAN_SELL, src: CHAN_SRC,
+      calc: function (D) { var o = ta.chan(D, {}), n = D.c.length, sell = U(n), marks = [], i;
+        for (i = 0; i < n; i++) { if (o.s1[i] || o.s2[i] || o.s3[i] || o.st[i]) sell[i] = 1;
+          if (o[z[2]][i]) marks.push([i, z[3], 1]);
+          if (o.s1[i]) marks.push([i, 'B1', -1]); if (o.s2[i]) marks.push([i, 'B2', -1]); if (o.s3[i]) marks.push([i, 'B3', -1]); if (o.st[i]) marks.push([i, 'CẮT', -1]); }
+        return { buy: o[z[2]], sell: sell, marks: marks, plots: [['ZG (cận trên trung tâm)', o.zg, { color: O, style: 'dashed' }], ['ZD (cận dưới trung tâm)', o.zd, { color: B, style: 'dashed' }]] }; } });
+  });
   def({ id: 'hw', name: 'Sóng MACD histogram', grp: 'ATL', chart: false, p: [{ k: 'f', n: 'Nhanh', d: 12, min: 2, max: 50 }, { k: 's', n: 'Chậm', d: 26, min: 5, max: 100 }, { k: 'g', n: 'Tín hiệu', d: 9, min: 2, max: 50 }],
     buy_t: 'Sóng histogram MACD dương hiện tại có diện tích vượt sóng dương liền trước (cách nhau một sóng âm): lực tăng mạnh hơn nhịp tăng trước', sell_t: 'Sóng histogram âm hiện tại có diện tích vượt sóng âm liền trước: lực giảm mạnh hơn nhịp giảm trước',
     src: 'Cách đọc lực theo diện tích histogram MACD (cùng phép đo với phân kỳ của Triền Luận, nhưng dùng khi lực mạnh lên thay vì yếu đi)',
