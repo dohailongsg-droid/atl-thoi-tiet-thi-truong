@@ -44,6 +44,20 @@ def chan(m):
 def wy(m):
     try: return wyckoff.wyckoff(O[m].values,H[m].values,L[m].values,C[m].values,V[m].values,C.index)
     except Exception: return {}
+# Triền Luận bản 2: dùng đúng bộ máy của chỉ báo trên trang (site/tin-hieu.js) qua tl_v2.js. Lỗi thì giữ kết quả của tl_chan.py.
+TL2={}
+try:
+    import subprocess
+    _nn=lambda s:[None if x!=x else float(x) for x in s]
+    json.dump({"t":[str(d.date()) for d in C.index],"s":{m:{"o":_nn(O[m]),"h":_nn(H[m]),"l":_nn(L[m]),"c":_nn(C[m])} for m in codes}},open("dash_out/_tl_in.tmp","w"))
+    subprocess.run(["node","tl_v2.js","dash_out/_tl_in.tmp","dash_out/_tl_out.tmp"],check=True,timeout=300)
+    TL2=json.load(open("dash_out/_tl_out.tmp",encoding="utf-8"))
+except Exception as _e:
+    print("ho_so: tl_v2 lỗi, dùng tl_chan cũ:",str(_e)[:200],file=sys.stderr); TL2={}
+finally:
+    for _f in ("dash_out/_tl_in.tmp","dash_out/_tl_out.tmp"):
+        try: os.remove(_f)
+        except Exception: pass
 rows=[]; pr=[]
 def _row(m):
     c=k(C,m)
@@ -60,6 +74,9 @@ def _row(m):
        "st_tuan":f(k(stw,m)/1000),"tren_st_tuan":bool(c>k(stw,m)) if k(stw,m)==k(stw,m) else None,"bat_tu_day60":f((c/k(lo60,m)-1)*100,1),
        "tt_diem":sum(int(t[1]) for t in tt),**({"san":SAN[m]} if m in SAN else {}),**chan(m),**wy(m)}
     for i,(lab,ok,val) in enumerate(tt): r[f"tt{i+1}"]=ok; r[f"tt{i+1}_gt"]=val
+    if m in TL2:
+        for _k in [k for k in r if k.startswith("tl_")]: del r[_k]
+        r.update(TL2[m])
     p_=[]
     for d in C.index[-130:]:
         p_.append({"ma":m,"ngay":str(d.date()),"o":f(O[m][d]/1000),"h":f(H[m][d]/1000),"l":f(L[m][d]/1000),"c":f(C[m][d]/1000),
