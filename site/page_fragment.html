@@ -1251,7 +1251,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-chart" id="ch-hs" style="min-height:18rem"></div>
         <div class="atl-legend" id="hs-lg"></div>
       </div>
-      <div class="atl-wide atl-hs-row">
+      <div class="atl-wide atl-hs-row hs-tech">
       <div class="atl-card" id="card-hs-tt">
         <h2 class="atl-h">Trend Template (Minervini)</h2>
         <p class="atl-who"><b>Mark Minervini</b> · phương pháp SEPA (<i>Trade Like a Stock Market Wizard</i>). Góc nhìn: chỉ mua cổ phiếu đã ở Giai đoạn 2, tức xu hướng tăng đã được xác nhận; không bắt đáy, không mua khi giá dưới MA50.</p>
@@ -1276,7 +1276,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-tt" id="hs-tl" data-source="ho_so"></div>
         <p class="atl-note" id="hs-tl-kd">Cấu trúc dựng ở cấp bút, khung ngày. Đã kiểm định (27/10/2026, toàn HOSE): Mua 3 lỗ 2,2%/lệnh ở 7/2023–nay và thua bộ lọc Bollinger; Mua 1 có phân kỳ MACD lỗ 1,4%/lệnh; cắt lỗ theo ZG không hơn −7%. Dùng để đọc cấu trúc, không phải tín hiệu mua.</p>
       </div>
-      <div class="atl-card" id="card-hs-cb">
+      <div class="atl-card" id="card-hs-cb" hidden>
         <h2 class="atl-h">Sức khỏe doanh nghiệp</h2>
         <p class="atl-who"><b>Minervini (SEPA) và O'Neil (CANSLIM)</b> cho phần tăng trưởng: lợi nhuận và doanh thu tăng, đang tăng tốc, ROE cao. <b>Munger</b> cho hai ô chất lượng: nợ vừa phải và lãi phải đi kèm dòng tiền. Chỉ mô tả sức khỏe từ báo cáo tài chính quý, không ra quyết định mua bán.</p>
         <div class="atl-dial" id="dl-cb" data-source="co_ban" hidden></div>
@@ -1286,11 +1286,16 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
       </div>
       </div>
-      <div class="atl-wide dg-sec" id="dg-sec" hidden><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div>
-      <div class="atl-wide atl-hs-row" id="dg-row" hidden>
-        <div class="dg-left"><div class="atl-card" id="card-hs-ind" hidden>
+      <div class="atl-wide dg-sec" id="dg-sec" hidden><div><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div><button type="button" class="dg-pdf" id="dg-pdf" title="Mở bản báo cáo A4 rồi chọn Lưu thành PDF">⬇ Xuất báo cáo PDF</button></div>
+      <div class="atl-card atl-wide" id="card-hs-xh" hidden>
+        <h2 class="atl-h">Xu hướng 12 quý</h2>
+        <div id="dg-trend"></div>
+      </div>
+      <div class="atl-wide atl-hs-row dg-pair" id="dg-row" hidden>
+        <div class="dg-left">
+        <div class="atl-card" id="card-hs-ind" hidden>
           <style>
-          .dg-sec{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-md);flex-wrap:wrap;margin-top:var(--cds-gap-md)}
+          .dg-sec{display:flex;justify-content:space-between;align-items:center;gap:var(--cds-gap-md);flex-wrap:wrap;margin-top:var(--cds-gap-md)}
           .dg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:var(--cds-gap-sm);margin:0 0 var(--cds-gap-md)}
           .dg-k{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:flex;flex-direction:column;gap:2px;min-width:0}
           .dg-k .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
@@ -1350,18 +1355,25 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           .ai-chip{font:inherit;font-size:var(--cds-font-size-caption);padding:5px 10px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer;text-align:left}
           .ai-chip:hover{border-color:var(--color-fg-muted)}
           .ai-log{display:grid;gap:8px;max-height:420px;overflow:auto;margin:6px 0}
-          .ai-m{padding:9px 12px;border-radius:10px;font-size:var(--cds-font-size-body);line-height:1.55;border:1px solid var(--color-border-line)}
+          .ai-m{padding:10px 14px;border-radius:10px;font-size:15px;line-height:1.65;border:1px solid var(--color-border-line)}
+          .ai-m.bot{font-size:15.5px} .ai-m.bot p{margin:0 0 8px} .ai-m.sys{font-size:13px}
+          .ai-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:4px 0 6px} .ai-bar .ai-mini{margin-left:0}
+          .ai-help{margin:0 0 6px;padding:8px 10px;border:1px dashed var(--color-border-line);border-radius:8px}
           .ai-m p{margin:0 0 6px} .ai-m p:last-child{margin:0}
           .ai-m.user{background:var(--color-bg);justify-self:end;max-width:90%} .ai-m.sys{color:var(--color-fg-muted);border-style:dashed}
           .ai-m.bot{border-left:4px solid var(--color-fg-muted)}
-          .ai-note{font-size:11px;color:var(--color-fg-muted)}
+          .ai-note{font-size:12px;line-height:1.5;color:var(--color-fg-muted);border-top:1px dashed var(--color-border-line);padding-top:6px;margin-top:4px!important}
           .ai-form{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:6px}
           .ai-form textarea{font:inherit;font-size:var(--cds-font-size-body);padding:8px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);resize:vertical;min-height:44px}
           .ai-form button,.ai-btns button{font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-fg);color:var(--color-bg);cursor:pointer}
           .ai-form button:disabled{opacity:.5;cursor:wait}
-          .ai-dock{padding:14px 16px;position:fixed;right:16px;bottom:72px;width:min(440px,calc(100vw - 32px));max-height:min(80vh,700px);overflow:auto;z-index:9998;box-shadow:0 10px 36px rgba(0,0,0,.5);margin:0;background:var(--color-bg)}
+          .ai-dock{padding:14px 16px;position:fixed;right:16px;bottom:72px;width:min(560px,calc(100vw - 32px));height:min(82vh,820px);display:flex;flex-direction:column;overflow:hidden;z-index:9998;box-shadow:0 10px 36px rgba(0,0,0,.5);margin:0;background:var(--color-bg);font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+          .ai-dock.ai-bigm{width:min(1000px,calc(100vw - 32px));height:calc(100vh - 96px)}
+          .ai-dock .ai-chips{max-height:30vh;overflow:auto;flex:0 0 auto}
+          .ai-chips[hidden],.ai-help[hidden]{display:none!important}
           .ai-dock[hidden]{display:none!important}
-          .ai-dock .ai-log{max-height:42vh}
+          .ai-dock .ai-log{flex:1 1 auto;min-height:160px;max-height:none;align-content:start;grid-auto-rows:max-content}
+          .ai-dock .ai-form,.ai-dock .ai-set{flex:0 0 auto}
           .ai-dock #ai-ma-form{display:none}
           .ai-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
           .ai-mini{font:inherit;font-size:12px;padding:4px 10px;margin-left:6px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
@@ -1379,6 +1391,27 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           .dg-fl div{padding:9px 12px;border-radius:8px;border:1px solid var(--color-border-line);border-left:4px solid #d9a400;font-size:var(--cds-font-size-body);line-height:1.5}
           .dg-fl div.do{border-left-color:var(--sem-down)}
           .dg-watch{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+          .dg-2c{display:grid;gap:var(--cds-gap-lg,20px);grid-template-columns:1fr;align-items:start}
+          @media(min-width:1100px){.dg-2c{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
+          .dg-c{min-width:0}
+          .dg-ik{padding:10px 12px;border:1px solid var(--color-border-line);border-left:4px solid var(--color-fg-muted);border-radius:8px;font-size:var(--cds-font-size-body);line-height:1.55}
+          .dg-ik p{margin:0 0 6px} .dg-ik p:last-child{margin:0}
+          .dg-vs{color:var(--color-fg-muted);font-weight:500}
+          .dg-lg{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--color-fg-muted);margin-top:2px}
+          .dg-lg i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--color-fg-muted);margin-left:4px}
+          .dg-cap{font-size:11.5px;color:var(--color-fg-muted);line-height:1.4;margin-top:4px}
+          .ql-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+          .ql-top .atl-dial{flex:0 0 auto}
+          .ql-big{font-size:1.15rem;font-weight:700}
+          .ql-sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}
+          .ql-cols{display:grid;gap:0 18px;grid-template-columns:1fr}
+          .dg-pdf{font:inherit;font-weight:700;padding:9px 16px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-fg);color:var(--color-bg);cursor:pointer;white-space:nowrap}
+          .dg-pdf:disabled{opacity:.5;cursor:wait}
+          .xh-chart{font:inherit;font-size:12px;line-height:1;margin-left:5px;padding:2px 4px;border-radius:5px;border:1px solid var(--color-border-line);background:transparent;cursor:pointer;vertical-align:1px;opacity:.75}.xh-chart:hover{opacity:1;border-color:var(--color-fg-muted)}
+          #ho-so .atl-card[hidden],#ho-so [hidden].atl-wide{display:none!important}
+          @media(min-width:1300px){#ho-so .hs-tech{grid-template-columns:repeat(3,minmax(0,1fr))}}
+          @media(min-width:1200px){#ho-so .dg-trend{grid-template-columns:repeat(4,minmax(0,1fr))}}
+          .dg-t svg{height:70px!important}
           .dg-watch>div{padding:10px 12px;border:1px solid var(--color-border-line);border-radius:8px;font-size:var(--cds-font-size-caption);line-height:1.5}
           .dg-watch b{display:block;font-size:11px;color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
           </style>
@@ -1387,16 +1420,28 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <div class="atl-ticks" id="hs-cb-val" data-source="co_ban ho_so"></div>
           <div id="dg-ind"></div>
         </div>
+        <div class="atl-card" id="card-hs-nx" hidden>
+          <h2 class="atl-h">Nhận xét tự động</h2>
+          <p class="dg-note" style="margin-bottom:8px">Theo quy tắc cố định, mọi số do Python tính từ báo cáo tài chính.</p>
+          <ul class="dg-nx" id="dg-nx"></ul>
+          <p class="dg-note" id="dg-foot" style="margin-top:var(--cds-gap-md)"></p>
+        </div>
+        </div>
         <div class="atl-card" id="card-hs-cl" hidden>
-          <h2 class="atl-h">Chất lượng &amp; cờ cảnh báo</h2>
+          <h2 class="atl-h">Chất lượng &amp; sức khỏe doanh nghiệp</h2>
           <div id="dg-cl"></div>
         </div>
-        <div class="atl-card" id="card-hs-ai" hidden>
-          <div class="ai-head"><h2 class="atl-h" id="ai-title" style="margin:0">Trợ lý ATL</h2><span><button type="button" id="ai-new" class="ai-mini">Hội thoại mới</button><button type="button" id="ai-close" class="ai-mini" aria-label="Đóng">✕</button></span></div>
-          <p class="dg-note">Mặc định AI chỉ đọc tab bạn đang xem (kèm tóm tắt pha thị trường) nên trả lời nhanh hơn. Muốn đọc cả 6 tab, chọn ở ô Phạm vi đọc hoặc gõ "đọc tất cả tab"; nhắc tên tab (VD: "tab Ngành") để đọc thêm tab đó. Vẫn tra web khi cần. Gõ tên mã (VD: DGW) thì trang tự mở hồ sơ mã đó và AI đọc kèm. Thông tin ngoài trang được gắn thẻ [Ngoài trang, cần kiểm chứng]. Chỉ để tham khảo, quyết định và rủi ro do bạn.</p>
+      </div>
+      <div class="atl-card atl-wide" id="card-hs-dg" hidden>
+          <h2 class="atl-h">Định giá doanh nghiệp</h2>
+          <div id="dg-val"></div>
+        </div>
+      <div class="atl-card" id="card-hs-ai" hidden>
+          <div class="ai-head"><h2 class="atl-h" id="ai-title" style="margin:0">Trợ lý ATL</h2><span><button type="button" id="ai-big" class="ai-mini" title="Phóng to / thu nhỏ khung chat">⤢ Phóng to</button><button type="button" id="ai-new" class="ai-mini">Hội thoại mới</button><button type="button" id="ai-close" class="ai-mini" aria-label="Đóng">✕</button></span></div>
+          <div class="ai-bar"><label class="ai-scope" for="ai-scope">Phạm vi đọc <select id="ai-scope"><option value="tab">Tab đang xem (nhanh)</option><option value="all">Tất cả 6 tab (chậm hơn)</option></select></label><button type="button" class="ai-mini" id="ai-sug-t" aria-expanded="false">Câu hỏi gợi ý ▾</button><button type="button" class="ai-mini" id="ai-help-t" aria-expanded="false">Cách dùng ?</button></div>
+          <div class="ai-help" id="ai-help" hidden><p class="dg-note" style="max-width:none">Mặc định AI chỉ đọc tab bạn đang xem (kèm tóm tắt pha thị trường) nên trả lời nhanh hơn. Muốn đọc cả 6 tab, chọn ở ô Phạm vi đọc hoặc gõ "đọc tất cả tab"; nhắc tên tab (VD: "tab Ngành") để đọc thêm tab đó. Vẫn tra web khi cần. Gõ tên mã (VD: DGW) thì trang tự mở hồ sơ mã đó và AI đọc kèm. Thông tin ngoài trang được gắn thẻ [Ngoài trang, cần kiểm chứng]. Chỉ để tham khảo, quyết định và rủi ro do bạn.</p></div>
           <form class="ai-ma" id="ai-ma-form"><label for="ai-ma">Mã cổ phiếu</label><input type="search" id="ai-ma" list="hs-ds" placeholder="VD: DGW" size="7" maxlength="5" autocomplete="off"><button type="submit">Đổi mã</button><span class="dg-note" id="ai-ma-msg" aria-live="polite"></span></form>
-          <label class="ai-scope" for="ai-scope">Phạm vi đọc <select id="ai-scope"><option value="tab">Tab đang xem (nhanh)</option><option value="all">Tất cả 6 tab (chậm hơn)</option></select></label>
-          <div class="ai-chips" id="ai-chips"></div>
+          <div class="ai-chips" id="ai-chips" hidden></div>
           <div class="ai-log" id="ai-log" aria-live="polite"></div>
           <form class="ai-form" id="ai-form"><textarea id="ai-in" rows="2" placeholder="Hỏi về thị trường, ngành hoặc một mã (VD: DGW có nên mua?)" maxlength="500"></textarea><button type="submit" id="ai-send">Gửi</button></form>
           <details class="ai-set" id="ai-set"><summary>Cài đặt khóa API <span id="ai-stat"></span></summary>
@@ -1409,19 +1454,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
             <div class="ai-btns"><button type="button" id="ai-save">Lưu</button><button type="button" id="ai-clear">Xóa khóa</button></div>
           </details>
         </div>
-        </div>
-        <div class="atl-card" id="card-hs-dg" hidden>
-          <h2 class="atl-h">Định giá</h2>
-          <div id="dg-val"></div>
-        </div>
-      </div>
-      <div class="atl-card atl-wide" id="card-hs-xh" hidden>
-        <h2 class="atl-h">Xu hướng 12 quý</h2>
-        <div id="dg-trend"></div>
-        <div class="dg-h" style="margin-top:var(--cds-gap-lg,20px)">Nhận xét · tự động theo quy tắc, số liệu do Python tính</div>
-        <ul class="dg-nx" id="dg-nx"></ul>
-        <p class="dg-note" id="dg-foot" style="margin-top:var(--cds-gap-md)"></p>
-      </div>
     </div>
     <p class="atl-note">Ba góc nhìn về cùng một cổ phiếu: Minervini hỏi "xu hướng tăng đã được xác nhận chưa?", Wyckoff hỏi "dòng tiền lớn đang tích luỹ hay phân phối?", Triền Luận hỏi "giá đang ở đâu trong cấu trúc của nó?". Điểm mua của hệ thống vẫn chỉ lấy từ bộ lọc Bollinger + RS > 80 theo vùng nhiệt kế; ba checklist chỉ để đọc cổ phiếu. Đồng hồ trong mỗi thẻ chỉ mô tả trạng thái cấu trúc giá theo logic riêng của từng trường phái (Xu hướng giảm · Đi ngang · Chớm tăng · Xu hướng tăng · Tăng suy yếu), không phải lời khuyên mua bán hay tín hiệu của hệ thống; ba đồng hồ có thể chỉ về các hướng khác nhau.</p>
   </section>
@@ -1471,13 +1503,98 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     else{var d=[];v.forEach(function(a,i){if(a!=null)d.push((i/(n-1)*W).toFixed(1)+','+Y(a).toFixed(1));});var pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',d.join(' '));pl.setAttribute('fill','none');pl.setAttribute('stroke','currentColor');pl.setAttribute('stroke-width','1.6');pl.setAttribute('vector-effect','non-scaling-stroke');pl.setAttribute('stroke-linejoin','round');svg.appendChild(pl);
       var li=v.length-1;while(li>0&&v[li]==null)li--;var c=document.createElementNS(ns,'circle');c.setAttribute('cx',(li/(n-1)*W).toFixed(1));c.setAttribute('cy',Y(v[li]).toFixed(1));c.setAttribute('r','2.6');c.setAttribute('fill','currentColor');svg.appendChild(c);}
     return svg;}
+  function fmtv(v,dv){return v==null?'—':dv==='tỷ'?n0(v)+' tỷ':dv==='lần'?n2(v)+' lần':dv==='đ'?n0(v)+' đ':dv==='ngày'?n0(v)+' ngày':n1(v)+'%';}
+  function lastOf(a){for(var i=a.length-1;i>=0;i--)if(a[i]!=null)return i;return -1;}
+  var NHOM_TT=['Tăng trưởng','Sinh lời','Dòng tiền & an toàn','Chất lượng tài sản & huy động','Định giá & cổ đông','Khác'];
+  var C1='#5aa9e6';
+  function chartT(s,Q){// biểu đồ nhỏ: cột, đường, cặp cột (cap), cặp đường (cap2), đường tham chiếu (ref); rê chuột để xem từng quý
+    var v=s.v,v2=s.v2||null,all=v.concat(v2||[]).filter(function(a){return a!=null;});if(s.ref!=null)all.push(s.ref);if(all.length<3)return null;
+    var ns='http://www.w3.org/2000/svg',W=300,H=70,svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('preserveAspectRatio','none');
+    var bar=s.loai==='bar'||s.loai==='cap',mn=Math.min.apply(null,all),mx=Math.max.apply(null,all);if(bar)mn=Math.min(0,mn);
+    if(!bar){var pd=(mx-mn)*0.08||1;mn-=pd;mx+=pd;}
+    var rg=(mx-mn)||1,n=v.length;function Y(a){return H-3-(a-mn)/rg*(H-8);}
+    function E(t,at){var e=document.createElementNS(ns,t);for(var k in at)e.setAttribute(k,at[k]);svg.appendChild(e);return e;}
+    if(bar&&mn<0)E('line',{x1:0,x2:W,y1:Y(0),y2:Y(0),stroke:'currentColor','stroke-opacity':'.4','stroke-width':'1','vector-effect':'non-scaling-stroke'});
+    if(s.ref!=null)E('line',{x1:0,x2:W,y1:Y(s.ref).toFixed(1),y2:Y(s.ref).toFixed(1),stroke:'currentColor','stroke-dasharray':'4 3','stroke-width':'1','vector-effect':'non-scaling-stroke'});
+    if(bar){var two=s.loai==='cap',slot=W/n,bw=slot*(two?0.36:0.66);
+      [[v,two?C1:null],two?[v2,null]:null].forEach(function(pr,si){if(!pr)return;pr[0].forEach(function(a,i){if(a==null)return;var y=Y(Math.max(a,0)),y0=Y(Math.min(a,0)),x0=i*slot+(slot-(two?bw*2+2:bw))/2+(si?bw+2:0);
+        var col=pr[1]||(a<0?'var(--sem-down)':'currentColor');E('rect',{x:x0.toFixed(1),y:Math.min(y,y0).toFixed(1),width:bw.toFixed(1),height:Math.max(1,Math.abs(y0-y)).toFixed(1),fill:col,opacity:(two?(si?'.55':'.95'):(i>=n-4?'1':'.45'))});});});}
+    else{[[v,s.loai==='cap2'?C1:'currentColor'],v2?[v2,'currentColor']:null].forEach(function(pr){if(!pr)return;var dd=[];pr[0].forEach(function(a,i){if(a!=null)dd.push((i/(n-1)*W).toFixed(1)+','+Y(a).toFixed(1));});
+      E('polyline',{points:dd.join(' '),fill:'none',stroke:pr[1],'stroke-width':'1.8','vector-effect':'non-scaling-stroke','stroke-linejoin':'round'});
+      var li=lastOf(pr[0]);if(li>=0)E('circle',{cx:(li/(n-1)*W).toFixed(1),cy:Y(pr[0][li]).toFixed(1),r:'2.6',fill:pr[1]});});}
+    for(var i=0;i<n;i++){var t=E('rect',{x:(i*W/n).toFixed(1),y:0,width:(W/n).toFixed(1),height:H,fill:'transparent'});var tt=document.createElementNS(ns,'title');
+      tt.textContent=Q[i]+': '+(v2?(s.ten1||'')+' '+fmtv(v[i],s.dv)+' · '+(s.ten2||'')+' '+fmtv(v2[i],s.dv):fmtv(v[i],s.dv))+(s.ref!=null?' (trung vị 5 năm '+fmtv(s.ref,s.dv)+')':'');t.appendChild(tt);}
+    return svg;}
+  function capT(s){// một dòng đọc nhanh dưới mỗi biểu đồ
+    var v=s.v,li=lastOf(v),c=li>=4?v[li-4]:null,x=li>=0?v[li]:null;
+    if(s.id==='cfo_ln'&&x!=null&&s.v2[li]>0)return 'Dòng tiền KD bằng '+Math.round(x/s.v2[li]*100)+'% lợi nhuận 4 quý'+(x/s.v2[li]<0.8?' (dưới 80%: lãi chưa về thành tiền)':'');
+    if(s.id==='tien_vay'&&x!=null&&s.v2[li]!=null){var d=x-s.v2[li];return (d>=0?'Tiền ròng ':'Vay ròng ')+n0(Math.abs(d))+' tỷ';}
+    if(s.id==='ngay'&&x!=null)return 'Thu tiền '+n0(x)+' ngày'+(c!=null?' (cùng kỳ '+n0(c)+')':'')+' · tồn kho '+n0(s.v2[li])+' ngày';
+    if(s.ref!=null&&x!=null)return 'Hiện '+fmtv(x,s.dv)+' · trung vị 5 năm '+fmtv(s.ref,s.dv)+' ('+(x<s.ref?'thấp hơn':'cao hơn')+' '+n0(Math.abs(x/s.ref-1)*100)+'%)';
+    if(c!=null&&x!=null&&s.dv!=='tỷ')return 'Cùng kỳ năm trước: '+fmtv(c,s.dv);
+    return '';}
+  function renderTrend(x){
+    var tr=$('dg-trend');tr.textContent='';var Q=x.xu_huong.quy,G={};
+    var hasTV=x.xu_huong.chuoi.some(function(s){return s.id==='tien_vay';});
+    x.xu_huong.chuoi.forEach(function(s){if(hasTV&&s.id==='de')return;var g=s.nhom||'Khác';(G[g]=G[g]||[]).push(s);});
+    NHOM_TT.forEach(function(g){if(!G[g])return;tr.appendChild(el('div','dg-h',g));var tw=el('div','dg-trend');
+      G[g].forEach(function(s){var d=el('div','dg-t'),a=el('div','a');a.appendChild(el('span',null,s.ten));if(s.yoy!=null)a.appendChild(el('span',cl(s.yoy),sg(s.yoy)+' cùng kỳ'));d.appendChild(a);
+        var li=lastOf(s.v);var bb=el('div','b');
+        if(s.v2){var k1=el('span',null,fmtv(li>=0?s.v[li]:null,s.dv));k1.style.color=s.loai==='cap'||s.loai==='cap2'?C1:'';bb.appendChild(k1);bb.appendChild(el('span','dg-vs',' · '+fmtv(li>=0?s.v2[li]:null,s.dv)));}
+        else bb.textContent=fmtv(li>=0?s.v[li]:null,s.dv);d.appendChild(bb);
+        if(s.v2){var lg=el('div','dg-lg');var i1=el('i');i1.style.background=C1;lg.appendChild(i1);lg.appendChild(document.createTextNode(s.ten1+' '));var i2=el('i');lg.appendChild(i2);lg.appendChild(document.createTextNode(s.ten2));d.appendChild(lg);}
+        var sv=chartT(s,Q);if(sv)d.appendChild(sv);var q=el('div','q');q.appendChild(el('span',null,Q[0]));q.appendChild(el('span',null,Q[Q.length-1]));d.appendChild(q);
+        var ct=capT(s);if(ct)d.appendChild(el('div','dg-cap',ct));tw.appendChild(d);});
+      tr.appendChild(tw);});}
+  var SKL={c1:'Lợi nhuận quý tăng từ 20% so với cùng kỳ',c2:'Lợi nhuận đang tăng tốc (nhanh hơn quý trước)',c3:'Doanh thu quý tăng từ 15% so với cùng kỳ',c4:'Biên lợi nhuận ròng không thấp hơn cùng kỳ',c5:'ROE 4 quý từ 15%',c6:'Lợi nhuận 4 quý tăng liên tục 2 năm',c7:'Nợ phải trả không quá 2 lần vốn chủ',c8:'Dòng tiền kinh doanh từ 70% lợi nhuận'};
+  function qlRows(x){// trả về [{nhom, rows:[{ten,dat,gt,ng}]}] — bỏ mục trùng giữa hai bộ (giữ ngưỡng chặt hơn)
+    var sk=x.sk,cq=x.chat_luong,bank=x.loai==='ngan_hang',ck=x.loai==='chung_khoan'||x.loai==='bao_hiem';
+    function S(k,ten){if(!sk||sk[k]==null)return null;var v=sk[k];return {ten:ten||SKL[k],dat:v===true||v==='true',gt:sk[k+'_gt']||'—',ng:"Minervini/O'Neil"};}
+    function C(pre){if(!cq)return null;var t=cq.tieu_chi.filter(function(q){return q.ten.indexOf(pre)===0;})[0];return t?{ten:t.ten,dat:t.dat,gt:t.gt,ng:'Munger'}:null;}
+    var out;
+    if(bank||ck){out=[{nhom:'Tăng trưởng',rows:[S('c1'),S('c2'),S('c3',bank?'Thu nhập hoạt động quý tăng từ 15% so với cùng kỳ':'Doanh thu quý tăng từ 15% so với cùng kỳ'),S('c6')]},
+      {nhom:'Sinh lời & an toàn',rows:[S('c5'),bank?S('c7','Nợ xấu (NPL) không quá 2%'):null]}];}
+    else out=[{nhom:'Tăng trưởng',rows:[S('c1'),S('c2'),S('c3'),S('c6'),C('Lợi nhuận 4 quý'),C('Doanh thu 4 quý')]},
+      {nhom:'Sinh lời & biên lợi nhuận',rows:[S('c5'),S('c4'),C('Biên gộp')]},
+      {nhom:'Dòng tiền & an toàn tài chính',rows:[C('Dòng tiền kinh doanh')||S('c8'),S('c7'),C('Vay ròng'),C('Thanh toán hiện hành')]}];
+    out.forEach(function(g){g.rows=g.rows.filter(function(r){return r;});});
+    return out.filter(function(g){return g.rows.length;});}
+  window.__qlRows=qlRows;
+  function renderQL(x){
+    var cq=x.chat_luong,cc=$('dg-cl');cc.textContent='';var G=qlRows(x);
+    if(!G.length&&!cq){$('card-hs-cl').hidden=true;return;}
+    $('card-hs-cl').hidden=false;
+    var all=[].concat.apply([],G.map(function(g){return g.rows;})),ok=all.filter(function(r){return r.dat===true;}).length,nn=all.filter(function(r){return r.dat!=null;}).length,pc=nn?ok/nn*100:null;
+    var co=cq?cq.co:[],nDo=co.filter(function(c){return c.muc==='do';}).length,z=pc==null?null:pc<35?0:pc<55?1:pc<75?2:pc<90?3:4;
+    var top=el('div','ql-top'),dl=el('div','atl-dial');top.appendChild(dl);
+    var tx=el('div');tx.appendChild(el('div','ql-big','Đạt '+ok+'/'+nn+' tiêu chí'+(co.length?' · '+co.length+' cờ cảnh báo'+(nDo?' ('+nDo+' đỏ)':''):'')));
+    G.forEach(function(g){var o=g.rows.filter(function(r){return r.dat===true;}).length,m=g.rows.filter(function(r){return r.dat!=null;}).length;tx.appendChild(el('div','ql-sub',g.nhom+': '+o+'/'+m));});
+    tx.appendChild(el('div','ql-sub','Báo cáo '+(x.sk&&x.sk.quy||x.ky_bao_cao)+'. Bộ câu hỏi để đọc doanh nghiệp, không phải điều kiện mua.'));top.appendChild(tx);cc.appendChild(top);
+    if(window.atlDial&&z!=null)window.atlDial(dl,'cb',z,'Đạt '+ok+'/'+nn+' tiêu chí tăng trưởng, sinh lời và an toàn của báo cáo '+(x.sk&&x.sk.quy||x.ky_bao_cao)+'.','chất lượng và sức khỏe doanh nghiệp',['Yếu','Trung bình','Khá','Tốt','Rất tốt'],['var(--z6)','var(--z2)','var(--z4)','var(--z7)','var(--z3)']);
+    var wrap=el('div','ql-cols');
+    G.forEach(function(g){var box=el('div');box.appendChild(h(g.nhom));var ul=el('ul','dg-cl');
+      g.rows.forEach(function(t){var li=el('li'),ic=el('span','ic '+(t.dat==null?'u':(t.dat?'y':'n')),t.dat==null?'?':(t.dat?'✓':'✗'));li.appendChild(ic);li.appendChild(el('span',null,t.ten));li.appendChild(el('span','gt',t.gt));ul.appendChild(li);});
+      box.appendChild(ul);wrap.appendChild(box);});
+    cc.appendChild(wrap);
+    if(cq){cc.appendChild(h(co.length?'Cờ cảnh báo · điều bất thường cần kiểm tra thêm':'Cờ cảnh báo'));
+      if(co.length){var fl=el('div','dg-fl');co.forEach(function(c){fl.appendChild(el('div',c.muc,(c.muc==='do'?'Cờ đỏ: ':'Lưu ý: ')+c.nd));});cc.appendChild(fl);}
+      else cc.appendChild(el('p','dg-note','Chưa thấy điều bất thường ở các mục kiểm tra: phải thu và tồn kho so với doanh thu, vay ngắn hạn so với dòng tiền, thu nhập khác, lãi liên kết, dòng tiền so với lợi nhuận, vốn góp, đòn bẩy.'));}
+    var ft=el('p','dg-note',"Tăng trưởng theo Minervini (SEPA) và O'Neil (CANSLIM); dòng tiền và an toàn theo Munger. Mục trùng giữa hai bộ chỉ giữ ngưỡng chặt hơn (ROE từ 15%, dòng tiền từ 80% lợi nhuận). Cờ cảnh báo chỉ nêu dấu hiệu từ số liệu, chưa áp dụng cho ngân hàng, chứng khoán, bảo hiểm.");ft.style.marginTop='8px';cc.appendChild(ft);}
   function hideAll(){
-    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;$('card-hs-cl').hidden=true;if(window.__aiSet)window.__aiSet(null);
+    $('card-hs-dg').hidden=true;$('card-hs-xh').hidden=true;$('card-hs-cl').hidden=true;$('card-hs-nx').hidden=true;$('card-hs-cb').hidden=false;window.__dgCur=null;if(window.__aiSet)window.__aiSet(null);
     setTimeout(function(){ // thẻ chỉ tiêu chỉ còn khi có ô "so với ngành" (VN100)
       var has=$('hs-cb-val').children.length>0;$('dg-ind').textContent='';
       $('card-hs-ind').hidden=!has;$('dg-row').hidden=!has;$('dg-sec').hidden=!has;
       if(has){$('dg-sub').textContent='Chưa có dữ liệu xu hướng và định giá cho mã này.';}
     },0);}
+  function impliedKe(x){// đổi ngược giá ra lợi nhuận yêu cầu, giữ ROE và g của kịch bản cơ sở: P/E hợp lý×(Ke−g) = (1 − g/ROE) ⇒ Ke ngầm định = g + hệ số×(Ke−g)/bội số thị trường
+    var dg=x.dinh_gia,m=dg.v2;if(!m||!m.kich_ban||m.kich_ban.length<2)return null;var kb=m.kich_ban[1],fin=dg.mo_hinh==='pb_roe',P=x.gia;
+    var base=kb.he_so*(kb.ke-kb.g);if(!(base>0))return null;
+    var unit=fin?dg.bvps:+String(kb.dau_vao).replace(/[^0-9]/g,'');if(!(unit>0))return null;
+    var f=function(px){return kb.g+base/(px/unit);};
+    var dps=0;(x.xu_huong.chuoi||[]).forEach(function(s){if(s.id==='cotuc'){var i=lastOf(s.v);if(i>=0&&x.sk&&x.sk.cp_trieu)dps=s.v[i]*1e9/(x.sk.cp_trieu*1e6);}});
+    return {kePx:f(P),keVci:m.vci_hien_tai?f(m.vci_hien_tai):null,v12:m.gia_tb?Math.round(m.gia_tb*(1+m.ke)-dps):null,dps:Math.round(dps)};}
+  window.__impliedKe=impliedKe;
   function renderV2(x,v){
     var dg=x.dinh_gia,m=dg.v2,P=x.gia,fin=dg.mo_hinh==='pb_roe',d8=x.ngay.slice(8)+'/'+x.ngay.slice(5,7);
     var ban=el('div','dg-ban '+m.muc);
@@ -1493,35 +1610,43 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     k.appendChild(kpi(fin?'P/B hiện tại':'P/E hiện tại',fin?(n2(dg.pb_hien)+'×'):(n1(dg.pe_hien)+'×'),'Phân vị '+(fin?dg.pb_phan_vi:dg.pe_phan_vi)+'% · trung vị 5 năm '+(fin?(n2(dg.pb_trung_vi)+'×'):(n1(dg.pe_trung_vi)+'×'))));
     k.appendChild(kpi('Chi phí vốn Ke',n1(m.ke*100)+'%','= '+n2(m.rf*100)+'% + beta '+n2(m.beta_dung)+' × '+n1(m.erp*100)+'%'));
     v.appendChild(k);
-    v.appendChild(h('Bản đồ định giá'));v.appendChild(football(x));
-    v.appendChild(h('Ba kịch bản · cách tính'));
+    var G2=el('div','dg-2c'),L=el('div','dg-c'),R=el('div','dg-c');G2.appendChild(L);G2.appendChild(R);v.appendChild(G2);
+    L.appendChild(h('Bản đồ định giá'));L.appendChild(football(x));
+    L.appendChild(h('Ba kịch bản · cách tính'));
     var t=el('table','dg-sc'),hd=el('tr');['Kịch bản','Trọng số',fin?'ROE':'EPS',fin?'P/B hợp lý':'P/E hợp lý','Giá trị','So với giá'].forEach(function(a){hd.appendChild(el('th',null,a));});t.appendChild(hd);
     m.kich_ban.forEach(function(kb){var r=el('tr');r.appendChild(el('td',null,kb.ten));r.appendChild(el('td',null,Math.round(kb.w*100)+'%'));r.appendChild(el('td',null,kb.dau_vao.replace(/^(EPS|ROE) /,'')));r.appendChild(el('td',null,(fin?n2(kb.he_so):n1(kb.he_so))+'×'));r.appendChild(el('td',null,n0(kb.gia)+' đ'));r.appendChild(el('td',cl((kb.gia/P-1)*100),sg((kb.gia/P-1)*100)));t.appendChild(r);});
     var rt=el('tr','m');rt.appendChild(el('td',null,'Bình quân có trọng số'));rt.appendChild(el('td',null,'100%'));rt.appendChild(el('td'));rt.appendChild(el('td'));rt.appendChild(el('td',null,n0(m.gia_tb)+' đ'));rt.appendChild(el('td',cl(m.gia_tb/P-1),sg((m.gia_tb/P-1)*100)));t.appendChild(rt);
-    var w=el('div');w.style.overflowX='auto';w.appendChild(t);v.appendChild(w);
-    v.appendChild(el('p','dg-note','Doanh nghiệp được xếp vào nhóm "'+m.loai_ln_ten+'" ('+m.loai_ly_do+'), nên trọng số '+m.kich_ban.map(function(a){return Math.round(a.w*100);}).join('/')+'. '+(fin?'P/B hợp lý = (ROE − g) / (Ke − g).':'P/E hợp lý = (1 − g/ROE) / (Ke − g); kịch bản bảo thủ lấy biên lợi nhuận trung bình 5 năm × doanh thu 4 quý, cơ sở và lạc quan cộng thêm tăng trưởng gần đây (có trần).'))).style.marginTop='6px';
-    v.appendChild(h('Điều cần theo dõi'));
+    var w=el('div');w.style.overflowX='auto';w.appendChild(t);L.appendChild(w);
+    L.appendChild(el('p','dg-note','Doanh nghiệp được xếp vào nhóm "'+m.loai_ln_ten+'" ('+m.loai_ly_do+'), nên trọng số '+m.kich_ban.map(function(a){return Math.round(a.w*100);}).join('/')+'. '+(fin?'P/B hợp lý = (ROE − g) / (Ke − g).':'P/E hợp lý = (1 − g/ROE) / (Ke − g); kịch bản bảo thủ lấy biên lợi nhuận trung bình 5 năm × doanh thu 4 quý, cơ sở và lạc quan cộng thêm tăng trưởng gần đây (có trần).'))).style.marginTop='6px';
+    var IK=impliedKe(x);
+    if(IK){L.appendChild(h('Thị trường đang ngầm định gì'));var ib=el('div','dg-ik');
+      ib.appendChild(el('p',null,'Giá hiện tại tương ứng mức lợi nhuận nhà đầu tư yêu cầu khoảng '+n1(IK.kePx*100)+'%/năm; mô hình dùng '+n1(m.ke*100)+'%'+(IK.keVci!=null?'; mục tiêu Vietcap (quy về hiện tại) tương ứng '+n1(IK.keVci*100)+'%':'')+'.'));
+      ib.appendChild(el('p','dg-note',IK.kePx<m.ke-0.015?'Thị trường chấp nhận lợi nhuận thấp hơn mô hình, nên giá đang cao hơn so với giá trị ước tính.':IK.kePx>m.ke+0.015?'Thị trường đang đòi lợi nhuận cao hơn mô hình (nghi ngờ lợi nhuận hoặc rủi ro cao hơn), nên giá thấp hơn giá trị ước tính. Cần tìm lý do trước khi coi là rẻ.':'Gần với mức mô hình dùng: giá đang phản ánh khá sát giả định của mô hình.'));
+      if(IK.kePx<(m.tiet_kiem||0))ib.appendChild(el('p','dg-note','Mức này thấp hơn lãi tiết kiệm 12 tháng: giá đang coi cổ phiếu gần như không rủi ro.'));
+      if(IK.v12)ib.appendChild(el('p',null,'Giá trị mô hình quy về mốc 12 tháng ≈ '+n0(IK.v12)+' đ (sau cổ tức tiền ước '+n0(IK.dps)+' đ)'+(dg.vci?', so với mục tiêu Vietcap '+n0(dg.vci.gia)+' đ ('+sg((dg.vci.gia/IK.v12-1)*100)+').':'.')));
+      L.appendChild(ib);}
+    R.appendChild(h('Điều cần theo dõi'));
     var wt=el('div','dg-watch');
     function box(t1,t2){var d=el('div');d.appendChild(el('b',null,t1));d.appendChild(document.createTextNode(t2));wt.appendChild(d);}
     if(m.moc_quy_toi)box('Mốc lợi nhuận quý tới','LNST quý tới cần ≥ '+n1(m.moc_quy_toi.giu_ttm_ty)+' tỷ (bằng '+m.moc_quy_toi.quy_cu+') để lợi nhuận 4 quý không giảm, và ≥ '+n1(m.moc_quy_toi.dat_co_so_ty)+' tỷ để đạt mức của kịch bản cơ sở.');
     if(m.nhay)box('Độ nhạy theo biến ngành',m.nhay.ten+' làm giá trị thay đổi khoảng ±'+n0(m.nhay.dgia)+' đ/cp (±'+n1(m.nhay.pct)+'% so với giá).');
     if(m.ep!=null)box('Lợi suất lợi nhuận so với lãi suất','E/P '+n2(m.ep)+'% so với trái phiếu 10 năm '+n2(m.rf*100)+(m.tiet_kiem?'% và tiết kiệm 12 tháng cao nhất '+n2(m.tiet_kiem*100)+'%':'%')+'. '+(m.ep/100>m.rf?'Cao hơn trái phiếu '+n1(m.ep-m.rf*100)+' điểm.':'Thấp hơn trái phiếu '+n1(m.rf*100-m.ep)+' điểm: thị trường đang trả giá cho kỳ vọng tăng trưởng.'));
     if(dg.vci&&m.vci_hien_tai)box('Mục tiêu Vietcap cùng mốc thời gian','Mục tiêu 12 tháng '+n0(dg.vci.gia)+' đ tương đương '+n0(m.vci_hien_tai)+' đ ở hiện tại (sau cổ tức, chiết khấu Ke), so với '+n0(m.gia_tb)+' đ của mô hình này.');
-    v.appendChild(wt);
-    if(m.bang_quy&&m.bang_quy.length){v.appendChild(h('4 quý gần nhất · so với cùng kỳ'));
+    R.appendChild(wt);
+    if(m.bang_quy&&m.bang_quy.length){R.appendChild(h('4 quý gần nhất · so với cùng kỳ'));
       var t2=el('table','dg-sc'),h2=el('tr');['Quý',fin?'Thu nhập (tỷ)':'Doanh thu (tỷ)','So cùng kỳ','LNST mẹ (tỷ)','So cùng kỳ'].concat(fin?[]:['Biên ròng']).forEach(function(a){h2.appendChild(el('th',null,a));});t2.appendChild(h2);
       m.bang_quy.forEach(function(q){var r=el('tr');r.appendChild(el('td',null,q.q));r.appendChild(el('td',null,n0(q.dt)));r.appendChild(el('td',cl(q.dt_yoy),q.dt_yoy==null?'—':sg(q.dt_yoy)));r.appendChild(el('td',null,n1(q.ln)));r.appendChild(el('td',cl(q.ln_yoy),q.ln_yoy==null?'—':sg(q.ln_yoy)));if(!fin)r.appendChild(el('td',null,q.bien==null?'—':n1(q.bien)+'%'));t2.appendChild(r);});
-      var w2=el('div');w2.style.overflowX='auto';w2.appendChild(t2);v.appendChild(w2);}
+      var w2=el('div');w2.style.overflowX='auto';w2.appendChild(t2);R.appendChild(w2);}
     var lu=m.luoi;
-    v.appendChild(h('Bảng nhạy cảm · giá trị kịch bản cơ sở (đ)'));
+    R.appendChild(h('Bảng nhạy cảm · giá trị kịch bản cơ sở (đ)'));
     var t3=el('table','dg-sens'),h3=el('tr');h3.appendChild(el('th',null,'g \\ Ke'));lu.ke.forEach(function(c){h3.appendChild(el('th',null,n1(c*100)+'%'));});t3.appendChild(h3);
     lu.g.forEach(function(g,gi){var r=el('tr');r.appendChild(el('th',null,Math.round(g*100)+'%'));lu.gia[gi].forEach(function(a,ci){r.appendChild(el('td',(gi===1&&ci===1)?'c':'',n0(a)));});t3.appendChild(r);});
-    var w3=el('div');w3.style.overflowX='auto';w3.appendChild(t3);v.appendChild(w3);
+    var w3=el('div');w3.style.overflowX='auto';w3.appendChild(t3);R.appendChild(w3);
     var ft=el('p','dg-note','Chi phí vốn Ke = lợi suất trái phiếu 10 năm + beta × phần bù rủi ro cổ phiếu. Lãi suất nhập tay ngày '+(m.macro_ngay||'—')+'; beta tính từ '+m.beta_phien+' phiên giá của chính mã so với VN-Index (điều chỉnh Blume). Mô hình do mình chọn, chưa kiểm định; kết quả là khoảng giá trị để đọc doanh nghiệp, không phải tín hiệu mua bán hay giá nên mua. Giá mục tiêu Vietcap là quan điểm của Vietcap, tách riêng.');ft.style.marginTop='var(--cds-gap-md)';v.appendChild(ft);}
   function render(x){
     var dg=x.dinh_gia,kb=dg.kich_ban||[],cs=kb[1],fin=dg.mo_hinh==='pb_roe',P=x.gia;
     if(window.__aiSet)window.__aiSet(x);
-    $('dg-sec').hidden=false;$('dg-row').hidden=false;$('card-hs-ind').hidden=false;$('card-hs-dg').hidden=false;$('card-hs-xh').hidden=false;
+    $('dg-sec').hidden=false;$('dg-row').hidden=false;$('card-hs-ind').hidden=false;$('card-hs-dg').hidden=false;$('card-hs-xh').hidden=false;$('card-hs-cb').hidden=!!(x.sk||x.chat_luong);$('card-hs-nx').hidden=false;window.__dgCur=x;
     $('dg-sub').textContent='Báo cáo '+x.ky_bao_cao+' · '+(LOAI[x.loai]||'')+' · nguồn Vietcap IQ · dữ liệu cơ bản cập nhật ngày '+x.ngay.slice(8)+'/'+x.ngay.slice(5,7)+'/'+x.ngay.slice(0,4)+((Date.now()-new Date(x.ngay).getTime())/864e5>4?' (đã cũ hơn 4 ngày, lần chạy gần đây có thể lỗi)':'');
     // ---- chỉ tiêu ----
     var ind=$('dg-ind');ind.textContent='';
@@ -1550,25 +1675,18 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var ft=el('p','dg-note');ft.style.marginTop='var(--cds-gap-md)';
     ft.textContent=(fin?'Nhóm tài chính: giá trị = BVPS × (ROE − g) / (COE − g).':(dg.chuan_hoa?'Giá trị = EPS chuẩn hóa 8 quý × (1 + g) / (COE − g).':'Giá trị = EPS 4 quý × (1 + g) / (COE − g).'))+' Kịch bản thận trọng (COE 13%, g 3%), cơ sở (12%, 5%), lạc quan (11%, 6%). Giả định do mình chọn, chưa kiểm định. Giá mục tiêu là quan điểm của Vietcap, tách riêng khỏi mô hình. Chỉ mô tả để đọc doanh nghiệp, không phải tín hiệu mua bán.';
     v.appendChild(ft);}
-    // ---- chất lượng & cờ cảnh báo ----
-    var cq=x.chat_luong,cc=$('dg-cl');cc.textContent='';
-    if(cq){$('card-hs-cl').hidden=false;
-      var bn=el('div','dg-ban '+(cq.co.some(function(c){return c.muc==='do';})?'xau':(cq.co.length?'tb':'tot')));bn.appendChild(el('div','big',cq.nhan));bn.appendChild(el('div','sub','Số liệu báo cáo '+cq.ky+'. Đây là bộ câu hỏi để đọc doanh nghiệp, không phải điều kiện mua.'));cc.appendChild(bn);
-      var ul2=el('ul','dg-cl');cq.tieu_chi.forEach(function(t){var li=el('li'),ic=el('span','ic '+(t.dat==null?'u':(t.dat?'y':'n')),t.dat==null?'?':(t.dat?'✓':'✗'));li.appendChild(ic);li.appendChild(el('span',null,t.ten));li.appendChild(el('span','gt',t.gt));ul2.appendChild(li);});cc.appendChild(ul2);
-      cc.appendChild(h(cq.co.length?'Cờ cảnh báo · điều bất thường cần kiểm tra thêm':'Cờ cảnh báo'));
-      if(cq.co.length){var fl=el('div','dg-fl');cq.co.forEach(function(c){fl.appendChild(el('div',c.muc,(c.muc==='do'?'Cờ đỏ: ':'Lưu ý: ')+c.nd));});cc.appendChild(fl);}
-      else cc.appendChild(el('p','dg-note','Chưa thấy điều bất thường ở các mục kiểm tra: phải thu và tồn kho so với doanh thu, vay ngắn hạn so với dòng tiền, thu nhập khác, lãi liên kết, dòng tiền so với lợi nhuận, vốn góp, đòn bẩy.'));
-      cc.appendChild(el('p','dg-note','Cờ cảnh báo chỉ nêu dấu hiệu từ số liệu, không kết luận doanh nghiệp có vấn đề. Chưa áp dụng cho ngân hàng, chứng khoán, bảo hiểm.')).style.marginTop='8px';}
-    else{$('card-hs-cl').hidden=true;}
-    // ---- xu hướng ----
-    var tr=$('dg-trend');tr.textContent='';var tw=el('div','dg-trend'),Q=x.xu_huong.quy;
-    x.xu_huong.chuoi.forEach(function(s){var d=el('div','dg-t'),a=el('div','a');a.appendChild(el('span',null,s.ten));if(s.yoy!=null)a.appendChild(el('span',cl(s.yoy),sg(s.yoy)+' cùng kỳ'));
-      d.appendChild(a);var last=null;for(var i=s.v.length-1;i>=0;i--){if(s.v[i]!=null){last=s.v[i];break;}}
-      d.appendChild(el('div','b',last==null?'—':(s.dv==='tỷ'?n0(last)+' tỷ':s.dv==='lần'?n2(last)+' lần':n1(last)+'%')));
-      var sv=spark(s);if(sv)d.appendChild(sv);var q=el('div','q');q.appendChild(el('span',null,Q[0]));q.appendChild(el('span',null,Q[Q.length-1]));d.appendChild(q);tw.appendChild(d);});
-    tr.appendChild(tw);
+    // ---- chất lượng & sức khỏe doanh nghiệp (gộp: tăng trưởng Minervini/O'Neil + chất lượng Munger + cờ cảnh báo) ----
+    renderQL(x);
+    // ---- xu hướng 12 quý, chia nhóm ----
+    renderTrend(x);
     var ul=$('dg-nx');ul.textContent='';x.nhan_xet.forEach(function(t){ul.appendChild(el('li',null,t));});
     $('dg-foot').textContent=(x.canh_bao||[]).join('. ')+'.';}
+  (function(){var b=$('dg-pdf');if(!b)return;// xuất báo cáo: mở cửa sổ ngay trong lúc bấm (tránh bị chặn pop-up), rồi tải bộ dựng báo cáo
+    b.addEventListener('click',function(){var x=window.__dgCur;if(!x)return;var w=window.open('','_blank');
+      if(!w){$('dg-sub').textContent='Trình duyệt đang chặn cửa sổ mới: cho phép pop-up cho trang này rồi bấm lại Xuất báo cáo PDF.';return;}
+      w.document.write('<p style="font:16px Arial;padding:24px">Đang dựng báo cáo '+x.ma+'…</p>');
+      var run=function(){try{window.atlBaoCao(x,w);}catch(e){w.document.body.textContent='Không dựng được báo cáo: '+e.message;}};
+      if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=55';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}});})();
   window.__dg=function(ma){
     ma=String(ma||'').toUpperCase();pend=ma;
     if(ma in cache){var x=cache[ma];if(x)render(x);else hideAll();return;}
@@ -1745,7 +1863,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   var PROV={gemini:{n:'Gemini',k:'atl_key_gemini',f:function(k,s){return askGemini(k,s);}},gemini2:{n:'Gemini 2',k:'atl_key_gemini2',f:function(k,s){return askGemini(k,s);}},claude:{n:'Claude',k:'atl_key_claude',f:function(k,s){return askClaude(k,s);}},mistral:{n:'Mistral',k:'atl_key_mistral',f:function(k,s){return askMistral(k,s);}},groq:{n:'Groq',k:'atl_key_groq',f:function(k,s){return askGroq(k,s);}}};
   var PORDER=['gemini','gemini2','claude','mistral','groq'];
   var CHIPS_M=['Hôm nay thị trường đang ở pha nào, được mua tối đa bao nhiêu?','Thị trường đã tạo đáy chưa, có nên nâng tỷ trọng không?','Ngành nào đang dẫn sóng, long đầu là mã nào?','Hôm nay có mã nào đạt bộ lọc MUA hoặc THEO DÕI không?','Trứng rồng đang bật hay tắt, vì sao?','Ví dụ: FPT có nên mua lúc này, cắt lỗ ở đâu?'];
-  function renderChips(){var ch=$('ai-chips');if(!ch)return;ch.textContent='';(cur?CHIPS:CHIPS_M).forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){ask(c);});ch.appendChild(b);});}
+  function renderChips(){var ch=$('ai-chips');if(!ch)return;ch.textContent='';(cur?CHIPS:CHIPS_M).forEach(function(c){var b=el('button','ai-chip',c);b.type='button';b.addEventListener('click',function(){if(window.__aiSug)window.__aiSug(false);ask(c);});ch.appendChild(b);});}
   function updTitle(){var t=$('ai-title');if(t)t.textContent='Trợ lý ATL'+(cur?' · mã '+cur.ma:'');renderChips();}
   function pickCur(t){// câu hỏi nhắc tên mã có trên trang thì tự nạp hồ sơ mã đó; nhắc cả mã đang xem thì giữ nguyên (so sánh hai mã)
     missMa=[];
@@ -1807,6 +1925,10 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     $('ai-close').addEventListener('click',function(){tog(false);});
     $('ai-new').addEventListener('click',function(){hist=[];$('ai-log').textContent='';if(curAuto){cur=null;curAuto=false;}updTitle();});
     renderChips();
+    function tgl(btn,box,key,lab){var on=LS.get(key)==='1';function set(v){box.hidden=!v;btn.setAttribute('aria-expanded',String(v));btn.textContent=lab+(v?' ▴':' ▾');LS.set(key,v?'1':'0');}set(on);btn.addEventListener('click',function(){set(box.hidden);});return set;}
+    window.__aiSug=tgl($('ai-sug-t'),$('ai-chips'),'atl-ai-sug','Câu hỏi gợi ý');tgl($('ai-help-t'),$('ai-help'),'atl-ai-help','Cách dùng');
+    $('ai-big').addEventListener('click',function(){var on=!card.classList.contains('ai-bigm');card.classList.toggle('ai-bigm',on);$('ai-big').textContent=on?'⤡ Thu nhỏ':'⤢ Phóng to';LS.set('atl-ai-big',on?'1':'0');});
+    if(LS.get('atl-ai-big')==='1'){card.classList.add('ai-bigm');$('ai-big').textContent='⤡ Thu nhỏ';}
     var sc=$('ai-scope');sc.value=LS.get('atl-ai-scope')==='all'?'all':'tab';sc.addEventListener('change',function(){LS.set('atl-ai-scope',sc.value);});
     $('ai-ma-form').addEventListener('submit',function(e){e.preventDefault();
       var v=($('ai-ma').value||'').trim().toUpperCase(),msg=$('ai-ma-msg');msg.textContent='';if(!v)return;
@@ -4393,7 +4515,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     else tb.replaceChildren(...rows.map((r) => {
       const tr = el('tr'); tr.dataset.key = encodeURIComponent(r.ma); if (st.sel === r.ma) tr.className = 'on';
       tr.appendChild(el('td', 'num', String(r.hang)));
-      const tm = el('td'); const b = el('b', null, r.ma); b.title = 'Mở hồ sơ ' + r.ma; b.style.cursor = 'pointer'; b.style.textDecoration = 'underline dotted'; b.addEventListener('click', (ev) => { ev.stopPropagation(); window.atlOpenProfile && window.atlOpenProfile(r.ma); }); tm.appendChild(b); if (r.tin_hieu) { const sg = el('span', 'atl-tag', ' ' + ({ 'THEO DÕI': 'TD', 'ĐANG GIỮ': 'GIỮ' }[r.tin_hieu] || r.tin_hieu)); sg.title = 'Tín hiệu hệ thống: ' + r.tin_hieu; tm.appendChild(sg); } if (+r.hang <= 3 && isT(r.tren_ma50) && r.rs60 != null && r.dong_tien !== 'Hết thời') { const dg = el('span', null, ' 🐉'); dg.title = 'Long đầu nhóm (top 3, trên MA50, đủ thanh khoản)'; dg.setAttribute('aria-label', 'Long đầu'); tm.appendChild(dg); } tr.appendChild(tm);
+      const tm = el('td'); const b = el('b', null, r.ma); b.title = 'Mở hồ sơ ' + r.ma; b.style.cursor = 'pointer'; b.style.textDecoration = 'underline dotted'; b.addEventListener('click', (ev) => { ev.stopPropagation(); window.atlOpenProfile && window.atlOpenProfile(r.ma); }); tm.appendChild(b); { const cb = el('button', 'xh-chart', '📈'); cb.type = 'button'; cb.title = 'Mở đồ thị ' + r.ma; cb.setAttribute('aria-label', 'Mở đồ thị ' + r.ma); cb.addEventListener('click', (ev) => { ev.stopPropagation(); window.atlOpenChart && window.atlOpenChart(r.ma); }); tm.appendChild(cb); } if (r.tin_hieu) { const sg = el('span', 'atl-tag', ' ' + ({ 'THEO DÕI': 'TD', 'ĐANG GIỮ': 'GIỮ' }[r.tin_hieu] || r.tin_hieu)); sg.title = 'Tín hiệu hệ thống: ' + r.tin_hieu; tm.appendChild(sg); } if (+r.hang <= 3 && isT(r.tren_ma50) && r.rs60 != null && r.dong_tien !== 'Hết thời') { const dg = el('span', null, ' 🐉'); dg.title = 'Long đầu nhóm (top 3, trên MA50, đủ thanh khoản)'; dg.setAttribute('aria-label', 'Long đầu'); tm.appendChild(dg); } tr.appendChild(tm);
       const tg = el('td', null, r.nhom); tg.hidden = !top; tr.appendChild(tg);
       const ts = el('td'); const sc = el('div', 'atl-score'); const bar = el('span', 'bar'); const fi = el('i'); const rv = r.rs60 == null ? 0 : +r.rs60; fi.style.width = rv + '%';
       fi.style.background = rv >= 80 ? 'var(--z3)' : rv >= 70 ? 'var(--z4)' : 'var(--cds-chart-muted)';
@@ -4628,6 +4750,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     wy: 'Theo Wyckoff (pha của thị trường)\nGiảm giá: Xu hướng giảm · Tăng giá: Xu hướng tăng · Phân phối: Tăng suy yếu\nTích luỹ từ 5/8 mục: Chớm tăng · Tích luỹ dưới 5/8 mục hoặc chưa rõ pha: Đi ngang\nPha tăng giá = giá trên MA50 đang dốc lên và trên MA200.',
     tl: 'Theo Triền Luận (vị trí giá so với trung tâm gần nhất)\nGiá trên ZG: Xu hướng tăng nếu từ 2 trung tâm cùng chiều tăng, còn lại là Chớm tăng\nGiá trong trung tâm: Xu hướng giảm nếu từ 2 trung tâm cùng chiều giảm, còn lại là Đi ngang\nGiá dưới ZD: Tăng suy yếu nếu đang là xu hướng tăng, còn lại là Xu hướng giảm\nPhân kỳ MACD ở đỉnh (khi chưa ở xu hướng giảm): Tăng suy yếu\nĐiểm Mua 1, 2, 3 chỉ là sự kiện, hiện ở dòng mô tả, không đổi trạng thái.',
   };
+  window.atlDial = (...a) => dial(...a);
   function dial(box, key, z, why, who, labs, cols) {
     const CL = cols || DZ.map((q) => q[1]);
     const LB = labs || DZ.map((q) => q[0]);
