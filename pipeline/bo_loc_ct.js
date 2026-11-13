@@ -62,6 +62,7 @@ function main() {
   const rows = []; let last = '', fail = 0;
   ds.forEach(function (x) {
     const sym = x[0]; if (sym === 'VNINDEX') return;
+    if (/ · (HNX|UPCoM)$/.test(x[2] || '')) return;   // mã HNX/UPCoM chỉ dùng cho Hồ sơ mã và Đồ thị, không vào Bộ lọc
     try {
       const j = rd(path.join(CH, sym + '.json')); if (!j || j.t.length < 120) return;
       const xs = rd(path.join(CH, 'x', sym + '.json'));
