@@ -169,6 +169,7 @@
   function fill(list) { [1, 2, 3, 4].forEach(function (i) { $('ss-m' + i).value = list[i - 1] || ''; }); }
   function go() { var l = inputs(); if (!l.length) return; try { localStorage.setItem('atl-ss', JSON.stringify(l)); } catch (e) {} render(l); }
   window.atlSoSanh = function (list) { if (list && list.length) fill(list.slice(0, 4)); go(); };
+  window.atlSoSanhPeers = function (ma) { fill(peers(String(ma || '').toUpperCase())); go(); };
 
   getIdx().then(function (ix) { var dl = $('ss-dl'); Object.keys(ix).sort().forEach(function (m) { var o = document.createElement('option'); o.value = m; dl.appendChild(o); }); });
   $('ss-form').addEventListener('submit', function (e) { e.preventDefault(); go(); });
