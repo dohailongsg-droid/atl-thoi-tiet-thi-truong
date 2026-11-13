@@ -7,12 +7,21 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 PX = os.path.join(HERE, "vn_prices_long.csv.gz")
 SEC = os.path.join(HERE, "hose_sectors.csv")
+PX2 = os.path.join(HERE, "vn_prices_ngoai.csv.gz")   # mã HNX/UPCoM thanh khoản lớn (ma_ngoai.py)
+SEC2 = os.path.join(HERE, "ngoai_sectors.csv")
 OUT = os.path.join(HERE, "..", "site", "data", "chart")
 N = 620
 
 
 def main():
     df = pd.read_csv(PX)
+    try:
+        if os.path.exists(PX2):
+            d2 = pd.read_csv(PX2)
+            d2 = d2[(d2["symbol"] != "VNINDEX") & ~d2["symbol"].isin(set(df["symbol"]))]
+            df = pd.concat([df, d2], ignore_index=True)
+    except Exception as e:
+        print("chart_data: bỏ qua mã HNX/UPCoM:", e, file=sys.stderr)
     df = df.dropna(subset=["o", "h", "l", "c"]).sort_values(["symbol", "date"])
     os.makedirs(OUT, exist_ok=True)
     ten = {}
@@ -22,6 +31,13 @@ def main():
                 ten[r["symbol"]] = [r.get("organShortName") or "", r.get("nganh") or ""]
     except Exception as e:
         print("chart_data: không đọc được hose_sectors.csv:", e, file=sys.stderr)
+    try:
+        if os.path.exists(SEC2):
+            with open(SEC2, encoding="utf-8") as f:
+                for r in csv.DictReader(f):
+                    ten.setdefault(r["symbol"], [r.get("organShortName") or "", ((r.get("nganh") or "") + " · " + (r.get("san") or "")).strip(" ·")])
+    except Exception as e:
+        print("chart_data: không đọc được ngoai_sectors.csv:", e, file=sys.stderr)
     ds, n = [], 0
     for sym, g in df.groupby("symbol"):
         g = g.tail(N)

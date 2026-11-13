@@ -7,6 +7,8 @@ python3 state_apply.py prepare
 python3 atl_daily.py > atl.json
 python3 state_apply.py apply
 python3 -c "import vn_prices as vp; vp.fetch(count_back=620, path='vn_prices_long.csv.gz')"
+# mã HNX/UPCoM thanh khoản lớn, chỉ cho Hồ sơ mã và Đồ thị (lỗi không làm dừng pipeline, giữ dữ liệu lượt trước)
+python3 ma_ngoai.py || echo "ma_ngoai.py lỗi, bỏ qua"
 python3 dash_data.py > /dev/null && python3 dash_split.py
 python3 rrg_build.py
 python3 dash_today.py > /dev/null

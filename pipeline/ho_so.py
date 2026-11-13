@@ -4,6 +4,21 @@ import pandas as pd, numpy as np, vn_prices as vp, bt_engine as bt
 P=vp.load("vn_prices_long.csv.gz",start="2024-06-01"); C,H,L,O,V=P["C"],P["H"],P["L"],P["O"],P["VAL"]; vni=P["VNI"]
 X=json.load(open("dash_out/xep_hang.json")); codes=[x["ma"] for x in X]
 names=pd.read_csv("hose_sectors.csv").set_index("symbol").organShortName
+# mã HNX/UPCoM thanh khoản lớn (ma_ngoai.py): chỉ thêm vào Hồ sơ mã, không tham gia xếp hạng hay nhiệt kế. Lỗi thì bỏ qua phần này.
+SAN={}
+try:
+    if os.path.exists("vn_prices_ngoai.csv.gz") and os.path.exists("ngoai_sectors.csv"):
+        _ng=pd.read_csv("ngoai_sectors.csv").set_index("symbol"); _P=vp.load("vn_prices_ngoai.csv.gz",start="2024-06-01")
+        _ex=[m for m in _ng.index if m in _P["C"].columns and m not in C.columns]
+        _c=_P["C"][_ex].reindex(C.index).ffill()
+        _ex=[m for m in _ex if _c[m].notna().sum()>=60 and _c[m].iloc[-1]==_c[m].iloc[-1]]; _c=_c[_ex]
+        _f=lambda k: _P[k][_ex].reindex(C.index).fillna(_c)
+        C=pd.concat([C,_c],axis=1); H=pd.concat([H,_f("H")],axis=1); L=pd.concat([L,_f("L")],axis=1); O=pd.concat([O,_f("O")],axis=1)
+        V=pd.concat([V,_P["VAL"][_ex].reindex(C.index).fillna(0)],axis=1)
+        codes=codes+_ex; names=pd.concat([names,_ng.organShortName]); SAN={m:str(_ng.san[m]) for m in _ex}
+        print("ho_so: thêm %d mã HNX/UPCoM"%len(_ex),file=sys.stderr)
+except Exception as _e:
+    print("ho_so: bỏ qua mã HNX/UPCoM:",str(_e)[:200],file=sys.stderr); SAN={}
 ma20=C.rolling(20).mean(); sd=C.rolling(20).std(); lo=ma20-2*sd; upb=ma20+2*sd
 m50,m150,m200=C.rolling(50).mean(),C.rolling(150).mean(),C.rolling(200).mean()
 lo52,hi52=C.rolling(250,min_periods=200).min(),C.rolling(250,min_periods=200).max()
@@ -30,7 +45,7 @@ def wy(m):
     try: return wyckoff.wyckoff(O[m].values,H[m].values,L[m].values,C[m].values,V[m].values,C.index)
     except Exception: return {}
 rows=[]; pr=[]
-for m in codes:
+def _row(m):
     c=k(C,m)
     tt=[("Giá > MA150 và > MA200",bool(c>k(m150,m) and c>k(m200,m)),f"{c/1000:.2f} / {k(m150,m)/1000:.2f} / {k(m200,m)/1000:.2f}"),
         ("MA150 > MA200",bool(k(m150,m)>k(m200,m)),f"{k(m150,m)/1000:.2f} > {k(m200,m)/1000:.2f}"),
@@ -43,13 +58,19 @@ for m in codes:
     r={"ma":m,"ten":str(names.get(m,"")),"gia":f(c/1000),"p1":f((c/C[m].iloc[-2]-1)*100),"bb_duoi":f(k(lo,m)/1000),"ma20":f(k(ma20,m)/1000),"bb_tren":f(k(upb,m)/1000),
        "pctB":f((c-k(lo,m))/(k(upb,m)-k(lo,m))),"ma50":f(k(m50,m)/1000),"ma200":f(k(m200,m)/1000),"st_ngay":f(k(stl,m)/1000),"st_ngay_len":bool(k(std_,m)==1),
        "st_tuan":f(k(stw,m)/1000),"tren_st_tuan":bool(c>k(stw,m)) if k(stw,m)==k(stw,m) else None,"bat_tu_day60":f((c/k(lo60,m)-1)*100,1),
-       "tt_diem":sum(int(t[1]) for t in tt),**chan(m),**wy(m)}
+       "tt_diem":sum(int(t[1]) for t in tt),**({"san":SAN[m]} if m in SAN else {}),**chan(m),**wy(m)}
     for i,(lab,ok,val) in enumerate(tt): r[f"tt{i+1}"]=ok; r[f"tt{i+1}_gt"]=val
-    rows.append(r)
+    p_=[]
     for d in C.index[-130:]:
-        pr.append({"ma":m,"ngay":str(d.date()),"o":f(O[m][d]/1000),"h":f(H[m][d]/1000),"l":f(L[m][d]/1000),"c":f(C[m][d]/1000),
+        p_.append({"ma":m,"ngay":str(d.date()),"o":f(O[m][d]/1000),"h":f(H[m][d]/1000),"l":f(L[m][d]/1000),"c":f(C[m][d]/1000),
                    "ma20":f(ma20[m][d]/1000),"bb_duoi":f(lo[m][d]/1000),"bb_tren":f(upb[m][d]/1000),"ma50":f(m50[m][d]/1000),"ma200":f(m200[m][d]/1000),
                    "macd":f(dif[m][d]/1000,3),"macd_tb":f(dea[m][d]/1000,3),"macd_cot":f(hist[m][d]/1000,3)})
+    rows.append(r); pr.extend(p_)
+for m in codes:
+    try: _row(m)
+    except Exception as _e:
+        if m not in SAN: raise
+        print("ho_so: bỏ mã",m,str(_e)[:120],file=sys.stderr)
 json.dump(rows,open("dash_out/ho_so.json","w"),ensure_ascii=False,allow_nan=False)
 json.dump(pr,open("dash_out/gia_ngay.json","w"),ensure_ascii=False,allow_nan=False)
 # kiem_dinh.json: tep tinh, khong ghi lai o day

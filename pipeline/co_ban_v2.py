@@ -186,6 +186,12 @@ def nganh_cua(ma):
                     _SECT[(r.get("symbol") or "").strip().upper()] = (r.get("nganh") or "").strip()
         except Exception:
             pass
+        try:   # mã HNX/UPCoM thanh khoản lớn (ma_ngoai.py)
+            with open(os.path.join(HERE, "ngoai_sectors.csv"), encoding="utf-8") as f:
+                for r in csv.DictReader(f):
+                    _SECT.setdefault((r.get("symbol") or "").strip().upper(), (r.get("nganh") or "").strip())
+        except Exception:
+            pass
     return _SECT.get(ma, "")
 
 
@@ -853,7 +859,13 @@ def build(ma):
 def hose_list():
     import csv
     with open(os.path.join(HERE, "hose_sectors.csv"), encoding="utf-8") as f:
-        return sorted({r["symbol"].strip().upper() for r in csv.DictReader(f) if r.get("symbol")})
+        ds = {r["symbol"].strip().upper() for r in csv.DictReader(f) if r.get("symbol")}
+    try:   # thêm mã HNX/UPCoM thanh khoản lớn (ma_ngoai.py); thiếu file thì chỉ chạy HOSE
+        with open(os.path.join(HERE, "ngoai_sectors.csv"), encoding="utf-8") as f:
+            ds |= {r["symbol"].strip().upper() for r in csv.DictReader(f) if r.get("symbol")}
+    except Exception:
+        pass
+    return sorted(ds)
 
 
 def main():
