@@ -1,0 +1,150 @@
+{
+"ngay": "2026-11-13",
+"nguong": 5.0,
+"ma": {
+"AAS": {
+"san": "UPCOM",
+"tb20": 18.4
+},
+"ABB": {
+"san": "UPCOM",
+"tb20": 11.1
+},
+"ACV": {
+"san": "UPCOM",
+"tb20": 30.6
+},
+"BVS": {
+"san": "HNX",
+"tb20": 19.3
+},
+"CEO": {
+"san": "HNX",
+"tb20": 102.0
+},
+"DDV": {
+"san": "UPCOM",
+"tb20": 10.8
+},
+"DRI": {
+"san": "UPCOM",
+"tb20": 15.3
+},
+"F88": {
+"san": "UPCOM",
+"tb20": 9.8
+},
+"HNG": {
+"san": "UPCOM",
+"tb20": 9.3
+},
+"HUT": {
+"san": "HNX",
+"tb20": 27.2
+},
+"IDC": {
+"san": "HNX",
+"tb20": 31.9
+},
+"KSF": {
+"san": "HNX",
+"tb20": 6.1
+},
+"KSV": {
+"san": "HNX",
+"tb20": 5.3
+},
+"MBS": {
+"san": "HNX",
+"tb20": 58.3
+},
+"MSR": {
+"san": "UPCOM",
+"tb20": 106.4
+},
+"MST": {
+"san": "HNX",
+"tb20": 9.3
+},
+"NTP": {
+"san": "HNX",
+"tb20": 9.0
+},
+"NVB": {
+"san": "HNX",
+"tb20": 17.4
+},
+"OIL": {
+"san": "UPCOM",
+"tb20": 18.8
+},
+"PHP": {
+"san": "UPCOM",
+"tb20": 22.3
+},
+"PLC": {
+"san": "HNX",
+"tb20": 6.4
+},
+"PVC": {
+"san": "HNX",
+"tb20": 5.1
+},
+"PVS": {
+"san": "HNX",
+"tb20": 67.5
+},
+"QNS": {
+"san": "UPCOM",
+"tb20": 6.1
+},
+"SHS": {
+"san": "HNX",
+"tb20": 162.1
+},
+"TIG": {
+"san": "HNX",
+"tb20": 10.9
+},
+"TNG": {
+"san": "HNX",
+"tb20": 20.0
+},
+"TVN": {
+"san": "UPCOM",
+"tb20": 9.4
+},
+"VC3": {
+"san": "HNX",
+"tb20": 43.2
+},
+"VCP": {
+"san": "UPCOM",
+"tb20": 6.7
+},
+"VEA": {
+"san": "UPCOM",
+"tb20": 23.6
+},
+"VFS": {
+"san": "HNX",
+"tb20": 5.9
+},
+"VGI": {
+"san": "UPCOM",
+"tb20": 10.4
+},
+"VGS": {
+"san": "HNX",
+"tb20": 9.6
+},
+"VGT": {
+"san": "UPCOM",
+"tb20": 6.5
+},
+"VTZ": {
+"san": "HNX",
+"tb20": 17.7
+}
+}
+}
