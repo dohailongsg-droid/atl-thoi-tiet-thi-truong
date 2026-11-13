@@ -68,7 +68,7 @@ def r1(x, n=1):
     return None if x is None else round(float(x), n)
 
 
-def suc_khoe(ma, cp, st, inc, is_bank, is_ck, ky_long, ln4, equity_vnd, shares):
+def suc_khoe(ma, cp, st, inc, is_bank, is_ck, ky_long, ln4, equity_vnd, shares, cf_rows=None):
     """Điểm sức khỏe 8 ô (cùng định nghĩa bảng co_ban.json cũ của VN100), tính cho mọi mã HOSE.
     Ô: 1 LN quý ≥ +20% cùng kỳ · 2 LN tăng tốc · 3 doanh thu/thu nhập quý ≥ +15% · 4 biên ròng quý ≥ cùng kỳ (chỉ DN)
        5 ROE 4 quý ≥ 15% · 6 LN 4 quý tăng liên tục 2 năm · 7 nợ/vốn ≤ 2 lần (NH: NPL ≤ 2%; CK: bỏ) · 8 dòng tiền KD ≥ 70% LN (chỉ DN)."""
@@ -132,8 +132,7 @@ def suc_khoe(ma, cp, st, inc, is_bank, is_ck, ky_long, ln4, equity_vnd, shares):
     c[8] = (None, "—")
     if not (is_bank or is_ck):
         try:
-            cf = [r for r in iq(f"{ma}/financial-statement?section=CASH_FLOW")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
-            cf.sort(key=lambda r: (r["yearReport"], r["lengthReport"]))
+            cf = cf_rows if cf_rows is not None else _fs(ma, "CASH_FLOW")
             if len(cf) >= 4 and ln4 > 0 and (cf[-1]["yearReport"], cf[-1]["lengthReport"]) == (inc[-1]["yearReport"], inc[-1]["lengthReport"]):
                 cfo = sum(float(x.get("cfa18") or 0) for x in cf[-4:])
                 c[8] = (cfo / ln4 >= 0.7, f"{cfo / ln4 * 100:.0f}% lợi nhuận")
@@ -398,12 +397,16 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
 
 
 
-def chat_luong(ma, st, inc, last_ky):
+def _fs(ma, sec):
+    rows = [r for r in iq(f"{ma}/financial-statement?section={sec}")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
+    rows.sort(key=lambda r: (r["yearReport"], r["lengthReport"]))
+    return rows
+
+
+def chat_luong(ma, st, inc, last_ky, bs=None, cf=None):
     """Thẻ 'Chất lượng & cờ cảnh báo' (chỉ doanh nghiệp phi tài chính): 7 tiêu chí mô tả + cờ từ BCTC/lưu chuyển tiền tệ. Không phải tín hiệu mua."""
-    bs = [r for r in iq(f"{ma}/financial-statement?section=BALANCE_SHEET")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
-    cf = [r for r in iq(f"{ma}/financial-statement?section=CASH_FLOW")["quarters"] if r.get("lengthReport") in (1, 2, 3, 4)]
-    key = lambda r: (r["yearReport"], r["lengthReport"])
-    bs.sort(key=key); cf.sort(key=key)
+    bs = bs if bs is not None else _fs(ma, "BALANCE_SHEET")
+    cf = cf if cf is not None else _fs(ma, "CASH_FLOW")
     if len(bs) < 5 or len(inc) < 8:
         return None
     f = lambda x, k: None if (x is None or x.get(k) is None) else float(x[k])
@@ -467,6 +470,92 @@ def chat_luong(ma, st, inc, last_ky):
     n = len([t for t in tieu if t["dat"] is not None])
     nhan = f"Đạt {dat}/{n} tiêu chí chất lượng" + (f" · {len(co)} cờ cảnh báo" + (f" ({co_do} cờ đỏ)" if co_do else "") if co else " · chưa thấy cờ cảnh báo")
     return {"dat": dat, "tong": n, "tieu_chi": tieu, "co": co, "nhan": nhan, "ky": last_ky}
+
+
+def chuoi_them(qs, inc, st, bs, cf, fin, is_bank, shares):
+    """Biểu đồ cơ bản mở rộng cho thẻ Xu hướng 12 quý: lợi nhuận/dòng tiền cộng dồn 4 quý, tiền và vay, vòng quay vốn, bội số theo thời gian.
+    Mọi số tính từ BCTC Vietcap; 'cap' = hai chuỗi cùng đơn vị vẽ cạnh nhau; 'ref' = trung vị 5 năm của chính chuỗi."""
+    K = [(x["yearReport"], x["lengthReport"]) for x in qs]
+    f = lambda r, k: None if (r is None or r.get(k) is None) else float(r[k])
+
+    def roll(rows, fld, sign=1.0):
+        out, idx = {}, {(r["yearReport"], r["lengthReport"]): i for i, r in enumerate(rows or [])}
+        for k in K:
+            i = idx.get(k)
+            if i is None or i < 3:
+                out[k] = None; continue
+            w = rows[i - 3:i + 1]
+            ok = all(r.get(fld) is not None for r in w) and _lien(w)
+            out[k] = sum(float(r[fld]) for r in w) * sign / 1e9 if ok else None
+        return [None if out[k] is None else round(out[k], 1) for k in K]
+
+    def at(rows, fn):
+        m = {(r["yearReport"], r["lengthReport"]): r for r in (rows or [])}
+        return [None if m.get(k) is None else fn(m[k]) for k in K]
+
+    stm = {(int(r["year"]), r["quarter"]): r for r in st}
+    def sts(fld, mul=1.0, neg=False, nd=2):
+        return [None if (stm.get(k) is None or stm[k].get(fld) in (None, 0)) else round(abs(float(stm[k][fld])) * mul if neg else float(stm[k][fld]) * mul, nd) for k in K]
+    def med5(fld):
+        h = sorted(float(r[fld]) for r in st[-N_HIST:] if r.get(fld) and float(r[fld]) > 0)
+        return round(pct(h, .5), 2) if len(h) >= 8 else None
+    def bvps_q(k):
+        r = stm.get(k)
+        if not r or not r.get("pb") or not r.get("marketCap") or not r.get("numberOfSharesMktCap"):
+            return None
+        return round(float(r["marketCap"]) / float(r["pb"]) / float(r["numberOfSharesMktCap"]))
+
+    out = []
+    def add(i, ten, dv, loai, nhom, v, **kw):
+        if sum(1 for x in v if x is not None) < 4:
+            return
+        d = {"id": i, "ten": ten, "dv": dv, "loai": loai, "v": v, "yoy": None, "nhom": nhom}
+        d.update(kw)
+        out.append(d)
+
+    ln4 = roll(inc, "isa22")
+    if not fin:
+        add("ln4", "Lợi nhuận 4 quý cộng dồn", "tỷ", "bar", "Tăng trưởng", ln4, yoy=_yoy4(ln4))
+        add("eps", "EPS 4 quý (theo số cp hiện tại)", "đ", "line", "Tăng trưởng",
+            [None if v is None else round(v * 1e9 / shares) for v in ln4])
+        add("roic", "ROIC", "%", "line", "Sinh lời", sts("roic", 100, nd=1))
+        cfo4 = roll(cf, "cfa18")
+        add("cfo_ln", "Dòng tiền kinh doanh so với lợi nhuận (4 quý)", "tỷ", "cap", "Dòng tiền & an toàn", cfo4,
+            v2=ln4, ten1="Dòng tiền KD", ten2="Lợi nhuận")
+        cap4 = roll(cf, "cfa19")
+        fcf = [None if (a is None or b is None) else round(a + b, 1) for a, b in zip(cfo4, cap4)]
+        add("fcf", "Dòng tiền tự do 4 quý (KD − mua TSCĐ)", "tỷ", "bar", "Dòng tiền & an toàn", fcf)
+        add("tien_vay", "Tiền và đầu tư ngắn hạn so với vay nợ", "tỷ", "cap", "Dòng tiền & an toàn",
+            at(bs, lambda r: round(((f(r, "bsa2") or 0) + (f(r, "bsa5") or 0)) / 1e9, 1)),
+            v2=at(bs, lambda r: round(((f(r, "bsa56") or 0) + (f(r, "bsa71") or 0)) / 1e9, 1)), ten1="Tiền + ĐTNH", ten2="Vay nợ")
+        add("ngay", "Số ngày thu tiền và tồn kho", "ngày", "cap2", "Dòng tiền & an toàn", sts("daySaleOutstanding", nd=0),
+            v2=sts("daysInventoryOutstanding", nd=0), ten1="Thu tiền", ten2="Tồn kho")
+        dv4 = roll(cf, "cfa32", -1.0)
+        if any(v for v in dv4 if v):
+            add("cotuc", "Cổ tức tiền mặt đã trả 4 quý", "tỷ", "bar", "Định giá & cổ đông", dv4)
+    else:
+        if is_bank:
+            add("casa", "CASA (tiền gửi không kỳ hạn)", "%", "line", "Chất lượng tài sản & huy động", sts("casaRatio", 100, nd=1))
+            add("ldr", "LDR (cho vay / huy động)", "%", "line", "Chất lượng tài sản & huy động", sts("ldrLoanDepositRatio", 100, nd=1))
+            add("baophu", "Bao phủ nợ xấu", "%", "line", "Chất lượng tài sản & huy động", sts("loansLossReservesToNPLs", 100, neg=True, nd=0))
+        add("ln4", "Lợi nhuận 4 quý cộng dồn", "tỷ", "bar", "Tăng trưởng", ln4, yoy=_yoy4(ln4))
+    add("pe", "P/E theo quý", "lần", "line", "Định giá & cổ đông", sts("pe", nd=1), ref=med5("pe"), ref_ten="trung vị 5 năm")
+    add("pb", "P/B theo quý", "lần", "line", "Định giá & cổ đông", sts("pb", nd=2), ref=med5("pb"), ref_ten="trung vị 5 năm")
+    add("bvps", "Giá trị sổ sách mỗi cổ phiếu (BVPS)", "đ", "line", "Định giá & cổ đông", [bvps_q(k) for k in K])
+    return out
+
+
+def _lien(w):
+    """4 quý liền nhau (không thiếu quý giữa)."""
+    for a, b in zip(w, w[1:]):
+        ya, qa, yb, qb = a["yearReport"], a["lengthReport"], b["yearReport"], b["lengthReport"]
+        if (yb * 4 + qb) - (ya * 4 + qa) != 1:
+            return False
+    return True
+
+
+def _yoy4(v):
+    return r1((v[-1] / v[-5] - 1) * 100, 1) if len(v) >= 5 and v[-1] is not None and v[-5] not in (None, 0) and v[-5] > 0 else None
 
 
 def build(ma):
@@ -633,6 +722,20 @@ def build(ma):
         if dv == "tỷ" and len(vals) >= 5 and vals[-1] is not None and vals[-5] not in (None, 0):
             yoy = r1((vals[-1] / vals[-5] - 1) * 100, 1)
         xu_huong.append({"id": sid, "ten": ten, "dv": dv, "loai": kind, "v": vals, "yoy": yoy})
+    NHOM_ID = {"dt": "Tăng trưởng", "toi": "Tăng trưởng", "ln": "Tăng trưởng", "bg": "Sinh lời", "br": "Sinh lời", "roe": "Sinh lời",
+               "roa": "Sinh lời", "nim": "Sinh lời", "cir": "Sinh lời", "de": "Dòng tiền & an toàn", "npl": "Chất lượng tài sản & huy động"}
+    for x in xu_huong:
+        x["nhom"] = NHOM_ID.get(x["id"], "Khác")
+    bs_rows = cf_rows = None
+    if not fin:
+        try:
+            bs_rows, cf_rows = _fs(ma, "BALANCE_SHEET"), _fs(ma, "CASH_FLOW")
+        except Exception as e:
+            cano.append("Không tải được bảng cân đối / lưu chuyển tiền tệ: " + str(e)[:80])
+    try:
+        xu_huong += chuoi_them(qs, inc, st, bs_rows, cf_rows, fin, is_bank, shares)
+    except Exception as e:
+        cano.append("Không tính được biểu đồ cơ bản mở rộng: " + str(e)[:80])
 
     # ---------- chỉ tiêu theo ngành (so với trung vị 5 năm của chính mã) ----------
     def metric(ten, f, mul=100.0, dv="%", neg=False, tot="cao"):
@@ -732,12 +835,12 @@ def build(ma):
     cl_ = None
     if not fin:
         try:
-            cl_ = chat_luong(ma, st, inc, ky)
+            cl_ = chat_luong(ma, st, inc, ky, bs_rows, cf_rows)
         except Exception as e:
             cano.append("Không tính được chất lượng: " + str(e)[:80])
     sk = None
     try:
-        sk = suc_khoe(ma, cp, st, inc, is_bank, is_ck, f"Q{last['lengthReport']}/{last['yearReport']}", ln4, equity_vnd, shares)
+        sk = suc_khoe(ma, cp, st, inc, is_bank, is_ck, f"Q{last['lengthReport']}/{last['yearReport']}", ln4, equity_vnd, shares, cf_rows)
     except Exception as e:
         cano.append("Không tính được điểm sức khỏe: " + str(e)[:80])
     return {"sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
