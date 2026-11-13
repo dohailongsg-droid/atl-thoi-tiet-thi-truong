@@ -106,6 +106,89 @@
     return s.slice(0, 7);
   }
 
+  /* ================= TRIỀN LUẬN (缠论): gộp nến bao hàm → phân hình → bút → trung tâm → phân kỳ MACD → 3 loại điểm mua/bán =================
+     Tính tuần tự từng phiên, chỉ dùng dữ liệu đến phiên đó (không nhìn trước). Tín hiệu phát ở phiên phân hình được xác nhận (nến thứ 3 đóng cửa). */
+  ta.chan = function (D, P) {
+    P = P || {};
+    var n = D.c.length, h = D.h, l = D.l, c = D.c, hist = ta.macd(c, 12, 26, 9).hist, i;
+    var pp = new Float64Array(n + 1), pn = new Float64Array(n + 1);
+    for (i = 0; i < n; i++) { var x = hist[i]; pp[i + 1] = pp[i] + (x > 0 ? x : 0); pn[i + 1] = pn[i] + (x < 0 ? -x : 0); }
+    function area(a, b, up) { return b <= a ? 0 : (up ? pp[b + 1] - pp[a + 1] : pn[b + 1] - pn[a + 1]); }
+    var K = [], E = [], kdiv = P.k || 1, minK = P.mk || 4;
+    var o = { b1: U(n), b2: U(n), b3: U(n), s1: U(n), s2: U(n), s3: U(n), st: U(n), zg: A(n), zd: A(n), lv: A(n), pens: null, Z: null };
+    var lastB1 = null, lastS1 = null, zc = null, stop = NA;
+    function analyze(i) {
+      var m0 = E.length - 1; if (m0 < 4) return;
+      var pens = [], j;
+      for (j = 0; j < m0; j++) { var a = E[j], b = E[j + 1], up = a.t < 0; pens.push({ d: up ? 1 : -1, hi: up ? b.p : a.p, lo: up ? a.p : b.p, ra: a.ri, rb: b.ri, ar: area(a.ri, b.ri, up) }); }
+      var m = pens.length, L = pens[m - 1], Z = [], cur = null, lim = m - 2, need = 0, q;
+      j = 0;
+      while (j <= lim) {
+        if (!cur) {
+          if (j + 2 <= lim && (!need || pens[j].d === need)) { var A1 = pens[j], B1 = pens[j + 1], C1 = pens[j + 2], zg = Math.min(A1.hi, B1.hi, C1.hi), zd = Math.max(A1.lo, B1.lo, C1.lo);
+            if (zg > zd) { cur = { zg: zg, zd: zd, gg: Math.max(A1.hi, B1.hi, C1.hi), dd: Math.min(A1.lo, B1.lo, C1.lo), s: j, e: j + 2 }; j += 3; continue; } }
+          j++;
+        } else { q = pens[j];
+          if (q.hi >= cur.zd && q.lo <= cur.zg) { cur.e = j; if (q.hi > cur.gg) cur.gg = q.hi; if (q.lo < cur.dd) cur.dd = q.lo; j++; }
+          else { Z.push(cur); need = q.d; cur = null; } }
+      }
+      if (cur) Z.push(cur);
+      o.pens = pens; o.Z = Z;
+      if (!Z.length) return;
+      zc = Z[Z.length - 1];
+      var dn = 1, un = 1, k;
+      for (k = Z.length - 1; k > 0 && Z[k].zg < Z[k - 1].zd; k--) dn++;
+      for (k = Z.length - 1; k > 0 && Z[k].zd > Z[k - 1].zg; k--) un++;
+      var conn = zc.e === m - 2, pv = pens[m - 2], ref;
+      if (L.d < 0) {
+        if (conn && pv.d > 0 && L.lo > zc.zg) { o.b3[i] = 1; stop = zc.zg; }
+        if (conn && L.lo < zc.dd) {
+          ref = null;
+          if (dn >= 2) { q = Z[Z.length - 2].e; if (pens[q].d > 0) q--; if (q >= 0 && pens[q].d < 0) ref = pens[q]; }
+          else if (P.pz && zc.s - 1 >= 0 && pens[zc.s - 1].d < 0) ref = pens[zc.s - 1];
+          if (ref && L.ar < ref.ar * kdiv) { o.b1[i] = 1; lastB1 = { ri: L.rb, p: L.lo }; stop = L.lo; }
+        }
+        if (lastB1 && E[m - 2].ri === lastB1.ri && L.lo > lastB1.p) { o.b2[i] = 1; stop = lastB1.p; }
+      } else {
+        if (conn && pv.d < 0 && L.hi < zc.zd) o.s3[i] = 1;
+        if (conn && L.hi > zc.gg) {
+          ref = null;
+          if (un >= 2) { q = Z[Z.length - 2].e; if (pens[q].d < 0) q--; if (q >= 0 && pens[q].d > 0) ref = pens[q]; }
+          else if (P.pz && zc.s - 1 >= 0 && pens[zc.s - 1].d > 0) ref = pens[zc.s - 1];
+          if (ref && L.ar < ref.ar * kdiv) { o.s1[i] = 1; lastS1 = { ri: L.rb, p: L.hi }; }
+        }
+        if (lastS1 && E[m - 2].ri === lastS1.ri && L.hi < lastS1.p) o.s2[i] = 1;
+      }
+      if (o.b1[i] || o.b2[i] || o.b3[i]) o.lv[i] = stop;
+    }
+    for (i = 0; i < n; i++) {
+      var hh = h[i], ll = l[i];
+      if (!isna(hh) && !isna(ll)) {
+        var m = K.length, added = false;
+        if (!m) K.push({ h: hh, l: ll, hi: i, li: i });
+        else { var a = K[m - 1];
+          if ((hh <= a.h && ll >= a.l) || (hh >= a.h && ll <= a.l)) {
+            if (m < 2 || a.h > K[m - 2].h) { if (hh > a.h) { a.h = hh; a.hi = i; } if (ll > a.l) { a.l = ll; a.li = i; } }
+            else { if (hh < a.h) { a.h = hh; a.hi = i; } if (ll < a.l) { a.l = ll; a.li = i; } }
+          } else { K.push({ h: hh, l: ll, hi: i, li: i }); added = true; } }
+        if (added && K.length >= 3) {
+          m = K.length; var md = K[m - 2], lf = K[m - 3], rt = K[m - 1], f = null;
+          if (md.h > lf.h && md.h > rt.h) f = { t: 1, k: m - 2, p: md.h, ri: md.hi };
+          else if (md.l < lf.l && md.l < rt.l) f = { t: -1, k: m - 2, p: md.l, ri: md.li };
+          if (f) { var e = E[E.length - 1], ch = false;
+            if (!e) { E.push(f); }
+            else if (f.t === e.t) { if ((f.t > 0 && f.p > e.p) || (f.t < 0 && f.p < e.p)) { E[E.length - 1] = f; ch = true; } }
+            else if (f.k - e.k >= minK && ((f.t > 0 && f.p > e.p) || (f.t < 0 && f.p < e.p))) { E.push(f); ch = true; }
+            if (ch) analyze(i); }
+        }
+      }
+      if (zc) { o.zg[i] = zc.zg; o.zd[i] = zc.zd; }
+      if (!isna(stop) && c[i] < stop && !o.b1[i] && !o.b2[i] && !o.b3[i]) { o.st[i] = 1; stop = NA; }
+    }
+    o.E = E;
+    return o;
+  };
+
   var G = '#00c853', R = '#ff5252', B = '#2962ff', O = '#ff9800', Y = '#ffd600', P_ = '#ab47bc', GR = '#9e9e9e';
   var DEF = [];
   function def(o) { DEF.push(o); return o; }
@@ -297,6 +380,30 @@
         poc[i] = lo + (pb + 0.5) * st; vah[i] = lo + (z + 1) * st; val[i] = lo + a * st; }
       return { buy: xUp(c, vah), sell: xDn(c, poc), plots: [['VAH', vah, { color: '#26a69a', style: 'dashed' }], ['POC', poc, { color: '#ffb300', width: 1.6 }], ['VAL', val, { color: '#ef5350', style: 'dashed' }]] }; } });
 
+  /* ========== CẤU TRÚC: Triền Luận và sóng MACD ========== */
+  def({ id: 'chan', name: 'Triền Luận (Mua 3 sát trung tâm)', grp: 'ATL', chart: false,
+    p: [{ k: 'ext', n: 'Mua 3: giá cách ZG tối đa (%)', d: 6, min: 1, max: 30, step: 0.5 }, { k: 'm2', n: 'Mua thêm ở điểm Mua 2', d: false }, { k: 'm1', n: 'Mua thêm ở điểm Mua 1', d: false }],
+    buy_t: 'Điểm Mua 3: bút đi lên thoát khỏi trung tâm (vùng chồng lấn của ít nhất 3 bút), nhịp chỉnh đầu tiên giữ đáy trên ZG và giá đóng cửa còn cách ZG không quá 6%. Tuỳ chọn bật thêm Mua 1 (xu hướng giảm từ 2 trung tâm, bút cuối tạo đáy mới với diện tích MACD nhỏ hơn bút giảm trước) và Mua 2 (nhịp chỉnh đầu tiên sau Mua 1 giữ đáy cao hơn)',
+    sell_t: 'Điểm Bán 1 (xu hướng tăng từ 2 trung tâm, đỉnh mới nhưng diện tích MACD nhỏ hơn), Bán 2, Bán 3 (hồi lên không vào lại được trung tâm), hoặc giá đóng cửa quay xuống dưới mức cắt lỗ cấu trúc (ZG với Mua 3, đáy Mua 1 với Mua 1 và Mua 2)',
+    src: 'Triền Trung Thuyết Thiền (缠中说禅), 108 bài "Dạy bạn chơi chứng khoán": gộp nến bao hàm, phân hình, bút, trung tâm, phân kỳ MACD theo diện tích, ba loại điểm mua bán. Dựng ở cấp bút trên nến ngày; ngưỡng cách ZG 6% là phần ATL thêm sau kiểm định',
+    calc: function (D, P) { var o = ta.chan(D, {}), n = D.c.length, buy = U(n), sell = U(n), marks = [], i;
+      for (i = 0; i < n; i++) {
+        var near = o.b3[i] && D.c[i] <= o.zg[i] * (1 + P.ext / 100);
+        if (near || (P.m2 && o.b2[i]) || (P.m1 && o.b1[i])) buy[i] = 1;
+        if (o.s1[i] || o.s2[i] || o.s3[i] || o.st[i]) sell[i] = 1;
+        if (o.b1[i]) marks.push([i, 'M1', 1]); if (o.b2[i]) marks.push([i, 'M2', 1]); if (o.b3[i]) marks.push([i, near ? 'M3' : 'M3 xa', 1]);
+        if (o.s1[i]) marks.push([i, 'B1', -1]); if (o.s2[i]) marks.push([i, 'B2', -1]); if (o.s3[i]) marks.push([i, 'B3', -1]); if (o.st[i]) marks.push([i, 'CẮT', -1]);
+      }
+      return { buy: buy, sell: sell, marks: marks, plots: [['ZG (cận trên trung tâm)', o.zg, { color: O, style: 'dashed' }], ['ZD (cận dưới trung tâm)', o.zd, { color: B, style: 'dashed' }]] }; } });
+  def({ id: 'hw', name: 'Sóng MACD histogram', grp: 'ATL', chart: false, p: [{ k: 'f', n: 'Nhanh', d: 12, min: 2, max: 50 }, { k: 's', n: 'Chậm', d: 26, min: 5, max: 100 }, { k: 'g', n: 'Tín hiệu', d: 9, min: 2, max: 50 }],
+    buy_t: 'Sóng histogram MACD dương hiện tại có diện tích vượt sóng dương liền trước (cách nhau một sóng âm): lực tăng mạnh hơn nhịp tăng trước', sell_t: 'Sóng histogram âm hiện tại có diện tích vượt sóng âm liền trước: lực giảm mạnh hơn nhịp giảm trước',
+    src: 'Cách đọc lực theo diện tích histogram MACD (cùng phép đo với phân kỳ của Triền Luận, nhưng dùng khi lực mạnh lên thay vì yếu đi)',
+    calc: function (D, P) { var h = ta.macd(D.c, P.f, P.s, P.g).hist, n = h.length, buy = U(n), sell = U(n), pu = 0, cu = 0, pd = 0, cd = 0;
+      for (var i = 1; i < n; i++) { var x = h[i]; if (isna(x)) continue;
+        if (x > 0) { if (cd > 0) { pd = cd; cd = 0; } var b0 = cu; cu += x; if (pu > 0 && cu > pu && b0 <= pu) buy[i] = 1; }
+        else if (x < 0) { if (cu > 0) { pu = cu; cu = 0; } var s0 = cd; cd += -x; if (pd > 0 && cd > pd && s0 <= pd) sell[i] = 1; } }
+      return { buy: buy, sell: sell, plots: [] }; } });
+
   var BY = {}; DEF.forEach(function (d) { BY[d.id] = d; });
   function params(id, over) { var d = BY[id], P = {}; if (!d) return P; d.p.forEach(function (q) { P[q.k] = over && over[q.k] != null && over[q.k] !== '' ? (typeof q.d === 'number' ? +over[q.k] : (typeof q.d === 'boolean' ? !!over[q.k] : over[q.k])) : q.d; }); return P; }
   function calc(id, D, over) { var d = BY[id]; if (!d) throw new Error('Không có chỉ báo ' + id); var r = d.calc(D, params(id, over)); r.plots = r.plots || []; r.fills = r.fills || []; r.hl = r.hl || []; return r; }
@@ -312,6 +419,7 @@
     r.fills.forEach(function (f) { c.fill(f[0], f[1], f[2]); });
     r.hl.forEach(function (v) { c.hline(v, { color: 'rgba(150,150,150,.6)', dash: true }); });
     if (!showM) return;
+    if (r.marks) { r.marks.forEach(function (m) { c.mark(m[0], m[2] > 0 ? { pos: 'below', shape: 'arrowUp', color: m[1] === 'M3 xa' ? '#7cb98a' : '#00c853', text: m[1] } : { pos: 'above', shape: 'arrowDown', color: '#ff5252', text: m[1] }); }); return; }
     var sub = d.pane === 'sub', inPos = false, e = -1, n = D.c.length;
     for (var i = 0; i < n; i++) {
       if (r.buy[i] && !inPos) { if (sub) c.mark(i, { loc: 'bottom', kind: 'triUp', color: '#00e676', text: 'MUA' }); else c.mark(i, { pos: 'below', shape: 'arrowUp', color: '#00c853', text: 'MUA' }); inPos = true; e = i; continue; }

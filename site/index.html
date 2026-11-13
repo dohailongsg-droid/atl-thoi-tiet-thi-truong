@@ -259,7 +259,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 </style>
 
 <script>
-window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(window.__thq=[]);q.push(cb);if(q.length>1)return;var s=document.createElement('script');s.src='tin-hieu.js?v=53';s.onload=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};s.onerror=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};document.head.appendChild(s);};
+window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(window.__thq=[]);q.push(cb);if(q.length>1)return;var s=document.createElement('script');s.src='tin-hieu.js?v=61';s.onload=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};s.onerror=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};document.head.appendChild(s);};
 </script>
 <div class="atl">
   <header class="atl-head" id="tong-quan">
@@ -1335,7 +1335,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-dial" id="dl-tl" data-source="ho_so" hidden></div>
         <p class="atl-note" id="hs-tl-sum">—</p>
         <div class="atl-tt" id="hs-tl" data-source="ho_so"></div>
-        <p class="atl-note" id="hs-tl-kd">Cấu trúc dựng ở cấp bút, khung ngày. Đã kiểm định (27/10/2026, toàn HOSE): Mua 3 lỗ 2,2%/lệnh ở 7/2023–nay và thua bộ lọc Bollinger; Mua 1 có phân kỳ MACD lỗ 1,4%/lệnh; cắt lỗ theo ZG không hơn −7%. Dùng để đọc cấu trúc, không phải tín hiệu mua.</p>
+        <p class="atl-note" id="hs-tl-kd">Cùng bộ máy với chỉ báo "Triền Luận" ở Đồ thị, Bộ lọc và Backtest: gộp nến bao hàm, phân hình, bút, trung tâm, phân kỳ theo diện tích MACD; dựng ở cấp bút trên nến ngày nên "xu hướng" ở đây là xu hướng ngắn. Kiểm định HOSE 2020 đến 27/10/2026 (sau phí, cắt lỗ 7%): Mua 3 sát trung tâm +1,67%/lệnh, PF 1,44 (425 lệnh); Mua 3 xa trung tâm kém hơn rõ; Mua 2 +1,87%/lệnh nhưng lỗ nhẹ từ 2023; Mua 1 lỗ 0,44%/lệnh. Tham khảo, không phải khuyến nghị.</p>
       </div>
       <div class="atl-card" id="card-hs-cb" hidden>
         <h2 class="atl-h">Sức khỏe doanh nghiệp</h2>
@@ -5212,10 +5212,11 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           [c > zg, 'Giá trên ZG (đã thoát lên khỏi trung tâm)', f2_(c) + ' / ' + f2_(zg)],
           [r.tl_huong === 'tăng' && r.tl_so_tt >= 2, 'Từ 2 trung tâm cùng chiều tăng (xu hướng tăng)', hx + (r.tl_huong !== 'ngang' ? ' · ' + r.tl_so_tt + ' trung tâm' : '')],
           [r.tl_but === 'lên', 'Bút gần nhất đang đi lên', 'bút ' + r.tl_but + ' đến ' + dm(r.tl_but_ngay) + ' (' + f2_(+r.tl_but_gia) + ')'],
-          [r.tl_pk != null, 'Phân kỳ MACD ở nhịp cuối', r.tl_pk ? 'phân kỳ ' + r.tl_pk + ' · lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước' : (r.tl_pk_ti_le != null ? 'lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước, chưa phân kỳ' : 'chưa có đỉnh/đáy mới')],
+          [r.tl_pk != null, 'Phân kỳ MACD ở nhịp cuối', r.tl_pk ? 'phân kỳ ' + r.tl_pk + (r.tl_pk_xh === false ? ' (đi ngang)' : r.tl_pk_xh ? ' (xu hướng)' : '') + ' · lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước' : (r.tl_pk_ti_le != null ? 'lực ' + Math.round(100 * r.tl_pk_ti_le) + '% nhịp trước, chưa phân kỳ' : 'chưa có đỉnh/đáy mới')],
           [r.tl_m1_ngay != null, 'Mua 1 (2 trung tâm giảm + phân kỳ), 10 phiên', r.tl_m1_ngay ? dm(r.tl_m1_ngay) + ' · cắt lỗ dưới ' + f2_(+r.tl_m1_cat) : 'không'],
           [r.tl_m2_ngay != null, 'Mua 2 (đáy cao hơn đáy Mua 1), 10 phiên', r.tl_m2_ngay ? dm(r.tl_m2_ngay) + ' · cắt lỗ dưới ' + f2_(+r.tl_m2_cat) : 'không'],
-          [r.tl_m3_ngay != null, 'Mua 3 (nhịp chỉnh giữ trên ZG), 10 phiên', r.tl_m3_ngay ? dm(r.tl_m3_ngay) + ' · vô hiệu nếu đóng cửa dưới ' + f2_(+r.tl_m3_zg) : 'không'],
+          [r.tl_m3_ngay != null && r.tl_m3_gan !== false, 'Mua 3 sát trung tâm (nhịp chỉnh giữ trên ZG, giá cách ZG tối đa 6%), 10 phiên', r.tl_m3_ngay ? dm(r.tl_m3_ngay) + (r.tl_m3_cach != null ? ' · cách ZG ' + String(r.tl_m3_cach).replace('.', ',') + '%' + (r.tl_m3_gan === false ? ' (xa, ngoài vùng kiểm định tốt)' : '') : '') + ' · vô hiệu nếu đóng cửa dưới ' + f2_(+r.tl_m3_zg) : 'không'],
+          ...(r.tl_v >= 2 ? [[!(r.tl_b1_ngay || r.tl_b2_ngay || r.tl_b3_ngay || r.tl_cat_ngay), 'Không có điểm Bán hay cắt lỗ cấu trúc, 10 phiên', [r.tl_b1_ngay && 'Bán 1 ' + dm(r.tl_b1_ngay), r.tl_b2_ngay && 'Bán 2 ' + dm(r.tl_b2_ngay), r.tl_b3_ngay && 'Bán 3 ' + dm(r.tl_b3_ngay), r.tl_cat_ngay && 'thủng mức cắt lỗ ' + dm(r.tl_cat_ngay)].filter(Boolean).join(' · ') || 'không có']] : []),
         ];
         it.forEach(([ok, lab, val]) => bx.append(el('span', ok ? 'y' : 'm', ok ? '✓' : '–'), el('span', null, lab), el('span', 'v', val)));
         sm.textContent = 'Giá ' + vt + ' · ' + hx + (r.tl_roi ? ' · trung tâm gần nhất đã rời ' + r.tl_roi : ' · trung tâm gần nhất còn mở') + '.';
@@ -5292,7 +5293,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       else if (c > zg) { z = upT ? 3 : 2; why = upT ? 'Giá trên ZG ' + f2(zg) + ', ' + n + ' trung tâm cùng chiều tăng.' : 'Giá đã thoát lên trên ZG ' + f2(zg) + ' nhưng chưa đủ 2 trung tâm cùng chiều tăng.'; }
       else if (c >= zd) { z = dnT ? 0 : 1; why = dnT ? 'Giá còn trong trung tâm, ' + n + ' trung tâm cùng chiều giảm: chưa thoát lên trên ZG ' + f2(zg) + '.' : 'Giá đi ngang trong trung tâm ZD ' + f2(zd) + ' – ZG ' + f2(zg) + '.'; }
       else { z = upT ? 4 : 0; why = upT ? 'Xu hướng tăng nhưng giá đã thủng ZD ' + f2(zd) + '.' : 'Giá dưới ZD ' + f2(zd) + ' của trung tâm gần nhất.'; }
-      const ev = r.tl_m3_ngay ? ' Có điểm Mua 3 (' + dmy_(r.tl_m3_ngay) + ').' : r.tl_m2_ngay ? ' Có điểm Mua 2 (' + dmy_(r.tl_m2_ngay) + ').' : r.tl_m1_ngay ? ' Có điểm Mua 1 (' + dmy_(r.tl_m1_ngay) + ').' : '';
+      const ev = (r.tl_b1_ngay || r.tl_b2_ngay || r.tl_b3_ngay) ? ' Có điểm Bán ' + (r.tl_b1_ngay ? '1 (' + dmy_(r.tl_b1_ngay) : r.tl_b2_ngay ? '2 (' + dmy_(r.tl_b2_ngay) : '3 (' + dmy_(r.tl_b3_ngay)) + ').' : r.tl_m3_ngay ? ' Có điểm Mua 3 ' + (r.tl_m3_gan === false ? 'xa trung tâm ' : '') + '(' + dmy_(r.tl_m3_ngay) + ').' : r.tl_m2_ngay ? ' Có điểm Mua 2 (' + dmy_(r.tl_m2_ngay) + ').' : r.tl_m1_ngay ? ' Có điểm Mua 1 (' + dmy_(r.tl_m1_ngay) + ').' : '';
       out.tl = [z, why + ev];
     }
     return out;
