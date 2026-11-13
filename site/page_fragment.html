@@ -1555,8 +1555,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     else{[[v,s.loai==='cap2'?C1:'currentColor'],v2?[v2,'currentColor']:null].forEach(function(pr){if(!pr)return;var dd=[];pr[0].forEach(function(a,i){if(a!=null)dd.push((i/(n-1)*W).toFixed(1)+','+Y(a).toFixed(1));});
       E('polyline',{points:dd.join(' '),fill:'none',stroke:pr[1],'stroke-width':'1.8','vector-effect':'non-scaling-stroke','stroke-linejoin':'round'});
       var li=lastOf(pr[0]);if(li>=0)E('circle',{cx:(li/(n-1)*W).toFixed(1),cy:Y(pr[0][li]).toFixed(1),r:'2.6',fill:pr[1]});});}
-    for(var i=0;i<n;i++){var t=E('rect',{x:(i*W/n).toFixed(1),y:0,width:(W/n).toFixed(1),height:H,fill:'transparent'});var tt=document.createElementNS(ns,'title');
-      tt.textContent=Q[i]+': '+(v2?(s.ten1||'')+' '+fmtv(v[i],s.dv)+' · '+(s.ten2||'')+' '+fmtv(v2[i],s.dv):fmtv(v[i],s.dv))+(s.ref!=null?' (trung vị 5 năm '+fmtv(s.ref,s.dv)+')':'');t.appendChild(tt);}
+    var hl=E('rect',{x:0,y:0,width:(W/n).toFixed(1),height:H,fill:'currentColor',opacity:'.12',visibility:'hidden','pointer-events':'none'});
+    function txt(i){return Q[i]+': '+(v2?(s.ten1||'')+' '+fmtv(v[i],s.dv)+' · '+(s.ten2||'')+' '+fmtv(v2[i],s.dv):fmtv(v[i],s.dv))+(s.ref!=null?' (trung vị 5 năm '+fmtv(s.ref,s.dv)+')':'');}
+    function tipEl(){var t=document.getElementById('atl-qtip');if(!t){t=document.createElement('div');t.id='atl-qtip';t.style.cssText='position:fixed;z-index:9999;pointer-events:none;background:var(--cds-surface-popover,#222);color:var(--color-fg,#eee);border:1px solid var(--cds-border,#444);border-radius:6px;padding:4px 8px;font-size:12.5px;line-height:1.4;box-shadow:var(--cds-shadow-popover,0 4px 16px rgba(0,0,0,.45));max-width:280px;display:none';document.body.appendChild(t);}return t;}
+    function mv(ev){var p=ev.touches?ev.touches[0]:ev,r=svg.getBoundingClientRect();if(!r.width)return;var i=bar?Math.floor((p.clientX-r.left)/r.width*n):Math.round((p.clientX-r.left)/r.width*(n-1));i=Math.max(0,Math.min(n-1,i));
+      var hw=W/n,hx=bar?i*hw:Math.max(0,Math.min(W-hw,i/(n-1)*W-hw/2));hl.setAttribute('x',hx.toFixed(1));hl.setAttribute('visibility','visible');
+      var t=tipEl();t.textContent=txt(i);t.style.display='block';var tw=t.offsetWidth,x=p.clientX+12;if(x+tw>innerWidth-6)x=p.clientX-tw-12;t.style.left=Math.max(4,x)+'px';t.style.top=Math.max(4,r.top-t.offsetHeight-6)+'px';}
+    function lv(){hl.setAttribute('visibility','hidden');var t=document.getElementById('atl-qtip');if(t)t.style.display='none';}
+    svg.style.cursor='crosshair';svg.addEventListener('mousemove',mv);svg.addEventListener('mouseleave',lv);svg.addEventListener('touchstart',mv,{passive:true});svg.addEventListener('touchmove',mv,{passive:true});svg.addEventListener('touchend',lv);
     return svg;}
   function st12(v){var a=v.filter(function(z){return z!=null;});if(!a.length)return null;var sm=a.reduce(function(p,q){return p+q;},0);return {avg:sm/a.length,mx:Math.max.apply(null,a),mn:Math.min.apply(null,a)};}
   function pt(a,b){return (a-b>=0?'+':'−')+n1(Math.abs(a-b))+' điểm';}
@@ -1818,7 +1824,13 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     Object.keys(TABKW).forEach(function(q){if(TABKW[q].test(t)&&k.indexOf(q)<0)k.push(q);});
     return k;}
   function headOf(id,n){var r=document.getElementById(id);return r?textOf(id,n).replace(/\n\[đã cắt bớt phần cuối\]$/,''):'';}
-  function sysText(lim,T){T=T||collect();var parts=[RULES,'GIẢI THÍCH THUẬT NGỮ: '+GLOSS];
+  setTimeout(function(){try{if(window.atlLoadTH)window.atlLoadTH(function(){});}catch(e){}},3500);
+  function indDefs(q){var TH=window.ATLTH;if(!TH||!TH.list||!q)return '';var nz=function(x){return String(x).toLowerCase().replace(/[^a-z0-9à-ỹ]+/g,'');},Q=nz(q),out=[];
+    TH.list.forEach(function(d){var nm=String(d.name).split('(')[0].trim(),a=nz(nm),f=nm.split(/\s+/)[0],hit=a.length>=3&&Q.indexOf(a)>=0;
+      if(!hit&&/^[A-Z]{3,}$/.test(f)&&new RegExp('(^|[^a-z0-9])'+f.toLowerCase()+'([^a-z0-9]|$)').test(q.toLowerCase()))hit=true;
+      if(hit&&out.length<6)out.push('- '+d.name+(d.grp?' (nhóm "'+d.grp+'" trong thư viện chỉ báo của trang)':'')+': MUA khi '+(d.buy_t||'—')+'. BÁN khi '+(d.sell_t||'—')+'.'+(d.src?' Nguồn quy tắc: '+d.src+'.':''));});
+    return out.length?'ĐỊNH NGHĨA CHỈ BÁO THEO ĐÚNG CÁCH TRANG NÀY TÍNH (đây là dữ liệu của trang, dùng nó để giải thích chỉ báo, không gắn thẻ ngoài trang; không suy diễn tên viết tắt theo nghĩa khác):\n'+out.join('\n'):'';}
+  function sysText(lim,T){T=T||collect();var parts=[RULES,'GIẢI THÍCH THUẬT NGỮ: '+GLOSS];var idf=indDefs(lastQ);if(idf)parts.push(idf);
     if(scopeNote)parts.push(scopeNote);
     if(anchorTx)parts.push('=== TÓM TẮT PHA THỊ TRƯỜNG (phần đầu tab HÔM NAY MUA GÌ, chỉ để xác định pha và tỷ trọng tối đa) ===\n'+anchorTx);
     TABS.forEach(function(t){if(!(t[0] in T))return;var tx=T[t[0]]||'';if(tx.length>lim[t[0]])tx=tx.slice(0,lim[t[0]])+'\n[đã cắt bớt phần cuối]';
@@ -2457,6 +2469,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       <h2 class="atl-h">Bộ lọc cổ phiếu theo chỉ báo</h2>
       <p class="atl-note" id="bl-src">Đang tải…</p>
       <div class="bl-ph" id="bl-ph" hidden></div>
+      <div id="bl-kv"></div>
       <div class="bl-lb">Bộ lọc có sẵn</div>
       <div class="bl-row" id="bl-pre"></div>
       <div class="bl-lb">Tự ghép điều kiện (mọi điều kiện đang bật phải cùng đúng)</div>
@@ -3054,55 +3067,92 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       ['bt-cap','bt-pp','bt-lev','bt-mr','bt-sv'].forEach(function(id){$(id).addEventListener('change',function(){if(M)run();});});
       (function(){var tm=0,lw=0;function rd(){var w=$('bt-nav').parentNode.clientWidth;if(!w||w===lw)return;lw=w;drawNav();drawYr();}
         if(window.ResizeObserver){try{new ResizeObserver(function(){clearTimeout(tm);tm=setTimeout(rd,120);}).observe($('bt-out'));}catch(e){}}else window.addEventListener('resize',function(){clearTimeout(tm);tm=setTimeout(rd,150);});})();
-      /* ================= Bảng giá: chỉ báo nào đang hợp thị trường 5/10 phiên gần nhất ================= */
+      /* ================= KHẨU VỊ THỊ TRƯỜNG: chỉ báo nào đang thắng VN-Index trong 5/10/20/50 phiên ================= */
       (function(){
         var STY={tr:'Theo xu hướng',mr:'Bắt nhịp chỉnh',vl:'Khối lượng, dòng tiền',at:'Hệ thống ATL',kh:'Khác'};
-        var SOF={bbr:'mr',rsi:'mr',stoch:'mr',mfi:'mr',cci:'mr',uo:'mr',mdiv:'mr',hdiv:'mr',bb:'mr',dbot:'mr',vol:'vl',gtgd:'vl',obv:'vl',nn:'vl',vp:'kh',vwap:'kh',piv:'kh',chop:'kh',vnt:'at',drg:'at',mcdx:'at'};
-        var box=null,out,stt,N=5,busy=false;
+        var SOF={bbr:'mr',rsi:'mr',stoch:'mr',mfi:'mr',cci:'mr',uo:'mr',mdiv:'mr',hdiv:'mr',bb:'mr',dbot:'mr',vol:'vl',gtgd:'vl',obv:'vl',nn:'vl',mcdx:'vl',vp:'kh',vwap:'kh',piv:'kh',chop:'kh',vnt:'at',drg:'at'};
+        var WINS=[5,10,20,50],FEE=0.3,SL=7,MH=60,RES=null,busy=false,views=[],sttEls=[];
+        try{var c0=JSON.parse(localStorage.getItem('atl-kv2')||'null');if(c0&&c0.rows&&c0.d1)RES=c0;}catch(e){}
         function whenReady(cb,fail){if(M&&SY&&TH)return cb();load();var t=0;(function w(){if(M&&SY&&TH)return cb();if(++t>400)return fail();setTimeout(w,300);})();}
+        function stt(x){sttEls.forEach(function(e){e.textContent=x;});}
+        /* mọi lệnh của một chỉ báo: mua ở giá đóng cửa phiên sau tín hiệu, bán theo tác giả hoặc cắt lỗ 7% hoặc hết 60 phiên */
+        function tradesOf(id,from,syms){var out=[];
+          syms.forEach(function(q){var D=q.D,c=D.c,n=c.length,S=sig(q.s,id,ST.P[id]),b=S.b,s=S.s,sa=S.sa,bz=-1;
+            for(var i=Math.max(1,from-D.a-1);i<n-2;i++){if(i<=bz||!b[i]||!(D.g20[i]>=10))continue;
+              var e=i+1,pe=c[e],x=-1;for(var k=e+2;k<n&&k<=e+MH;k++){if((c[k]/pe-1)*100<=-SL||(s&&s[k])||(sa&&sa(k,e))){x=k;break;}}
+              if(x<0)x=Math.min(n-1,e+MH);bz=x;out.push({s:q.s,D:D,e:D.a+e,x:D.a+x,pe:pe});}});
+          return out;}
+        /* giá trị một lệnh tại phiên T (lệnh còn mở thì tính theo giá phiên T) */
+        function valAt(t,T){var k=Math.min(t.x,T),r=(t.D.c[k-t.D.a]/t.pe-1)*100-FEE;return {r:r,x:r-(M.x[k]/M.x[t.e]-1)*100};}
+        function winStat(tr,T,N){var n=0,sm=0,w=0,xs=0;for(var i=0;i<tr.length;i++){var t=tr[i];if(t.e<T-N||t.e>T-1)continue;var v=valAt(t,T);n++;sm+=v.r;xs+=v.x;if(v.r>0)w++;}
+          return n?{n:n,a:sm/n,w:w/n*100,x:xs/n}:{n:0};}
+        function score(rows){WINS.forEach(function(N){var L=rows.filter(function(r){return r.w[N].n>=5;}).sort(function(a,b){return a.w[N].x-b.w[N].x;});
+            L.forEach(function(r,i){r.w[N].p=L.length>1?i/(L.length-1)*100:50;});});
+          rows.forEach(function(r){var s=0,c=0;WINS.forEach(function(N){if(r.w[N].p!=null){s+=r.w[N].p;c++;}});r.sc=c>=2?s/c:null;});}
         function calc(done){
-          var last=M.d.length-1,liq=[],KN=(window.__atlKN||[]),knS={};KN.forEach(function(s){knS[s]=1;});
-          Object.keys(SY).forEach(function(s){var D=dOf(s);if(!D)return;var n=D.c.length,li=n-1;if(D.a+li!==last||n<N+40||!(D.g20[li]>=10))return;liq.push({s:s,D:D,li:li,ret:(D.c[li]/D.c[li-N]-1)*100});});
-          var top=liq.slice().sort(function(a,b){return b.ret-a.ret;}).slice(0,20),topS={};top.forEach(function(q){topS[q.s]=1;});
-          var L=TH.list.filter(function(d){return !NOH[d.id];}),rows=[],i=0,ir=(M.x[last]/M.x[last-N]-1)*100;
+          var last=M.d.length-1,syms=[],KN=(window.__atlKN||[]),knS={};KN.forEach(function(s){knS[s]=1;});
+          Object.keys(SY).forEach(function(s){var D=dOf(s);if(!D)return;var n=D.c.length;if(D.a+n-1!==last||n<120)return;syms.push({s:s,D:D});});
+          var top=syms.filter(function(q){return q.D.g20[q.D.c.length-1]>=10;}).map(function(q){var c=q.D.c,li=c.length-1;return {s:q.s,ret:(c[li]/c[li-10]-1)*100};}).sort(function(a,b){return b.ret-a.ret;}).slice(0,20),topS={};top.forEach(function(q){topS[q.s]=1;});
+          var L=TH.list.filter(function(d){return !NOH[d.id];}),rows=[],i=0;
           function step(){
-            if(i>=L.length)return done({rows:rows,top:top,ir:ir,d0:M.d[last-N],d1:M.d[last],kn:KN.length});
-            var d=L[i++];stt.textContent='Đang tính '+i+'/'+L.length+': '+d.name+'…';var n=0,sm=0,w=0,xs=0,hit=0,hk=0;
-            liq.forEach(function(q){var b=sig(q.s,d.id,ST.P[d.id]).b,li=q.li,c=q.D.c,k;
-              for(k=Math.max(0,li-N-1);k<=li-2;k++)if(b[k]){var e=k+1,r=(c[li]/c[e]-1)*100;n++;sm+=r;if(r>0)w++;xs+=r-(M.x[last]/M.x[q.D.a+e]-1)*100;break;}
-              if(topS[q.s])for(k=Math.max(0,li-N-3);k<=li-Math.ceil(N/2);k++)if(b[k]){hit++;break;}
-              if(knS[q.s])for(k=Math.max(0,li-N-1);k<=li-1;k++)if(b[k]){hk++;break;}});
-            rows.push({id:d.id,name:d.name,sty:SOF[d.id]||'tr',n:n,sm:sm,a:n?sm/n:null,w:n?w/n*100:null,x:n?xs/n:null,hit:hit,hk:hk});setTimeout(step,0);}
+            if(i>=L.length){score(rows);var R={rows:rows,top:top,d1:M.d[last],kn:KN.length,ir:{}};WINS.forEach(function(N){R.ir[N]=(M.x[last]/M.x[last-N]-1)*100;});return done(R);}
+            var d=L[i++];stt('Đang tính '+i+'/'+L.length+': '+d.name+'…');var tr=tradesOf(d.id,last-55,syms),w={},hit={},hk={};
+            WINS.forEach(function(N){w[N]=winStat(tr,last,N);});
+            tr.forEach(function(t){if(t.e>=last-12){if(topS[t.s])hit[t.s]=1;if(knS[t.s])hk[t.s]=1;}});
+            rows.push({id:d.id,name:d.name,sty:SOF[d.id]||'tr',w:w,hit:Object.keys(hit).length,hk:Object.keys(hk).length});setTimeout(step,0);}
           step();
         }
-        function render(R){
-          out.textContent='';var ok='var(--color-ok)',bad='var(--color-bad)';
-          var G={};R.rows.forEach(function(r){var g=G[r.sty]=G[r.sty]||{n:0,sm:0};g.n+=r.n;g.sm+=r.sm;});
-          var gs=Object.keys(G).filter(function(k){return G[k].n>=10;}).map(function(k){return {k:k,a:G[k].sm/G[k].n,n:G[k].n};}).sort(function(a,b){return b.a-a.a;});
-          var p=el('p','hot-sum');p.appendChild(el('b',null,N+' phiên gần nhất ('+vd(R.d0)+' → '+vd(R.d1)+'): '));
-          p.appendChild(document.createTextNode(gs.length>1?'nhóm "'+STY[gs[0].k]+'" '+(gs[0].a>0?'đang hiệu quả nhất, tín hiệu mua lãi tạm tính bình quân ':'đang ít lỗ nhất (chưa nhóm nào có lãi), tín hiệu mua tạm tính bình quân ')+pc(gs[0].a,2)+' ('+gs[0].n+' tín hiệu); kém nhất là nhóm "'+STY[gs[gs.length-1].k]+'" với '+pc(gs[gs.length-1].a,2)+'. VN-Index cùng kỳ '+pc(R.ir,2)+'.':'chưa đủ tín hiệu để so sánh các nhóm. VN-Index cùng kỳ '+pc(R.ir,2)+'.'));out.appendChild(p);
-          var p2=el('p','lv-note');p2.style.maxWidth='none';p2.appendChild(document.createTextNode('Tăng mạnh nhất '+N+' phiên (GTGD ≥ 10 tỷ): '));
-          R.top.slice(0,12).forEach(function(q,i){if(i)p2.appendChild(document.createTextNode(' · '));p2.appendChild(symBtn(q.s));p2.appendChild(document.createTextNode(' '+pc(q.ret,1)));});out.appendChild(p2);
-          var w=el('div','hot-tb'),t=el('table'),h=el('thead'),hr=el('tr');
-          [['Chỉ báo',''],['Kiểu',''],['Tín hiệu mua','num','Số mã có tín hiệu mua trong '+N+' phiên gần nhất (mỗi mã tính tín hiệu đầu tiên)'],['Lãi tạm tính TB','num','Mua ở giá đóng cửa phiên sau tín hiệu, tính đến giá đóng cửa gần nhất, chưa trừ phí'],['Đang lãi','num','Tỷ lệ tín hiệu đang có lãi'],['So với VN-Index','num','Lãi tạm tính trừ mức tăng của VN-Index cùng quãng'],['Bắt được mã tăng mạnh','num','Trong 20 mã tăng mạnh nhất '+N+' phiên, bao nhiêu mã có tín hiệu mua từ 3 phiên trước đến giữa nhịp tăng'],['Trùng mã khối ngoại mua','num','Trong các mã khối ngoại mua ròng nhiều nhất phiên này, bao nhiêu mã có tín hiệu mua trong '+N+' phiên']].forEach(function(c){var th=el('th',c[1],c[0]);if(c[2])th.title=c[2];hr.appendChild(th);});
-          h.appendChild(hr);t.appendChild(h);var tb=el('tbody');
-          R.rows.slice().sort(function(a,b){var ea=a.n>=5?1:0,eb=b.n>=5?1:0;if(ea!==eb)return eb-ea;return (b.a==null?-1e9:b.a)-(a.a==null?-1e9:a.a);}).forEach(function(r){var tr=el('tr'),a=el('td'),b=el('button','bt-sym',r.name);b.type='button';b.title='Mở backtest chỉ báo này';
-            b.addEventListener('click',function(){ST.sg=[r.id];ST.au=1;save();put();run();if(window.atlShow)window.atlShow('backtest');});a.appendChild(b);tr.appendChild(a);tr.appendChild(el('td',null,STY[r.sty]));
-            function td(x,col){var e=el('td','num',x);if(col)e.style.color=col;tr.appendChild(e);}
-            td(String(r.n));td(r.n?pc(r.a,2):'—',r.n?(r.a>0?ok:bad):null);td(r.n?r.w.toFixed(0)+'%':'—');td(r.n?pc(r.x,2):'—',r.n?(r.x>0?ok:bad):null);td(r.hit+'/'+R.top.length);td(R.kn?r.hk+'/'+R.kn:'—');
-            if(r.n<5)tr.style.opacity=.55;tb.appendChild(tr);});
-          t.appendChild(tb);w.appendChild(t);out.appendChild(w);
-          var nt=el('p','lv-note');nt.style.maxWidth='none';nt.textContent='Mẫu '+N+' phiên rất nhỏ: bảng này chỉ cho biết kiểu chiến lược nào đang hợp nhịp thị trường hiện tại, không chứng minh chỉ báo nào tốt hơn về dài hạn (xem tab Backtest). Dòng mờ là chỉ báo có dưới 5 tín hiệu. Giá lịch sử cập nhật đến '+vd(R.d1)+'. Tham khảo, không phải khuyến nghị đầu tư.';out.appendChild(nt);
-        }
-        function go(){if(busy)return;busy=true;stt.textContent='Đang tải lịch sử giá (khoảng 15 MB, tải một lần)…';
-          whenReady(function(){setTimeout(function(){calc(function(R){busy=false;stt.textContent='';render(R);});},30);},function(){busy=false;stt.textContent='Chưa tải được lịch sử giá.';});}
+        function go(){if(busy)return;busy=true;stt('Đang tải lịch sử giá (khoảng 15 MB, tải một lần)…');
+          whenReady(function(){setTimeout(function(){calc(function(R){busy=false;stt('');RES=R;try{localStorage.setItem('atl-kv2',JSON.stringify(R));}catch(e){}views.forEach(function(f){f();});});},30);},function(){busy=false;stt('Chưa tải được lịch sử giá.');});}
+        function toBL(id){if(window.atlBLsetLib)window.atlBLsetLib([id],1);if(window.atlShow)window.atlShow('bo-loc');}
+        function ranked(){return RES.rows.slice().sort(function(a,b){return (b.sc==null?-1:b.sc)-(a.sc==null?-1:a.sc);});}
+        var ok='var(--color-ok)',bad='var(--color-bad)';
+        function head(box,title){box.appendChild(el('h3',null,title));var tp=el('div','hot-top'),bt=el('button','bt-btn s',RES?'Tính lại':'Tính ngay');bt.type='button';bt.style.padding='4px 12px';bt.addEventListener('click',go);tp.appendChild(bt);var s=el('span','lv-note');sttEls.push(s);tp.appendChild(s);box.appendChild(tp);return {tp:tp,bt:bt};}
+        /* ----- thẻ đầy đủ ở tab Bảng giá ----- */
+        var box=null;
         window.atlHotMount=function(host){
-          if(!box){box=el('div','lv-box');box.style.marginTop='var(--cds-gap-md)';box.appendChild(el('h3',null,'Chỉ báo nào đang hợp thị trường'));
-            var tp=el('div','hot-top'),sg=el('span','bt-seg');[5,10].forEach(function(n){var b=el('button',null,n+' phiên');b.type='button';b.setAttribute('aria-pressed',String(n===N));b.addEventListener('click',function(){if(busy)return;N=n;[].forEach.call(sg.children,function(c,i){c.setAttribute('aria-pressed',String([5,10][i]===N));});if(M)go();});sg.appendChild(b);});tp.appendChild(sg);
-            var bt=el('button','bt-btn s','Tính ngay');bt.type='button';bt.style.padding='4px 12px';bt.addEventListener('click',go);tp.appendChild(bt);stt=el('span','lv-note');tp.appendChild(stt);box.appendChild(tp);
-            out=el('div');out.appendChild(el('p','lv-note','Thống kê tín hiệu mua của từng chỉ báo trong 5 hoặc 10 phiên gần nhất: lãi tạm tính, và chỉ báo nào đã báo mua các mã tăng mạnh nhất, các mã khối ngoại mua ròng. Bấm "Tính ngay" để tải lịch sử giá và tính trên máy bạn.'));box.appendChild(out);}
+          if(!box){box=el('div','lv-box');box.style.marginTop='var(--cds-gap-md)';var H=head(box,'Khẩu vị thị trường: chỉ báo nào đang thắng VN-Index'),out=el('div');box.appendChild(out);
+            views.push(function(){H.bt.textContent='Tính lại';out.textContent='';var R=RES,rk=ranked(),t3=rk.filter(function(r){return r.sc!=null;}).slice(0,3);
+              var G={};R.rows.forEach(function(r){if(r.sc==null)return;var g=G[r.sty]=G[r.sty]||{s:0,c:0};g.s+=r.sc;g.c++;});
+              var gs=Object.keys(G).map(function(k){return {k:k,a:G[k].s/G[k].c};}).sort(function(a,b){return b.a-a.a;});
+              var p=el('p','hot-sum');p.appendChild(el('b',null,'Đến '+vd(R.d1)+': '));
+              p.appendChild(document.createTextNode(t3.length?'điểm tổng 4 khung cao nhất là '+t3.map(function(r){return r.name+' ('+Math.round(r.sc)+' điểm)';}).join(', ')+'.'+(gs.length>1?' Nhóm đang hợp nhất: "'+STY[gs[0].k]+'"; kém nhất: "'+STY[gs[gs.length-1].k]+'".':''):'chưa đủ tín hiệu để xếp hạng.'));
+              p.appendChild(document.createTextNode(' VN-Index: '+WINS.map(function(N){return N+' phiên '+pc(R.ir[N],1);}).join(' · ')+'.'));out.appendChild(p);
+              var p2=el('p','lv-note');p2.style.maxWidth='none';p2.appendChild(document.createTextNode('Tăng mạnh nhất 10 phiên (GTGD ≥ 10 tỷ): '));
+              R.top.slice(0,12).forEach(function(q,i){if(i)p2.appendChild(document.createTextNode(' · '));p2.appendChild(symBtn(q.s));p2.appendChild(document.createTextNode(' '+pc(q.ret,1)));});out.appendChild(p2);
+              var w=el('div','hot-tb'),t=el('table'),h=el('thead'),hr=el('tr');
+              [['Chỉ báo',''],['Kiểu',''],['Điểm khẩu vị','num','0–100: thứ hạng trung bình của chỉ báo ở cả 4 khung (100 = thắng VN-Index nhiều nhất ở mọi khung). Đây là cột chính để đọc']].concat(WINS.map(function(N){return [N+' phiên','num','Lãi bình quân của các lệnh mở trong '+N+' phiên gần nhất, trừ đi mức tăng của VN-Index cùng quãng. Mua bán theo đúng quy tắc của chỉ báo, cắt lỗ 7%, đã trừ phí; lệnh chưa bán tính theo giá mới nhất'];})).concat([['Lệnh 10 phiên','num','Số lệnh mở trong 10 phiên gần nhất'],['Đang lãi','num','Tỷ lệ lệnh 10 phiên đang có lãi'],['Bắt mã tăng mạnh','num','Trong 20 mã tăng mạnh nhất 10 phiên, chỉ báo đã mua bao nhiêu mã'],['Trùng khối ngoại mua','num','Trong các mã khối ngoại mua ròng nhiều nhất phiên này, chỉ báo đã mua bao nhiêu mã trong 10 phiên'],['','']]).forEach(function(c){var th=el('th',c[1],c[0]);if(c[2])th.title=c[2];hr.appendChild(th);});
+              h.appendChild(hr);t.appendChild(h);var tb=el('tbody');
+              rk.forEach(function(r){var tr=el('tr'),a=el('td'),b=el('button','bt-sym',r.name);b.type='button';b.title='Mở backtest chỉ báo này';
+                b.addEventListener('click',function(){ST.sg=[r.id];ST.au=1;save();put();run();if(window.atlShow)window.atlShow('backtest');});a.appendChild(b);tr.appendChild(a);tr.appendChild(el('td',null,STY[r.sty]));
+                function td(x,col,ti){var e=el('td','num',x);if(col)e.style.color=col;if(ti)e.title=ti;tr.appendChild(e);return e;}
+                td(r.sc==null?'—':String(Math.round(r.sc)),r.sc==null?null:r.sc>=67?ok:r.sc<33?bad:null).style.fontWeight='700';
+                WINS.forEach(function(N){var q=r.w[N];if(!q.n){td('—');return;}var e=td(pc(q.x,2),q.x>0?ok:bad,q.n+' lệnh · lãi TB '+pc(q.a,2)+' · đang lãi '+q.w.toFixed(0)+'%');if(q.n<5)e.style.opacity=.45;});
+                var q10=r.w[10];td(String(q10.n||0));td(q10.n?q10.w.toFixed(0)+'%':'—');td(r.hit+'/'+R.top.length);td(R.kn?r.hk+'/'+R.kn:'—');
+                var c=el('td'),g=el('button','bt-btn s','Lọc mã →');g.type='button';g.style.padding='2px 8px';g.style.fontSize='12px';g.title='Sang tab Bộ lọc, bật sẵn chỉ báo này để xem các mã đang có tín hiệu';g.addEventListener('click',function(){toBL(r.id);});c.appendChild(g);tr.appendChild(c);
+                if(r.sc==null)tr.style.opacity=.55;tb.appendChild(tr);});
+              t.appendChild(tb);w.appendChild(t);out.appendChild(w);
+              var nt=el('p','lv-note');nt.style.maxWidth='none';nt.textContent='Cách đọc: xem cột "Điểm khẩu vị" trước (xếp từ trên xuống), rồi kiểm tra 4 cột khung thời gian có cùng màu xanh không. Chỉ báo xanh ở cả 4 khung là đang hợp thị trường một cách ổn định; chỉ xanh ở 5–10 phiên là mới hợp gần đây, mẫu còn nhỏ. Số mờ là dưới 5 lệnh. Bảng này mô tả thị trường đang thưởng cho kiểu chiến lược nào; kiểm định 138 lần xếp hạng từ 2021 đến 10/2026 cho thấy 5 chỉ báo đứng đầu KHÔNG thắng trung bình các chỉ báo trong 10 phiên kế tiếp (ở cả 4 khung lẫn điểm tổng), nên dùng để hiểu thị trường và chọn kiểu lọc mã, không phải để tăng tỷ trọng. Tham khảo, không phải khuyến nghị đầu tư.';out.appendChild(nt);});
+            if(RES)views[views.length-1]();else out.appendChild(el('p','lv-note','Xếp hạng các chỉ báo theo kết quả lệnh mua của chúng trong 5, 10, 20 và 50 phiên gần nhất so với VN-Index. Bấm "Tính ngay" để tải lịch sử giá và tính trên máy bạn; kết quả được lưu lại cho lần mở sau.'));}
           host.appendChild(box);
         };
+        /* ----- biểu đồ gọn ở đầu tab Bộ lọc ----- */
+        (function(){var host=document.getElementById('bl-kv');if(!host)return;var bx=el('div','lv-box');bx.style.margin='0 0 12px';var mode='sc';
+          var H=head(bx,'Khẩu vị thị trường: chiến lược đang hợp nhất so với VN-Index'),sg=el('span','bt-seg');
+          [['sc','Tổng 4 khung']].concat(WINS.map(function(N){return [String(N),N+' phiên'];})).forEach(function(m){var b=el('button',null,m[1]);b.type='button';b.dataset.m=m[0];b.setAttribute('aria-pressed',String(m[0]===mode));b.addEventListener('click',function(){mode=m[0];[].forEach.call(sg.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.m===mode));});if(RES)draw();});sg.appendChild(b);});
+          H.tp.insertBefore(sg,H.tp.firstChild);var out=el('div');bx.appendChild(out);host.appendChild(bx);
+          function draw(){H.bt.textContent='Tính lại';out.textContent='';var R=RES,L;
+            if(mode==='sc')L=ranked().filter(function(r){return r.sc!=null;}).map(function(r){var ps=WINS.filter(function(N){return r.w[N].n&&r.w[N].x>0;}).length;return {r:r,v:r.sc,ps:ps,t:Math.round(r.sc)+' điểm',n:'thắng VN-Index '+ps+'/4 khung · '+WINS.map(function(N){return N+'p '+(r.w[N].n?pc(r.w[N].x,1):'—');}).join(' · ')};});
+            else{var N=+mode;L=R.rows.filter(function(r){return r.w[N].n>=5;}).sort(function(a,b){return b.w[N].x-a.w[N].x;}).map(function(r){var q=r.w[N];return {r:r,v:q.x,t:pc(q.x,2),n:q.n+' lệnh · đang lãi '+q.w.toFixed(0)+'%'};});}
+            L=L.slice(0,8);if(!L.length){out.appendChild(el('p','lv-note','Chưa đủ tín hiệu ở khung này.'));return;}
+            var mx=Math.max.apply(null,L.map(function(x){return Math.abs(x.v);}))||1,g=el('div');g.style.cssText='display:grid;grid-template-columns:minmax(120px,15rem) 1fr minmax(64px,auto) minmax(0,auto);gap:4px 10px;align-items:center;font-size:13px;margin:6px 0';
+            L.forEach(function(x){var b=el('button','bt-sym',x.r.name);b.type='button';b.style.textAlign='left';b.title='Bật chỉ báo này trong bộ lọc bên dưới';b.addEventListener('click',function(){if(window.atlBLsetLib)window.atlBLsetLib([x.r.id],1);});g.appendChild(b);
+              var tk=el('div'),br=el('div');tk.style.cssText='height:12px;background:color-mix(in srgb,var(--color-fg) 7%,transparent);border-radius:3px;overflow:hidden';br.style.cssText='height:100%;border-radius:3px;width:'+Math.max(2,Math.abs(x.v)/mx*100)+'%;background:'+(mode==='sc'?(x.ps>=3?'#2e9e4f':x.ps>=1?'#c9a23b':'#8a8f98'):(x.v>=0?'#2e9e4f':'#c9483b'));tk.appendChild(br);g.appendChild(tk);
+              var v=el('b',null,x.t);v.style.cssText='text-align:right;font-variant-numeric:tabular-nums';if(mode!=='sc')v.style.color=x.v>0?ok:bad;g.appendChild(v);var s=el('span','lv-note',x.n+' · '+STY[x.r.sty]);s.style.margin='0';g.appendChild(s);});
+            out.appendChild(g);
+            var nt=el('p','lv-note');nt.style.maxWidth='none';nt.textContent='Dữ liệu đến '+vd(R.d1)+'. '+(mode==='sc'?'Điểm 0–100 = thứ hạng trung bình ở 4 khung 5, 10, 20, 50 phiên (điểm cao chỉ là đứng trên các chỉ báo khác). Thanh xanh: thắng VN-Index ở ít nhất 3 khung; vàng: 1–2 khung; xám: không khung nào.':'Lãi bình quân các lệnh mở trong '+mode+' phiên gần nhất trừ mức tăng của VN-Index (VN-Index '+pc(R.ir[+mode],1)+').')+' Bấm tên chỉ báo để lọc các mã đang có tín hiệu đó. Thứ hạng này cho biết thị trường đang thưởng cho kiểu chiến lược nào, không dự báo được giai đoạn tới; tỷ trọng vẫn do pha thị trường ở trên quyết định. Bảng đầy đủ ở tab Bảng giá.';out.appendChild(nt);}
+          views.push(draw);if(RES)draw();else out.appendChild(el('p','lv-note','Top 8 chỉ báo có lệnh mua thắng VN-Index nhiều nhất trong 5, 10, 20, 50 phiên gần nhất. Bấm "Tính ngay" (tải khoảng 15 MB lịch sử giá, một lần); kết quả được lưu cho lần mở sau.'));})();
+        window.__atlKV={tradesOf:tradesOf,valAt:valAt,winStat:winStat,score:score,WINS:WINS,ctx:function(){return {M:M,SY:SY,TH:TH,dOf:dOf,NOH:NOH};},ready:whenReady};
       })();
       $('bt-all').addEventListener('click',function(){if(M){runAll();var w=$('bt-cmpw');if(w&&w.scrollIntoView)w.scrollIntoView({behavior:'smooth',block:'start'});}});
       $('bt-q').addEventListener('input',function(){if(TH)drawSg();});
