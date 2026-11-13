@@ -208,6 +208,7 @@
     var CS_LEN = c.input('Chandelier · số nến đỉnh/đáy', 22, { min: 2, max: 200, step: 1, group: 'Chandelier' });
     var CS_ATR = c.input('Chandelier · chu kỳ ATR', 22, { min: 1, max: 200, step: 1, group: 'Chandelier' });
     var CS_MULT = c.input('Chandelier · hệ số ATR', 3, { min: 0.5, max: 10, step: 0.1, group: 'Chandelier' });
+    var BG_N = c.input('Nền xanh dương: Exposure = 0 liên tục bao nhiêu phiên thì bắt đầu tô (0 = tô ngay)', 50, { min: 0, max: 250, step: 1, group: 'Màu nền' }), zeroRun = 0;
     var EMA_A = c.input('EMA ngắn', 20, { min: 2, max: 400, step: 1, group: 'EMA' });
     var EMA_B = c.input('EMA vừa', 50, { min: 2, max: 400, step: 1, group: 'EMA' });
     var EMA_C = c.input('EMA dài', 200, { min: 2, max: 600, step: 1, group: 'EMA' });
@@ -286,7 +287,7 @@
       if (tSell) { hasBuy = false; hasStrong = false; isHolding = false; }
       if (emaBullTrig) { emaBullActive = true; emaBearActive = false; }
       if (emaBearTrig) { emaBearActive = true; emaBullActive = false; }
-      if (tBuy) c.mark(i, { pos: 'below', text: 'MÚC', box: true, bg: '#2e9e4f', fg: '#fff' });
+      if (tBuy) { c.mark(i, { pos: 'below', text: 'MÚC', box: true, bg: '#2e9e4f', fg: '#fff' }); }
       if (tStrong) c.mark(i, { pos: 'below', text: 'THÊM', box: true, bg: '#00e676', fg: '#06210f' });
       if (tSell) c.mark(i, { pos: 'above', text: 'SÚT', box: true, bg: '#f23645', fg: '#fff' });
       if (emaBullTrig) c.barColor(i, '#9c27b0'); if (emaBearTrig) c.barColor(i, '#00bcd4');
@@ -302,9 +303,10 @@
       if (exposure >= 10) expLowPx = NA;
       if (exposure === 100 && prevExp < 100) expStartPx = C[i];
       if (exposure < 100) expStartPx = NA;
+      zeroRun = exposure === 0 ? zeroRun + 1 : 0;
       prevExp = exposure;
       var profit = !isna(expStartPx) && C[i] >= expStartPx * 1.3, above2 = C[i] >= e233[i] * 2, deep = !isna(expLowPx) && C[i] <= expLowPx * 0.65;
-      var bgc = deep ? rgba0(110, 230, 120, .28) : above2 ? rgba0(255, 82, 82, .2) : exposure === 0 ? rgba0(120, 190, 255, .24) : profit ? rgba0(255, 235, 59, .24) : C[i] <= hi52[i] * 0.5 ? rgba0(190, 120, 255, .22) : null;
+      var bgc = deep ? rgba0(110, 230, 120, .28) : above2 ? rgba0(255, 82, 82, .2) : (exposure === 0 && zeroRun > BG_N) ? rgba0(120, 190, 255, .24) : profit ? rgba0(255, 235, 59, .24) : C[i] <= hi52[i] * 0.5 ? rgba0(190, 120, 255, .22) : null;
       if (bgc && i >= 200) c.bg(i, bgc);
       stateLast = { holdSt: holdSt, holdMacd: holdMacd, holdDmi: holdDmi, holdMcdx: holdMcdx, holdCs: holdCs, holdEma: holdEma, exposure: exposure };
       /* ---- TD Sequential (đếm 9 và lead-up 13) ---- */

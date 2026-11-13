@@ -3309,7 +3309,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           t2.appendChild(b2);var w2=el('div','atl-tablebox bt-tb');w2.appendChild(t2);o.appendChild(w2);
         }
         function ready(cb){if(M&&SY&&window.ATLTH){TH=window.ATLTH;return cb();}load();var tries=0;(function w(){if(M&&SY&&window.ATLTH){TH=window.ATLTH;return cb();}if(++tries>200){say('Không tải được dữ liệu.');return;}setTimeout(w,300);})();}
-        function ensureCB(cb){if(window.ATLCB)return cb();var s=document.createElement('script');s.src='chi-bao.js';s.onload=cb;s.onerror=cb;document.head.appendChild(s);}
+        function ensureCB(cb){if(window.ATLCB)return cb();var s=document.createElement('script');s.src='chi-bao.js?v=66';s.onload=cb;s.onerror=cb;document.head.appendChild(s);}
         function go(sym){
           sym=(sym||'').toUpperCase().trim();if(!/^[A-Z0-9]{2,8}$/.test(sym)){say('Nhập mã cổ phiếu.');return;}
           if(busy)return;busy=true;cur=sym;$('ms-sym').value=sym;say('Đang tính '+sym+'…');
@@ -3455,7 +3455,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     function cbmsg(t,er){var m=$('cb-msg');m.textContent=t||'';m.className=er?'er':'';}
     function loadCBjs(cb){
       if(window.ATLCB)return cb();cbq.push(cb);if(cbState===1)return;cbState=1;
-      window.atlLoadTH(function(){var s=document.createElement('script');s.src='chi-bao.js';
+      window.atlLoadTH(function(){var s=document.createElement('script');s.src='chi-bao.js?v=66';
       s.onload=function(){cbState=0;var q=cbq;cbq=[];q.forEach(function(f){f();});};
       s.onerror=function(){cbState=2;cbq=[];cbmsg('Không tải được chi-bao.js. Tải lại trang (Ctrl+F5) rồi thử lại.',1);};
       document.head.appendChild(s);});}
