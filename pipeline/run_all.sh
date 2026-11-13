@@ -47,6 +47,8 @@ python3 cau_truc.py || echo "cau_truc.py lỗi, bỏ qua"
 cp dash_out/*.json ../site/data/
 # bộ lọc chỉ báo cho tab Bộ lọc (chạy đúng mã chỉ báo của trang; lỗi không làm dừng pipeline)
 node bo_loc_ct.js || echo "bo_loc_ct.js lỗi, bỏ qua"
+# danh mục mô phỏng theo Dragon Code và VN Timing (GTGD TB20 ≥ 20 tỷ, 5% NAV/lệnh; lỗi không làm dừng pipeline)
+node mo_phong_cb.js || echo "mo_phong_cb.js lỗi, bỏ qua"
 node bt_px_update.js || echo "bt_px_update.js lỗi, bỏ qua (Backtest dùng dữ liệu gốc)"
 python3 -c "
 import json,os
