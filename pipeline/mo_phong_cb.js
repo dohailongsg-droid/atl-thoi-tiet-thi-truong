@@ -2,7 +2,7 @@
    Đầu vào : site/data/chart/<MÃ>.json (nến ngày), site/data/chart/x/<MÃ>.json (RS), site/data/chart/_ds.json, site/data/nhiet_ke.json
    Đầu ra  : site/data/mo_phong_dragon.json, site/data/mo_phong_vnt.json (cùng định dạng mo_phong.json, có cả bản không trần)
    Quy tắc (giống tab Backtest để hai nơi khớp nhau):
-   - Chạy ĐÚNG mã chỉ báo của trang (site/chi-bao.js). Dragon Code: mua nhãn MÚC / THÊM, bán nhãn SÚT. VN Timing: mua B / SB / BR / SPr, bán SELL / TP.
+   - Chạy ĐÚNG mã chỉ báo của trang (site/chi-bao.js). Dragon Code: mua nhãn MÚC / THÊM, bán nhãn SÚT. VN Timing: mua B / SB / BR / SPr, SELL bán hết, TP bán 50%.
    - Chỉ mã HOSE có GTGD trung bình 20 phiên ≥ 20 tỷ tại phiên có tín hiệu.
    - Mua từng phần theo nhãn, ở giá đóng cửa phiên sau tín hiệu, tổng tối đa 5% NAV mỗi mã:
        Dragon Code: MÚC 3% NAV, THÊM 2% NAV.   VN Timing: B 2%, SB 1%, SPr 1%, BR 1% NAV.
@@ -34,7 +34,7 @@ function r3(x) { return Math.round(x * 1000) / 1000; }
 
 const KIND = {
   dragon: { file: 'mo_phong_dragon.json', ten: 'Dragon Code', w: { 'MÚC': 0.03, 'THÊM': 0.02 }, sell: { 'SÚT': 1 }, mua_t: 'MÚC 3% NAV, THÊM 2% NAV', ban_t: 'nhãn SÚT' },
-  vnt: { file: 'mo_phong_vnt.json', ten: 'VN Timing', w: { B: 0.02, SB: 0.01, SPr: 0.01, BR: 0.01 }, sell: { SELL: 1, TP: 1 }, mua_t: 'B (Buy) 2% NAV, SB (Strong Buy) 1%, SPr (Spring) 1%, BR (Breakout) 1%', ban_t: 'nhãn SELL hoặc TP' }
+  vnt: { file: 'mo_phong_vnt.json', ten: 'VN Timing', w: { B: 0.02, SB: 0.01, SPr: 0.01, BR: 0.01 }, sell: { SELL: 1 }, half: { TP: 1 }, mua_t: 'B (Buy) 2% NAV, SB (Strong Buy) 1%, SPr (Spring) 1%, BR (Breakout) 1%', ban_t: 'nhãn SELL (nhãn TP chỉ bán 50% số cổ phiếu đang giữ)' }
 };
 
 function main() {
@@ -68,7 +68,7 @@ function main() {
       PX[sym] = cm; TI[sym] = ti;
       Object.keys(KIND).forEach(function (kd) {
         const K = KIND[kd], o = A.exec(FN[kd], d, idx, {}), B = {}, S = {};
-        o.marks.forEach(function (m) { const t = m.o.text; if (K.w[t]) { (B[m.i] = B[m.i] || []); if (B[m.i].indexOf(t) < 0) B[m.i].push(t); } if (K.sell[t]) S[m.i] = t; });
+        o.marks.forEach(function (m) { const t = m.o.text; if (K.w[t]) { (B[m.i] = B[m.i] || []); if (B[m.i].indexOf(t) < 0) B[m.i].push(t); } if (K.sell[t]) S[m.i] = t; else if (K.half && K.half[t] && !S[m.i]) S[m.i] = t; });
         Object.keys(S).forEach(function (q) { if (d.t[+q] >= START) ((SELL[kd][sym] = SELL[kd][sym] || {})[d.t[+q]] = S[q]); });
         Object.keys(B).forEach(function (q) {
           const i = +q, e = i + 1; if (d.t[i] < START || !(g20[i] >= G20)) return;
@@ -76,7 +76,7 @@ function main() {
             const ev = { ma: sym, loai: lab, w: K.w[lab], sig: d.t[i], rs: rsm[d.t[i]] == null ? -1 : rsm[d.t[i]], g20: g20[i], vung: zoneOf(d.t[i]) };
             if (e >= n) { ev.cho = true; EV[kd].push(ev); return; }
             const pe = d.c[e]; let xk = -1;            // kết quả giả định nếu mua riêng tín hiệu này (dùng cho bảng "bị bỏ qua")
-            for (let k = e + 2; k < n && k <= e + MH; k++) { if ((d.c[k] / pe - 1) * 100 <= -SL || S[k] || k === e + MH) { xk = k; break; } }
+            for (let k = e + 2; k < n && k <= e + MH; k++) { if ((d.c[k] / pe - 1) * 100 <= -SL || (S[k] && K.sell[S[k]]) || k === e + MH) { xk = k; break; } }
             ev.buy = d.t[e]; ev.pe = pe; if (xk >= 0) { ev.sell = d.t[xk]; ev.px = d.c[xk]; }
             EV[kd].push(ev);
           });
@@ -101,7 +101,13 @@ function main() {
       Object.keys(hold).forEach(function (ma) {
         const p = hold[ma], c = PX[ma] && PX[ma][d]; if (c == null) return; const i = TI[ma][d];
         const slHeld = p.lots.reduce(function (a, l) { return a + l.sl; }, 0), avg = p.lots.reduce(function (a, l) { return a + l.sl * l.px; }, 0) / slHeld;
-        if (!p.why && i >= p.i0 + 2) { const sg = SELL[kd][ma] && SELL[kd][ma][d]; if ((c / avg - 1) * 100 <= -SL) p.why = 'Cắt lỗ −7%'; else if (sg) p.why = 'Nhãn ' + sg; else if (i >= p.i0 + MH) p.why = 'Hết 60 phiên'; }
+        if (!p.why && i >= p.i0 + 2) { const sg = SELL[kd][ma] && SELL[kd][ma][d]; if ((c / avg - 1) * 100 <= -SL) p.why = 'Cắt lỗ −7%'; else if (sg && KIND[kd].sell[sg]) p.why = 'Nhãn ' + sg; else if (i >= p.i0 + MH) p.why = 'Hết 60 phiên';
+          else if (sg) {                                   // nhãn chốt lời một phần (TP): bán 50% số cổ phiếu đang giữ, làm tròn xuống lô 100, chỉ phần đã đủ T+2
+            let need = Math.floor(slHeld / 2 / 100) * 100, sold = 0;
+            p.lots.forEach(function (l) { if (need <= 0 || i < l.i + 2) return; const q = Math.min(l.sl, need); l.sl -= q; need -= q; sold += q; });
+            p.lots = p.lots.filter(function (l) { return l.sl > 0; });
+            if (sold > 0) { const thu = sold * c * 1000 * (1 - FEE); cash += thu; p.thu += thu; p.tp = (p.tp ? p.tp + ', ' : '') + d.slice(8, 10) + '/' + d.slice(5, 7); }
+          } }
         if (!p.why) return;
         p.lots = p.lots.filter(function (l) { if (i < l.i + 2) return true; const thu = l.sl * c * 1000 * (1 - FEE); cash += thu; p.thu += thu; p.pxOut = c; return false; });
         if (!p.lots.length) { p.sell = d; delete hold[ma]; done.push(p); }
@@ -127,7 +133,7 @@ function main() {
     const lenh = done.concat(Object.keys(hold).map(function (k) { return hold[k]; })).map(function (p) {
       const closed = !!p.sell, slLeft = p.lots.reduce(function (q, l) { return q + l.sl; }, 0), avg = p.pxSum / p.slAll, gn = closed ? p.pxOut : p.last, thu = p.thu + slLeft * gn * 1000 * (1 - FEE), pnl = thu - p.chi;
       return { ma: p.ma, loai: Object.keys(p.labs).join(' + '), ngay_tin_hieu: p.sig, ngay_mua: p.buy, gia_mua: r2(avg), sl: p.slAll, ty_nav: r2(p.tyNav), cat_lo: r2(avg * (1 - SL / 100)), gia_nay: r2(gn), trang_thai: closed ? 'Đã đóng' : 'Đang giữ',
-        ngay_thoat: closed ? p.sell : null, ly_do: closed ? p.why : (p.why ? p.why + ' (chờ đủ T+2)' : null), lai_dong: Math.round(pnl), lai_pct: r2(pnl / p.chi * 100) };
+        ngay_thoat: closed ? p.sell : null, ly_do: closed ? p.why + (p.tp ? ' · đã chốt 50% theo TP ' + p.tp : '') : (p.why ? p.why + ' (chờ đủ T+2)' : p.tp ? 'Đã chốt 50% theo TP ' + p.tp + ', còn ' + slLeft + ' cp' : null), lai_dong: Math.round(pnl), lai_pct: r2(pnl / p.chi * 100) };
     });
     lenh.sort(function (a, b) { return (a.trang_thai !== 'Đang giữ') - (b.trang_thai !== 'Đang giữ') || (a.ngay_mua < b.ngay_mua ? -1 : a.ngay_mua > b.ngay_mua ? 1 : 0); });
     const cl = lenh.filter(function (x) { return x.trang_thai === 'Đã đóng'; }), last = navRows[navRows.length - 1];
