@@ -267,6 +267,12 @@
   def({ id: 'gtgd', name: 'GIÁ TRỊ GIAO DỊCH đột biến', grp: 'ATL', chart: false, p: [{ k: 'k', n: 'Gấp mấy lần TB20', d: 2, min: 1, max: 10, step: 0.1 }, { k: 'up', n: 'Giá tăng tối thiểu (%)', d: 2, min: 0, max: 7, step: 0.5 }],
     buy_t: 'GTGD ≥ 2 lần trung bình 20 phiên và giá tăng ≥ 2%', sell_t: 'Không có (chọn cách bán)', src: 'Quy ước ATL',
     calc: function (D, P) { var c = D.c, g = c.map(function (x, i) { return x * D.v[i]; }), a = ta.sma(g, 20); return { buy: mk(c.length, function (i) { return g[i] >= P.k * a[i - 1] && (c[i] / c[i - 1] - 1) * 100 >= P.up; }), sell: null, plots: [] }; } });
+  def({ id: 'dgr', name: 'ĐỊNH GIÁ RẺ: dưới Giá bất tử + Vùng mua', grp: 'ATL', chart: false, need: 'fa', p: [],
+    buy_t: 'Giá đóng cửa thấp hơn Giá bất tử VÀ thấp hơn Vùng mua (giá hợp lý trừ 20%) của mô hình định giá 3 kịch bản, theo báo cáo quý đã công bố tại ngày đó', sell_t: 'Sau khi giá đã về tới giá hợp lý, bán khi đóng cửa dưới MA50', src: 'Quy ước ATL; mô hình định giá ở tab Hồ sơ mã. Nên đặt Giữ tối đa 250 phiên và tắt cắt lỗ theo giá',
+    calc: function (D, P) { var n = D.c.length, b = new Uint8Array(n), fa = D.fa; if (!fa) return { buy: b, sell: null, plots: [] };
+      var m50 = ta.sma(D.c, 50), hit = new Int32Array(n), last = -1;
+      for (var i = 0; i < n; i++) { if (D.c[i] < fa.bt[i] && D.c[i] < fa.hl[i] * 0.8) b[i] = 1; if (D.c[i] >= fa.hl[i]) last = i; hit[i] = last; }
+      return { buy: b, sell: null, sellAt: function (k, e) { return hit[k] > e && D.c[k] < m50[k]; }, plots: [] }; } });
   def({ id: 'nn', name: 'KHỐI NGOẠI mua ròng 2 phiên', grp: 'ATL', chart: false, need: 'nn', p: [{ k: 'm', n: 'Mỗi phiên ≥ (tỷ)', d: 3, min: 0, max: 500 }],
     buy_t: 'Khối ngoại mua ròng 2 phiên liên tiếp, mỗi phiên ≥ 3 tỷ', sell_t: 'Khối ngoại bán ròng 2 phiên liên tiếp', src: 'Quy ước ATL',
     calc: function (D, P) { var x = D.nn || A(D.c.length); return { buy: edge(x.map(function (v, i) { return i > 0 && v >= P.m && x[i - 1] >= P.m; })), sell: edge(x.map(function (v, i) { return i > 0 && v < 0 && x[i - 1] < 0; })), plots: [] }; } });
