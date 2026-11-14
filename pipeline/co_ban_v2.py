@@ -287,7 +287,7 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
     kb = []
     gt = (0.03, 0.04, 0.05)             # tăng trưởng dài hạn theo kịch bản, không vượt lợi suất TPCP
     dk = (+0.005, 0.0, -0.005)          # chi phí vốn lệch nhẹ theo kịch bản
-    ten = ("Bảo thủ", "Cơ sở", "Lạc quan")
+    ten = ("Bất tử", "Cơ sở", "Lạc quan")   # "Bất tử" = kịch bản thấp nhất (trước đây gọi là Bảo thủ)
     info = {}
     if fin:
         if not (roe and bvps and roe > 0.04):
@@ -341,13 +341,13 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
     mos = (1 - price / gia_tb) * 100
     vung_an_toan = gia_tb * 0.8
     if price <= vung_an_toan:
-        nhan = "Giá nằm trong vùng có biên an toàn từ 20% trở lên so với giá trị ước tính"
+        nhan = "Giá đang nằm trong vùng mua (thấp hơn giá hợp lý từ 20% trở lên)"
         muc = "tot"
     elif price <= gia_tb:
-        nhan = "Giá thấp hơn giá trị ước tính nhưng chưa đủ biên an toàn 20%"
+        nhan = "Giá thấp hơn giá hợp lý nhưng chưa vào vùng mua (chưa thấp hơn 20%)"
         muc = "tb"
     else:
-        nhan = "Giá cao hơn giá trị ước tính theo các giả định hiện tại"
+        nhan = "Giá cao hơn giá hợp lý theo các giả định hiện tại"
         muc = "xau"
     up = (kb[2]["gia"] / price - 1) * 100
     down = (kb[0]["gia"] / price - 1) * 100
@@ -401,6 +401,81 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
     out["bang_quy"] = rows
     return out
 
+def dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf=None, n=32):
+    """Định giá 3 kịch bản tại TỪNG quý trong quá khứ, chỉ dùng báo cáo đến hết quý đó (không nhìn trước).
+    Trả về danh sách dòng [năm, quý, giá bất tử, giá hợp lý (bình quân có trọng số), LN quý so cùng kỳ %, doanh thu quý so cùng kỳ %,
+    dòng tiền kinh doanh 4 quý (1 dương / 0 âm / None không có)]. Dùng cho bộ lọc cơ bản, backtest và mô phỏng "Định giá rẻ".
+    Hạn chế: chi phí vốn (lãi suất, beta) và số cổ phiếu lấy theo hiện tại; số cổ phiếu hiện tại khớp với giá đã điều chỉnh."""
+    rev_f = "isb38" if is_bank else "isa3"
+    fl = lambda x, k: None if x.get(k) is None else float(x[k])
+    stm = {(int(r["year"]), r["quarter"]): r for r in st}
+    cfm = {(r["yearReport"], r["lengthReport"]): r for r in (cf or [])}
+    out = []
+    for k in range(max(7, len(inc) - n), len(inc)):
+        x = inc[k]
+        key = (x["yearReport"], x["lengthReport"])
+        s = stm.get(key)
+        if not s:
+            continue
+        try:
+            inc_k = inc[:k + 1]
+            st_k = [r for r in st if (int(r["year"]), r["quarter"]) <= key]
+            ln4 = sum(float(z.get("isa22") or 0) for z in inc_k[-4:])
+            eq = (float(s["marketCap"]) / float(s["pb"])) if s.get("pb") and s.get("marketCap") else None
+            bvps = eq / shares if eq else None
+            roe = float(s["roe"]) if s.get("roe") else None
+            v = dinh_gia_v2(ma, {}, st_k, inc_k, 1.0, shares, fin, is_bank, roe, bvps, ln4, ln4 / shares)
+        except Exception:
+            v = None
+        y = inc[k - 4]
+        l0, l1, d0, d1 = fl(x, "isa22"), fl(y, "isa22"), fl(x, rev_f), fl(y, rev_f)
+        cfo = None
+        if cfm:
+            keys = [(z["yearReport"], z["lengthReport"]) for z in inc_k[-4:]]
+            if all(kk in cfm for kk in keys):
+                cfo = 1 if sum(float(cfm[kk].get("cfa18") or 0) for kk in keys) > 0 else 0
+        out.append([key[0], key[1], v["kich_ban"][0]["gia"] if v else None, v["gia_tb"] if v else None,
+                    r1((l0 / l1 - 1) * 100, 1) if (l0 is not None and l1 and l1 > 0) else None,
+                    r1((d0 / d1 - 1) * 100, 1) if (d0 and d1 and d1 > 0) else None, cfo])
+    return out
+
+
+_CTCK_LOI = [0]
+VCI_TEN = {"VCSC", "VCI", "VIETCAP", "VIET CAPITAL", "VIETCAP SECURITIES"}
+
+
+def ctck_khac(ma, price):
+    """Giá mục tiêu mới nhất của từng công ty chứng khoán khác Vietcap trong 6 tháng gần nhất.
+    Nguồn: API khuyến nghị của VNDirect (tổng hợp báo cáo của nhiều CTCK), KHÔNG chính thức: lỗi, bị chặn hoặc đổi định dạng thì trả []
+    và trang chỉ hiện Vietcap. Lỗi 4 lần liên tiếp thì ngừng gọi cho hết lượt chạy để không làm chậm pipeline."""
+    if _CTCK_LOI[0] >= 4:
+        return []
+    try:
+        tu = (dt.date.today() - dt.timedelta(days=183)).isoformat()
+        url = f"https://api-finfo.vndirect.com.vn/v4/recommendations?q=code:{ma}~reportDate:gte:{tu}&size=50&sort=reportDate:DESC"
+        raw = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json", "Accept-Encoding": "identity"}), timeout=8).read()
+        try:
+            j = json.loads(raw)
+        except Exception:
+            j = json.loads(gzip.decompress(raw))
+        _CTCK_LOI[0] = 0
+        rows = sorted(j.get("data") or [], key=lambda r: str(r.get("reportDate") or ""), reverse=True)
+        seen = {}
+        for r in rows:
+            firm = str(r.get("firm") or r.get("source") or "").strip()
+            tp = r.get("targetPrice")
+            if not firm or not tp or firm.upper() in VCI_TEN or firm.upper() in seen:
+                continue
+            gia = float(tp)
+            if gia < 1000:                       # có nguồn ghi theo nghìn đồng
+                gia *= 1000
+            if not (0.4 * price <= gia <= 3.0 * price):   # lệch quá xa giá hiện tại: nhiều khả năng chưa điều chỉnh chia tách, bỏ
+                continue
+            seen[firm.upper()] = {"cty": firm, "gia": round(gia), "kn": r.get("type"), "ngay": str(r.get("reportDate") or "")[:10]}
+        return list(seen.values())[:5]
+    except Exception:
+        _CTCK_LOI[0] += 1
+        return []
 
 
 def _fs(ma, sec):
@@ -671,6 +746,11 @@ def build(ma):
             pass
         dg["vci"] = {"gia": round(float(tp)), "khuyen_nghi": cp.get("rating"), "ngay": ng,
                      "tang_giam_pct": r1(float(cp.get("upsideToTargetPercent") or 0) * 100, 1)}
+    # giá mục tiêu của các công ty chứng khoán khác (6 tháng gần nhất) và bình quân
+    dg["ctck"] = ctck_khac(ma, price)
+    ds_mt = ([{"cty": "Vietcap", "gia": dg["vci"]["gia"]}] if dg["vci"] else []) + dg["ctck"]
+    dg["mt_tb"] = {"gia": round(sum(x["gia"] for x in ds_mt) / len(ds_mt)), "n": len(ds_mt),
+                   "tang_giam_pct": r1((sum(x["gia"] for x in ds_mt) / len(ds_mt) / price - 1) * 100, 1)} if ds_mt else None
     dg["gia_dinh"] = {"coe": COE, "g": G}
     dg["dai_chinh"] = dg["dai"][0]["ten"] if dg["dai"] else None
     try:
@@ -813,7 +893,7 @@ def build(ma):
     v2_ = dg.get("v2")
     if v2_:
         kk = v2_["kich_ban"]
-        nx.append(f"Theo mô hình 3 kịch bản (Ke {v2_['ke'] * 100:.1f}%), giá trị ước tính có trọng số {v2_['gia_tb']:,} đ, khoảng {kk[0]['gia']:,}–{kk[2]['gia']:,} đ; giá hiện tại {price:,.0f} đ, biên an toàn {v2_['mos']:+.1f}%. Kết quả nhạy với giả định (xem bảng nhạy cảm).")
+        nx.append(f"Theo mô hình 3 kịch bản (Ke {v2_['ke'] * 100:.1f}%): giá bất tử {kk[0]['gia']:,} đ, giá hợp lý (bình quân có trọng số) {v2_['gia_tb']:,} đ, lạc quan {kk[2]['gia']:,} đ; vùng mua từ {v2_['vung_an_toan']:,} đ trở xuống. Giá hiện tại {price:,.0f} đ, {'thấp' if v2_['mos'] >= 0 else 'cao'} hơn giá hợp lý {abs(v2_['mos']):.1f}%. Kết quả nhạy với giả định (xem bảng nhạy cảm).")
     elif len(dg["kich_ban"]) == 3:
         k0, k1, k2 = dg["kich_ban"][0], dg["kich_ban"][1], dg["kich_ban"][2]
         if price < k0["gia"]:
@@ -849,11 +929,86 @@ def build(ma):
         sk = suc_khoe(ma, cp, st, inc, is_bank, is_ck, f"Q{last['lengthReport']}/{last['yearReport']}", ln4, equity_vnd, shares, cf_rows)
     except Exception as e:
         cano.append("Không tính được điểm sức khỏe: " + str(e)[:80])
-    return {"sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
+    try:
+        dg_ls = dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf_rows)
+    except Exception:
+        dg_ls = []
+    return {"dg_ls": dg_ls, "sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
             "ngay": dt.date.today().isoformat(), "ky_bao_cao": ky, "gia": round(price),
             "cao_1n": None if not hi else round(float(hi)), "thap_1n": None if not lo_ else round(float(lo_)),
             "xu_huong": {"quy": labels, "chuoi": xu_huong}, "chi_tieu": chi_tieu, "dinh_gia": dg, "chat_luong": cl_,
             "nhan_xet": [vn(t) for t in nx], "nhan_xet_ai": None, "canh_bao": [vn(t) for t in cano]}
+
+
+def tom_tat():
+    """Gộp mọi file cb/<MA>.json thành 2 file nhỏ (đặt trong cb/ để được cache cùng):
+    _tom_tat.json     : mỗi mã một dòng {gia, bt, hl, vm, ln_yoy, dt_yoy, cfo, ss:{id: giá trị để so trong ngành}} cho Bộ lọc và ô có sao
+    _dinh_gia_ls.json : lịch sử định giá theo quý (không nhìn trước) cho Backtest và mô phỏng "Định giá rẻ".
+    Sau đó chạy mô phỏng Định giá rẻ (node mo_phong_cb.js dgr), lỗi thì bỏ qua."""
+    tt, ls = {}, {}
+    for f in sorted(os.listdir(OUT_DIR)):
+        if not f.endswith(".json") or f.startswith("_"):
+            continue
+        try:
+            d = json.load(open(os.path.join(OUT_DIR, f), encoding="utf-8"))
+        except Exception:
+            continue
+        ma = d["ma"]
+        ser = {c["id"]: c for c in (d.get("xu_huong") or {}).get("chuoi") or []}
+
+        def last(v):
+            for z in reversed(v or []):
+                if z is not None:
+                    return z
+            return None
+        ss = {}
+        for i in ("nim", "npl", "casa", "baophu", "cir", "ldr", "bg", "br", "de", "pb", "pe", "roe", "roa", "roic"):
+            if i in ser and last(ser[i]["v"]) is not None:
+                ss[i] = last(ser[i]["v"])
+        for i in ("dt", "toi", "ln"):
+            if i in ser and ser[i].get("yoy") is not None:
+                ss[i] = ser[i]["yoy"]
+        c = ser.get("cfo_ln")
+        if c and c.get("v2"):
+            a, b = last(c["v"]), last(c["v2"])
+            if a is not None and b and b > 0:
+                ss["cfo_ln"] = r1(a / b * 100, 0)
+        c = ser.get("tien_vay")
+        if c and c.get("v2"):
+            a, b = last(c["v"]), last(c["v2"])
+            if a is not None and b is not None:
+                ss["tien_vay"] = r1(a / b, 2) if b > 0 else 99.0
+        c = ser.get("ngay")
+        if c:
+            a, b = last(c["v"]), last(c.get("v2"))
+            if a is not None or b is not None:
+                ss["ngay"] = r1((a or 0) + (b or 0), 0)
+        c, l4 = ser.get("fcf"), ser.get("ln4")
+        if c and l4 and last(c["v"]) is not None and last(l4["v"]) and last(l4["v"]) > 0:
+            ss["fcf"] = r1(last(c["v"]) / last(l4["v"]) * 100, 0)
+        c = ser.get("cotuc")
+        if c and l4 and last(c["v"]) is not None and last(l4["v"]) and last(l4["v"]) > 0:
+            ss["cotuc"] = r1(last(c["v"]) / last(l4["v"]) * 100, 0)
+        v2 = (d.get("dinh_gia") or {}).get("v2") or {}
+        rows = d.get("dg_ls") or []
+        lr = rows[-1] if rows else None
+        cf = ser.get("cfo_ln")
+        tt[ma] = {"loai": d.get("loai"), "ky": d.get("ky_bao_cao"), "gia": d.get("gia"),
+                  "bt": v2["kich_ban"][0]["gia"] if v2.get("kich_ban") else None, "hl": v2.get("gia_tb"), "vm": v2.get("vung_an_toan"),
+                  "ln_yoy": lr[4] if lr else (ser.get("ln") or {}).get("yoy"), "dt_yoy": lr[5] if lr else (ser.get("dt") or ser.get("toi") or {}).get("yoy"),
+                  "cfo": (lr[6] if lr else None) if (lr and lr[6] is not None) else (None if not cf or last(cf["v"]) is None else (1 if last(cf["v"]) > 0 else 0)),
+                  "ss": ss}
+        if rows:
+            ls[ma] = rows
+    json.dump(tt, open(os.path.join(OUT_DIR, "_tom_tat.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    json.dump(ls, open(os.path.join(OUT_DIR, "_dinh_gia_ls.json"), "w", encoding="utf-8"), separators=(",", ":"))
+    print("tom_tat:", len(tt), "mã; lịch sử định giá:", len(ls), "mã")
+    try:
+        import subprocess
+        r = subprocess.run(["node", os.path.join(HERE, "mo_phong_cb.js"), "dgr"], capture_output=True, text=True, timeout=300)
+        print((r.stdout or "").strip()[-300:] or (r.stderr or "").strip()[-300:])
+    except Exception as e:
+        print("mô phỏng Định giá rẻ lỗi:", str(e)[:120], file=sys.stderr)
 
 
 def hose_list():
@@ -924,6 +1079,10 @@ def main():
         json.dump(sorted(cur.values(), key=lambda r: r["ma"]), open(OUT_CB, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
         print("co_ban.json:", len(cur), "mã")
     json.dump(idx, open(os.path.join(OUT_DIR, "_index.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    try:
+        tom_tat()
+    except Exception as e:
+        print("tom_tat lỗi:", str(e)[:160], file=sys.stderr)
     print(f"xong {len(ok)}/{len(ds)} mã, danh mục {len(idx)} mã, {time.time() - t0:.0f}s")
     for ma, _, err in bad[:40]:
         print(f"  {ma}: LỖI {err}", file=sys.stderr)
