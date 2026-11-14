@@ -2791,10 +2791,10 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         PRE.forEach(function (p, i) {
           var b = $e('button', 'bl-chip', p.n); b.type = 'button'; b.dataset.i = i;
           b.setAttribute('aria-pressed', String(ST.pre === i));
-          b.addEventListener('click', function () { ST.pre = i; ST.on = {}; p.on.forEach(function (k) { ST.on[k] = 1; }); Object.keys(p.p || {}).forEach(function (k) { ST.p[k] = p.p[k]; }); save(); drawAll(); });
+          b.addEventListener('click', function () { ST.pre = i; ST.on = {}; ST.lib = {}; ST.libk = 1; p.on.forEach(function (k) { ST.on[k] = 1; }); Object.keys(p.p || {}).forEach(function (k) { ST.p[k] = p.p[k]; }); save(); drawAll(); });
           box.appendChild(b);
         });
-        var c = $e('button', 'bl-chip', 'Xoá điều kiện'); c.type = 'button'; c.addEventListener('click', function () { ST.pre = -1; ST.on = {}; save(); drawAll(); }); box.appendChild(c);
+        var c = $e('button', 'bl-chip', 'Xoá điều kiện'); c.type = 'button'; c.addEventListener('click', function () { ST.pre = -1; ST.on = {}; ST.lib = {}; ST.libk = 1; save(); drawAll(); }); box.appendChild(c);
       }
       function drawCrit() {
         var box = $('bl-crit'); box.textContent = '';
@@ -2857,7 +2857,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         });
         if (rs.length > 250) { var tr2 = document.createElement('tr'), t2 = $e('td', '', 'Còn ' + (rs.length - 250) + ' mã nữa, thêm điều kiện để thu hẹp.'); t2.colSpan = 11; tr2.appendChild(t2); tb.appendChild(tr2); }
       }
-      function libSel() { return Object.keys(ST.lib || {}).filter(function (k) { return ST.lib[k]; }); }
+      function libSel() { var L = (D && D.chi_bao) || []; return Object.keys(ST.lib || {}).filter(function (k) { if (!ST.lib[k] || k === 'dgr') return false; for (var i = 0; i < L.length; i++) if (L[i][0] === k) return true; return !L.length; }); }
       function libName(id) { var L = (D && D.chi_bao) || []; for (var i = 0; i < L.length; i++) if (L[i][0] === id) return L[i][1]; return id; }
       function drawLib() {
         var box = $('bl-lib'); if (!box) return; box.textContent = ''; var L = ((D && D.chi_bao) || []).filter(function (x) { return x[0] !== 'dgr'; });
@@ -2870,7 +2870,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           if (w.childNodes.length) box.appendChild(w); });
         $('bl-libk').value = ST.libk || 1;
       }
-      window.atlBLsetLib = function (ids, k) { ST.lib = {}; ids.forEach(function (id) { ST.lib[id] = 1; }); ST.libk = k || 1; ST.on = {}; ST.on.liq = 1; ST.pre = -1; save();
+      window.atlBLsetLib = function (ids, k) { var dg = ids.indexOf('dgr') >= 0; ids = ids.filter(function (id) { return id !== 'dgr'; }); ST.lib = {}; ids.forEach(function (id) { ST.lib[id] = 1; }); ST.libk = Math.max(1, Math.min(k || 1, ids.length || 1)); ST.on = {}; ST.on.liq = 1; if (dg) { ST.on.cb_bt = 1; ST.on.cb_vm = 1; } ST.pre = -1; save();
         if (window.atlDocked === 'backtest' && window.atlDockOpen) window.atlDockOpen('bo-loc'); else if (window.atlShow) window.atlShow('bo-loc'); else { var t = document.getElementById('tab-bo-loc'); if (t) t.click(); }
         load(); if (D) drawAll(); };
       function drawAll() { drawPre(); drawCrit(); drawLib(); drawTb(); $('bl-win').value = String(ST.win); }
@@ -3026,10 +3026,10 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
             <div class="bt-lg"><span><i style="background:#2e9e4f;height:8px"></i>Chiến lược lãi</span><span><i style="background:#c9483b;height:8px"></i>Chiến lược lỗ</span><span><i style="background:#8a8f98;height:8px"></i>VN-Index</span></div>
             <svg id="bt-yr" role="img" aria-label="Lãi từng năm của chiến lược và VN-Index"></svg></div>
           <div><h3 class="bt-st">Theo vùng nhiệt kế lúc mua</h3>
-            <div class="atl-tablebox bt-tb"><table id="bt-zt"><thead><tr><th>Vùng</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div></div>
+            <div class="atl-tablebox bt-tb"><table id="bt-zt"><thead><tr><th>Vùng</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num" title="Lãi TB khi thắng chia lỗ TB khi thua">R:R</th><th class="num" title="Lãi ròng trung bình mỗi lệnh sau phí, tính cả lệnh thắng và thua">Expectancy</th><th class="num" title="Profit factor: tổng lãi chia tổng lỗ">PF</th></tr></thead><tbody></tbody></table></div></div>
         </div>
         <details class="bt-more"><summary>Thống kê lệnh theo năm</summary>
-          <div class="atl-tablebox bt-tb"><table id="bt-yt"><thead><tr><th>Năm</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num">Lãi TB/lệnh</th><th class="num">Trung vị</th><th class="num">PF</th></tr></thead><tbody></tbody></table></div></details>
+          <div class="atl-tablebox bt-tb"><table id="bt-yt"><thead><tr><th>Năm</th><th class="num">Số lệnh</th><th class="num">Thắng</th><th class="num" title="Lãi TB khi thắng chia lỗ TB khi thua">R:R</th><th class="num" title="Lãi ròng trung bình mỗi lệnh sau phí, tính cả lệnh thắng và thua">Expectancy</th><th class="num" title="Profit factor: tổng lãi chia tổng lỗ">PF</th></tr></thead><tbody></tbody></table></div></details>
         <details class="bt-more"><summary id="bt-tlh">10 lệnh tốt nhất và 10 lệnh tệ nhất</summary>
           <div class="atl-tablebox bt-tb"><table id="bt-tl"><thead><tr><th>Mã</th><th>Ngày mua</th><th>Ngày bán</th><th class="num">Phiên giữ</th><th class="num">Lãi sau phí</th><th>Lý do bán</th></tr></thead><tbody></tbody></table></div></details>
         <p class="atl-note" id="bt-w2"></p>
@@ -3121,7 +3121,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         var o={b:r.buy,s:r.sell,sa:r.sellAt||null};CACHE[key]=o;return o;
       }
       function aux(D,key,f){D._x=D._x||{};if(!D._x[key])D._x[key]=f();return D._x[key];}
-      function agg(tr){var n=tr.length;if(!n)return{n:0};var rt=tr.map(function(x){return x.r;}).sort(function(a,b){return a-b;}),w=0,gp=0,gl=0,sm=0,hd=0,sl=0;tr.forEach(function(x){sm+=x.r;hd+=x.h;if(x.r>0){w++;gp+=x.r;}else gl-=x.r;if(x.why==='Cắt lỗ')sl++;});return{n:n,w:w/n*100,a:sm/n,m:rt[n>>1],pf:gl>0?gp/gl:null,h:hd/n,sl:sl/n*100,wo:rt[0]};}
+      function agg(tr){var n=tr.length;if(!n)return{n:0};var rt=tr.map(function(x){return x.r;}).sort(function(a,b){return a-b;}),w=0,gp=0,gl=0,sm=0,hd=0,sl=0;tr.forEach(function(x){sm+=x.r;hd+=x.h;if(x.r>0){w++;gp+=x.r;}else gl-=x.r;if(x.why==='Cắt lỗ')sl++;});var aw=w?gp/w:null,al=n-w?-gl/(n-w):null,ls=0,ws=0,cl=0,cw=0;tr.slice().sort(function(p,q){return (p.x-q.x)||(p.e-q.e);}).forEach(function(x){if(x.r>0){cw++;cl=0;if(cw>ws)ws=cw;}else{cl++;cw=0;if(cl>ls)ls=cl;}});return{n:n,w:w/n*100,a:sm/n,m:rt[n>>1],pf:gl>0?gp/gl:null,h:hd/n,sl:sl/n*100,wo:rt[0],aw:aw,al:al,rr:aw!=null&&al?aw/-al:null,ls:ls,ws:ws};}
       /* ---------- mô phỏng ---------- */
       function simulate(buyIds,opt){
         var D0=M.d,tr=[],i0=0,i1=D0.length-1;while(i0<D0.length&&D0[i0]<ST.d0)i0++;if(ST.d1)while(i1>0&&D0[i1]>ST.d1)i1--;
@@ -3161,7 +3161,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         });
         return tr;
       }
-      function row(tb,lab,q){var tr2=el('tr');function td(t,c,col){var e=el('td',c||'',t);if(col)e.style.color=col;tr2.appendChild(e);return e;}if(lab.nodeType)tr2.appendChild(lab);else td(lab);if(!q.n){td('0','num');for(var i=0;i<4;i++)td('—','num');}else{td(q.n.toLocaleString('vi-VN'),'num');td(q.w.toFixed(1)+'%','num');td(fm(q.a,1)+'%','num',q.a>0?'var(--color-ok)':'var(--color-bad)');td(fm(q.m,1)+'%','num',q.m>0?'var(--color-ok)':'var(--color-bad)');td(q.pf==null?'—':q.pf.toFixed(2),'num');}tb.appendChild(tr2);return tr2;}
+      function row(tb,lab,q){var tr2=el('tr');function td(t,c,col){var e=el('td',c||'',t);if(col)e.style.color=col;tr2.appendChild(e);return e;}if(lab.nodeType)tr2.appendChild(lab);else td(lab);if(!q.n){td('0','num');for(var i=0;i<4;i++)td('—','num');}else{td(q.n.toLocaleString('vi-VN'),'num');td(q.w.toFixed(1)+'%','num');td(q.rr==null?'—':q.rr.toFixed(2),'num');td(fm(q.a,1)+'%','num',q.a>0?'var(--color-ok)':'var(--color-bad)');td(q.pf==null?'—':q.pf.toFixed(2),'num');}tb.appendChild(tr2);return tr2;}
       function symBtn(s){var b=el('button','bt-sym',s);b.type='button';b.title='Mở đồ thị '+s;b.addEventListener('click',function(){if(window.atlOpenChart)window.atlOpenChart(s);});return b;}
       /* ---------- quy ra tiền: mô phỏng NAV theo ngày ---------- */
       function fmM(v){var a=Math.abs(v);return a>=1000?(v/1000).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+' tỷ':Math.round(v).toLocaleString('vi-VN')+' triệu';}
@@ -3251,7 +3251,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           hk('Đỉnh NAV',fmM(S.top),vd(D0[S.topI])+(S.end<S.top*0.999?' · hiện thấp hơn đỉnh '+pc((S.end/S.top-1)*100):' · đang ở đỉnh'));
           hk('Tỷ trọng bình quân',S.expo.toFixed(0)+'%','Cao nhất '+S.pkx.toFixed(0)+'% · vào '+S.taken.toLocaleString('vi-VN')+' lệnh'+(S.skip?', bỏ qua '+S.skip.toLocaleString('vi-VN')+' vì chạm tỷ trọng tối đa':'')+(S.mgd>0?' · dùng margin '+S.mgd.toFixed(0)+'% số phiên, lãi vay đã trả '+fmM(S.intr):ST.lev>100?' · không dùng tới margin':'')+(S.bust>=0?' · CHÁY TÀI KHOẢN ngày '+vd(D0[S.bust]):''),S.bust>=0?bad:null);
           hk('Cùng số vốn, cùng kỳ',fmM(S.sav),'nếu gửi tiết kiệm · mua giữ VN-Index: '+fmM(S.iend));}
-        var K=[['Số tín hiệu',o.n.toLocaleString('vi-VN')],['Tỷ lệ thắng',o.w.toFixed(1)+'%'],['Lãi TB/lệnh (sau phí)',fm(o.a,1)+'%'],['Trung vị',fm(o.m,1)+'%'],['Profit factor',o.pf==null?'—':o.pf.toFixed(2)],['Giữ TB',o.h.toFixed(1)+' phiên'],['Bị cắt lỗ',o.sl.toFixed(1)+'% lệnh'],['Lệnh tệ nhất',fm(o.wo,1)+'%']];
+        var K=[['Số tín hiệu',o.n.toLocaleString('vi-VN')],['Tỷ lệ thắng',o.w.toFixed(1)+'%'],['Lãi TB khi thắng',o.aw==null?'—':fm(o.aw,1)+'%'],['Lỗ TB khi thua',o.al==null?'—':fm(o.al,1)+'%'],['R:R (lãi/lỗ)',o.rr==null?'—':o.rr.toFixed(2)],['Expectancy (lãi ròng/lệnh)',fm(o.a,2)+'%'],['Chuỗi thua dài nhất',o.ls+' lệnh'],['Chuỗi thắng dài nhất',o.ws+' lệnh'],['Profit factor',o.pf==null?'—':o.pf.toFixed(2)],['Giữ TB',o.h.toFixed(1)+' phiên'],['Bị cắt lỗ',o.sl.toFixed(1)+'% lệnh'],['Lệnh tệ nhất',fm(o.wo,1)+'%']];
         var kb=$('bt-kp');kb.textContent='';K.forEach(function(k){var d=el('div','bt-k');d.appendChild(el('small',null,k[0]));d.appendChild(el('b',null,k[1]));kb.appendChild(d);});
         var zt=$('bt-zt').tBodies[0];zt.textContent='';[1,2,3,4].forEach(function(k){row(zt,ZN[k],agg(tr.filter(function(x){return x.z===k;})));});
         var yt=$('bt-yt').tBodies[0];yt.textContent='';var ys=[];tr.forEach(function(x){if(ys.indexOf(x.y)<0)ys.push(x.y);});ys.sort().forEach(function(y){row(yt,y,agg(tr.filter(function(x){return x.y===y;})));});
@@ -3273,14 +3273,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       function opt(){return {au:ST.au,xs:ST.xs};}
       function run(nc){get();if(!ST.sg.length){$('bt-t').textContent='Chọn ít nhất một chỉ báo mua.';return;}var t0=performance.now();$('bt-t').textContent='Đang tính…';
         setTimeout(function(){var tr=simulate(ST.sg,opt());$('bt-t').textContent='Chạy '+tr.length.toLocaleString('vi-VN')+' lệnh trong '+Math.round(performance.now()-t0)+' ms.';show(tr);comboNote(tr);if(nc!==true)cmpLater();},20);}
-      var CMP=[],CSORT={k:'score',d:-1},cmpTok=0,CCOLS=[['name','Chỉ báo',1,'Bấm tên chỉ báo để chạy chi tiết'],['score','Điểm',-1,'Xếp hạng tương đối 0–100 giữa các chỉ báo'],['cagr','Lãi kép/năm',-1,'Lãi kép mỗi năm của NAV theo vốn mô phỏng ở mục 3, đã trừ lãi vay margin nếu có. Đỏ = thua lãi tiết kiệm tham chiếu'],['mdd','Sụt giảm',-1,'Mức sụt giảm lớn nhất của NAV từ đỉnh xuống đáy'],['expo','Tỷ trọng TB',-1,'Tỷ trọng cổ phiếu bình quân so với NAV. Trên 100% là có dùng margin'],['n','Số lệnh',-1],['w','Thắng',-1],['a','Lãi TB',-1,'Lãi trung bình mỗi lệnh sau phí'],['m','Trung vị',-1],['pf','PF',-1,'Tổng lãi chia tổng lỗ'],['p23','PF 2023+',-1,'PF từ 2023 đến nay'],['tot','Tổng lãi',-1,'Số lệnh × lãi TB × số tiền mỗi lệnh (theo vốn ban đầu), coi như tín hiệu nào cũng vào được, không giới hạn vốn'],['eff','Lãi/phiên giữ',-1,'Lãi TB chia số phiên giữ TB: hiệu quả dùng vốn'],['ly','Năm lỗ',1,'Số năm có lãi TB/lệnh âm'],['h','Giữ TB',1,'Số phiên giữ trung bình'],['yrs','NAV từng năm',0,'Lãi NAV từng năm, từ năm đầu đến năm cuối']];
+      var CMP=[],CSORT={k:'score',d:-1},cmpTok=0,CCOLS=[['name','Chỉ báo',1,'Bấm tên chỉ báo để chạy chi tiết'],['score','Điểm',-1,'Xếp hạng tương đối 0–100 giữa các chỉ báo. Calmar 25%, Expectancy 15%, lãi năm điển hình 15%, lãi kép 10%, R:R 10%, năm thắng 10%, chuỗi thua ngắn 10%, tỷ lệ thắng 5%'],['n','Số lệnh',-1,'Số tín hiệu mua. Dưới 300 lệnh thì điểm bị trừ 20%'],['w','Thắng',-1,'Tỷ lệ lệnh có lãi (win rate)'],['aw','Lãi TB khi thắng',-1,'Lãi trung bình của các lệnh thắng, sau phí'],['al','Lỗ TB khi thua',-1,'Lỗ trung bình của các lệnh thua, sau phí'],['rr','R:R',-1,'Lãi TB khi thắng chia lỗ TB khi thua (payoff ratio). Lệnh thắng lớn gấp mấy lần lệnh thua'],['a','Expectancy',-1,'Lãi ròng trung bình mỗi lệnh sau phí, tính cả lệnh thắng và thua = tỷ lệ thắng × lãi TB khi thắng − tỷ lệ thua × lỗ TB khi thua'],['cagr','Lãi kép/năm',-1,'Lãi kép mỗi năm của NAV theo vốn mô phỏng ở mục 3, đã trừ lãi vay margin nếu có. Đỏ = thua lãi tiết kiệm tham chiếu'],['tot','Tổng lãi',-1,'NAV cuối kỳ trừ vốn ban đầu, theo vốn mô phỏng ở mục 3'],['mdd','Sụt giảm',-1,'Mức sụt giảm lớn nhất của NAV từ đỉnh xuống đáy'],['cal','Calmar',-1,'Lãi kép/năm chia sụt giảm lớn nhất: lợi nhuận trên mỗi đơn vị rủi ro. Trên 0,5 là tốt'],['ls','Chuỗi thua',1,'Số lệnh thua liên tiếp dài nhất, xếp theo ngày bán. Nhiều mã cùng bị bán trong một đợt giảm nên chuỗi có thể dài'],['ws','Chuỗi thắng',-1,'Số lệnh thắng liên tiếp dài nhất, xếp theo ngày bán'],['yw','Năm thắng',-1,'Số năm NAV có lãi trên tổng số năm'],['ymed','Lãi năm điển hình',-1,'Trung vị lãi NAV của các năm: một nửa số năm lãi hơn mức này. Không bị một năm siêu sóng hay một năm sập kéo lệch'],['yrs','NAV từng năm',0,'Lãi NAV từng năm, từ năm đầu đến năm cuối'],['h','Giữ TB',1,'Số phiên giữ trung bình'],['expo','Tỷ trọng TB',-1,'Tỷ trọng cổ phiếu bình quân so với NAV. Trên 100% là có dùng margin']];
       function cmpScore(R){
         var V=R.filter(function(r){return r.n>0;});
         function rk(key,inv){var xs=V.map(function(r){return r[key]==null?-1e9:(inv?-r[key]:r[key]);}).sort(function(x,y){return x-y;});
           V.forEach(function(r){var v=r[key]==null?-1e9:(inv?-r[key]:r[key]);var lo=0;while(lo<xs.length&&xs[lo]<v)lo++;var hi=lo;while(hi<xs.length&&xs[hi]<=v)hi++;(r._k=r._k||{})[key]=V.length>1?((lo+hi-1)/2)/(V.length-1):0.5;});}
-        ['pf','p23','a','w','m','n'].forEach(function(k){rk(k,false);});rk('ly',true);rk('h',true);rk('sl',true);
-        var W={pf:25,p23:20,a:15,w:10,m:8,ly:10,sl:5,n:4,h:3};
-        V.forEach(function(r){var t=0,ws=0;for(var k in W){t+=W[k]*r._k[k];ws+=W[k];}var sc=100*t/ws;if(r.n<300)sc*=0.8;r.score=Math.round(sc);});
+        ['cal','a','ymed','cagr','rr','yw','w'].forEach(function(k){rk(k,false);});rk('ls',true);
+        var W={cal:25,a:15,ymed:15,cagr:10,rr:10,yw:10,ls:10,w:5};
+        V.forEach(function(r){var t=0,ws=0;for(var k in W){t+=W[k]*r._k[k];ws+=W[k];}var sc=100*t/ws;if(r.n<300)sc*=0.8;if(r.mdd!=null&&r.mdd<-50)sc=Math.min(sc,60);if(!(r.a>0))sc=0;r.score=Math.round(sc);});
         R.forEach(function(r){if(!r.n)r.score=0;});
       }
       function spark(yr){var ys=Object.keys(yr).sort(),w=7,gp=2,H=22,mx=1;ys.forEach(function(y){mx=Math.max(mx,Math.abs(yr[y].s));});
@@ -3296,9 +3296,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           function td(t,col,ti){var e=el('td','num',t);if(col)e.style.color=col;if(ti)e.title=ti;tr.appendChild(e);return e;}
           if(!r.n){td('0');for(var j=0;j<CCOLS.length-2;j++)td('—');}else{
             var sc=td(String(r.score),r.score>=60?ok:r.score<35?bad:null);sc.style.fontWeight='700';
-            td(pc(r.cagr),r.cagr>=ST.sv?ok:bad,r.cagr>=ST.sv?'Thắng lãi tiết kiệm '+ST.sv+'%/năm':'Thua lãi tiết kiệm '+ST.sv+'%/năm').style.fontWeight='700';td(pc(r.mdd));td(r.expo==null?'—':r.expo.toFixed(0)+'%',r.expo>100?'var(--color-warn)':null);
-            td(r.n.toLocaleString('vi-VN'));td(r.w.toFixed(1)+'%');td(fm(r.a,1)+'%',r.a>0?ok:bad);td(fm(r.m,1)+'%',r.m>0?ok:bad);td(r.pf==null?'—':r.pf.toFixed(2));td(r.p23==null?'—':r.p23.toFixed(2));
-            td((r.tot>0?'+':'')+fmM(r.tot),r.tot>0?ok:bad);td(pc(r.eff,3));td(String(r.ly)+'/'+r.ny);td(r.h.toFixed(1));var ys=el('td');ys.appendChild(spark(r.yr));tr.appendChild(ys);}
+            td(r.n.toLocaleString('vi-VN'),r.n<300?'var(--color-warn)':null,r.n<300?'Mẫu nhỏ: điểm bị trừ 20%':null);td(r.w.toFixed(1)+'%');td(r.aw==null?'—':fm(r.aw,1)+'%',ok);td(r.al==null?'—':fm(r.al,1)+'%',bad);td(r.rr==null?'—':r.rr.toFixed(2),null,'Profit factor '+(r.pf==null?'—':r.pf.toFixed(2)));td(fm(r.a,2)+'%',r.a>0?ok:bad).style.fontWeight='700';
+            td(pc(r.cagr),r.cagr>=ST.sv?ok:bad,r.cagr>=ST.sv?'Thắng lãi tiết kiệm '+ST.sv+'%/năm':'Thua lãi tiết kiệm '+ST.sv+'%/năm').style.fontWeight='700';td(r.tot==null?'—':(r.tot>0?'+':'')+fmM(r.tot),r.tot>0?ok:bad);td(pc(r.mdd),r.mdd<-50?bad:null,r.mdd<-50?'Sụt giảm sâu hơn −50%: điểm tối đa 60':null);td(r.cal==null?'—':r.cal.toFixed(2),r.cal>=0.5?ok:r.cal<0.2?bad:null);
+            td(String(r.ls));td(String(r.ws));td(r.yw+'/'+r.ny);td(r.ymed==null?'—':pc(r.ymed),r.ymed>0?ok:bad);var ys=el('td');ys.appendChild(spark(r.yr));tr.appendChild(ys);td(r.h.toFixed(1));td(r.expo==null?'—':r.expo.toFixed(0)+'%',r.expo>100?'var(--color-warn)':null);}
           tb.appendChild(tr);});
       }
       function copt(){return {au:ST.cm==='buy'?0:1,xs:ST.xs};}
@@ -3309,11 +3309,12 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           if(i>=L.length){ST.k=k0;CMP=res;cmpScore(CMP);drawCmp();
             var cx=[];if(ST.sl)cx.push('cắt lỗ −'+ST.sl+'%');if(ST.tp)cx.push('chốt lời +'+ST.tp+'%');if(ST.tr)cx.push('dừng di động −'+ST.tr+'%');if(ST.atr)cx.push(ST.atr+'×ATR');if(ST.n)cx.push('bán sau '+ST.n+' phiên');if(ST.ma)cx.push('dưới MA'+ST.ma);if(ST.m20)cx.push('về MA20');if(ST.bu)cx.push('trên dải BB');ST.xs.forEach(function(id){cx.push('tín hiệu bán của '+nameOf(id));});cx.push('giữ tối đa '+ST.mh+' phiên');
             $('bt-cmpn').textContent=(ST.cm==='buy'?'Chỉ so điểm mua: mọi chỉ báo dùng chung một cách bán ở mục 2, bỏ tín hiệu bán của tác giả ('+cx.join(', ')+'). Dùng để xem tín hiệu mua nào chọn điểm vào tốt hơn.':'Hệ thống trọn bộ: mỗi chỉ báo mua và bán theo đúng cách của tác giả, kèm các điều kiện bán chung ở mục 2 ('+cx.join(', ')+'). Dùng để chọn chiến lược giao dịch thật.')+
-              ' Mỗi dòng chỉ dùng một chỉ báo để mua, cùng bộ lọc và vốn mô phỏng đang chọn. Lãi kép/năm màu đỏ là thua lãi tiết kiệm '+String(ST.sv).replace('.',',')+'%/năm. Bấm tên cột để sắp xếp, rê chuột vào tên cột để xem giải thích. "Điểm" 0–100 là xếp hạng tương đối: PF 25%, PF từ 2023 20%, lãi TB 15%, tỷ lệ thắng 10%, năm lỗ ít 10%, trung vị 8%, ít bị cắt lỗ 5%, số lệnh 4%, giữ ngắn 3%; dưới 300 lệnh bị trừ 20%. Tính trong '+Math.round((performance.now()-t0)/1000)+' giây.';
+              ' Mỗi dòng chỉ dùng một chỉ báo để mua, cùng bộ lọc và vốn mô phỏng đang chọn. Lãi kép/năm màu đỏ là thua lãi tiết kiệm '+String(ST.sv).replace('.',',')+'%/năm. Bấm tên cột để sắp xếp, rê chuột vào tên cột để xem giải thích. "Điểm" 0–100 là xếp hạng tương đối giữa các chỉ báo, tính trên cả giai đoạn (gồm sóng lớn 2020–2021 và năm giảm 2022): Calmar (lãi kép ÷ sụt giảm) 25%, Expectancy 15%, lãi năm điển hình 15%, lãi kép/năm 10%, R:R 10%, số năm thắng 10%, chuỗi thua ngắn 10%, tỷ lệ thắng 5%. Dưới 300 lệnh trừ 20%; sụt giảm sâu hơn −50% thì điểm tối đa 60; Expectancy âm thì 0 điểm. Tính trong '+Math.round((performance.now()-t0)/1000)+' giây.';
             if(!quiet)$('bt-t').textContent='Đã so sánh '+L.length+' chỉ báo.';return;}
           var d=L[i++];if(!quiet)$('bt-t').textContent='So sánh '+i+'/'+L.length+': '+d.name+'…';ST.k=1;var tr=simulate([d.id],o2);ST.k=k0;var by={};tr.forEach(function(x){(by[x.y]=by[x.y]||[]).push(x);});var ly=0,ny=0;Object.keys(by).forEach(function(y){ny++;if(agg(by[y]).a<0)ly++;});
-          var o=agg(tr),S=o.n?navSim(tr,false):null;res.push({id:d.id,name:d.name,n:o.n||0,w:o.w,a:o.a,m:o.m,pf:o.pf,h:o.h,sl:o.sl||0,p23:agg(tr.filter(function(x){return x.y>='2023';})).pf,ly:ly,ny:ny,
-            cagr:S?S.cagr:null,mdd:S?S.mdd:null,expo:S?S.expo:null,yr:S?S.yr:{},tot:o.n?o.n*o.a/100*ST.cap*ST.pp/100:null,eff:o.n&&o.h?o.a/o.h:null});setTimeout(step,0);}
+          var o=agg(tr),S=o.n?navSim(tr,false):null,yv=[],yw=0;if(S){Object.keys(S.yr).forEach(function(y){var v=S.yr[y].s;yv.push(v);if(v>0)yw++;});yv.sort(function(p,q){return p-q;});}
+          res.push({id:d.id,name:d.name,n:o.n||0,w:o.w,a:o.a,pf:o.pf,h:o.h,aw:o.aw,al:o.al,rr:o.rr,ls:o.ls,ws:o.ws,yw:yw,ny:yv.length,ymed:yv.length?(yv.length%2?yv[yv.length>>1]:(yv[yv.length/2-1]+yv[yv.length/2])/2):null,
+            cagr:S?S.cagr:null,mdd:S?S.mdd:null,cal:S&&S.mdd<0?S.cagr/-S.mdd:null,expo:S?S.expo:null,yr:S?S.yr:{},tot:S?S.end-ST.cap:null});setTimeout(step,0);}
         step();}
       var cmpTimer=0;function cmpLater(){clearTimeout(cmpTimer);cmpTimer=setTimeout(function(){if(M&&TH)runAll(true);},900);}
       (function(){var th=$('bt-cmp').tHead.rows[0];th.addEventListener('click',function(e){var c=e.target.closest('th');if(!c||!c.dataset.k)return;var k=c.dataset.k;if(CSORT.k===k)CSORT.d=-CSORT.d;else{CSORT.k=k;var col=CCOLS.filter(function(x){return x[0]===k;})[0];CSORT.d=col?col[2]:-1;}drawCmp();});})();
