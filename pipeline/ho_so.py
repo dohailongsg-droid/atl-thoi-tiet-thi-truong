@@ -59,6 +59,7 @@ finally:
         try: os.remove(_f)
         except Exception: pass
 rows=[]; pr=[]
+_v20=V.rolling(20,min_periods=5).mean()   # giá trị giao dịch trung bình 20 phiên (tỷ đồng), vẽ trên biểu đồ Hồ sơ mã
 def _row(m):
     c=k(C,m)
     tt=[("Giá > MA150 và > MA200",bool(c>k(m150,m) and c>k(m200,m)),f"{c/1000:.2f} / {k(m150,m)/1000:.2f} / {k(m200,m)/1000:.2f}"),
@@ -81,7 +82,8 @@ def _row(m):
     for d in C.index[-130:]:
         p_.append({"ma":m,"ngay":str(d.date()),"o":f(O[m][d]/1000),"h":f(H[m][d]/1000),"l":f(L[m][d]/1000),"c":f(C[m][d]/1000),
                    "ma20":f(ma20[m][d]/1000),"bb_duoi":f(lo[m][d]/1000),"bb_tren":f(upb[m][d]/1000),"ma50":f(m50[m][d]/1000),"ma200":f(m200[m][d]/1000),
-                   "macd":f(dif[m][d]/1000,3),"macd_tb":f(dea[m][d]/1000,3),"macd_cot":f(hist[m][d]/1000,3)})
+                   "macd":f(dif[m][d]/1000,3),"macd_tb":f(dea[m][d]/1000,3),"macd_cot":f(hist[m][d]/1000,3),
+                   "gt":f(V[m][d],2),"gt20":f(_v20[m][d],2)})
     rows.append(r); pr.extend(p_)
 for m in codes:
     try: _row(m)

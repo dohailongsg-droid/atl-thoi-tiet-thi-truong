@@ -165,7 +165,9 @@ def wyckoff(O, H, L, C, V, dates):
         hi = lambda a, b: np.nanmax(H[n - b:n - a] if a else H[n - b:])
         lo = lambda a, b: np.nanmin(L[n - b:n - a] if a else L[n - b:])
         put(1, up_tr, f"giá {c/ma50[-1]*100-100:+.0f}% so với MA50, MA50 dốc lên")
-        put(2, hi(0, 20) > hi(20, 40) and lo(0, 20) > lo(20, 40), "đỉnh và đáy 20 phiên sau cao hơn 20 phiên trước")
+        _h2, _l2 = hi(0, 20) > hi(20, 40), lo(0, 20) > lo(20, 40)
+        put(2, _h2 and _l2, "đỉnh và đáy 20 phiên gần nhất đều cao hơn 20 phiên trước" if _h2 and _l2 else
+            ("đỉnh 20 phiên gần nhất cao hơn nhưng đáy thấp hơn 20 phiên trước" if _h2 else "đáy cao hơn nhưng đỉnh 20 phiên gần nhất chưa vượt đỉnh 20 phiên trước" if _l2 else "đỉnh và đáy 20 phiên gần nhất đều thấp hơn 20 phiên trước"))
         up_v = sum(V[i] for i in range(n - 20, n) if C[i] > C[i - 1]); dn_v = sum(V[i] for i in range(n - 20, n) if C[i] < C[i - 1])
         put(3, up_v > dn_v * 1.1, f"thanh khoản phiên tăng / phiên giảm {up_v/max(dn_v,1e-9):.2f}×")
         j = n - 10 + int(np.nanargmin(L[n - 10:])); pull = np.nanmean(V[max(0, j - 2):j + 1]) / tb20[-1] if tb20[-1] else 1
