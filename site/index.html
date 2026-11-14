@@ -577,7 +577,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-seg" id="sm-vt" role="group" aria-label="Giới hạn tỷ trọng" style="margin:0 0 var(--cds-gap-sm)"><button type="button" data-v="mo" aria-pressed="true">Không trần (tối đa 200%)</button><button type="button" data-v="tran" aria-pressed="false">Có trần theo vùng nhiệt kế</button></div>
         <div class="atl-card" id="sm-cmp-card">
           <h2 class="atl-h">So sánh bốn mô phỏng</h2>
-          <p class="atl-note" id="sm-cmp-note">Cùng vốn 1 tỷ, cùng bắt đầu 20/10/2026, cùng phí 0,3% mỗi vòng và cùng cách giới hạn tỷ trọng đang chọn ở trên. Khác nhau ở luật mua bán và cỡ lệnh: ATL 6,5% NAV mỗi mã (vé số 3%), Long đầu 2% mỗi mã, Dragon Code và VN Timing 5% mỗi lệnh với mã có GTGD trung bình 20 phiên từ 20 tỷ. Bấm một dòng để xem chi tiết.</p>
+          <p class="atl-note" id="sm-cmp-note">Cùng vốn 1 tỷ, cùng bắt đầu 20/10/2026, cùng phí 0,3% mỗi vòng và cùng cách giới hạn tỷ trọng đang chọn ở trên. Khác nhau ở luật mua bán và cỡ lệnh: ATL 6,5% NAV mỗi mã (vé số 3%), Long đầu 2% mỗi mã, Dragon Code và VN Timing mua từng phần theo nhãn, tổng tối đa 5% mỗi mã (Dragon Code: MÚC 3% + THÊM 2%; VN Timing: B 2% + SB, SPr, BR mỗi nhãn 1%), chỉ mã có GTGD trung bình 20 phiên từ 20 tỷ. Bấm một dòng để xem chi tiết.</p>
           <div class="atl-tablebox"><table class="sm-tbl" id="sm-cmp"><thead><tr><th>Mô phỏng</th><th class="num">Lãi/lỗ</th><th class="num">So với VN-Index</th><th class="num">Sụt giảm tối đa</th><th class="num">Lệnh</th><th class="num">Thắng / đã đóng</th><th class="num">Lãi TB lệnh đóng</th><th class="num">Tỷ trọng cổ phiếu</th></tr></thead><tbody></tbody></table></div>
           <p class="atl-note" id="sm-cmp-foot"></p>
         </div>
@@ -1333,41 +1333,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-chart" id="ch-hs" style="min-height:18rem"></div>
         <div class="atl-legend" id="hs-lg"></div>
       </div>
-      <div class="atl-wide atl-hs-row hs-tech">
-      <div class="atl-card" id="card-hs-tt">
-        <h2 class="atl-h">Trend Template (Minervini)</h2>
-        <p class="atl-who"><b>Mark Minervini</b> · phương pháp SEPA (<i>Trade Like a Stock Market Wizard</i>). Góc nhìn: chỉ mua cổ phiếu đã ở Giai đoạn 2, tức xu hướng tăng đã được xác nhận; không bắt đáy, không mua khi giá dưới MA50.</p>
-        <div class="atl-dial" id="dl-tt" data-source="ho_so" hidden></div>
-        <p class="atl-note" id="hs-tt-sum">—</p>
-        <div class="atl-tt" id="hs-tt" data-source="ho_so"></div>
-        <p class="atl-note" id="hs-tt-kd" data-source="kiem_dinh">—</p>
-      </div>
-      <div class="atl-card" id="card-hs-wy">
-        <h2 class="atl-h">Checklist Wyckoff</h2>
-        <p class="atl-who"><b>Richard D. Wyckoff</b> (1873–1934, Mỹ). Góc nhìn: giá do dòng tiền lớn dẫn dắt; đọc cung – cầu qua giá và khối lượng. Mỗi cổ phiếu đi qua bốn pha: tích luỹ → tăng giá → phân phối → giảm giá. Mua ở cuối tích luỹ, khi cung đã cạn và cầu bắt đầu thắng.</p>
-        <div class="atl-dial" id="dl-wy" data-source="ho_so" hidden></div>
-        <p class="atl-note" id="hs-wy-sum">—</p>
-        <div class="atl-tt" id="hs-wy" data-source="ho_so"></div>
-        <p class="atl-note" id="hs-wy-kd">Bản 2 (13/11/2026): chọn đúng sơ đồ theo bối cảnh: sau nhịp giảm có cao trào bán thì chấm tích luỹ, sau nhịp tăng có cao trào mua thì chấm phân phối, đang tăng chưa có cao trào thì chấm sức khoẻ xu hướng. Sự kiện trên chart khớp với checklist. Kiểm định 6/2020–10/2026 trên toàn HOSE (mỗi 10 phiên, khoảng 56 nghìn mẫu): không pha nào dự báo được 20 phiên sau, chênh lệch trung vị giữa các pha dưới 1 điểm %. Tốt nhất là "Tăng giá, sức khoẻ tốt" (+0,8%, 54% số lần có lãi), kém nhất là "Tích luỹ pha B" (0%, 46%). Bản cũ gọi "Tích luỹ gần hoàn tất" lại là nhóm kém nhất. Dùng để đọc cấu trúc, không phải tín hiệu mua.</p>
-      </div>
-      <div class="atl-card" id="card-hs-tl">
-        <h2 class="atl-h">Checklist Triền Luận</h2>
-        <p class="atl-who"><b>Triền Trung Thuyết Thiền</b> (缠中说禅, blog 2006–2008, Trung Quốc). Góc nhìn: mọi chuyển động giá có cấu trúc (bút → trung tâm); xu hướng cần từ hai trung tâm cùng chiều; điểm mua 1, 2, 3 do phân kỳ và vị trí so với trung tâm quyết định.</p>
-        <div class="atl-dial" id="dl-tl" data-source="ho_so" hidden></div>
-        <p class="atl-note" id="hs-tl-sum">—</p>
-        <div class="atl-tt" id="hs-tl" data-source="ho_so"></div>
-        <p class="atl-note" id="hs-tl-kd">Cùng bộ máy với chỉ báo "Triền Luận" ở Đồ thị, Bộ lọc và Backtest: gộp nến bao hàm, phân hình, bút, trung tâm, phân kỳ theo diện tích MACD; dựng ở cấp bút trên nến ngày nên "xu hướng" ở đây là xu hướng ngắn. Kiểm định HOSE 2020 đến 27/10/2026 (sau phí, cắt lỗ 7%): Mua 3 sát trung tâm +1,67%/lệnh, PF 1,44 (425 lệnh); Mua 3 xa trung tâm kém hơn rõ; Mua 2 +1,87%/lệnh nhưng lỗ nhẹ từ 2023; Mua 1 lỗ 0,44%/lệnh. Tham khảo, không phải khuyến nghị.</p>
-      </div>
-      <div class="atl-card" id="card-hs-cb" hidden>
-        <h2 class="atl-h">Sức khỏe doanh nghiệp</h2>
-        <p class="atl-who"><b>Minervini (SEPA) và O'Neil (CANSLIM)</b> cho phần tăng trưởng: lợi nhuận và doanh thu tăng, đang tăng tốc, ROE cao. <b>Munger</b> cho hai ô chất lượng: nợ vừa phải và lãi phải đi kèm dòng tiền. Chỉ mô tả sức khỏe từ báo cáo tài chính quý, không ra quyết định mua bán.</p>
-        <div class="atl-dial" id="dl-cb" data-source="co_ban" hidden></div>
-        <p class="atl-note" id="hs-cb-sum" data-source="co_ban">—</p>
-        <div class="atl-tt" id="hs-cb" data-source="co_ban"></div>
-        <details class="atl-more"><summary>Kiểm định điểm sức khỏe</summary>
-        <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
-      </div>
-      </div>
       <div class="atl-wide dg-sec" id="dg-sec" hidden><div><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div></div>
       <div class="atl-card atl-wide" id="card-hs-xh" hidden>
         <h2 class="atl-h">Xu hướng 12 quý</h2>
@@ -1377,6 +1342,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="dg-left">
         <div class="atl-card" id="card-hs-ind" hidden>
           <style>
+          .dg-star{color:#d9a400;margin-left:5px;font-size:.95em;cursor:help}.dg-t.key{border-color:color-mix(in srgb,#d9a400 55%,var(--color-border-line))}.dg-focus{margin:0 0 var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}.dg-focus b{color:var(--color-fg)}
           .dg-sec{display:flex;justify-content:space-between;align-items:center;gap:var(--cds-gap-md);flex-wrap:wrap;margin-top:var(--cds-gap-md)}
           .dg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:var(--cds-gap-sm);margin:0 0 var(--cds-gap-md)}
           .dg-k{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -1518,6 +1484,42 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <h2 class="atl-h">Chất lượng &amp; sức khỏe doanh nghiệp</h2>
           <div id="dg-cl"></div>
         </div>
+      </div>
+      <div class="atl-wide dg-sec" id="kt-sec"><div><h2 class="atl-h" style="margin:0">Phân tích kỹ thuật</h2><span class="atl-note">Ba góc nhìn về diễn biến giá: xu hướng dài hạn (Minervini), cung cầu qua giá và giá trị giao dịch (Wyckoff), cấu trúc giá ngắn hạn (Triền Luận). Đối chiếu với biểu đồ ở đầu trang.</span></div></div>
+      <div class="atl-wide atl-hs-row hs-tech">
+      <div class="atl-card" id="card-hs-tt">
+        <h2 class="atl-h">Trend Template (Minervini)</h2>
+        <p class="atl-who"><b>Mark Minervini</b> · phương pháp SEPA (<i>Trade Like a Stock Market Wizard</i>). Góc nhìn: chỉ mua cổ phiếu đã ở Giai đoạn 2, tức xu hướng tăng đã được xác nhận; không bắt đáy, không mua khi giá dưới MA50.</p>
+        <div class="atl-dial" id="dl-tt" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-tt-sum">—</p>
+        <div class="atl-tt" id="hs-tt" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-tt-kd" data-source="kiem_dinh">—</p>
+      </div>
+      <div class="atl-card" id="card-hs-wy">
+        <h2 class="atl-h">Checklist Wyckoff</h2>
+        <p class="atl-who"><b>Richard D. Wyckoff</b> (1873–1934, Mỹ). Góc nhìn: giá do dòng tiền lớn dẫn dắt; đọc cung – cầu qua giá và khối lượng. Mỗi cổ phiếu đi qua bốn pha: tích luỹ → tăng giá → phân phối → giảm giá. Mua ở cuối tích luỹ, khi cung đã cạn và cầu bắt đầu thắng.</p>
+        <div class="atl-dial" id="dl-wy" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-wy-sum">—</p>
+        <div class="atl-tt" id="hs-wy" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-wy-kd">Bản 2 (13/11/2026): chọn đúng sơ đồ theo bối cảnh: sau nhịp giảm có cao trào bán thì chấm tích luỹ, sau nhịp tăng có cao trào mua thì chấm phân phối, đang tăng chưa có cao trào thì chấm sức khoẻ xu hướng. Sự kiện trên chart khớp với checklist. Kiểm định 6/2020–10/2026 trên toàn HOSE (mỗi 10 phiên, khoảng 56 nghìn mẫu): không pha nào dự báo được 20 phiên sau, chênh lệch trung vị giữa các pha dưới 1 điểm %. Tốt nhất là "Tăng giá, sức khoẻ tốt" (+0,8%, 54% số lần có lãi), kém nhất là "Tích luỹ pha B" (0%, 46%). Bản cũ gọi "Tích luỹ gần hoàn tất" lại là nhóm kém nhất. Dùng để đọc cấu trúc, không phải tín hiệu mua.</p>
+      </div>
+      <div class="atl-card" id="card-hs-tl">
+        <h2 class="atl-h">Checklist Triền Luận</h2>
+        <p class="atl-who"><b>Triền Trung Thuyết Thiền</b> (缠中说禅, blog 2006–2008, Trung Quốc). Góc nhìn: mọi chuyển động giá có cấu trúc (bút → trung tâm); xu hướng cần từ hai trung tâm cùng chiều; điểm mua 1, 2, 3 do phân kỳ và vị trí so với trung tâm quyết định.</p>
+        <div class="atl-dial" id="dl-tl" data-source="ho_so" hidden></div>
+        <p class="atl-note" id="hs-tl-sum">—</p>
+        <div class="atl-tt" id="hs-tl" data-source="ho_so"></div>
+        <p class="atl-note" id="hs-tl-kd">Cùng bộ máy với chỉ báo "Triền Luận" ở Đồ thị, Bộ lọc và Backtest: gộp nến bao hàm, phân hình, bút, trung tâm, phân kỳ theo diện tích MACD; dựng ở cấp bút trên nến ngày nên "xu hướng" ở đây là xu hướng ngắn. Kiểm định HOSE 2020 đến 27/10/2026 (sau phí, cắt lỗ 7%): Mua 3 sát trung tâm +1,67%/lệnh, PF 1,44 (425 lệnh); Mua 3 xa trung tâm kém hơn rõ; Mua 2 +1,87%/lệnh nhưng lỗ nhẹ từ 2023; Mua 1 lỗ 0,44%/lệnh. Tham khảo, không phải khuyến nghị.</p>
+      </div>
+      <div class="atl-card" id="card-hs-cb" hidden>
+        <h2 class="atl-h">Sức khỏe doanh nghiệp</h2>
+        <p class="atl-who"><b>Minervini (SEPA) và O'Neil (CANSLIM)</b> cho phần tăng trưởng: lợi nhuận và doanh thu tăng, đang tăng tốc, ROE cao. <b>Munger</b> cho hai ô chất lượng: nợ vừa phải và lãi phải đi kèm dòng tiền. Chỉ mô tả sức khỏe từ báo cáo tài chính quý, không ra quyết định mua bán.</p>
+        <div class="atl-dial" id="dl-cb" data-source="co_ban" hidden></div>
+        <p class="atl-note" id="hs-cb-sum" data-source="co_ban">—</p>
+        <div class="atl-tt" id="hs-cb" data-source="co_ban"></div>
+        <details class="atl-more"><summary>Kiểm định điểm sức khỏe</summary>
+        <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
+      </div>
       </div>
       <div class="atl-card atl-wide" id="card-hs-dg" hidden>
           <h2 class="atl-h">Định giá doanh nghiệp</h2>
@@ -1668,13 +1670,42 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var cheap=mv<m_.ref*0.9,dear=mv>m_.ref*1.1;
       return [cheap&&!pk?'tot':dear?'xau':'tb',(fin?'P/B ':'P/E ')+fmtv(mv,m_.dv)+(cheap?' rẻ hơn':dear?' đắt hơn':' quanh')+' trung vị 5 năm '+fmtv(m_.ref,m_.dv)+(cheap&&pk&&!fin?', nhưng lợi nhuận đang ở đỉnh 12 quý nên mức rẻ cần kiểm chứng':'')+'. Bội số lịch sử chỉ để đối chiếu.'];}
     return null;}
+  /* Chỉ số trọng tâm theo ngành: đánh dấu ★ ở các biểu đồ nên đọc trước. Là quy ước phân tích ngành, không phải kết quả kiểm định. */
+  var FOCUS_L={ngan_hang:[['nim','npl','casa','baophu'],'Ngân hàng sống bằng chênh lệch lãi suất và chất lượng tài sản: đọc trước biên lãi ròng (NIM), nợ xấu, bao phủ nợ xấu và tiền gửi không kỳ hạn (CASA).'],
+    chung_khoan:[['dt','roe','de','pb'],'Lợi nhuận công ty chứng khoán đi theo thanh khoản thị trường và dư nợ cho vay ký quỹ (margin): đọc trước doanh thu, ROE, đòn bẩy và P/B.'],
+    bao_hiem:[['ln','roe','de'],'Bảo hiểm: đọc trước lợi nhuận, ROE và đòn bẩy tài chính.']};
+  var FOCUS_N={'BĐS':[['tien_vay','cfo_ln','ngay','pb'],'Bất động sản ghi nhận doanh thu theo đợt bàn giao nên lợi nhuận quý dao động mạnh: đọc trước nợ vay so với tiền, dòng tiền kinh doanh, tồn kho và P/B.'],
+    'Họ Vin':[['tien_vay','cfo_ln','ngay','pb'],'Nhóm đòn bẩy cao, lợi nhuận theo đợt bàn giao: đọc trước nợ vay so với tiền, dòng tiền kinh doanh, tồn kho và P/B.'],
+    'BĐS KCN':[['dt','bg','tien_vay','cfo_ln'],'Khu công nghiệp ghi nhận doanh thu theo hợp đồng thuê đất nên dao động theo quý: đọc trước doanh thu, biên gộp, tiền so với nợ vay và dòng tiền kinh doanh.'],
+    'Xây dựng & Đầu tư công':[['cfo_ln','ngay','bg','tien_vay'],'Xây dựng có biên mỏng và hay bị chậm thanh toán: đọc trước dòng tiền kinh doanh, số ngày thu tiền, biên gộp và nợ vay.'],
+    'Thép':[['bg','ngay','tien_vay','dt'],'Thép là ngành chu kỳ theo giá nguyên liệu: đọc trước biên gộp, tồn kho, nợ vay và sản lượng (doanh thu).'],
+    'Vật liệu xây dựng':[['bg','dt','tien_vay'],'Vật liệu xây dựng phụ thuộc giá đầu vào và nhu cầu xây dựng: đọc trước biên gộp, doanh thu và nợ vay.'],
+    'Bán lẻ':[['dt','bg','ngay','roe'],'Bán lẻ thắng nhờ tăng trưởng doanh thu và vòng quay hàng: đọc trước doanh thu, biên gộp, số ngày tồn kho và ROE.'],
+    'Công nghệ & Viễn thông':[['dt','br','roe','pe'],'Công nghệ được trả giá cho tăng trưởng đều: đọc trước doanh thu, biên ròng, ROE và P/E.'],
+    'Dầu khí':[['bg','dt','cfo_ln'],'Dầu khí đi theo giá dầu và khối lượng việc: đọc trước biên gộp, doanh thu và dòng tiền kinh doanh.'],
+    'Phân bón & Hóa chất':[['bg','dt','cotuc'],'Phân bón, hóa chất là ngành chu kỳ theo giá hàng hóa: đọc trước biên gộp, doanh thu và cổ tức tiền mặt.'],
+    'Điện & Năng lượng':[['cfo_ln','tien_vay','cotuc','bg'],'Điện có dòng tiền đều nhưng vay nợ lớn: đọc trước dòng tiền kinh doanh, nợ vay, cổ tức và biên gộp.'],
+    'Cảng biển & Logistics':[['dt','bg','roic','fcf'],'Cảng và logistics cần vốn đầu tư lớn: đọc trước doanh thu (sản lượng), biên gộp, ROIC và dòng tiền tự do.'],
+    'Hàng không':[['dt','tien_vay','cfo_ln'],'Hàng không có đòn bẩy cao và chi phí cố định lớn: đọc trước doanh thu, nợ vay và dòng tiền kinh doanh.'],
+    'Thực phẩm & Đồ uống':[['bg','dt','roe','cotuc'],'Hàng tiêu dùng mạnh ở thương hiệu và biên lợi nhuận: đọc trước biên gộp, doanh thu, ROE và cổ tức.'],
+    'Chăn nuôi & Nông nghiệp':[['bg','ngay','tien_vay'],'Chăn nuôi, nông nghiệp theo chu kỳ giá nông sản: đọc trước biên gộp, tồn kho và nợ vay.'],
+    'Thủy sản':[['bg','dt','ngay'],'Thủy sản phụ thuộc giá xuất khẩu và tồn kho: đọc trước biên gộp, doanh thu và số ngày tồn kho.'],
+    'Dệt may':[['bg','dt','ngay'],'Dệt may phụ thuộc đơn hàng xuất khẩu: đọc trước doanh thu, biên gộp và số ngày thu tiền, tồn kho.'],
+    'Giấy & Bao bì':[['bg','dt','tien_vay'],'Giấy, bao bì phụ thuộc giá nguyên liệu: đọc trước biên gộp, doanh thu và nợ vay.']};
+  function focusOf(x){var f=FOCUS_L[x.loai],nh=null;try{var d=window.dash&&window.dash.data&&window.dash.data('xep_hang');var rows=d&&d.status==='ok'&&Array.isArray(d.data)?d.data:[];var r=rows.filter(function(q){return q.ma===x.ma;})[0];nh=r?r.nhom:null;}catch(e){}
+    if(!f&&nh&&FOCUS_N[nh])f=FOCUS_N[nh];var ten=x.loai==='ngan_hang'?'Ngân hàng':x.loai==='chung_khoan'?'Chứng khoán':x.loai==='bao_hiem'?'Bảo hiểm':nh;
+    if(!f)return {ids:['ln','roe','cfo_ln'],why:'Chưa có bộ trọng tâm riêng cho nhóm này: đọc trước lợi nhuận, ROE và dòng tiền kinh doanh.',ten:ten||'doanh nghiệp'};
+    return {ids:f[0],why:f[1],ten:ten};}
+  window.__focusOf=focusOf;
   function renderTrend(x){
     var tr=$('dg-trend');tr.textContent='';var Q=x.xu_huong.quy,G={};
+    var FC=focusOf(x),fcN=x.xu_huong.chuoi.filter(function(s){return FC.ids.indexOf(s.id)>=0;}).map(function(s){return s.ten.replace(/ \(.*$/,'');});
+    if(fcN.length){var fp=el('p','dg-focus');fp.appendChild(el('b',null,'★ Trọng tâm nhóm '+FC.ten+': '));fp.appendChild(document.createTextNode(fcN.join(' · ')+'. '+FC.why));tr.appendChild(fp);}
     var hasTV=x.xu_huong.chuoi.some(function(s){return s.id==='tien_vay';});
     x.xu_huong.chuoi.forEach(function(s){if(hasTV&&s.id==='de')return;var g=s.nhom||'Khác';(G[g]=G[g]||[]).push(s);});
     var SUM=[];
     NHOM_TT.forEach(function(g){if(!G[g])return;tr.appendChild(el('div','dg-h',g));var gt=groupT(g,x);if(gt){var gp=el('p','dg-gv '+gt[0],gt[1]);tr.appendChild(gp);SUM.push([g,gt]);}var tw=el('div','dg-trend');
-      G[g].forEach(function(s){var d=el('div','dg-t'),a=el('div','a');a.appendChild(el('span',null,s.ten));if(s.yoy!=null)a.appendChild(el('span',cl(s.yoy),sg(s.yoy)+' cùng kỳ'));d.appendChild(a);
+      G[g].forEach(function(s){var key=FC.ids.indexOf(s.id)>=0,d=el('div','dg-t'+(key?' key':'')),a=el('div','a'),nm=el('span',null,s.ten);if(key){var stt=el('span','dg-star','★');stt.title='Chỉ số trọng tâm của nhóm '+FC.ten+'. '+FC.why;nm.appendChild(stt);}a.appendChild(nm);if(s.yoy!=null)a.appendChild(el('span',cl(s.yoy),sg(s.yoy)+' cùng kỳ'));d.appendChild(a);
         var li=lastOf(s.v);var bb=el('div','b');
         if(s.v2){var k1=el('span',null,fmtv(li>=0?s.v[li]:null,s.dv));k1.style.color=s.loai==='cap'||s.loai==='cap2'?C1:'';bb.appendChild(k1);bb.appendChild(el('span','dg-vs',' · '+fmtv(li>=0?s.v2[li]:null,s.dv)));}
         else bb.textContent=fmtv(li>=0?s.v[li]:null,s.dv);d.appendChild(bb);
@@ -1829,7 +1860,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       w.document.write('<p style="font:16px Arial;padding:24px">Đang dựng báo cáo '+ma+'…</p>');
       var x=window.__dgCur&&window.__dgCur.ma===ma?window.__dgCur:null;
       var run=function(){try{window.atlBaoCao(x,w,ma);}catch(e){w.document.body.textContent='Không dựng được báo cáo: '+e.message;}};
-      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=67';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
+      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=68';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
       if(x||(ma in cache))go();
       else fetch('data/cb/'+encodeURIComponent(ma)+'.json?v='+(new Date().toISOString().slice(0,10)),{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){x=j&&j.ma===ma?j:null;go();});});})();
   window.__dg=function(ma){
@@ -2159,14 +2190,44 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .mua-tb small{color:var(--color-fg-muted);font-size:.85em}
 .mua-tb td.on,.mua-tb th.on{background:color-mix(in srgb,var(--color-fg) 8%,transparent)}
 .mua-now{font-size:var(--cds-font-size-caption);font-weight:700;margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--color-fg)}
+.mua-fold>summary{display:flex;align-items:baseline;gap:.8rem;cursor:pointer;list-style:none;flex-wrap:wrap}
+.mua-fold>summary::-webkit-details-marker{display:none}
+.mua-fold>summary .atl-h{margin:0}
+.mua-gist{flex:1;min-width:12rem;color:var(--color-fg-muted);font-size:.9rem}
+.mua-fold[open] .mua-gist{visibility:hidden}
+.mua-tog{font-size:var(--cds-font-size-caption);font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--color-border-line);color:var(--color-fg-muted);white-space:nowrap}
+.mua-tog::before{content:"Hiện ▾"}.mua-fold[open] .mua-tog::before{content:"Ẩn ▴"}
+.mua-fold[open]>summary{margin-bottom:.6rem}
+.mua-pfg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem}
+@media(max-width:900px){.mua-pfg{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.mua-pfg{grid-template-columns:1fr}}
+.mua-col{border:1px solid var(--color-border-line);border-radius:10px;padding:.7rem .8rem}
+.mua-col.on{border-color:var(--color-fg);background:color-mix(in srgb,var(--color-fg) 6%,transparent)}
+.mua-col h3{margin:0 0 .5rem;font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mua-col h3 small{font-weight:400;color:var(--color-fg-muted)}
+.mua-col .zd{display:inline-block;width:.7rem;height:.7rem;border-radius:50%}
+.mua-r{display:grid;grid-template-columns:1.1rem minmax(0,1fr) 2.6rem;gap:2px 6px;align-items:center;font-size:.84rem;padding:3px 0}
+.mua-r .rk{color:var(--color-fg-muted);font-size:.78rem;text-align:right}
+.mua-r .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mua-r .nm small{color:var(--color-fg-muted);font-size:.78rem}
+.mua-r .pf{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.mua-r .br{grid-column:2/4;height:5px;border-radius:3px;background:color-mix(in srgb,var(--color-fg) 9%,transparent);position:relative}
+.mua-r .br i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.mua-r .br u{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--color-fg-muted)}
+.mua-r.few{opacity:.55}
         </style>
-        <h2 class="atl-h">Mùa này nên làm gì</h2>
-        <p class="atl-note">Mỗi mùa một dòng: tỷ trọng tối đa và chiến thuật đã kiểm định trên HOSE 2020–10/2026 (đã trừ phí 0,3%, cắt lỗ 7%, tôn trọng T+2). Dòng tô sáng là mùa hiện tại. Số liệu để so sánh phương án, không phải dự báo lợi nhuận.</p>
-        <div class="mua-tbw"><table class="mua-tb" id="mua-tb"></table></div>
-        <h2 class="atl-h" style="margin-top:1.4rem">Chỉ báo nào hợp mùa nào</h2>
-        <p class="atl-note">Profit factor (lãi gộp chia lỗ gộp) của lệnh mua theo từng chỉ báo, chia theo vùng nhiệt kế lúc mua. Bán theo quy tắc của tác giả, cắt lỗ 7%, giữ tối đa 60 phiên; dữ liệu HOSE 2020 đến 27/10/2026. Trên 1 là có lãi; xanh từ 1,5 trở lên, đỏ dưới 1. Số nhỏ là số lệnh. Cột tô sáng là vùng hiện tại.</p>
-        <div class="mua-tbw"><table class="mua-tb" id="mua-pf"></table></div>
-        <p class="atl-note" id="mua-kl"></p>
+        <details class="mua-fold" id="mua-f1" open>
+          <summary><span class="atl-h">Mùa này nên làm gì</span><span class="mua-gist" id="mua-g1"></span><span class="mua-tog"></span></summary>
+          <p class="atl-note">Mỗi mùa một dòng: tỷ trọng tối đa và chiến thuật đã kiểm định trên HOSE 2020–10/2026 (đã trừ phí 0,3%, cắt lỗ 7%, tôn trọng T+2). Dòng tô sáng là mùa hiện tại. Số liệu để so sánh phương án, không phải dự báo lợi nhuận.</p>
+          <div class="mua-tbw"><table class="mua-tb" id="mua-tb"></table></div>
+        </details>
+      </div>
+      <div class="atl-card atl-wide" id="card-mua-chi-bao">
+        <details class="mua-fold" id="mua-f2" open>
+          <summary><span class="atl-h">Mùa nào hợp chỉ báo nào</span><span class="mua-gist" id="mua-g2"></span><span class="mua-tog"></span></summary>
+          <p class="atl-note">Mỗi cột là một mùa, các chỉ báo xếp từ tốt đến kém theo profit factor (lãi gộp chia lỗ gộp) của các lệnh mua trong mùa đó. Thanh càng dài càng tốt; vạch đứng là mức hòa vốn 1,0; xanh từ 1,5 trở lên, đỏ dưới 1. Số nhỏ là số lệnh; chỉ báo có dưới 100 lệnh xếp cuối và không dùng để xếp hạng. Bán theo quy tắc của tác giả, cắt lỗ 7%, giữ tối đa 60 phiên; HOSE 2020 đến 27/10/2026.</p>
+          <div class="mua-pfg" id="mua-pf"></div>
+          <p class="atl-note" id="mua-kl"></p>
+        </details>
       </div>
       <div class="atl-card atl-wide" id="card-cau-truc">
         <style>
@@ -2394,9 +2455,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <div class="atl-controls">
             <div class="atl-seg" role="group" aria-label="Khung thời gian" id="nh-kseg"></div>
             <div class="atl-seg" role="group" aria-label="Đường hiển thị" id="nh-mseg">
-              <button type="button" data-m="top" aria-pressed="true">6 mạnh nhất</button>
+              <button type="button" data-m="top" aria-pressed="false">6 mạnh nhất</button>
               <button type="button" data-m="bot" aria-pressed="false">6 yếu nhất</button>
-              <button type="button" data-m="all" aria-pressed="false">Tất cả</button>
+              <button type="button" data-m="all" aria-pressed="true">Tất cả</button>
             </div>
           </div>
           <div class="nh-body">
@@ -4253,17 +4314,26 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       ['ATR', 1.31, 920, 1.09, 2563, 1.79, 2630, 1.06, 517], ['Keltner Channels', 0.67, 221, 1.35, 756, 1.79, 1193, 1.49, 155], ['RSI 30/70', 1.02, 714, 1.27, 874, 2.11, 302, 0.72, 66],
       ['ATL: dưới dải Bollinger + RS trên 80', 1.09, 110, 0.99, 215, 1.50, 107, 2.24, 20]];
     const col = last.vung === 1 ? 0 : (last.vung === 2 || last.vung === 7) ? 1 : last.vung === 3 ? 2 : 3;
+    const cur = G.filter((g) => g[0] === last.vung)[0]; const g1 = document.getElementById('mua-g1'); if (g1 && cur) g1.textContent = cur[1] + ': tỷ trọng ' + cur[4].toLowerCase() + '. ' + cur[5];
+    const SEA = [['Nghỉ đông', 'TB7 dưới 45', 1], ['Giáp hạt · Đầu xuân', 'TB7 45–55', 2], ['Ra hoa', 'TB7 55–65', 3], ['Đầu hạ trở lên', 'TB7 từ 65', 4]], fx = (v) => v.toFixed(2).replace('.', ','), MAXPF = 2.4;
     pf.replaceChildren();
-    const h2 = mk('tr'); h2.appendChild(mk('th', null, 'Chỉ báo')); ['Nghỉ đông (dưới 45)', 'Hỗn độn (45–55)', 'Ra hoa (55–65)', 'Từ 65 trở lên'].forEach((x, i) => h2.appendChild(mk('th', 'c' + (i === col ? ' on' : ''), x))); pf.appendChild(h2);
-    PFD.forEach((r) => { const tr = mk('tr'); tr.appendChild(mk('td', null, r[0]));
-      for (let i = 0; i < 4; i++) { const v = r[1 + i * 2], n = r[2 + i * 2], td = mk('td', 'c' + (i === col ? ' on' : '')), b = mk('b', null, v.toFixed(2).replace('.', ','));
-        b.style.color = v >= 1.5 ? 'var(--color-ok)' : v < 1 ? 'var(--color-bad)' : ''; td.append(b, document.createTextNode(' '), mk('small', null, n.toLocaleString('vi-VN') + (n < 100 ? ' (ít)' : ''))); tr.appendChild(td); }
-      pf.appendChild(tr); });
-    const best = PFD.map((r) => [r[0], r[1 + col * 2], r[2 + col * 2]]).filter((x) => x[2] >= 100).sort((a, b) => b[1] - a[1]);
-    const names = ['Nghỉ đông', 'Hỗn độn 45–55', 'Ra hoa', 'từ 65 trở lên'];
-    document.getElementById('mua-kl').textContent = 'Vùng hiện tại (' + names[col] + '): tốt nhất là ' + best.slice(0, 3).map((x) => x[0] + ' (' + x[1].toFixed(2).replace('.', ',') + ')').join(', ')
-      + '; kém nhất là ' + best.slice(-2).reverse().map((x) => x[0] + ' (' + x[1].toFixed(2).replace('.', ',') + ')').join(', ')
-      + '. Vùng Ra hoa cho PF 1,8–2,3 ở 9 trên 10 chỉ báo: lợi thế nằm ở mùa nhiều hơn ở việc chọn chỉ báo. Ô có dưới 100 lệnh không dùng để xếp hạng.';
+    const rank = (i) => { const a = PFD.map((r) => [r[0], r[1 + i * 2], r[2 + i * 2]]); return a.filter((x) => x[2] >= 100).sort((p, q) => q[1] - p[1]).concat(a.filter((x) => x[2] < 100).sort((p, q) => q[1] - p[1])); };
+    SEA.forEach((sv, i) => { const box = mk('div', 'mua-col' + (i === col ? ' on' : '')), h3 = mk('h3'), d = mk('i', 'zd'); d.style.background = 'var(--z' + sv[2] + ')'; h3.append(d, document.createTextNode(sv[0]), mk('small', null, sv[1])); if (i === col) h3.appendChild(mk('span', 'mua-now', 'đang ở đây')); box.appendChild(h3);
+      let k = 0; rank(i).forEach((x) => { const few = x[2] < 100, r = mk('div', 'mua-r' + (few ? ' few' : '')), nm = mk('span', 'nm', x[0].replace('ATL: dưới dải Bollinger + RS trên 80', 'ATL: Bollinger + RS > 80') + ' '), pv = mk('span', 'pf', fx(x[1])), br = mk('span', 'br'), fill = mk('i'), tick = mk('u');
+        r.title = x[0] + ': profit factor ' + fx(x[1]) + ', ' + x[2].toLocaleString('vi-VN') + ' lệnh' + (few ? ' (ít lệnh, không dùng để xếp hạng)' : '');
+        nm.appendChild(mk('small', null, x[2].toLocaleString('vi-VN') + (few ? ' · ít' : ''))); const c = x[1] >= 1.5 ? 'var(--color-ok)' : x[1] < 1 ? 'var(--color-bad)' : 'var(--color-fg-muted)'; pv.style.color = x[1] >= 1.5 ? 'var(--color-ok)' : x[1] < 1 ? 'var(--color-bad)' : '';
+        fill.style.width = Math.min(100, x[1] / MAXPF * 100) + '%'; fill.style.background = c; tick.style.left = (1 / MAXPF * 100) + '%'; br.append(fill, tick);
+        r.append(mk('span', 'rk', few ? '–' : String(++k)), nm, pv, br); box.appendChild(r); });
+      pf.appendChild(box); });
+    const best = rank(col).filter((x) => x[2] >= 100), names = ['Nghỉ đông', 'Giáp hạt · Đầu xuân (45–55)', 'Ra hoa', 'từ 65 trở lên'];
+    const top3 = best.slice(0, 3).map((x) => x[0] + ' ' + fx(x[1])).join(' · ');
+    const g2 = document.getElementById('mua-g2'); if (g2) g2.textContent = 'Mùa hiện tại (' + names[col] + '): ' + top3;
+    document.getElementById('mua-kl').textContent = 'Mùa hiện tại (' + names[col] + '): tốt nhất là ' + best.slice(0, 3).map((x) => x[0] + ' (' + fx(x[1]) + ')').join(', ')
+      + '; kém nhất là ' + best.slice(-2).reverse().map((x) => x[0] + ' (' + fx(x[1]) + ')').join(', ')
+      + '. Mùa Ra hoa cho profit factor 1,8–2,3 ở 9 trên 10 chỉ báo: lợi thế nằm ở mùa nhiều hơn ở việc chọn chỉ báo.';
+    ['mua-f1', 'mua-f2'].forEach((id) => { const e = document.getElementById(id); if (!e || e.dataset.b) return; e.dataset.b = '1';
+      try { if (localStorage.getItem('atl-' + id) === '0') e.open = false; } catch (err) {}
+      e.addEventListener('toggle', () => { try { localStorage.setItem('atl-' + id, e.open ? '1' : '0'); } catch (err) {} }); });
   }
 
   function drawScale(box, last) {
@@ -5334,8 +5404,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   function chart(rows, r, sg) {
     const box = $('ch-hs'); if (!rows.length) { box.replaceChildren(); return; }
     const d = rows.map((x) => ({ ...x, t: new Date(x.ngay + 'T00:00:00Z'), o: +x.o, h: +x.h, l: +x.l, c: +x.c }));
-    const W = Math.max(300, box.clientWidth), HP = W < 520 ? 280 : 320, MH = W < 520 ? 90 : 110, H = HP + 14 + MH + 22, m = { l: 8, r: 46, t: 24, b: H - HP + 4 };
-    const mt = HP + 14, mb = HP + 14 + MH;
+    const W = Math.max(300, box.clientWidth), HP = W < 520 ? 280 : 320, MH = W < 520 ? 90 : 110, hasV = d.some((q) => q.gt != null && +q.gt > 0), VH = hasV ? (W < 520 ? 48 : 60) : 0, VG = hasV ? 12 : 0, H = HP + 14 + VH + VG + MH + 22, m = { l: 8, r: 46, t: 24, b: H - HP + 4 };
+    const vt = HP + 14, vb = vt + VH, mt = HP + 14 + VH + VG, mb = mt + MH;
     const lv = [];
     if (sg && sg.cat_lo != null) lv.push(['Cắt lỗ', +sg.cat_lo, 'var(--color-bad)']);
     if (sg && sg.muc_tieu_1 != null) lv.push(['Mục tiêu 1', +sg.muc_tieu_1, 'var(--z3)']);
@@ -5387,6 +5457,15 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     });
     lv.forEach(([lab, v, c]) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', c).attr('stroke-dasharray', '4 3');
       svg.append('text').attr('x', m.l + 4).attr('y', y(v) - 3).attr('fill', c).style('font-size', '10px').style('font-weight', 600).text(lab + ' ' + d3.format('.2f')(v)); });
+    // ---- giá trị giao dịch (tỷ đồng) + trung bình 20 phiên: để đối chiếu với nhận định cung cầu ----
+    if (hasV) {
+      const vd = d.filter((q) => q.gt != null), vmax = d3.max(vd, (q) => Math.max(+q.gt, +q.gt20 || 0)) || 1, yv = d3.scaleLinear([0, vmax], [vb, vt + 10]);
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', vb).attr('y2', vb).attr('stroke', 'var(--cds-chart-axis)');
+      svg.append('text').attr('x', m.l + 2).attr('y', vt + 8).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text('GTGD (tỷ đồng) · đường: trung bình 20 phiên · cột đậm: từ 1,5 lần trung bình');
+      vd.forEach((q) => { const v = +q.gt, big = q.gt20 != null && v >= 1.5 * +q.gt20; svg.append('rect').attr('x', x(q.ngay)).attr('width', x.bandwidth()).attr('y', yv(v)).attr('height', Math.max(0.5, vb - yv(v))).attr('fill', q.c >= q.o ? 'var(--z3)' : 'var(--z6)').attr('opacity', big ? 0.95 : 0.45); });
+      const v20 = vd.filter((q) => q.gt20 != null); if (v20.length > 1) svg.append('path').datum(v20).attr('fill', 'none').attr('stroke', 'var(--z4)').attr('stroke-width', 1.3).attr('d', d3.line(cx, (q) => yv(+q.gt20)));
+      [vmax, vmax / 2].forEach((t) => svg.append('text').attr('x', W - m.r + 4).attr('y', yv(t) + 4).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(t >= 100 ? d3.format(',.0f')(t) : d3.format('.1f')(t)));
+    }
     // ---- MACD 12,26,9 ----
     const md = d.filter((q) => q.macd != null);
     if (md.length) {
@@ -5412,13 +5491,13 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.r - m.l).attr('height', mb - m.t).attr('fill', 'transparent')
       .on('pointermove', (ev) => { const [px] = d3.pointer(ev); const q = d[bis(d, px)]; if (!q) return; el2.replaceChildren();
         const t = document.createElement('div'); t.className = 't'; t.textContent = q.ngay.slice(8, 10) + '/' + q.ngay.slice(5, 7) + '/' + q.ngay.slice(0, 4); el2.appendChild(t);
-        [['Mở · Cao · Thấp · Đóng', [q.o, q.h, q.l, q.c].map((v) => d3.format('.2f')(v)).join(' · ')], ['MA20 / MA50 / MA200', [q.ma20, q.ma50, q.ma200].map((v) => (v == null ? '—' : d3.format('.2f')(+v))).join(' / ')], ['Dải dưới / trên', (q.bb_duoi == null ? '—' : d3.format('.2f')(+q.bb_duoi)) + ' / ' + (q.bb_tren == null ? '—' : d3.format('.2f')(+q.bb_tren))], ['MACD / tín hiệu / cột', q.macd == null ? '—' : [q.macd, q.macd_tb, q.macd_cot].map((v) => d3.format('.2f')(+v)).join(' / ')]]
+        [['Mở · Cao · Thấp · Đóng', [q.o, q.h, q.l, q.c].map((v) => d3.format('.2f')(v)).join(' · ')], ['MA20 / MA50 / MA200', [q.ma20, q.ma50, q.ma200].map((v) => (v == null ? '—' : d3.format('.2f')(+v))).join(' / ')], ['GTGD / TB20 (tỷ)', q.gt == null ? '—' : d3.format(',.1f')(+q.gt) + ' / ' + (q.gt20 == null ? '—' : d3.format(',.1f')(+q.gt20)) + (q.gt20 != null && +q.gt20 > 0 ? ' (' + d3.format('.1f')(+q.gt / +q.gt20) + '×)' : '')], ['Dải dưới / trên', (q.bb_duoi == null ? '—' : d3.format('.2f')(+q.bb_duoi)) + ' / ' + (q.bb_tren == null ? '—' : d3.format('.2f')(+q.bb_tren))], ['MACD / tín hiệu / cột', q.macd == null ? '—' : [q.macd, q.macd_tb, q.macd_cot].map((v) => d3.format('.2f')(+v)).join(' / ')]]
           .forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el2.appendChild(e); });
         const k = box.clientWidth / W; window.atlPlaceTip(el2, box, cx(q) * k, y(q.h) * k); })
       .on('pointerleave', () => { el2.hidden = true; });
     box.replaceChildren(svg.node(), el2);
     const lg = $('hs-lg'); lg.replaceChildren();
-    [['Dải Bollinger 20,2', 'var(--z1)'], ['MA20', 'var(--z1)'], ['MA50', 'var(--z4)'], ['MA200', 'var(--z6)'], ['MACD', 'var(--color-fg)'], ['Đường tín hiệu', 'var(--z4)'], ['Trung tâm ZD–ZG & phân kỳ (Triền Luận)', 'var(--z4)']].forEach(([t, c]) => { const s = el('span'); const i = el('i', 'atl-dot'); i.style.background = c; s.append(i, document.createTextNode(t)); lg.appendChild(s); });
+    [['Dải Bollinger 20,2', 'var(--z1)'], ['MA20', 'var(--z1)'], ['MA50', 'var(--z4)'], ['MA200', 'var(--z6)'], ['GTGD trung bình 20 phiên', 'var(--z4)'], ['MACD', 'var(--color-fg)'], ['Đường tín hiệu', 'var(--z4)'], ['Trung tâm ZD–ZG & phân kỳ (Triền Luận)', 'var(--z4)']].forEach(([t, c]) => { const s = el('span'); const i = el('i', 'atl-dot'); i.style.background = c; s.append(i, document.createTextNode(t)); lg.appendChild(s); });
   }
   window.atlDrawHS = draw;
 })();
@@ -5558,7 +5637,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   const $ = (id) => document.getElementById(id);
   const PAL = ['#6aa3d8', '#d8a35a', '#6fc19a', '#b58bd6', '#d8d36a', '#6ad8d0', '#d87a7a', '#8fd14f', '#e07b9a', '#7aa0e0', '#e0905a', '#5aa9a0', '#c9a0dc', '#b0b05a', '#d08f8f', '#6fb0d0', '#a0d08f', '#c98ad0'];
   const KH = [['1T', 5, '1 tuần'], ['1M', 20, '1 tháng'], ['3M', 60, '3 tháng'], ['6M', 120, '6 tháng'], ['YTD', -1, 'Từ đầu năm'], ['1Y', 251, '1 năm']];
-  const st = { k: '1M', m: 'top', sel: new Set(), hl: null }; let D = null, fail = false;
+  const st = { k: '1M', m: 'all', sel: new Set(), hl: null }; let D = null, fail = false;
   const fv = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',') + '%';
   const fd = (v) => (Math.abs(v) < 0.05 ? '0,0' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ','));
   const dm = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
