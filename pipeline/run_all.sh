@@ -36,6 +36,8 @@ python3 hieu_suat_thang.py || echo "hieu_suat_thang.py lỗi, bỏ qua"
 python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
 # dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
+# lịch sử khối ngoại từ 2019-10 (nối thêm phiên mới) -> pipeline/nn_lich_su.csv.gz và site/data/bt_nn.json cho Backtest (lỗi không làm dừng pipeline)
+python3 nn_lich_su.py || echo "nn_lich_su.py lỗi, bỏ qua"
 # top khối ngoại mua/bán ròng 5-10-20 phiên (cần chart/x của bước trên; lỗi không làm dừng pipeline)
 python3 khoi_ngoai_top.py || echo "khoi_ngoai_top.py lỗi, bỏ qua"
 # thị trường thế giới: chỉ số, hàng hóa, bitcoin (lỗi không làm dừng pipeline)
