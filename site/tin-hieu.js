@@ -277,6 +277,15 @@
     buy_t: 'Khối ngoại mua ròng 2 phiên liên tiếp, mỗi phiên ≥ 3 tỷ', sell_t: 'Khối ngoại bán ròng 2 phiên liên tiếp', src: 'Quy ước ATL',
     calc: function (D, P) { var x = D.nn || A(D.c.length); return { buy: edge(x.map(function (v, i) { return i > 0 && v >= P.m && x[i - 1] >= P.m; })), sell: edge(x.map(function (v, i) { return i > 0 && v < 0 && x[i - 1] < 0; })), plots: [] }; } });
 
+  def({ id: 'nnk', name: 'KHỐI NGOẠI mua ròng lũy kế N phiên', grp: 'ATL', chart: false, need: 'nn', p: [{ k: 'n', n: 'Số phiên N', d: 10, min: 3, max: 60 }, { k: 'm', n: 'Tổng mua ròng ≥ (tỷ)', d: 20, min: 1, max: 2000 }],
+    buy_t: 'Tổng mua ròng của khối ngoại trong N phiên gần nhất vừa vượt ngưỡng (tỷ đồng, gồm thỏa thuận)', sell_t: 'Tổng mua ròng N phiên quay về dưới 0', src: 'Quy ước ATL. Chưa có lịch sử dài: chỉ dùng được ở Bộ lọc và Đồ thị (khoảng 620 phiên), chưa chạy được ở Backtest',
+    calc: function (D, P) { var x = D.nn || A(D.c.length), n = x.length, N = Math.max(3, Math.round(P.n)), s = new Array(n), q = 0, i; for (i = 0; i < n; i++) { q += (x[i] || 0); if (i >= N) q -= (x[i - N] || 0); s[i] = i >= N - 1 ? q : null; }
+      return { buy: edge(s.map(function (v) { return v != null && v >= P.m; })), sell: edge(s.map(function (v) { return v != null && v < 0; })), plots: [] }; } });
+  def({ id: 'nnl', name: 'KHỐI NGOẠI mua ròng K phiên liên tiếp', grp: 'ATL', chart: false, need: 'nn', p: [{ k: 'k', n: 'Số phiên liên tiếp K', d: 5, min: 2, max: 20 }, { k: 'm', n: 'Mỗi phiên ≥ (tỷ)', d: 1, min: 0, max: 500 }],
+    buy_t: 'Khối ngoại mua ròng K phiên liên tiếp, mỗi phiên từ ngưỡng tối thiểu', sell_t: 'Khối ngoại bán ròng 3 phiên liên tiếp', src: 'Quy ước ATL. Chưa có lịch sử dài: chỉ dùng được ở Bộ lọc và Đồ thị (khoảng 620 phiên), chưa chạy được ở Backtest',
+    calc: function (D, P) { var x = D.nn || A(D.c.length), n = x.length, K = Math.max(2, Math.round(P.k)), b = new Array(n), r = new Array(n), up = 0, dn = 0, i; for (i = 0; i < n; i++) { var v = x[i]; up = v != null && v >= P.m && v > 0 ? up + 1 : 0; dn = v != null && v < 0 ? dn + 1 : 0; b[i] = up >= K; r[i] = dn >= 3; }
+      return { buy: edge(b), sell: edge(r), plots: [] }; } });
+
   /* ========== CHỈ BÁO PHỔ BIẾN (vẽ được trên Đồ thị) ========== */
   def({ id: 'st', name: 'Supertrend', grp: 'Phổ biến', chart: true, pane: 'main', p: [{ k: 'len', n: 'Chu kỳ ATR', d: 10, min: 1, max: 100 }, { k: 'f', n: 'Hệ số', d: 3, min: 0.5, max: 10, step: 0.1 }],
     buy_t: 'Supertrend đổi sang xanh (giá đóng cửa vượt dải trên)', sell_t: 'Supertrend đổi sang đỏ', src: 'Olivier Seban, mặc định TradingView 10/3',

@@ -637,6 +637,17 @@
     c.hline(0, { color: 'rgba(120,123,134,.8)' });
   }
 
+  function NNC(c) {
+    var n = c.n, isna = c.isna;
+    var L = c.input('Lũy kế N nến', 20, { min: 2, max: 250, step: 1 });
+    if (!c.x) throw new Error('Chưa có dữ liệu khối ngoại của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
+    var nn = c.x.nn, out = new Array(n), q = 0, i;
+    for (i = 0; i < n; i++) { q += isna(nn[i]) ? 0 : nn[i]; if (i >= L) q -= isna(nn[i - L]) ? 0 : nn[i - L]; out[i] = i >= L - 1 ? q : c.NA; }
+    var cols = new Array(n); for (i = 0; i < n; i++) cols[i] = isna(out[i]) ? null : out[i] >= 0 ? '#26a69acc' : '#ef5350cc';
+    c.plot('NN ròng lũy kế (tỷ)', out, { style: 'hist', color: '#26a69a', colors: cols });
+    c.hline(0, { color: 'rgba(120,123,134,.8)' });
+  }
+
   function PE(c) {
     var n = c.n, NA = c.NA, isna = c.isna;
     var K = c.input('Dải ± độ lệch chuẩn (0 = ẩn)', 1, { min: 0, max: 3, step: 0.5 });
@@ -684,6 +695,7 @@
     { id: 'rsd', name: 'RS ĐIỂM (1–99)', pane: 'sub', code: '//@pane sub\n//@name RS ĐIỂM (1–99)\n' + body(RSD) },
     { id: 'gtgd', name: 'GIÁ TRỊ GIAO DỊCH', pane: 'sub', code: '//@pane sub\n//@name GIÁ TRỊ GIAO DỊCH\n' + body(GTGD) },
     { id: 'nn', name: 'KHỐI NGOẠI', pane: 'sub', code: '//@pane sub\n//@name KHỐI NGOẠI\n' + body(NN) },
+    { id: 'nnc', name: 'KHỐI NGOẠI LŨY KẾ', pane: 'sub', code: '//@pane sub\n//@name KHỐI NGOẠI LŨY KẾ\n' + body(NNC) },
     { id: 'pe', name: 'P/E', pane: 'sub', code: '//@pane sub\n//@name P/E\n' + body(PE) },
     { id: 'pb', name: 'P/B', pane: 'sub', code: '//@pane sub\n//@name P/B\n' + body(PB) },
     { id: 'wmr', name: 'WORLD MACRO', pane: 'sub', code: '//@pane sub\n//@name WORLD MACRO RISK\n//@world\n' + body(WMR) },

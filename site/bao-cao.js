@@ -343,6 +343,7 @@
         (sk.cp_trieu ? '<tr><td>Vốn hóa thị trường</td><td>' + n0(P * sk.cp_trieu / 1000) + ' tỷ</td></tr><tr><td>Số cổ phiếu</td><td>' + n1(sk.cp_trieu) + ' triệu</td></tr>' : '') +
         (x.cao_1n ? '<tr><td>Cao nhất / thấp nhất 1 năm</td><td>' + n0(x.cao_1n) + ' / ' + n0(x.thap_1n) + '</td></tr>' : '') +
         (xh ? '<tr><td>Nhóm ngành</td><td style="font-size:9.5px">' + esc(xh.nhom) + '</td></tr>' : '') +
+        (function () { try { var ev = window.atlEv && window.atlEv.ma ? window.atlEv.ma(ma, 45) : [], r = ''; if (ev.length) r += '<tr><td>Sắp tới</td><td style="font-size:9.5px">' + esc(window.atlEv.short ? ev.slice(0, 2).map(function (e) { return window.atlEv.dm(e.ngay) + ' ' + e.nhan.toLowerCase() + (e.ten ? ' (' + e.ten + ')' : ''); }).join('; ') : '') + ' · ngày theo Vietcap</td></tr>'; var T = window.atlDgTT; if (T && T.pe) r += '<tr><td>P/E VN-Index hiện tại</td><td style="font-size:9.5px">' + n1(T.pe.hien_tai) + ' lần, rẻ hơn ' + n0(100 - T.pe.pct_thap_hon) + '% số phiên từ 2021 (Vietcap)</td></tr>'; return r; } catch (e) { return ''; } })() +
         '</table><h3>Chỉ số định giá</h3><table class="kv">' +
         (dg.eps_ttm ? '<tr><td>Lợi nhuận mỗi cổ phần (4 quý)</td><td>' + n0(dg.eps_ttm) + 'đ</td></tr>' : '') + (dg.bvps ? '<tr><td>Giá trị sổ sách mỗi cổ phần</td><td>' + n0(dg.bvps) + 'đ</td></tr>' : '') +
         (dg.pe_hien ? '<tr><td>P/E · mức giữa 5 năm</td><td>' + n1(dg.pe_hien) + ' · ' + n1(dg.pe_trung_vi) + ' lần</td></tr>' : '') +

@@ -550,6 +550,35 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <p class="atl-note" id="sm-cmp-note">Cùng vốn 1 tỷ, cùng bắt đầu 20/10/2026, cùng phí 0,3% mỗi vòng và cùng cách giới hạn tỷ trọng đang chọn ở trên. Khác nhau ở luật mua bán và cỡ lệnh: ATL 6,5% NAV mỗi mã (vé số 3%), Long đầu 2% mỗi mã, Dragon Code và VN Timing mua từng phần theo nhãn, tổng tối đa 5% mỗi mã (Dragon Code: MÚC 3% + THÊM 2%; VN Timing: B 2% + SB, SPr, BR mỗi nhãn 1%), chỉ mã có GTGD trung bình 20 phiên từ 20 tỷ. Bấm một dòng để xem chi tiết.</p>
           <div class="atl-tablebox"><table class="sm-tbl" id="sm-cmp"><thead><tr><th>Mô phỏng</th><th class="num">Lãi/lỗ</th><th class="num">So với VN-Index</th><th class="num">Sụt giảm tối đa</th><th class="num">Lệnh</th><th class="num">Thắng / đã đóng</th><th class="num">Lãi TB lệnh đóng</th><th class="num">Tỷ trọng cổ phiếu</th></tr></thead><tbody></tbody></table></div>
           <p class="atl-note" id="sm-cmp-foot"></p>
+          <div id="sm-fw" hidden style="margin-top:var(--cds-gap-md)">
+            <h3 class="atl-h" style="font-size:1rem;margin:0 0 4px">Sổ ghi nhận đóng băng (forward-test)</h3>
+            <p class="atl-note" id="sm-fw-note"></p>
+            <div class="atl-tablebox"><table class="sm-tbl" id="sm-fw-tb"><thead><tr><th>Mô phỏng</th><th class="num">Lệnh ghi sổ</th><th class="num">Đã đóng</th><th class="num">Thắng</th><th class="num">Lãi TB lệnh đóng</th><th class="num">Lãi TB lệnh đang giữ</th><th>Backtest kỳ vọng</th></tr></thead><tbody></tbody></table></div>
+          </div>
+          <script>
+(function () {
+  function vn(x, d) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function pc(x) { return x == null ? '—' : (x > 0 ? '+' : '') + vn(x, 2) + '%'; }
+  function dmy(iso) { var a = String(iso || '').slice(0, 10).split('-'); return a.length === 3 ? a[2] + '/' + a[1] + '/' + a[0] : ''; }
+  function td(t, c) { var e = document.createElement('td'); if (c) e.className = c; e.textContent = t; return e; }
+  fetch('data/forward_mo_phong.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || !d.danh_muc || !d.danh_muc.some(function (x) { return x.n_mo; })) return;
+    var tb = document.querySelector('#sm-fw-tb tbody'); tb.textContent = '';
+    var bs = 0, tt = 0, nho = false;
+    d.danh_muc.forEach(function (x) {
+      var tr = document.createElement('tr'); tr.appendChild(td(x.ten));
+      if (!x.n_mo) { var c = td(x.ghi_chu || 'Chưa có lệnh'); c.colSpan = 6; tr.appendChild(c); tb.appendChild(tr); return; }
+      tt += x.n_mo; bs += x.n_bo_sung || 0; if (x.mau_nho) nho = true;
+      tr.appendChild(td(x.n_mo + (x.mau_nho ? ' · mẫu nhỏ' : ''), 'num')); tr.appendChild(td(String(x.n_dong), 'num'));
+      tr.appendChild(td(x.thang_pct == null ? '—' : x.thang_pct + '%', 'num')); tr.appendChild(td(pc(x.lai_tb_dong), 'num')); tr.appendChild(td(pc(x.lai_tb_dang_giu), 'num'));
+      tr.appendChild(td(x.bt_ky_vong ? pc(x.bt_ky_vong.lai_tb) + (x.bt_ky_vong.ghi_chu ? ' · ' + x.bt_ky_vong.ghi_chu : '') : 'Chưa có số backtest riêng cho danh mục này'));
+      tb.appendChild(tr); });
+    document.getElementById('sm-fw-note').textContent = 'Sổ chỉ ghi thêm (bản không trần, giống cách xem mặc định ở trên), không sửa dòng cũ (mã phiên bản quy tắc ' + d.phien_ban + '). Khác với các bảng ở trên được tính lại mỗi ngày theo quy tắc hiện hành, sổ này giữ nguyên giá vào, cắt lỗ và kết quả chốt tại ngày ghi. '
+      + (bs ? bs + '/' + tt + ' lệnh là ghi bổ sung từ 20/10/2026 (lúc đó chưa có sổ), các lệnh sau đó là ghi trực tiếp. ' : '') + (nho ? 'Mẫu dưới 20 lệnh chỉ để theo dõi, chưa đủ để kết luận. ' : '') + 'Cập nhật ' + dmy(d.cap_nhat) + '. Mô phỏng, chưa gồm thuế và trượt giá; chỉ để tham khảo.';
+    document.getElementById('sm-fw').hidden = false;
+  }).catch(function () {});
+})();
+          </script>
         </div>
         <div class="sm-warn" id="sm-note">Đang tải dữ liệu mô phỏng…</div>
         <div class="atl-tiles" id="sm-tiles"></div>
@@ -1187,6 +1216,67 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     </style>
   </section>
 <section class="atl-sec" id="hom-nay" role="tabpanel" aria-labelledby="tab-hom-nay" hidden>
+    <style>
+.ev-strip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 12px;padding:8px 14px;border:1px solid var(--color-border-line);border-radius:10px;font-size:.88rem}
+.ev-strip>b{font-size:var(--cds-font-size-caption);letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted);margin-right:4px}
+.ev-chip,.ev-pill{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;line-height:1.5;padding:1px 9px;border-radius:999px;border:1px solid var(--color-border-line);background:color-mix(in srgb,var(--color-fg) 5%,transparent);white-space:nowrap}
+.ev-chip button{background:none;border:0;padding:0;font:inherit;font-weight:700;color:inherit;cursor:pointer}
+.ev-pill{font-size:.72rem;padding:0 8px}
+.ev-hs{margin-top:4px;line-height:1.5}
+    </style>
+    <div class="ev-strip" id="card-ev" hidden><b>Sự kiện 10 ngày tới</b><span id="ev-list" style="display:contents"></span></div>
+    <script>
+(function () {
+  var D = null, W = [], cbs = [], PAT = {};
+  function today() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function dd(iso) { var a = String(iso).slice(0, 10).split('-'); return new Date(+a[0], +a[1] - 1, +a[2]); }
+  function dm(iso) { var a = String(iso).slice(0, 10).split('-'); return a[2] + '/' + a[1]; }
+  function dleft(iso) { return Math.round((dd(iso) - today()) / 864e5); }
+  function short(e) { return e.loai === 'DIV' ? 'cổ tức ' + (e.ten.split('·').pop() || '').trim() : e.loai === 'AGME' || e.loai === 'EGME' ? 'họp ĐHĐCĐ' : e.loai === 'ISS' ? 'phát hành' : e.loai === 'AIS' ? 'niêm yết thêm' : e.loai === 'SUSP' ? 'tạm ngừng GD' : e.nhan.toLowerCase(); }
+  function mk(t, c, tx) { var e = document.createElement(t); if (c) e.className = c; if (tx != null) e.textContent = tx; return e; }
+  function evOf(tk, days) { var l = (D && D.ma && D.ma[tk]) || []; return l.filter(function (e) { var k = dleft(e.ngay); return k >= 0 && k <= days; }); }
+  window.atlEv = { ready: function (f) { if (D) f(D); else cbs.push(f); }, ma: evOf, short: short, dm: dm };
+  function strip() {
+    var host = document.getElementById('ev-list'), card = document.getElementById('card-ev'); if (!host) return; host.textContent = '';
+    var n = 0;
+    ((D && D.thi_truong) || []).forEach(function (e) { var k = dleft(e.ngay); if (k < 0 || k > 10) return; var c = mk('span', 'ev-chip', dm(e.ngay) + ' · ' + e.ten); c.title = e.ghi_chu || ''; host.appendChild(c); n++; });
+    var rows = []; Object.keys(W).forEach(function (tk) { evOf(tk, 10).forEach(function (e) { rows.push([e.ngay, tk, e]); }); });
+    rows.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+    rows.slice(0, 14).forEach(function (r) { var c = mk('span', 'ev-chip'), b = mk('button', null, r[1]); b.type = 'button'; b.addEventListener('click', function () { if (window.atlOpenProfile) window.atlOpenProfile(r[1]); });
+      c.append(b, document.createTextNode(dm(r[0]) + ' · ' + short(r[2]))); c.title = r[2].nhan + ': ' + r[2].ten + ' (' + W[r[1]] + ')'; host.appendChild(c); n++; });
+    if (rows.length > 14) host.appendChild(mk('span', 'ev-chip', '+' + (rows.length - 14) + ' sự kiện khác'));
+    card.hidden = !n;
+  }
+  function decorate() {
+    if (!D) return;
+    [].forEach.call(document.querySelectorAll('#hn-mua-list .atl-stock, #hn-giu-list .atl-stock, #hn-td-list .atl-stock'), function (s) {
+      if (s.dataset.ev) return; s.dataset.ev = '1'; var m = s.querySelector('.atl-ma'), ch = s.querySelector('.atl-chips'); if (!m || !ch) return;
+      evOf(m.textContent.trim(), 10).slice(0, 2).forEach(function (e) { var p = mk('span', 'ev-pill', dm(e.ngay) + ' · ' + short(e)); p.title = e.nhan + ': ' + e.ten; ch.appendChild(p); }); });
+    [].forEach.call(document.querySelectorAll('#bo-loc button.bl-go'), function (b) {
+      if (b.dataset.ev || b.textContent.trim().length > 4 || !/^[A-Z0-9]{3}$/.test(b.textContent.trim())) return; b.dataset.ev = '1';
+      var l = evOf(b.textContent.trim(), 10); if (!l.length) return; var p = mk('span', 'ev-pill', dm(l[0].ngay) + ' ' + short(l[0])); p.style.marginLeft = '6px'; p.title = l.map(function (e) { return e.nhan + ': ' + e.ten; }).join('\n'); b.parentNode.appendChild(p); });
+  }
+  function hoso() {
+    var el = document.getElementById('hs-sk'), ma = document.getElementById('hs-ma'); if (!el || !ma || !D) return;
+    var tk = ma.textContent.trim(), l = (D.ma && D.ma[tk] || []).filter(function (e) { return dleft(e.ngay) >= 0; });
+    if (!l.length) { el.hidden = true; return; }
+    el.textContent = 'Sắp tới: ' + l.slice(0, 3).map(function (e) { return dm(e.ngay) + ' ' + short(e) + ' (' + dleft(e.ngay) + ' ngày)'; }).join(' · ') + '. Ngày theo Vietcap.'; el.hidden = false;
+  }
+  var tmr = null;
+  function later() { clearTimeout(tmr); tmr = setTimeout(function () { decorate(); hoso(); }, 200); }
+  Promise.all([
+    fetch('data/su_kien.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    fetch('data/hom_nay.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+  ]).then(function (a) {
+    D = a[0]; if (!D) return; (a[1] || []).forEach(function (r) { if (r.ma) W[r.ma] = r.loai || ''; });
+    strip(); cbs.forEach(function (f) { f(D); }); cbs = [];
+    var mo = new MutationObserver(later);
+    ['hom-nay', 'bo-loc'].forEach(function (id) { var e = document.getElementById(id); if (e) mo.observe(e, { childList: true, subtree: true }); });
+    var hm = document.getElementById('hs-ma'); if (hm) mo.observe(hm, { childList: true, characterData: true, subtree: true });
+    later();
+  });
+})();
+    </script>
     <div class="atl-grid" id="hn-nhiet-ke">
       <div class="atl-card" id="card-mua">
         <h2 class="atl-h">Mùa hiện tại</h2>
@@ -1290,7 +1380,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <div><div class="atl-hs-ma" id="hs-ma">—</div><div class="atl-note" id="hs-ten">Gõ mã để xem hồ sơ</div><button type="button" class="dthi-lnk" id="hs-do-thi">Xem đồ thị →</button><div style="margin-top:10px"><button type="button" class="dg-pdf" id="dg-pdf" style="padding:7px 14px" title="Báo cáo A4 đầy đủ cho khách hàng: phân tích kỹ thuật, kết quả kinh doanh, chất lượng doanh nghiệp, định giá và kế hoạch hành động. Mở ra rồi chọn Lưu thành PDF.">⬇ Xuất báo cáo PDF</button></div></div>
           <div class="atl-hs-right">
             <div class="hs-val" id="hs-val" hidden></div>
-            <div style="text-align:right"><div class="atl-hs-price" id="hs-gia" data-source="ho_so">—</div><div class="atl-note" id="hs-p1">—</div></div>
+            <div style="text-align:right"><div class="atl-hs-price" id="hs-gia" data-source="ho_so">—</div><div class="atl-note" id="hs-p1">—</div><div class="atl-note ev-hs" id="hs-sk" hidden></div></div>
           </div>
         </div>
         <div class="atl-hs-sig">
@@ -1957,7 +2047,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       w.document.write('<p style="font:16px Arial;padding:24px">Đang dựng báo cáo '+ma+'…</p>');
       var x=window.__dgCur&&window.__dgCur.ma===ma?window.__dgCur:null;
       var run=function(){ttLoad(function(){try{window.atlBaoCao(x,w,ma);}catch(e){w.document.body.textContent='Không dựng được báo cáo: '+e.message;}});};
-      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=71';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
+      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=72';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
       if(x||(ma in cache))go();
       else fetch('data/cb/'+encodeURIComponent(ma)+'.json?v='+(new Date().toISOString().slice(0,10)),{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){x=j&&j.ma===ma?j:null;go();});});})();
   function mtDs(dg){var a=[];if(dg.vci)a.push('Vietcap '+n0(dg.vci.gia));(dg.ctck||[]).forEach(function(c){a.push(c.cty+' '+n0(c.gia));});return 'mục tiêu 12 tháng: '+a.join(' · ');}
@@ -2285,6 +2375,78 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div class="atl-legend" id="lg-mua"></div>
         <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:22rem"></div>
       </div>
+      <div class="atl-card atl-wide" id="card-dgdb" hidden>
+        <style>
+.dgdb-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem 1.4rem}
+@media(max-width:760px){.dgdb-g{grid-template-columns:1fr}}
+.dgdb-c{min-width:0;display:flex;flex-direction:column;gap:.35rem}
+.dgdb-t{font-size:var(--cds-font-size-caption);letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)}
+.dgdb-n{font-size:1.9rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.dgdb-n small{font-size:.9rem;font-weight:500;color:var(--color-fg-muted);margin-left:.3rem}
+.dgdb-c svg{width:100%;height:64px;display:block}
+.dgdb-p{font-size:.88rem;line-height:1.45}
+.dgdb-kl{margin:.9rem 0 .2rem;font-size:.95rem;line-height:1.55}
+.dgdb-dt{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+        </style>
+        <details class="mua-fold" id="mua-f3" open>
+          <summary><span class="atl-h">Định giá &amp; đòn bẩy thị trường</span><span class="mua-gist" id="dgdb-gist"></span><span class="mua-tog"></span></summary>
+          <div class="dgdb-g" id="dgdb-g"></div>
+          <p class="dgdb-kl" id="dgdb-kl"></p>
+          <p class="atl-note" id="dgdb-nt"></p>
+        </details>
+      </div>
+      <script>
+(function () {
+  function vn(x, d) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function mk(t, c, tx) { var e = document.createElement(t); if (c) e.className = c; if (tx != null) e.textContent = tx; return e; }
+  function dm(iso) { var a = String(iso || '').slice(0, 10).split('-'); return a.length === 3 ? a[2] + '/' + a[1] : ''; }
+  function dmy(iso) { var a = String(iso || '').slice(0, 10).split('-'); return a.length === 3 ? a[2] + '/' + a[1] + '/' + a[0] : ''; }
+  function spark(vals, color) {
+    var W = 300, H = 64, mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), r = (mx - mn) || 1;
+    var pts = vals.map(function (v, i) { return (i / (vals.length - 1) * (W - 6) + 3).toFixed(1) + ',' + (H - 6 - (v - mn) / r * (H - 12)).toFixed(1); });
+    var ns = 'http://www.w3.org/2000/svg', s = document.createElementNS(ns, 'svg'); s.setAttribute('viewBox', '0 0 ' + W + ' ' + H); s.setAttribute('preserveAspectRatio', 'none'); s.setAttribute('role', 'img');
+    var pl = document.createElementNS(ns, 'polyline'); pl.setAttribute('points', pts.join(' ')); pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', color || 'currentColor'); pl.setAttribute('stroke-width', '1.8'); pl.setAttribute('vector-effect', 'non-scaling-stroke'); s.appendChild(pl);
+    var l = pts[pts.length - 1].split(','), c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', l[0]); c.setAttribute('cy', l[1]); c.setAttribute('r', '3'); c.setAttribute('fill', color || 'currentColor'); s.appendChild(c);
+    return s;
+  }
+  function lvl(pctBelow) { return pctBelow <= 25 ? 'rẻ' : pctBelow >= 75 ? 'đắt' : 'trung bình'; }
+  function vi(pctBelow) { return pctBelow < 50 ? 'Rẻ hơn ' + (100 - pctBelow) + '% số phiên từ 2021' : 'Đắt hơn ' + pctBelow + '% số phiên từ 2021'; }
+  fetch('data/dinh_gia_thi_truong.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (d) window.atlDgTT = d;
+    var card = document.getElementById('card-dgdb'); if (!card || !d || (!d.pe && !d.cho_vay)) return;
+    var g = document.getElementById('dgdb-g'), parts = [], gist = [];
+    ['pe', 'pb'].forEach(function (k) {
+      var x = d[k]; if (!x) return;
+      var c = mk('div', 'dgdb-c'); c.appendChild(mk('div', 'dgdb-t', k === 'pe' ? 'P/E VN-Index' : 'P/B VN-Index'));
+      var n = mk('div', 'dgdb-n', vn(x.hien_tai, 2)); n.appendChild(mk('small', null, 'lần · ' + dm(x.ngay))); c.appendChild(n);
+      c.appendChild(spark(x.chuoi.map(function (a) { return a[1]; })));
+      c.appendChild(mk('div', 'dgdb-p', vi(x.pct_thap_hon) + '. Trung vị ' + vn(x.trung_vi, 2) + ', thấp nhất ' + vn(x.min, 2) + ', cao nhất ' + vn(x.max, 2) + '.'));
+      g.appendChild(c); parts.push((k === 'pe' ? 'P/E ' : 'P/B ') + lvl(x.pct_thap_hon)); gist.push((k === 'pe' ? 'P/E ' : 'P/B ') + vn(x.hien_tai, 2));
+    });
+    var cv = d.cho_vay && d.cho_vay.quy && d.cho_vay.quy.length ? d.cho_vay : null, lv = '';
+    if (cv) {
+      var q = cv.quy, last = q[q.length - 1], rt = q.map(function (a) { return a.ty_le; }), below = rt.filter(function (v) { return v < last.ty_le; }).length;
+      var rk = Math.round(below / (rt.length - 1) * 100); lv = rk >= 75 ? 'cao' : rk <= 25 ? 'thấp' : 'trung bình';
+      var mxq = q.reduce(function (a, b) { return b.ty_le > a.ty_le ? b : a; }), c = mk('div', 'dgdb-c');
+      c.appendChild(mk('div', 'dgdb-t', 'Cho vay của công ty chứng khoán'));
+      var n = mk('div', 'dgdb-n', vn(last.cho_vay_ty / 1000, 1)); n.appendChild(mk('small', null, 'nghìn tỷ · ' + last.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1'))); c.appendChild(n);
+      c.appendChild(spark(q.map(function (a) { return a.cho_vay_ty; })));
+      c.appendChild(mk('div', 'dgdb-p', 'Bằng ' + vn(last.ty_le, 0) + '% vốn chủ của nhóm ' + last.n + ' công ty (cao nhất ' + q.length + ' quý: ' + vn(mxq.ty_le, 0) + '%, ' + mxq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + '). Mức ' + lv + ' so với ' + q.length + ' quý gần nhất.'));
+      g.appendChild(c); parts.push('cho vay của công ty chứng khoán ở mức ' + lv); gist.push('cho vay ' + vn(last.cho_vay_ty / 1000, 0) + ' nghìn tỷ');
+    }
+    var kl = 'Hiện tại: ' + parts.join('; ') + '. Định giá rẻ không có nghĩa là đã đáy: mùa của nhiệt kế vẫn quyết định tỷ trọng, còn P/E, P/B và đòn bẩy chỉ cho biết thị trường đắt hay rẻ và mức đòn bẩy rủi ro đến đâu.';
+    document.getElementById('dgdb-kl').textContent = kl;
+    document.getElementById('dgdb-gist').textContent = gist.join(' · ');
+    var nt = 'P/E, P/B theo Vietcap (chuỗi từ 01/2021 đến ' + dmy(d.pe ? d.pe.ngay : d.cap_nhat) + '); cách tính khác FireAnt/TradingView nên số có thể lệch vài phần trăm. ';
+    if (cv) nt += 'Cho vay của công ty chứng khoán là khoản "Các khoản cho vay" (gồm margin và ứng trước tiền bán) cộng từ BCTC ' + cv.quy[cv.quy.length - 1].n + ' công ty chứng khoán niêm yết, theo quý, công bố trễ khoảng 4 tuần; đây KHÔNG phải tổng margin toàn thị trường (số tổng chính thức không có nguồn miễn phí). Dữ liệu cập nhật ' + dmy(d.cap_nhat) + '.';
+    document.getElementById('dgdb-nt').textContent = nt;
+    card.hidden = false;
+    var e = document.getElementById('mua-f3'); if (e && !e.dataset.b) { e.dataset.b = '1';
+      try { if (localStorage.getItem('atl-mua-f3') === '0') e.open = false; } catch (er) {}
+      e.addEventListener('toggle', function () { try { localStorage.setItem('atl-mua-f3', e.open ? '1' : '0'); } catch (er) {} }); }
+  }).catch(function () {});
+})();
+      </script>
       <div class="atl-card atl-wide" id="card-mua-lam-gi">
         <style>
 .mua-tbw{overflow-x:auto}
@@ -2709,6 +2871,58 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           </table>
         </div>
       </div>
+      <div class="atl-card atl-wide" id="card-kn" hidden>
+        <style>
+.kn-hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1rem;margin-bottom:.6rem}
+.kn-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:999px;overflow:hidden}
+.kn-seg button{background:none;border:0;color:var(--color-fg-muted);padding:4px 14px;font:inherit;font-size:.85rem;cursor:pointer}
+.kn-seg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg,#fff);font-weight:700}
+.kn-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem 1.6rem}
+@media(max-width:760px){.kn-g{grid-template-columns:1fr}}
+@media(max-width:520px){.kn-tb{table-layout:fixed}.kn-tb td.ng{max-width:none}.kn-tb th,.kn-tb td{padding:4px 3px;font-size:.78rem}.kn-g>div{min-width:0}}
+.kn-h{font-weight:700;margin:0 0 .3rem;font-size:.95rem}
+.kn-tb{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+.kn-tb th{font-weight:600;color:var(--color-fg-muted);font-size:.78rem;text-align:right;padding:3px 6px;border-bottom:1px solid var(--color-border-line)}
+.kn-tb th:first-child,.kn-tb td:first-child,.kn-tb th:nth-child(2){text-align:left}
+.kn-tb td{padding:4px 6px;text-align:right;border-bottom:1px solid color-mix(in srgb,var(--color-fg) 7%,transparent)}
+.kn-tb td.ng{text-align:left;color:var(--color-fg-muted);max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kn-tb button{background:none;border:0;padding:0;font:inherit;font-weight:700;color:inherit;cursor:pointer;text-decoration:underline;text-decoration-color:transparent}
+.kn-tb button:hover{text-decoration-color:currentColor}
+.kn-up{color:var(--color-up,#1a9850)}.kn-dn{color:var(--color-down,#d73027)}
+        </style>
+        <div class="kn-hd"><h2 class="atl-h" style="margin:0">Khối ngoại mua và bán ròng nhiều nhất</h2>
+          <div class="kn-seg" id="kn-seg" role="group" aria-label="Số phiên"><button type="button" data-n="5" aria-pressed="false">5 phiên</button><button type="button" data-n="10" aria-pressed="true">10 phiên</button><button type="button" data-n="20" aria-pressed="false">20 phiên</button></div></div>
+        <div class="kn-g"><div><p class="kn-h kn-up">Mua ròng nhiều nhất</p><table class="kn-tb" id="kn-mua"></table></div><div><p class="kn-h kn-dn">Bán ròng nhiều nhất</p><table class="kn-tb" id="kn-ban"></table></div></div>
+        <p class="atl-note" id="kn-nt"></p>
+      </div>
+      <script>
+(function () {
+  var D = null, N = '10';
+  function vn(x, d) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function mk(t, c, tx) { var e = document.createElement(t); if (c) e.className = c; if (tx != null) e.textContent = tx; return e; }
+  function dmy(iso) { var a = String(iso || '').slice(0, 10).split('-'); return a.length === 3 ? a[2] + '/' + a[1] + '/' + a[0] : ''; }
+  function fill(tb, rows, n) {
+    tb.textContent = '';
+    var h = mk('tr'); ['Mã', 'Ngành', 'Ròng (tỷ)', '% GTGD', 'Phiên mua'].forEach(function (x) { h.appendChild(mk('th', null, x)); }); tb.appendChild(h);
+    rows.forEach(function (r) {
+      var tr = mk('tr'), a = mk('td'), b = mk('button', null, r.ma); b.type = 'button'; b.title = r.ten || ''; b.addEventListener('click', function () { if (window.atlOpenProfile) window.atlOpenProfile(r.ma); }); a.appendChild(b);
+      tr.appendChild(a); var g = mk('td', 'ng', r.nganh || ''); g.title = r.nganh || ''; tr.appendChild(g);
+      tr.appendChild(mk('td', r.rong >= 0 ? 'kn-up' : 'kn-dn', (r.rong > 0 ? '+' : '') + vn(r.rong, 0)));
+      tr.appendChild(mk('td', null, (r.pct_gtgd > 0 ? '+' : '') + vn(r.pct_gtgd, 1) + '%'));
+      tr.appendChild(mk('td', null, r.so_phien_mua + '/' + n)); tb.appendChild(tr); });
+  }
+  function draw() {
+    var w = D.cua_so[N]; if (!w) return;
+    fill(document.getElementById('kn-mua'), w.mua, N); fill(document.getElementById('kn-ban'), w.ban, N);
+    document.getElementById('kn-nt').textContent = 'Tổng mua bán ròng của ' + D.n_ma + ' mã có GTGD trung bình 20 phiên từ 10 tỷ: ' + (w.tong_rong > 0 ? '+' : '') + vn(w.tong_rong, 0) + ' tỷ trong ' + N + ' phiên. Gồm cả giao dịch thỏa thuận, nên có thể lệch bảng khối ngoại trong phiên. Dữ liệu đến ' + dmy(D.ngay) + '. % GTGD là mua bán ròng chia tổng GTGD của mã trong cùng kỳ; bấm mã để mở Hồ sơ.';
+  }
+  fetch('data/khoi_ngoai_top.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || !d.cua_so) return; D = d; document.getElementById('card-kn').hidden = false; draw();
+    document.getElementById('kn-seg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; N = b.dataset.n;
+      [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); }); draw(); });
+  }).catch(function () {});
+})();
+      </script>
     </div>
     </div>
   </section>
@@ -4235,7 +4449,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     }
     function openFind(q0){
       var old=$('dthi-find');if(old)old.remove();
-      var ov=document.createElement('div');ov.id='dthi-find';ov.style.cssText='position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding-top:12vh';
+      var ov=document.createElement('div');ov.id='dthi-find';ov.style.cssText='position:fixed;inset:0;z-index:2147483200;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding-top:12vh';
       var bx=document.createElement('div');bx.setAttribute('role','dialog');bx.setAttribute('aria-label','Tìm mã');bx.style.cssText='width:min(680px,94vw);max-height:72vh;display:flex;flex-direction:column;background:var(--color-panel,#1c1c1c);color:var(--color-fg,#eee);border:1px solid var(--color-border-line,#444);border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden';
       var hd=document.createElement('div');hd.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px;font-size:1.15rem;font-weight:700';hd.appendChild(document.createTextNode('Tìm mã'));
       var x=document.createElement('button');x.type='button';x.textContent='✕';x.setAttribute('aria-label','Đóng');x.style.cssText='background:none;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:4px 8px';hd.appendChild(x);
@@ -4426,6 +4640,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       take.appendChild(s);
     };
     add(dmy(last.d) + ': mùa '); add(z.ten, true); add(', TB7 '); add(f1(last.tb7), true, 'tb7'); add('. ' + z.tag);
+    /* nhãn độ tươi của dữ liệu: cảnh báo khi phiên mới nhất cũ hơn 2 phiên so với phiên đáng ra đã có (không tính ngày lễ) */
+    try {
+      const nv = new Date(Date.now() + 7 * 3600e3); let ex = new Date(Date.UTC(nv.getUTCFullYear(), nv.getUTCMonth(), nv.getUTCDate())); const hm = nv.getUTCHours() * 100 + nv.getUTCMinutes();
+      if (ex.getUTCDay() === 6) ex.setUTCDate(ex.getUTCDate() - 1); else if (ex.getUTCDay() === 0) ex.setUTCDate(ex.getUTCDate() - 2);
+      else if (hm < 1530) { do { ex.setUTCDate(ex.getUTCDate() - 1); } while (ex.getUTCDay() === 0 || ex.getUTCDay() === 6); }
+      const ln = new Date(last.ngay + 'T00:00:00Z'); let gap = 0; for (const c = new Date(ln); c < ex;) { c.setUTCDate(c.getUTCDate() + 1); if (c.getUTCDay() !== 0 && c.getUTCDay() !== 6) gap++; }
+      if (gap >= 2) { const w = document.createElement('b'); w.style.cssText = 'color:var(--color-bad,#d73027);margin-left:6px'; w.textContent = ' Dữ liệu chậm ' + gap + ' phiên so với hôm nay (có thể do ngày nghỉ lễ, hoặc lượt cập nhật bị lỗi: xem tab Actions).'; take.appendChild(w); }
+    } catch (e) {}
 
     /* mua hien tai */
     const mt = document.getElementById('mua-ten'); mt.classList.remove('dash-skeleton'); mt.textContent = z.ten; mt.style.color = ''; document.querySelector('.atl').dataset.season = String(last.vung);
