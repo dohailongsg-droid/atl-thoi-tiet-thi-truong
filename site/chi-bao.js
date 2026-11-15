@@ -143,6 +143,20 @@
   }
   function toWeekly(d) { return toGroup(d, false); }
 
+  /* ================= tuỳ biến định dạng: màu theo nhóm, nhãn, mây, nền ================= */
+  function alphaOf(s) { var m = String(s || '').match(/^rgba\([^)]*,\s*([\d.]+)\s*\)\s*$/); return m ? +m[1] : null; }
+  /* đổi màu gốc `orig` sang màu người dùng `nv` (hex6 hoặc rgba), giữ độ mờ gốc nếu người dùng chỉ đổi màu */
+  function recol(orig, nv) {
+    if (!nv) return orig; nv = String(nv);
+    if (/^#[0-9a-f]{6}$/i.test(nv)) { orig = String(orig || ''); if (/^#[0-9a-f]{8}$/i.test(orig)) return nv + orig.slice(7); var a = alphaOf(orig); return a != null && a < 1 ? rgba(nv, a) : nv; }
+    return nv;
+  }
+  function uniq(arr, lim) { var o = [], seen = {}; for (var i = 0; i < arr.length; i++) { var v = arr[i]; if (v && !seen[v]) { seen[v] = 1; o.push(v); if (o.length >= lim) break; } } return o; }
+  function mkKey(o) {
+    var txt = o.text == null ? '' : String(o.text), dyn = /^\d+$/.test(txt), type = o.box ? (o.plain ? 'plain' : 'box') : (o.loc ? 'shape' : 'mk');
+    var kind = o.box ? '' : (o.loc ? (o.kind || 'diamond') : (o.shape || 'circle')), col = o.box ? (o.bg || o.color || '') : (o.color || '');
+    return { key: type + '|' + kind + '|' + (dyn ? '#' : txt) + '|' + col, type: type, kind: kind, text: txt, dyn: dyn, color: col, fg: o.fg || '', pos: o.box || !o.loc ? (o.pos === 'above' ? 'above' : 'below') : (o.loc === 'top' ? 'top' : 'bottom') };
+  }
   /* ================= ngữ cảnh chạy ================= */
   var WORLD = null;
   function monKey(t) { var dt = new Date(t + 'T00:00:00Z'), wd = (dt.getUTCDay() + 6) % 7; return new Date(dt.getTime() - wd * 864e5).toISOString().slice(0, 10); }
@@ -678,6 +692,18 @@
     if (K > 0) { c.plot('P/B +σ', up, { color: '#ef5350', width: 1, style: 'dotted' }); c.plot('P/B −σ', lo, { color: '#26a69a', width: 1, style: 'dotted' }); }
   }
 
+  /* ================= chỉ báo mẫu: MA / EMA / WMA (thêm nhiều đường, mỗi đường một chu kỳ) ================= */
+  function MAV(c) {
+    var T = c.input('Loại', 'SMA', { options: ['SMA', 'EMA', 'WMA'] });
+    var L = c.input('Chu kỳ', 20, { min: 1, max: 500, step: 1 });
+    var SRC = c.input('Nguồn giá', 'Đóng cửa', { options: ['Đóng cửa', 'Mở cửa', 'Cao nhất', 'Thấp nhất', 'HL2'] });
+    var OFF = Math.round(c.input('Dịch chuyển (nến, dương = sang phải)', 0, { min: -60, max: 60, step: 1 }));
+    var a = SRC === 'Mở cửa' ? c.open : SRC === 'Cao nhất' ? c.high : SRC === 'Thấp nhất' ? c.low : SRC === 'HL2' ? c.high.map(function (h, i) { return (h + c.low[i]) / 2; }) : c.close;
+    var r = T === 'EMA' ? c.ta.ema(a, L) : T === 'WMA' ? c.ta.wma(a, L) : c.ta.sma(a, L);
+    if (OFF) r = r.map(function (v, i) { var j = i - OFF; return j >= 0 && j < r.length ? r[j] : c.NA; });
+    var h = (L * 47) % 360, s = 0.75, l = 0.55, k = function (n) { return (n + h / 30) % 12; }, f = function (n) { var q = s * Math.min(l, 1 - l), z = l - q * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)); return ('0' + Math.round(z * 255).toString(16)).slice(-2); };
+    c.plot('MA', r, { color: '#' + f(0) + f(8) + f(4), width: 2 });
+  }
   /* ================= đăng ký, mã nguồn, chạy ================= */
   function body(fn) {
     var s = String(fn), a = s.indexOf('{'), b = s.lastIndexOf('}'), t = s.slice(a + 1, b).replace(/^\n/, '').replace(/\s+$/, '');
@@ -687,6 +713,7 @@
   }
   var PRESETS = [
     { id: 'dragon', name: 'DRAGON CODE', pane: 'main', code: '//@pane main\n//@name DRAGON CODE\n' + body(DRAGON) },
+    { id: 'mav', name: 'MA tùy chỉnh (SMA · EMA · WMA)', pane: 'main', code: '//@pane main\n//@name MA tùy chỉnh\n' + body(MAV) },
     { id: 'vnt', name: 'VN TIMING', pane: 'sub', code: '//@pane sub\n//@name VN TIMING\n' + body(VNT) },
     { id: 'stoch', name: 'Stochastic', pane: 'sub', code: '//@pane sub\n//@name Stochastic 20-5-3\n' + body(STOCH) },
     { id: 'dmi', name: 'DMI', pane: 'sub', code: '//@pane sub\n//@name DMI\n' + body(DMI) },
@@ -781,6 +808,8 @@
         ctx.fillStyle = s.color; ctx.beginPath();
         if (s.kind === 'diamond') { ctx.moveTo(x, y - r - 1); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r + 1); ctx.lineTo(x - r, y); }
         else if (s.kind === 'triUp') { ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r - 1); ctx.lineTo(x - r, y + r - 1); }
+        else if (s.kind === 'circle') { ctx.arc(x, y, r - 1, 0, Math.PI * 2); }
+        else if (s.kind === 'square') { ctx.rect(x - r + 1, y - r + 1, 2 * r - 2, 2 * r - 2); }
         else { ctx.moveTo(x - r, y - r + 1); ctx.lineTo(x + r, y - r + 1); ctx.lineTo(x, y + r); }
         ctx.closePath(); ctx.fill();
         if (s.text) { ctx.font = 'bold 9px system-ui,sans-serif'; ctx.fillStyle = s.color; ctx.fillText(s.text, x, bot ? y - r - 6 : y + r + 7); }
@@ -789,6 +818,18 @@
     });
   };
 
+  var KIND_VI = { diamond: 'Hình thoi', triUp: 'Tam giác lên', triDown: 'Tam giác xuống', arrowUp: 'Mũi tên lên', arrowDown: 'Mũi tên xuống', circle: 'Hình tròn', square: 'Hình vuông' };
+  /* danh sách nhãn / mây / nền / màu nến để hộp Cài đặt › Định dạng cho chỉnh */
+  function mkSpecs(out) {
+    var g = {}, list = [];
+    out.marks.forEach(function (m) {
+      var k = mkKey(m.o), e = g[k.key];
+      if (!e) { e = g[k.key] = { key: k.key, type: k.type, kind: k.kind, text: k.text, dyn: k.dyn, color: k.color, fg: k.fg, pos: k.pos, n: 0, label: '' }; list.push(e); }
+      e.n++;
+    });
+    list.forEach(function (e) { e.label = e.dyn ? 'Số đếm' : (e.text || ((KIND_VI[e.kind] || 'Dấu') + (e.type === 'shape' ? (e.pos === 'top' ? ' ở đỉnh khung' : ' ở đáy khung') : (e.pos === 'above' ? ' trên nến' : ' dưới nến')))); });
+    return { marks: list, fills: out.fills.map(function (f) { return { up: f.o.up, down: f.o.down }; }), bgCols: uniq(out.bg.map(function (b) { return b[1]; }), 8), barCols: uniq(out.bar.map(function (b) { return b[1]; }), 8) };
+  }
   /* ================= vẽ lên biểu đồ ================= */
   function mount(env) {
     var L = env.L, chart = env.chart, insts = [], mainMk = null, ovMain = null;
@@ -806,17 +847,18 @@
       try { out = exec(I.fn, d, idx, env.getSettings ? env.getSettings(I.en.id) : null); } catch (e) { err(I.en, e); return; }
       var pane = 0;
       if (I.meta.pane === 'sub') { if (I.pane == null) I.pane = chart.panes().length; pane = I.pane; }
+      var STY = (env.getStyle && env.getStyle(I.en.id)) || {};
       out.plots.forEach(function (p) {
         var pp = p.o.pane === 'main' ? 0 : pane, key = p.name;
         var s = I.series[key]; if (!s) { s = I.series[key] = mkSeries(I, p, pp); if (!env.noLab) s._atl = { key: I.en.id, ind: I.meta.name, name: p.name, def: I.meta.pane === 'sub' }; if (!I.first) I.first = s; if (!I.fast && /signal/i.test(key)) I.fast = s; }
+        var ov = STY[p.name] || {}, cm = ov.cmap || null;
         var data = [], from = p.o.from || 0;
         for (var i = from; i < p.a.length; i++) {
           var v = p.a[i];
           if (isna(v) || v == null) { if (data.length) data.push({ time: d.t[i] }); continue; }
-          var pt = { time: d.t[i], value: v }; if (p.o.colors && p.o.colors[i]) pt.color = p.o.colors[i]; data.push(pt);
+          var pt = { time: d.t[i], value: v }; if (p.o.colors && p.o.colors[i]) { var pc = p.o.colors[i]; pt.color = cm && cm[pc] ? recol(pc, cm[pc]) : pc; } data.push(pt);
         }
         s.setData(data);
-        var ov = ((env.getStyle && env.getStyle(I.en.id)) || {})[p.name] || {};
         var ao = { visible: !ov.hidden };
         if (ov.color && !p.o.colors) { if (p.o.style === 'area') { ao.lineColor = ov.color; ao.topColor = rgba(hex6(ov.color), .55); ao.bottomColor = rgba(hex6(ov.color), .55); } else ao.color = ov.color; }
         if (ov.width && p.o.style !== 'hist') ao.lineWidth = ov.width;
@@ -824,17 +866,29 @@
         if (!env.noLab) { var lb = (env.getLab && env.getLab(I.en.id)) || {}, lv = lb.v == null ? I.meta.pane === 'sub' : !!lb.v; ao.lastValueVisible = lv; ao.title = lv && lb.n ? p.name : ''; }
         s.applyOptions(ao);
       });
-      if (env.onSpecs) env.onSpecs(I.en.id, out.inputs, out.plots.map(function (p) { return { name: p.name, color: p.o.color || '#cccccc', width: p.o.width || 1, hist: p.o.style === 'hist', multi: !!p.o.colors, ls: p.o.style === 'dotted' ? 1 : p.o.style === 'dashed' ? 2 : 0, line: p.o.style !== 'hist' && p.o.style !== 'area' && p.o.style !== 'dots' }; }), out.hl.map(function (h) { return { v: h.v, color: h.o.color || '#9aa0a6', width: h.o.width || 1, ls: h.o.dash ? 2 : 0 }; }));
+      if (env.onSpecs) env.onSpecs(I.en.id, out.inputs, out.plots.map(function (p) { return { name: p.name, color: p.o.color || '#cccccc', width: p.o.width || 1, hist: p.o.style === 'hist', multi: !!p.o.colors, cols: p.o.colors ? uniq(p.o.colors, 8) : [], ls: p.o.style === 'dotted' ? 1 : p.o.style === 'dashed' ? 2 : 0, line: p.o.style !== 'hist' && p.o.style !== 'area' && p.o.style !== 'dots' }; }), out.hl.map(function (h) { return { v: h.v, color: h.o.color || '#9aa0a6', width: h.o.width || 1, ls: h.o.dash ? 2 : 0 }; }), mkSpecs(out));
       if (!I.hl) { I.hl = true; var tgt = I.first; if (tgt) { var sty0 = (env.getStyle && env.getStyle(I.en.id)) || {}; out.hl.forEach(function (h, hi) { var lo = sty0['__lv' + hi] || {}; if (lo.hidden) return; tgt.createPriceLine({ price: lo.v != null ? lo.v : h.v, color: lo.color || h.o.color || '#9aa0a6', lineWidth: lo.width || h.o.width || 1, lineStyle: lo.ls != null ? lo.ls : (h.o.dash ? 2 : 0), axisLabelVisible: false, title: '' }); }); } }
       I.out = out;
       /* dấu / nhãn */
       var mk = [], boxes = [], shapes = [];
       out.marks.forEach(function (m) {
-        var o = m.o, above = o.pos === 'above';
-        if (o.box) boxes.push({ i: m.i, price: above ? d.h[m.i] : d.l[m.i], above: above, text: o.text || '', bg: o.bg || o.color || '#888', fg: o.fg || '#fff', plain: !!o.plain });
-        else if (o.loc) shapes.push({ i: m.i, loc: o.loc, kind: o.kind || 'diamond', color: o.color || '#ccc', text: o.text || '' });
-        else { var sh = o.shape === 'none' ? 'circle' : (o.shape || 'circle'); mk.push({ time: d.t[m.i], position: above ? 'aboveBar' : 'belowBar', color: o.color || '#ccc', shape: sh, text: o.text || '', size: o.shape === 'none' ? 0 : 1 }); }
+        var o = m.o, kk = mkKey(o), mo = STY['m:' + kk.key] || {};
+        if (mo.hidden) return;
+        var txt = (mo.text != null && !kk.dyn) ? mo.text : (o.text || '');
+        var above = mo.pos ? mo.pos === 'above' : o.pos === 'above';
+        if (o.box) {
+          var bg = mo.color || o.bg || o.color || '#888', fg = o.plain ? (mo.color || o.fg || '#fff') : (mo.fg || o.fg || '#fff');
+          boxes.push({ i: m.i, price: above ? d.h[m.i] : d.l[m.i], above: above, text: txt, bg: bg, fg: fg, plain: !!o.plain });
+        }
+        else if (o.loc) shapes.push({ i: m.i, loc: mo.pos === 'top' || mo.pos === 'bottom' ? mo.pos : o.loc, kind: mo.shape || o.kind || 'diamond', color: mo.color || o.color || '#ccc', text: txt });
+        else { var sh0 = mo.shape || o.shape, sh = sh0 === 'none' ? 'circle' : (sh0 || 'circle'); mk.push({ time: d.t[m.i], position: above ? 'aboveBar' : 'belowBar', color: mo.color || o.color || '#ccc', shape: sh, text: txt, size: sh0 === 'none' ? 0 : 1 }); }
       });
+      /* mây, nền, màu nến theo tuỳ biến */
+      var cmB = (STY.__bg && STY.__bg.cmap) || null, cmR = (STY.__bar && STY.__bar.cmap) || null;
+      I.bgV = (STY.__bg && STY.__bg.hidden) ? [] : out.bg.map(function (b) { return cmB && cmB[b[1]] ? [b[0], recol(b[1], cmB[b[1]])] : b; });
+      I.barV = (STY.__bar && STY.__bar.hidden) ? [] : out.bar.map(function (b) { return cmR && cmR[b[1]] ? [b[0], recol(b[1], cmR[b[1]])] : b; });
+      I.fillsV = [];
+      out.fills.forEach(function (f, fi) { var fo = STY['__fill' + fi] || {}; if (fo.hidden) return; var o2 = Object.assign({}, f.o); if (fo.up) o2.up = fo.up; if (fo.down) o2.down = fo.down; I.fillsV.push({ a: f.a, b: f.b, o: o2 }); });
       I.mk = mk; I.boxes = boxes; I.shapes = shapes;
     }
     function flushMarks(d) {
@@ -857,10 +911,10 @@
       insts.forEach(function (I) {
         if (!I.out) return;
         if (I.meta.pane === 'main') {
-          I.out.bg.forEach(function (b) { bg.push(b); }); boxes = boxes.concat(I.boxes || []); any = true;
+          (I.bgV || I.out.bg).forEach(function (b) { bg.push(b); }); boxes = boxes.concat(I.boxes || []); any = true;
         } else if (I.first) {
           if (!I.ov) { I.ov = new Overlay(chart, I.first); I.first.attachPrimitive(I.ov); }
-          I.ov.set({ t: d.t, shapes: I.shapes, fills: I.out.fills, bg: I.out.bg });
+          I.ov.set({ t: d.t, shapes: I.shapes, fills: I.fillsV || I.out.fills, bg: I.bgV || I.out.bg });
         }
       });
       if (any || ovMain) {
@@ -870,7 +924,7 @@
     }
     function applyBars(d) {
       var map = {}, any = false;
-      insts.forEach(function (I) { if (I.out) I.out.bar.forEach(function (b) { map[b[0]] = b[1]; any = true; }); });
+      insts.forEach(function (I) { if (I.out) (I.barV || I.out.bar).forEach(function (b) { map[b[0]] = b[1]; any = true; }); });
       if (!any) return;
       env.candle.setData(d.t.map(function (t, i) { var o = { time: t, open: d.o[i], high: d.h[i], low: d.l[i], close: d.c[i] }; if (map[i]) { o.color = map[i]; o.borderColor = map[i]; o.wickColor = map[i]; } return o; }));
     }
