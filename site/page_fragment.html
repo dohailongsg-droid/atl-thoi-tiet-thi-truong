@@ -225,6 +225,15 @@
 
 </style>
 
+<style>
+.ws-only #ws-bar,.ws-only .atl-head,.ws-only .atl-tabs,.ws-only #atl-dock,.ws-only .ai-fab,.ws-only .atl-sec:not(#do-thi),.ws-only footer,.ws-only #atl-foot{display:none!important}
+.ws-only #dash-root{max-width:none;padding:8px}
+.ws-only .atl-card{margin-top:0;padding:4px;border:0;background:transparent;box-shadow:none}
+</style>
+<script>
+(function(){try{var w=new URLSearchParams(location.search).get('ws');if(/^[a-z0-9]{1,8}$/i.test(w||'')){window.__atlWS=w;document.documentElement.classList.add('ws-only');
+  window.addEventListener('load',function(){var n=0,t=setInterval(function(){if(window.atlShow){clearInterval(t);window.atlShow('do-thi');}else if(++n>80)clearInterval(t);},100);});}}catch(e){}})();
+</script>
 <script>
 window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(window.__thq=[]);q.push(cb);if(q.length>1)return;var s=document.createElement('script');s.src='tin-hieu.js?v=73';s.onload=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};s.onerror=function(){var z=window.__thq;window.__thq=[];z.forEach(function(f){f();});};document.head.appendChild(s);};
 </script>
@@ -1261,7 +1270,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var tk = ma.textContent.trim(), l = (D.ma && D.ma[tk] || []).filter(function (e) { return dleft(e.ngay) >= 0; });
     var nl = document.getElementById('hs-nn'), kv = window.atlKNmap && window.atlKNmap.map[tk];
     if (nl) { if (kv) { var f = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toLocaleString('vi-VN', { maximumFractionDigits: Math.abs(v) < 10 ? 1 : 0 }); };
-      nl.textContent = 'Khối ngoại ròng 1 / 10 / 20 phiên: ' + f(kv[0]) + ' / ' + f(kv[1]) + ' / ' + f(kv[2]) + ' tỷ (đến ' + window.atlKNmap.ngay.split('-').reverse().join('/') + '). Chỉ để tham khảo, tín hiệu khối ngoại chưa có lợi thế sau phí.'; nl.hidden = false; } else nl.hidden = true; }
+      nl.textContent = 'Khối ngoại ròng 1/10/20 phiên: ' + f(kv[0]) + ' / ' + f(kv[1]) + ' / ' + f(kv[2]) + ' tỷ'; nl.title = 'Đến ' + window.atlKNmap.ngay.split('-').reverse().join('/') + '. Chỉ để tham khảo: tín hiệu khối ngoại chưa có lợi thế sau phí.'; nl.hidden = false; } else nl.hidden = true; }
     if (!l.length) { el.hidden = true; return; }
     el.textContent = 'Sắp tới: ' + l.slice(0, 3).map(function (e) { return dm(e.ngay) + ' ' + short(e) + ' (' + dleft(e.ngay) + ' ngày)'; }).join(' · ') + '. Ngày theo Vietcap.'; el.hidden = false;
   }
@@ -3828,6 +3837,21 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   </section>
 
   <section class="atl-sec" id="do-thi" role="tabpanel" aria-labelledby="tab-do-thi" hidden>
+        <style>
+    #ws-bar{display:flex;align-items:flex-end;gap:2px;margin:0 0 10px;border-bottom:1px solid var(--color-border-line);overflow-x:auto;scrollbar-width:none}
+    .ws-t{display:inline-flex;align-items:center;gap:8px;flex:none;border:0;border-bottom:2px solid transparent;background:none;color:var(--color-fg-muted);padding:9px 12px 8px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+    .ws-t:hover{color:var(--color-fg)}
+    .ws-t[aria-pressed="true"]{color:var(--color-fg);border-bottom-color:#2f6fed}
+    .ws-t .ws-x{appearance:none;border:0;background:none;color:inherit;font-size:15px;line-height:1;cursor:pointer;opacity:.6;padding:0 2px}
+    .ws-t .ws-x:hover{opacity:1}
+    #ws-add{appearance:none;border:0;background:none;color:var(--color-fg);font:inherit;font-size:20px;line-height:1;padding:6px 12px;cursor:pointer;flex:none}
+    #ws-add[disabled]{opacity:.3;cursor:default}
+    #dthi-stage[hidden]{display:none}
+    #ws-frames iframe{display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:1px solid var(--color-border-line);border-radius:8px;background:var(--color-bg)}
+    #ws-frames iframe[hidden]{display:none}
+    </style>
+    <div id="ws-bar" role="tablist" aria-label="Các đồ thị"><div id="ws-tabs" style="display:flex"></div><button type="button" id="ws-add" title="Mở thêm một đồ thị mới, tách biệt hoàn toàn (tối đa 6)" aria-label="Thêm đồ thị">＋</button></div>
+    <div id="ws-frames"></div>
     <div class="atl-card atl-wide" id="dthi-stage">
       <div id="dthi-top">
       <div class="dthi-bar">
@@ -3936,20 +3960,59 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   try{var sv=localStorage.getItem('atl-dock');if(sv&&pg&&!pg.hidden)open(sv);}catch(e){}
 })();
 </script>
+<script>
+(function(){
+if(window.__atlWS)return;
+var KEY='atl-ws3',MAX=6,st={ids:[],act:''},tabs=document.getElementById('ws-tabs'),fr=document.getElementById('ws-frames'),add=document.getElementById('ws-add'),stage=document.getElementById('dthi-stage'),sec=document.getElementById('do-thi');
+if(!tabs||!fr||!add||!stage||!sec)return;
+try{var o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&Array.isArray(o.ids)){st.ids=o.ids.filter(function(x){return /^[a-z0-9]{1,8}$/i.test(x||'');}).slice(0,MAX-1);st.act=o.act===''||st.ids.indexOf(o.act)>=0?o.act:'';}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function label(id){var k=id?'atl-dthi-'+id:'atl-dthi',m='',tf='D';try{var v=JSON.parse(localStorage.getItem(k)||'null');if(v){m=v.ma||'';tf=v.tf||'D';}}catch(e){}
+  if(!m)m=id?'VNINDEX':'HAH';return m+' (1'+(tf==='H'?'H':tf==='W'?'W':'D')+')';}
+function frame(id){return fr.querySelector('iframe[data-id="'+id+'"]');}
+function ensure(id){var f=frame(id);if(f)return f;f=document.createElement('iframe');f.dataset.id=id;f.setAttribute('allowfullscreen','');f.setAttribute('allow','fullscreen');f.title='Đồ thị '+id;
+  var m='';try{m=(JSON.parse(localStorage.getItem('atl-dthi')||'null')||{}).ma||'';}catch(e){}
+  f.src=location.pathname+'?ws='+encodeURIComponent(id)+(m&&!localStorage.getItem('atl-dthi-'+id)?'&m='+encodeURIComponent(m):'')+'#do-thi';fr.appendChild(f);return f;}
+function render(){
+  tabs.replaceChildren();
+  [''].concat(st.ids).forEach(function(id){var b=document.createElement('div');b.className='ws-t';b.setAttribute('role','tab');b.tabIndex=0;b.setAttribute('aria-pressed',String(id===st.act));b.dataset.id=id;
+    var n=document.createElement('span');n.className='ws-n';n.textContent=label(id);b.appendChild(n);
+    if(id){var x=document.createElement('button');x.type='button';x.className='ws-x';x.textContent='×';x.title='Đóng đồ thị này (xóa chỉ báo và bố cục đã lưu của nó)';x.setAttribute('aria-label','Đóng '+label(id));x.addEventListener('click',function(e){e.stopPropagation();close(id);});b.appendChild(x);}
+    b.addEventListener('click',function(){st.act=id;save();show();});
+    b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click();}});
+    tabs.appendChild(b);});
+  add.disabled=st.ids.length>=MAX-1;
+}
+function show(){render();var main=st.act==='';stage.hidden=!main;Array.prototype.forEach.call(fr.children,function(f){f.hidden=main||f.dataset.id!==st.act;});
+  if(!main)ensure(st.act).hidden=false;else setTimeout(function(){window.dispatchEvent(new Event('resize'));},30);}
+function close(id){if(!confirm('Đóng đồ thị này? Chỉ báo và bố cục đã lưu của nó sẽ bị xóa.'))return;
+  st.ids=st.ids.filter(function(x){return x!==id;});var f=frame(id);if(f)f.remove();try{localStorage.removeItem('atl-dthi-'+id);localStorage.removeItem('atl-cb-'+id);}catch(e){}
+  if(st.act===id)st.act='';save();show();}
+add.addEventListener('click',function(){if(st.ids.length>=MAX-1)return;var id;do{id=Math.random().toString(36).slice(2,6);}while(st.ids.indexOf(id)>=0);st.ids.push(id);st.act=id;save();show();});
+/* nhãn tab cập nhật theo mã/khung đang xem; khung nhúng chỉ tạo khi mở */
+setInterval(function(){if(sec.hidden)return;var ns=tabs.querySelectorAll('.ws-t');Array.prototype.forEach.call(ns,function(b){var t=b.querySelector('.ws-n'),l=label(b.dataset.id);if(t&&t.textContent!==l)t.textContent=l;});},1200);
+new MutationObserver(function(){if(!sec.hidden)show();}).observe(sec,{attributes:true,attributeFilter:['hidden']});
+render();if(!sec.hidden)show();
+})();
+</script>
+
+
 
   <script>
   (function(){
     var BASE='data/chart/',LIVE='https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/nen_nay.json',UP='#3f9a62',DN='#c9483b';
-    var S={ma:'HAH',tf:'D',rg:250,ind:{ma20:1,ma50:1,ma200:0,bb:0,vol:1,macd:1,rsi:0}};
-    try{var sv=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv){S.tf=sv.tf==='W'?'W':(sv.tf==='H'?'H':'D');S.rg=[0,60,125,250].indexOf(+sv.rg)>=0?+sv.rg:250;if(sv.ind)for(var k in S.ind)if(k in sv.ind)S.ind[k]=sv.ind[k]?1:0;if(sv.ma&&/^[A-Z0-9]{2,8}$/.test(sv.ma))S.ma=sv.ma;}}catch(e){}
-    try{var sv2=JSON.parse(localStorage.getItem('atl-dthi')||'null');if(sv2){S.grid=sv2.grid?1:0;S.lgc=sv2.lgc?1:0;S.lay=[1,2,3].indexOf(sv2.lay)>=0?sv2.lay:1;if(sv2.m3)S.m3={s:/^[A-Z0-9]{2,8}$/.test(sv2.m3.s||'')?sv2.m3.s:'',tf:['H','D','W'].indexOf(sv2.m3.tf)>=0?sv2.m3.tf:'D',ind:sv2.m3.ind||{ma20:1,ma50:1,vol:1,macd:1},on:sv2.m3.on||{},hid:sv2.m3.hid||{},h:sv2.m3.h>200&&sv2.m3.h<1400?sv2.m3.h:420,lgc:sv2.m3.lgc};if(sv2.sw>0.15&&sv2.sw<0.65)S.sw=sv2.sw;if(sv2.sh>0.2&&sv2.sh<0.8)S.sh=sv2.sh;if(sv2.m1&&/^[A-Z0-9]{2,8}$/.test(sv2.m1.s||''))S.m1={s:sv2.m1.s,tf:['H','W'].indexOf(sv2.m1.tf)>=0?sv2.m1.tf:'D',ind:sv2.m1.ind||{ma20:1,ma50:1,vol:1},on:sv2.m1.on||{},hid:sv2.m1.hid||{},lgc:sv2.m1.lgc};if(sv2.m2)S.m2={tf:['H','D'].indexOf(sv2.m2.tf)>=0?sv2.m2.tf:'W',ind:sv2.m2.ind||{ma20:1,ma50:1,vol:1},on:sv2.m2.on||{},hid:sv2.m2.hid||{},lgc:sv2.m2.lgc};if(sv2.ph&&typeof sv2.ph==='object'){S.ph={};Object.keys(sv2.ph).slice(0,40).forEach(function(k){var v=+sv2.ph[k];if(v>0.2&&v<30)S.ph[k]=v;});}if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
+    var WSK=window.__atlWS?'-'+window.__atlWS:'',KS='atl-dthi'+WSK,KC='atl-cb'+WSK;
+    var S={ma:window.__atlWS?'VNINDEX':'HAH',tf:'D',rg:250,ind:{ma20:1,ma50:1,ma200:0,bb:0,vol:1,macd:1,rsi:0}};
+    if(window.__atlWS){try{var qm=(new URLSearchParams(location.search).get('m')||'').toUpperCase();if(/^[A-Z0-9]{2,8}$/.test(qm)&&!localStorage.getItem(KS))S.ma=qm;}catch(e){}}
+    try{var sv=JSON.parse(localStorage.getItem(KS)||'null');if(sv){S.tf=sv.tf==='W'?'W':(sv.tf==='H'?'H':'D');S.rg=[0,60,125,250].indexOf(+sv.rg)>=0?+sv.rg:250;if(sv.ind)for(var k in S.ind)if(k in sv.ind)S.ind[k]=sv.ind[k]?1:0;if(sv.ma&&/^[A-Z0-9]{2,8}$/.test(sv.ma))S.ma=sv.ma;}}catch(e){}
+    try{var sv2=JSON.parse(localStorage.getItem(KS)||'null');if(sv2){S.grid=sv2.grid?1:0;S.lgc=sv2.lgc?1:0;S.lay=[1,2,3].indexOf(sv2.lay)>=0?sv2.lay:1;if(sv2.m3)S.m3={s:/^[A-Z0-9]{2,8}$/.test(sv2.m3.s||'')?sv2.m3.s:'',tf:['H','D','W'].indexOf(sv2.m3.tf)>=0?sv2.m3.tf:'D',ind:sv2.m3.ind||{ma20:1,ma50:1,vol:1,macd:1},on:sv2.m3.on||{},hid:sv2.m3.hid||{},h:sv2.m3.h>200&&sv2.m3.h<1400?sv2.m3.h:420,lgc:sv2.m3.lgc};if(sv2.sw>0.15&&sv2.sw<0.65)S.sw=sv2.sw;if(sv2.sh>0.2&&sv2.sh<0.8)S.sh=sv2.sh;if(sv2.m1&&/^[A-Z0-9]{2,8}$/.test(sv2.m1.s||''))S.m1={s:sv2.m1.s,tf:['H','W'].indexOf(sv2.m1.tf)>=0?sv2.m1.tf:'D',ind:sv2.m1.ind||{ma20:1,ma50:1,vol:1},on:sv2.m1.on||{},hid:sv2.m1.hid||{},lgc:sv2.m1.lgc};if(sv2.m2)S.m2={tf:['H','D'].indexOf(sv2.m2.tf)>=0?sv2.m2.tf:'W',ind:sv2.m2.ind||{ma20:1,ma50:1,vol:1},on:sv2.m2.on||{},hid:sv2.m2.hid||{},lgc:sv2.m2.lgc};if(sv2.ph&&typeof sv2.ph==='object'){S.ph={};Object.keys(sv2.ph).slice(0,40).forEach(function(k){var v=+sv2.ph[k];if(v>0.2&&v<30)S.ph[k]=v;});}if(Array.isArray(sv2.po))S.po=sv2.po.filter(function(x){return typeof x==='string';}).slice(0,30);}}catch(e){}
     S.m1=S.m1||{s:'VNINDEX',tf:'D',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};S.m2=S.m2||{tf:'W',ind:{ma20:1,ma50:1,vol:1},on:{},hid:{}};S.m3=S.m3||{s:'',tf:'D',ind:{ma20:1,ma50:1,vol:1,macd:1},on:{},hid:{},h:420};
-    function save(){try{localStorage.setItem('atl-dthi',JSON.stringify(S));}catch(e){}}
+    function save(){try{localStorage.setItem(KS,JSON.stringify(S));}catch(e){}}
     function $(i){return document.getElementById(i);}
     /* ---- chỉ báo ATL (chi-bao.js): chỉ báo mẫu + mã người dùng soạn, lưu trên trình duyệt này ---- */
     var CB={on:{},user:[],set:{},sty:{},hid:{},lab:{}},SP={},cbState=0,cbq=[],idxRaw=null;
-    try{var cs=JSON.parse(localStorage.getItem('atl-cb')||'null');if(cs){CB.on=cs.on||{};CB.set=cs.set||{};CB.sty=cs.sty||{};CB.hid=cs.hid||{};CB.lab=cs.lab||{};CB.user=(cs.user||[]).filter(function(u){return u&&typeof u.id==='string'&&typeof u.code==='string';}).slice(0,20);}}catch(e){}
-    function saveCB(){try{localStorage.setItem('atl-cb',JSON.stringify(CB));}catch(e){}}
+    try{var cs=JSON.parse(localStorage.getItem(KC)||'null');if(cs){CB.on=cs.on||{};CB.set=cs.set||{};CB.sty=cs.sty||{};CB.hid=cs.hid||{};CB.lab=cs.lab||{};CB.user=(cs.user||[]).filter(function(u){return u&&typeof u.id==='string'&&typeof u.code==='string';}).slice(0,20);}}catch(e){}
+    function saveCB(){try{localStorage.setItem(KC,JSON.stringify(CB));}catch(e){}}
     function cbmsg(t,er){var m=$('cb-msg');m.textContent=t||'';m.className=er?'er':'';}
     function loadCBjs(cb){
       if(window.ATLCB)return cb();cbq.push(cb);if(cbState===1)return;cbState=1;
@@ -5354,6 +5417,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     kn20: { lab: 'Khối ngoại ròng 20 phiên / GTGD', dom: [-15, -5, 0, 5, 15], rng: [C.neg2, C.neg1, '#55534d', C.pos1, C.pos2], fmt: (v) => d3.format('+.1f')(v) + '%' },
   };
   let KN = null;
+  const money = (v) => { if (!isFinite(v)) return '—'; const a = Math.abs(v), sg = v < 0 ? '−' : '+'; return a >= 1000 ? sg + d3.format(',.1f')(a / 1000).replace('.', ',') + ' nghìn tỷ' : a < 10 ? sg + d3.format('.1f')(a).replace('.', ',') + ' tỷ' : sg + d3.format(',.0f')(a) + ' tỷ'; };
+  const tileLab = (d, M) => (st.m === 'kn' ? money(d['n' + st.w]) : M.fmt(d.cv));
   fetch('data/khoi_ngoai_map.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.map) { KN = j; $('tm-kn').style.display = ''; if (st.m === 'kn') window.atlRedraw(); } }).catch(() => {});
   const withKN = (r) => { const k = KN && KN.map[r.ma], o = { ...r };
     [[0, 1], [1, 10], [2, 20]].forEach(([i, w]) => { const g = +r['gtgd' + w] * w; o['n' + w] = k && k[i] != null ? k[i] : NaN; o['kn' + w] = k && k[i] != null && g > 0 ? k[i] / g * 100 : NaN; });
@@ -5381,7 +5446,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     if (H.status === 'ok') H.data.forEach((r) => { const t = { 'MUA': 'MUA', 'ĐANG GIỮ': 'GIỮ', 'THEO DÕI': 'TD', 'BÁN THÁO': 'BT' }[r.loai]; if (t && !tag[r.ma]) tag[r.ma] = t; });
     const isT = (v) => v === true || v === 'true';
     const rows = D.data.map((r0) => { const r = withKN(r0); return { ...r, val: Math.max(+r[st.s], 0.01), cv: +r[st.c], tg: tag[r.ma] || (isT(r.ban_thao) ? 'BT' : isT(r.can_cung) ? 'CC' : '') }; });
-    if (st.m === 'kn') $('tm-note').textContent += ' Màu = khối ngoại mua ròng (xanh) hoặc bán ròng (đỏ) chia GTGD cùng kỳ, gồm cả giao dịch thỏa thuận; ô xám = chưa có dữ liệu khối ngoại của mã.';
+    if (st.m === 'kn') $('tm-note').textContent += ' Số trong ô = khối ngoại mua ròng (+) hoặc bán ròng (−) trong khung đã chọn, gồm cả giao dịch thỏa thuận. Màu = số tiền đó chia GTGD cùng kỳ (đậm hơn = khối ngoại chiếm tỷ lệ lớn hơn); ô xám = chưa có dữ liệu.';
     const color = d3.scaleLinear(M.dom, M.rng).interpolate(d3.interpolateRgb).clamp(true);
     const W = Math.max(300, box.clientWidth), Ht = W < 520 ? Math.round(W * 1.55) : Math.round(Math.min(720, W * 0.68));
     if (st.by === 'nganh') {
@@ -5403,7 +5468,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           if (name.length > max) name = name.slice(0, Math.max(3, max - 1)) + '…';
           const cy = n.y0 + h / 2 - (h > 40 ? fs * 0.2 : -fs * 0.35);
           gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy).attr('text-anchor', 'middle').attr('fill', '#fff').style('font-size', fs + 'px').style('font-weight', 700).text(name);
-          if (h > 40) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.05).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.7) + 'px').style('font-weight', 600).text(isFinite(d.cv) ? M.fmt(d.cv) : '—');
+          if (h > 40) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.05).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.7) + 'px').style('font-weight', 600).text((st.m === 'kn' ? money(d['nn' + st.w]) : isFinite(d.cv) ? M.fmt(d.cv) : '—'));
           if (h > 70 && w > 90) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.9).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.7)').style('font-size', '10px').text(d.lab);
         }
         const show = () => {
@@ -5444,7 +5509,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         const fs = big ? Math.min(22, Math.max(14, w / 6)) : mid ? 12 : 10;
         const cy = n.y0 + h / 2 + (mid ? -fs * 0.15 : fs * 0.35);
         gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy).attr('text-anchor', 'middle').attr('fill', '#fff').style('font-size', fs + 'px').style('font-weight', 700).text(d.ma);
-        if (mid) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 0.95).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.62) + 'px').style('font-weight', 600).text(M.fmt(d.cv));
+        if (mid) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 0.95).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.9)').style('font-size', Math.max(10, fs * 0.62) + 'px').style('font-weight', 600).text(tileLab(d, M));
         if (big && h > 90) gg.append('text').attr('x', n.x0 + w / 2).attr('y', cy + fs * 1.75).attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,.7)').style('font-size', '10px').text(String(d.ten).slice(0, Math.floor(w / 6)));
       }
       if (d.tg && w > 30 && h > 26) {
@@ -5457,7 +5522,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         const t = document.createElement('div'); t.className = 't'; t.textContent = d.ma + ' · ' + d.ten + ' · ' + d.nganh; el.appendChild(t);
         [['Giá', d3.format('.2f')(+d.gia)], ['% giá 1 / 10 / 20 phiên', d3.format('+.2f')(+d.gia1) + '% / ' + d3.format('+.1f')(+d.gia10) + '% / ' + d3.format('+.1f')(+d.gia20) + '%'],
          ['GTGD phiên / TB20', d3.format(',.1f')(+d.gtgd1) + ' / ' + d3.format(',.1f')(+d.gtgd20) + ' tỷ'], ['Thanh khoản 10p', d3.format('.2f')(+d.tk10) + '×'],
-         ...(isFinite(d.n10) ? [['Khối ngoại ròng 1 / 10 / 20 phiên', d3.format('+,.1f')(d.n1) + ' / ' + d3.format('+,.0f')(d.n10) + ' / ' + d3.format('+,.0f')(d.n20) + ' tỷ']] : []),
+         ...(isFinite(d.n10) ? [['Khối ngoại ròng 1 / 10 / 20 phiên', d3.format('+,.1f')(d.n1) + ' / ' + d3.format('+,.0f')(d.n10) + ' / ' + d3.format('+,.0f')(d.n20) + ' tỷ'], ['Tỷ lệ trên GTGD cùng kỳ', d3.format('+.1f')(d.kn1) + '% / ' + d3.format('+.1f')(d.kn10) + '% / ' + d3.format('+.1f')(d.kn20) + '%']] : []),
          ['Cách đỉnh 60 phiên', d3.format('+.1f')(+d.cach_dinh60) + '%' + (isT(d.tren_ma50) ? ' · trên MA50' : ' · dưới MA50')]].forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el.appendChild(e); });
         if (d.tg) { const e = document.createElement('div'); e.style.fontWeight = '600'; e.textContent = { MUA: 'Bộ lọc: MUA', 'GIỮ': 'Bộ lọc: đang giữ', TD: 'Bộ lọc: theo dõi', CC: 'Cạn cung', BT: 'Đang bị bán tháo' }[d.tg]; el.appendChild(e); }
         const k = box.clientWidth / W; window.atlPlaceTip(el, box, (n.x0 + w / 2) * k, n.y0 * k + 6);
