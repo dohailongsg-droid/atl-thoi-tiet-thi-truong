@@ -6,6 +6,9 @@ on:
     - cron: "35 4 * * 1-5"    # 11:35 giờ Việt Nam: cập nhật giữa phiên (có dữ liệu phiên sáng cho phiên chiều)
     - cron: "25 8 * * *"      # 15:25 giờ Việt Nam (UTC+7), sau phiên
   workflow_dispatch:          # cho phép bấm chạy tay trong tab Actions
+  push:                       # upload file giao diện vào site/ thì tự đăng lại trang (bỏ qua các bước nặng và bước ghi trạng thái)
+    branches: [main]
+    paths: ["site/**"]
 
 permissions:
   contents: write             # ghi lại state/ (trạng thái bộ lọc, lệnh dài)
@@ -58,12 +61,13 @@ jobs:
             cb-
 
       - name: Dữ liệu cơ bản toàn HOSE (Vietcap IQ, lỗi không làm dừng cả lượt)
-        if: github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
+        if: github.event_name != 'push' && github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
         continue-on-error: true
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
       - name: Cảnh báo Telegram (sau phiên báo đổi vùng và MUA mới, trong phiên chỉ báo lệnh đang giữ chạm điểm thoát)
+        if: github.event_name != 'push'
         continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -71,7 +75,7 @@ jobs:
         run: python3 pipeline/canh_bao.py
 
       - name: Ghi lại trạng thái (state/), chỉ khi phiên đã đóng cửa (sau 15:10 giờ VN)
-        if: github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
+        if: github.event_name != 'push' && github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
         run: |
           HM=$(TZ=Asia/Ho_Chi_Minh date +%H%M); DOW=$(TZ=Asia/Ho_Chi_Minh date +%u)
           if [ "$DOW" -le 5 ] && [ "$HM" -ge 900 ] && [ "$HM" -lt 1510 ]; then
