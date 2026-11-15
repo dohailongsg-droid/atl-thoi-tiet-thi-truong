@@ -2541,8 +2541,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       </div>
       <div class="atl-card atl-wide" id="card-mua-chi-bao">
         <details class="mua-fold" id="mua-f2" open>
-          <summary><span class="atl-h">Mùa nào hợp chỉ báo nào</span><span class="mua-gist" id="mua-g2"></span><span class="mua-tog"></span></summary>
-          <p class="atl-note">Mỗi cột là một mùa, các chỉ báo xếp từ tốt đến kém theo profit factor (lãi gộp chia lỗ gộp) của các lệnh mua trong mùa đó. Thanh càng dài càng tốt; vạch đứng là mức hòa vốn 1,0; xanh từ 1,5 trở lên, đỏ dưới 1. Số nhỏ là số lệnh; chỉ báo có dưới 100 lệnh xếp cuối và không dùng để xếp hạng. Bán theo quy tắc của tác giả, cắt lỗ 7%, giữ tối đa 60 phiên; HOSE 2020 đến 11/2026. Cập nhật 15/11/2026: thêm Định giá rẻ, GTGD đột biến, Volume Profile và GMMA.</p>
+          <summary><span class="atl-h">Mùa nào thức nấy</span><span class="mua-gist" id="mua-g2"></span><span class="mua-tog"></span></summary>
+          <p class="atl-note">Mỗi cột là một mùa, các chỉ báo xếp từ tốt đến kém theo profit factor (lãi gộp chia lỗ gộp) của các lệnh mua trong mùa đó. Thanh càng dài càng tốt; vạch đứng là mức hòa vốn 1,0; xanh từ 1,5 trở lên, đỏ dưới 1. Số nhỏ là số lệnh; chỉ báo có dưới 100 lệnh xếp cuối và không dùng để xếp hạng. Mỗi chỉ báo bán theo luật riêng của tác giả (giống tab Backtest khi chọn bán “theo tác giả”), không đặt cắt lỗ cố định, giữ tối đa 250 phiên; HOSE 2020 đến 11/2026. Vì không cắt lỗ nên lệnh xấu có thể lỗ sâu: xem mức sụt giảm của từng chỉ báo ở tab Backtest. Cập nhật 15/11/2026: tính lại theo luật bán riêng; thêm Chandelier Exit, Định giá rẻ, GTGD đột biến, Volume Profile và GMMA.</p>
           <div class="kn-seg" id="mua-per" role="group" aria-label="Giai đoạn tính" style="margin:.7rem 0 .6rem"><button type="button" data-p="all" aria-pressed="true">2020–2026</button><button type="button" data-p="23" aria-pressed="false">Từ 2023</button></div>
           <div class="mua-pfg" id="mua-pf"></div>
           <p class="atl-note" id="mua-kl"></p>
@@ -4803,17 +4803,38 @@ render();if(!sec.hidden)show();
     G.forEach((g) => { const tr = mk('tr', g[0] === last.vung ? 'on' : null), a = mk('td'), d = mk('i', 'zd'); d.style.background = 'var(--z' + g[0] + ')'; a.append(d, mk('b', null, g[1]));
       if (g[0] === last.vung) a.appendChild(mk('span', 'mua-now', 'đang ở đây')); a.append(mk('br'), mk('small', null, g[2]));
       tr.append(a, mk('td', null, g[3]), mk('td', null, g[4]), mk('td', null, g[5]), mk('td', null, g[6])); tb.appendChild(tr); });
-    const PFD_ALL = [['Supertrend', 1.55, 439, 1.45, 984, 2.01, 907, 1.28, 90], ['Dragon Code', 1.43, 718, 1.39, 1570, 1.94, 951, 0.79, 105], ['Ichimoku', 1.11, 172, 1.57, 726, 2.07, 828, 0.67, 91],
-      ['VN Timing', 1.29, 871, 1.31, 2167, 1.88, 1645, 0.79, 236], ['MA 200', 1.22, 334, 1.34, 1105, 2.25, 640, 1.3, 137], ['MCDX', 1.05, 236, 0.99, 895, 2.03, 1048, 1.28, 186],
-      ['ATR', 1.31, 920, 1.08, 2617, 1.79, 2630, 1.06, 517], ['Keltner Channels', 0.65, 221, 1.32, 767, 1.79, 1193, 1.49, 155], ['RSI 30/70', 1.02, 714, 1.27, 891, 2.11, 302, 0.72, 66],
-      ['ATL: dưới dải Bollinger + RS trên 80', 1.09, 110, 0.95, 221, 1.5, 107, 2.24, 20], ['Định giá rẻ', 1.38, 321, 1.41, 502, 3.06, 305, 0.95, 43], ['GTGD đột biến', 0.91, 387, 1.19, 1169, 1.7, 1319, 1.96, 170],
-      ['Volume Profile', 0.86, 285, 1.26, 1279, 1.96, 1693, 0.94, 264], ['GMMA', 0.86, 287, 1.16, 1079, 1.89, 1172, 1.11, 129], ['Chandelier Exit', 1.27, 846, 1.38, 1916, 1.97, 1514, 1.22, 252]];
-    /* cùng cách chạy ở tab Backtest nhưng chỉ lệnh mua từ 01/01/2023 (kiểm tra 15/11/2026); ô ít lệnh (<100) không dùng xếp hạng */
-    const PFD_23 = [['Supertrend', 2.54, 188, 1.30, 883, 1.18, 306, 1.83, 44], ['Dragon Code', 1.79, 333, 1.29, 1416, 1.25, 293, 0.96, 58], ['Ichimoku', 1.30, 117, 1.35, 671, 1.00, 279, 0.84, 72],
-      ['VN Timing', 1.80, 389, 1.09, 1964, 1.09, 505, 0.70, 151], ['MA 200', 2.42, 162, 1.32, 1059, 1.63, 320, 1.68, 99], ['MCDX', 2.13, 125, 0.96, 831, 1.49, 390, 1.22, 114],
-      ['ATR', 2.27, 440, 1.01, 2326, 1.19, 816, 1.15, 347], ['Keltner Channels', 1.00, 99, 1.19, 705, 1.55, 407, 0.94, 96], ['RSI 30/70', 2.38, 168, 1.38, 752, 2.02, 89, 1.59, 15],
-      ['ATL: dưới dải Bollinger + RS trên 80', 1.30, 23, 1.40, 185, 2.53, 47, 0, 4], ['Định giá rẻ', 2.30, 99, 1.51, 396, 1.51, 54, 2.27, 28], ['GTGD đột biến', 1.33, 174, 1.08, 1067, 1.45, 436, 1.72, 107],
-      ['Volume Profile', 1.23, 134, 1.15, 1165, 1.37, 616, 1.03, 191], ['GMMA', 1.96, 157, 1.15, 999, 1.38, 422, 1.11, 74], ['Chandelier Exit', 2.06, 351, 1.15, 1733, 0.94, 494, 1.13, 157]];
+    /* bán theo luật riêng của từng chỉ báo, không cắt lỗ cố định, giữ tối đa 250 phiên (cùng cách chạy tab Backtest, kiểm tra 15/11/2026) */
+    const PFD_ALL = [['Supertrend', 1.39, 438, 1.63, 983, 2.27, 907, 1.34, 90],
+      ['Dragon Code', 1.57, 707, 1.55, 1551, 2.41, 938, 0.89, 98],
+      ['Ichimoku', 1.23, 172, 1.60, 718, 1.93, 817, 0.55, 89],
+      ['VN Timing', 1.27, 836, 1.30, 2120, 1.91, 1610, 0.74, 232],
+      ['MA 200', 1.26, 306, 1.15, 1045, 2.51, 600, 1.07, 134],
+      ['MCDX', 0.86, 120, 1.33, 494, 1.94, 631, 0.42, 145],
+      ['ATR', 1.39, 884, 1.09, 2463, 1.78, 2481, 1.06, 484],
+      ['Keltner Channels', 1.47, 163, 1.02, 553, 2.20, 841, 1.72, 80],
+      ['RSI 30/70', 0.53, 225, 1.54, 476, 1.71, 211, 0.64, 52],
+      ['ATL: dưới dải Bollinger + RS trên 80', 0.93, 94, 0.79, 213, 1.68, 105, 13.77, 18],
+      ['Định giá rẻ', 2.84, 72, 4.41, 137, 4.44, 98, 0.19, 15],
+      ['GTGD đột biến', 1.13, 98, 2.37, 351, 2.02, 431, 0.37, 60],
+      ['Volume Profile', 0.85, 258, 1.26, 1232, 1.94, 1622, 0.98, 253],
+      ['GMMA', 0.90, 258, 1.24, 965, 2.44, 1025, 1.44, 93],
+      ['Chandelier Exit', 1.28, 792, 1.54, 1848, 2.11, 1478, 1.11, 248]];
+    /* chỉ lệnh mua từ 01/01/2023; ô ít lệnh (<100) không dùng xếp hạng */
+    const PFD_23 = [['Supertrend', 2.69, 187, 1.52, 882, 1.07, 306, 2.30, 44],
+      ['Dragon Code', 2.14, 332, 1.47, 1402, 1.62, 291, 1.33, 51],
+      ['Ichimoku', 1.49, 117, 1.37, 663, 1.01, 275, 0.81, 70],
+      ['VN Timing', 1.86, 379, 1.10, 1923, 1.19, 496, 0.66, 147],
+      ['MA 200', 3.45, 151, 1.12, 1006, 1.51, 303, 1.29, 96],
+      ['MCDX', 4.49, 83, 1.22, 456, 2.47, 209, 0.56, 87],
+      ['ATR', 2.55, 428, 1.03, 2181, 1.07, 760, 1.13, 329],
+      ['Keltner Channels', 2.91, 84, 1.09, 509, 1.25, 296, 1.44, 49],
+      ['RSI 30/70', 3.34, 82, 1.61, 408, 1.56, 73, 2.46, 10],
+      ['ATL: dưới dải Bollinger + RS trên 80', 65.86, 22, 1.95, 180, 2.49, 47, 0.00, 4],
+      ['Định giá rẻ', 4.94, 48, 3.11, 104, 1.88, 12, 0.13, 8],
+      ['GTGD đột biến', 6.54, 91, 1.92, 283, 1.53, 177, 0.19, 31],
+      ['Volume Profile', 1.10, 126, 1.19, 1127, 1.41, 597, 1.09, 185],
+      ['GMMA', 2.18, 147, 1.25, 890, 1.76, 375, 1.39, 50],
+      ['Chandelier Exit', 2.36, 332, 1.33, 1675, 0.87, 486, 0.95, 156]];
     let per = 'all'; try { per = localStorage.getItem('atl-mua-per') === '23' ? '23' : 'all'; } catch (err) {}
     const PFD = per === '23' ? PFD_23 : PFD_ALL;
     drawGuide.last = last;
@@ -4822,7 +4843,7 @@ render();if(!sec.hidden)show();
       if (!pb.dataset.b) { pb.dataset.b = '1'; pb.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; try { localStorage.setItem('atl-mua-per', b.dataset.p); } catch (err) {} drawGuide(drawGuide.last); }); } }
     const col = last.vung === 1 ? 0 : (last.vung === 2 || last.vung === 7) ? 1 : last.vung === 3 ? 2 : 3;
     const cur = G.filter((g) => g[0] === last.vung)[0]; const g1 = document.getElementById('mua-g1'); if (g1 && cur) g1.textContent = cur[1] + ': tỷ trọng ' + cur[4].toLowerCase() + '. ' + cur[5];
-    const SEA = [['Nghỉ đông', 'TB7 dưới 45', 1], ['Giáp hạt · Đầu xuân', 'TB7 45–55', 2], ['Ra hoa', 'TB7 55–65', 3], ['Đầu hạ trở lên', 'TB7 từ 65', 4]], fx = (v) => v.toFixed(2).replace('.', ','), MAXPF = 3.1;
+    const SEA = [['Nghỉ đông', 'TB7 dưới 45', 1], ['Giáp hạt · Đầu xuân', 'TB7 45–55', 2], ['Ra hoa', 'TB7 55–65', 3], ['Đầu hạ trở lên', 'TB7 từ 65', 4]], fx = (v) => (v >= 10 ? '>10' : v.toFixed(2).replace('.', ',')), MAXPF = 3.1;
     pf.replaceChildren();
     const rank = (i) => { const a = PFD.map((r) => [r[0], r[1 + i * 2], r[2 + i * 2]]); return a.filter((x) => x[2] >= 100).sort((p, q) => q[1] - p[1]).concat(a.filter((x) => x[2] < 100).sort((p, q) => q[1] - p[1])); };
     SEA.forEach((sv, i) => { const box = mk('div', 'mua-col' + (i === col ? ' on' : '')), h3 = mk('h3'), d = mk('i', 'zd'); d.style.background = 'var(--z' + sv[2] + ')'; h3.append(d, document.createTextNode(sv[0]), mk('small', null, sv[1])); if (i === col) h3.appendChild(mk('span', 'mua-now', 'đang ở đây')); box.appendChild(h3);
@@ -4838,7 +4859,7 @@ render();if(!sec.hidden)show();
     document.getElementById('mua-kl').textContent = 'Mùa hiện tại (' + names[col] + '): tốt nhất là ' + best.slice(0, 3).map((x) => x[0] + ' (' + fx(x[1]) + ')').join(', ')
       + '; kém nhất là ' + best.slice(-2).reverse().map((x) => x[0] + ' (' + fx(x[1]) + ')').join(', ')
       + (per === '23'
-        ? '. Chỉ tính lệnh mua từ 2023: mùa Ra hoa chỉ còn ' + rank(2).filter((x) => x[2] >= 100 && x[1] >= 1.7).length + ' trên ' + rank(2).filter((x) => x[2] >= 100).length + ' chỉ báo có profit factor từ 1,7, còn mùa Nghỉ đông cho profit factor cao nhất ở đa số chỉ báo. Hai năm 2020–2021 kéo kết quả cả kỳ lên; số lệnh ít hơn nên kết quả dễ do may rủi.'
+        ? '. Chỉ tính lệnh mua từ 2023: mùa Ra hoa chỉ còn ' + rank(2).filter((x) => x[2] >= 100 && x[1] >= 1.7).length + ' trên ' + rank(2).filter((x) => x[2] >= 100).length + ' chỉ báo có profit factor từ 1,7, còn mùa Nghỉ đông là mùa có profit factor cao nhất ở ' + PFD.filter((r) => { const c = [0, 1, 2, 3].filter((i) => r[2 + 2 * i] >= 100); return c.length && c.reduce((a, i) => (r[1 + 2 * i] > r[1 + 2 * a] ? i : a), c[0]) === 0; }).length + ' chỉ báo. Hai năm 2020–2021 kéo kết quả cả kỳ lên; số lệnh ít hơn nên kết quả dễ do may rủi.'
         : '. Mùa Ra hoa cho profit factor từ 1,7 trở lên ở ' + rank(2).filter((x) => x[2] >= 100 && x[1] >= 1.7).length + ' trên ' + rank(2).filter((x) => x[2] >= 100).length + ' chỉ báo: lợi thế nằm ở mùa nhiều hơn ở việc chọn chỉ báo. Cả kỳ gồm 2020–2021, giai đoạn hiếm khi lặp lại; bấm “Từ 2023” để xem giai đoạn gần đây.');
     ['mua-f1', 'mua-f2'].forEach((id) => { const e = document.getElementById(id); if (!e || e.dataset.b) return; e.dataset.b = '1';
       try { if (localStorage.getItem('atl-' + id) === '0') e.open = false; } catch (err) {}
