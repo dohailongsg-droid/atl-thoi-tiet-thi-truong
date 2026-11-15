@@ -97,6 +97,58 @@
     return svg;
   }
 
+
+  /* ===== Nhận xét so sánh: dùng lại kết luận cơ bản (__cbSum) và kỹ thuật (atlKtSum) của Hồ sơ mã ===== */
+  function nhanXet(ok, rr, hh, T) {
+    var box = el('div', 'ss-nx'); if (!window.__cbSum || ok.length < 2) return null;
+    var A = ok.map(function (x, i) { var cb = null, kt = null; try { cb = window.__cbSum(x, T); } catch (e) {} try { kt = window.atlKtSum ? window.atlKtSum(rr[i]) : null; } catch (e) {}
+      return { ma: x.ma, x: x, r: rr[i], h: hh[i], cb: cb, kt: kt, rs: hh[i] && hh[i].rs60 != null ? +hh[i].rs60 : null }; });
+    function rank(key) { var a = A.slice().sort(function (p, q) { return key(q) - key(p); }); a.forEach(function (q, i) { q['_' + rank.n] = i; }); rank.n++; return a; } rank.n = 0;
+    var byCb = rank(function (q) { return q.cb ? q.cb.diem : -99; }), byKt = rank(function (q) { return q.kt ? q.kt.diem + (q.rs != null ? (q.rs - 50) / 200 : 0) : -99; });
+    var all = A.slice().sort(function (p, q) { return (p._0 + p._1) - (q._0 + q._1) || p._0 - q._0; });
+    var vt = function (st) { return st === 're2' ? 'dưới cả Giá bất tử và Vùng mua' : st === 're1' ? 'ở vùng rẻ của mô hình' : st === 'hl' ? 'dưới giá hợp lý, chưa vào Vùng mua' : 'trên giá hợp lý'; };
+    var top = all[0], bot = all[all.length - 1], v = el('div', 'tg-v ' + (top.cb && top.kt && (top.cb.lv === 'tot' || top.cb.lv === 'kha') && top.kt.muc === 'tot' ? 'tot' : 'tb'));
+    v.appendChild(el('b', 't', 'Thứ tự ưu tiên khi gộp cơ bản và kỹ thuật: ' + all.map(function (q) { return q.ma; }).join(' › ')));
+    var cbBest = byCb[0], ktBest = byKt[0];
+    v.appendChild(document.createTextNode(top.ma + ' cân bằng nhất' + (top.cb ? ' (' + top.cb.ten.toLowerCase() : ' (') + (top.kt ? '; kỹ thuật: ' + top.kt.ten.toLowerCase() : '') + '). ' +
+      (cbBest.ma !== ktBest.ma ? 'Mạnh nhất về cơ bản là ' + cbBest.ma + ', mạnh nhất về kỹ thuật là ' + ktBest.ma + ': hai thứ hạng không trùng nhau, nên chọn theo mục đích. Nắm giữ dài thì nghiêng về mã cơ bản tốt hơn; giao dịch ngắn thì nghiêng về mã kỹ thuật tốt hơn. ' : cbBest.ma + ' đứng đầu cả về cơ bản lẫn kỹ thuật. ') +
+      (all.length > 2 ? 'Xếp sau cùng là ' + bot.ma + (bot.cb ? ' (' + bot.cb.ten.toLowerCase() + (bot.kt ? '; kỹ thuật: ' + bot.kt.ten.toLowerCase() : '') + ').' : '.') : '')));
+    box.appendChild(v);
+    var two = el('div', 'tg-2'), L = el('div'), R = el('div');
+    L.appendChild(el('div', 'dg-h', 'Từng mã, theo thứ tự ưu tiên')); var u1 = el('ul', 'tg-st');
+    all.forEach(function (q) { var li = el('li'), d = el('div'); li.appendChild(el('i', q.cb && (q.cb.lv === 'tot' || q.cb.lv === 'kha') && q.kt && q.kt.muc !== 'xau' ? 'tot' : (q.cb && q.cb.lv === 'xau') || (q.kt && q.kt.muc === 'xau') ? 'xau' : 'tb'));
+      d.appendChild(el('b', null, q.ma + ': ')); d.appendChild(document.createTextNode((q.cb ? q.cb.ten + ' (hạng ' + (q._0 + 1) + '/' + A.length + ' về cơ bản)' : 'chưa có dữ liệu cơ bản') + '. ' + (q.kt ? 'Kỹ thuật: ' + q.kt.ten.toLowerCase() + ' (hạng ' + (q._1 + 1) + '/' + A.length + (q.rs != null ? ', sức mạnh giá ' + n0(q.rs) : '') + ').' : 'Chưa đủ dữ liệu kỹ thuật.') + (q.cb && q.cb.val ? ' Giá ' + vt(q.cb.val.st) + '.' : '')));
+      li.appendChild(d); u1.appendChild(li); }); L.appendChild(u1);
+    /* nên nhìn tiêu chí nào */
+    R.appendChild(el('div', 'dg-h', 'Nên so bằng tiêu chí nào')); var u2 = el('ul', 'tg-st');
+    function add(ul, muc, b, t) { var li = el('li'), d = el('div'); li.appendChild(el('i', muc)); d.appendChild(el('b', null, b)); d.appendChild(document.createTextNode(t)); li.appendChild(d); ul.appendChild(li); }
+    var nh = A.map(function (q) { return q.x.loai !== 'doanh_nghiep' ? q.x.loai : (q.h ? q.h.nhom : null); }), same = nh[0] && nh.every(function (z) { return z === nh[0]; });
+    if (same && window.__focusOf) { var F = window.__focusOf(ok[0]), M = window.__ssMeta || {};
+      add(u2, 'tb', 'Cùng nhóm ' + (F.ten || '') + ': ', F.why);
+      F.ids.forEach(function (id) { var m = M[id]; if (!m || !m[0]) return; var vals = A.map(function (q) { var t = T && T[q.ma] && T[q.ma].ss ? T[q.ma].ss[id] : null; return { ma: q.ma, v: t }; }).filter(function (q) { return q.v != null && isFinite(q.v); });
+        if (vals.length < 2) return; vals.sort(function (p, q) { return m[0] > 0 ? q.v - p.v : p.v - q.v; }); var s0 = ser(ok[0], id), f = function (z) { return (Math.abs(z) >= 100 ? n0(z) : n1(z)).replace(/,0$/, '') + m[1]; };
+        add(u2, 'tot', '★ ' + (s0 ? s0.ten.replace(/ \(.*$/, '') : id) + ': ', 'tốt nhất là ' + vals[0].ma + ' (' + f(vals[0].v) + '), kém nhất là ' + vals[vals.length - 1].ma + ' (' + f(vals[vals.length - 1].v) + ').'); }); }
+    else add(u2, 'tb', 'Các mã khác nhóm ngành: ', 'không nên so trực tiếp biên lợi nhuận, vòng quay hay mức vay nợ vì mỗi ngành một mặt bằng khác nhau. Nên so ROE, tăng trưởng lợi nhuận 4 quý, dòng tiền kinh doanh so với lợi nhuận, và định giá của mỗi mã so với lịch sử của chính nó.');
+    add(u2, 'tb', 'Cách đọc bảng bên dưới: ', 'ô xanh là tốt nhất, ô đỏ là kém nhất. Đọc theo thứ tự chất lượng lợi nhuận (dòng tiền, cờ cảnh báo) trước, tăng trưởng sau, định giá cuối cùng: rẻ mà lợi nhuận không thật thì không phải rẻ.');
+    R.appendChild(u2); two.appendChild(L); two.appendChild(R); box.appendChild(two);
+    /* bất thường */
+    var W = [];
+    A.forEach(function (q) { var x = q.x, c;
+      c = ser(x, 'cfo_ln'); if (c) { var i = last(c.v), rt = i >= 0 && c.v2[i] > 0 ? c.v[i] / c.v2[i] : null; if (rt != null && rt < 0.5) W.push([q.ma, 'dòng tiền kinh doanh chỉ bằng ' + n0(rt * 100) + '% lợi nhuận 4 quý: lợi nhuận chưa thành tiền' + (rt < 0 ? ' (đang âm)' : '') + '.']); }
+      c = ser(x, 'ln'); if (c && c.yoy != null && c.yoy >= 100) W.push([q.ma, 'lợi nhuận quý tăng ' + sg(c.yoy) + ' so với cùng kỳ: mức tăng đột biến, cần xem do nền cùng kỳ thấp hay có khoản thu một lần.']);
+      if (c && c.yoy != null && c.yoy <= -30) W.push([q.ma, 'lợi nhuận quý giảm ' + sg(c.yoy) + ' so với cùng kỳ.']);
+      var de = lv(x, 'de'); if (x.loai === 'doanh_nghiep' && de != null && de > 2) W.push([q.ma, 'nợ phải trả gấp ' + n2(de) + ' lần vốn chủ: đòn bẩy cao.']);
+      var co = x.chat_luong ? x.chat_luong.co : [], nd = co.filter(function (z) { return z.muc === 'do'; }).length; if (nd || co.length >= 3) W.push([q.ma, co.length + ' cờ cảnh báo' + (nd ? ' (' + nd + ' đỏ)' : '') + ' trong báo cáo tài chính: đọc phần chất lượng ở Hồ sơ mã trước.']);
+      var m2 = x.dinh_gia && x.dinh_gia.v2; if (m2 && m2.gia_tb && m2.gia_tb / x.gia > 2) W.push([q.ma, 'giá hợp lý của mô hình cao gấp ' + n1(m2.gia_tb / x.gia) + ' lần giá hiện tại: thường do lợi nhuận hiện tại bất thường hoặc theo chu kỳ, không nên đọc là mức sẽ đạt.']);
+      if (q.h && q.h.gtgd20 != null && +q.h.gtgd20 < 5) W.push([q.ma, 'giá trị giao dịch bình quân chỉ ' + n1(+q.h.gtgd20) + ' tỷ/phiên: khó mua bán khối lượng lớn.']);
+      if (q.cb && q.kt && (q.cb.lv === 'tot' || q.cb.lv === 'kha') && q.kt.muc === 'xau') W.push([q.ma, 'cơ bản ổn nhưng kỹ thuật đang xấu: thị trường có thể đang thấy điều báo cáo tài chính chưa phản ánh, chờ giá dừng giảm.']);
+      if (q.cb && q.kt && q.cb.lv === 'xau' && q.kt.muc === 'tot') W.push([q.ma, 'kỹ thuật tốt nhưng cơ bản yếu: giá chạy trước lợi nhuận, chỉ hợp giao dịch ngắn với điểm thoát rõ.']); });
+    box.appendChild(el('div', 'dg-h', 'Điểm bất thường cần chú ý'));
+    if (W.length) { var fl = el('div', 'dg-fl'); W.slice(0, 8).forEach(function (w) { var d = el('div'); d.appendChild(el('b', null, w[0] + ': ')); d.appendChild(document.createTextNode(w[1])); fl.appendChild(d); }); box.appendChild(fl); }
+    else box.appendChild(el('p', 'atl-note', 'Không thấy điểm bất thường ở các mục kiểm tra: dòng tiền so với lợi nhuận, lợi nhuận đột biến, đòn bẩy, cờ cảnh báo, độ lệch của mô hình định giá, thanh khoản, mâu thuẫn cơ bản và kỹ thuật.'));
+    var nt = el('p', 'atl-note', 'Thứ tự ưu tiên tính theo quy tắc cố định: hạng cơ bản (gộp 16 biểu đồ, chỉ số trọng tâm, chất lượng) cộng hạng kỹ thuật (ba góc nhìn và sức mạnh giá). Đây là cách sắp xếp thông tin, không phải khuyến nghị mua bán; tỷ trọng vẫn do mùa thị trường quyết định.'); nt.style.marginTop = '8px'; box.appendChild(nt);
+    return box;
+  }
   function render(mas) {
     var out = $('ss-out'); out.textContent = 'Đang tải…';
     Promise.all(mas.map(getCb)).then(function (xs) {
@@ -107,7 +159,9 @@
       if (ok.length < 1) return;
       var HS = data('ho_so') || [], XH = data('xep_hang') || [];
       var rr = ok.map(function (x) { return HS.filter(function (q) { return q.ma === x.ma; })[0] || null; }), hh = ok.map(function (x) { return XH.filter(function (q) { return q.ma === x.ma; })[0] || null; });
-      var lg = el('div', 'ss-lg'); ok.forEach(function (x, i) { var c = el('span', 'ss-chip'); c.style.borderColor = COL[i]; var d = el('i'); d.style.background = COL[i]; c.appendChild(d); c.appendChild(document.createTextNode(x.ma + ' · ' + (x.ten || ''))); lg.appendChild(c); }); out.appendChild(lg);
+      var nxSlot = el('div'); nxSlot.style.margin = '0 0 12px';
+      var lg = el('div', 'ss-lg'); ok.forEach(function (x, i) { var c = el('span', 'ss-chip'); c.style.borderColor = COL[i]; var d = el('i'); d.style.background = COL[i]; c.appendChild(d); c.appendChild(document.createTextNode(x.ma + ' · ' + (x.ten || ''))); lg.appendChild(c); }); out.appendChild(lg); out.appendChild(nxSlot);
+      (window.__ttLoad || function (f) { f({}); })(function (T) { try { var nb = nhanXet(ok, rr, hh, T || {}); if (nb) { nxSlot.textContent = ''; nxSlot.appendChild(el('div', 'dg-h', 'Nhận xét so sánh')); nxSlot.appendChild(nb); } } catch (e) { if (window.console) console.warn(e); } });
       /* bảng */
       var tb = el('table', 'ss-tb'), th = el('tr'); th.appendChild(el('th', null, 'Chỉ tiêu'));
       ok.forEach(function (x, i) { var t = el('th', 'num', x.ma); t.style.color = COL[i]; th.appendChild(t); }); tb.appendChild(th);
@@ -173,7 +227,7 @@
 
   getIdx().then(function (ix) { var dl = $('ss-dl'); Object.keys(ix).sort().forEach(function (m) { var o = document.createElement('option'); o.value = m; dl.appendChild(o); }); });
   $('ss-form').addEventListener('submit', function (e) { e.preventDefault(); go(); });
-  function curMa_() { return (window.__dgCur && window.__dgCur.ma) || ($('hs-ma') && $('hs-ma').value.trim().toUpperCase()) || null; }
+  function curMa_() { var e = $('hs-ma'), v = e && typeof e.value === 'string' ? e.value : (e && e.textContent) || ''; return (window.__dgCur && window.__dgCur.ma) || String(v).trim().toUpperCase() || null; }
   $('ss-peer').addEventListener('click', function () { var cur = (curMa_() || inputs()[0] || '').trim().toUpperCase(); if (cur) { fill(peers(cur)); go(); } });
   var saved = null; try { saved = JSON.parse(localStorage.getItem('atl-ss') || 'null'); } catch (e) {}
   var curMa = curMa_();

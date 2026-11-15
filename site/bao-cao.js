@@ -149,6 +149,15 @@
       .replace(/\bTTM\b/g, '4 quý gần nhất').replace(/\(khuyến nghị BUY/g, '(khuyến nghị Mua').replace(/\(khuyến nghị O-PF/g, '(khuyến nghị Khả quan').replace(/\(khuyến nghị M-PF/g, '(khuyến nghị Phù hợp thị trường').replace(/\(khuyến nghị U-PF/g, '(khuyến nghị Kém khả quan').replace(/\(khuyến nghị SELL/g, '(khuyến nghị Bán')
       .replace(/ \(xem bảng nhạy cảm\)/g, '').replace(/trung vị/g, 'mức giữa').replace(/của chính mã/g, 'của chính cổ phiếu').replace(/\bMA(20|50|150|200)\b/g, 'đường trung bình $1 phiên').replace(/thanh khoản/g, 'khối lượng giao dịch');
   }
+  function plainKT(t) {                     // kết luận kỹ thuật của trang: đổi tên trường phái sang chữ thường dùng
+    return plain(String(t || '').replace(/ZG \(cận trên trung tâm\)/g, 'cận trên vùng cân bằng').replace(/ZD \(cận dưới trung tâm\)/g, 'cận dưới vùng cân bằng').replace(/cận dưới ZD/g, 'cận dưới').replace(/cận trên ZG/g, 'cận trên')
+      .replace(/trên ZG \(điểm Mua 3\)/g, 'trên cận trên của vùng cân bằng').replace(/\bZG\b/g, 'cận trên vùng cân bằng').replace(/\bZD\b/g, 'cận dưới vùng cân bằng').replace(/trung tâm/g, 'vùng cân bằng')
+      .replace(/quy tắc "không mua dưới MA50" của Minervini/g, 'quy tắc không mua khi giá dưới đường trung bình 50 phiên').replace(/Bốn trong năm tiêu chí xu hướng của Minervini/g, 'Bốn trong năm tiêu chí xu hướng dài hạn')
+      .replace(/Minervini vẫn xác nhận/g, 'Góc nhìn dài hạn vẫn xác nhận').replace(/Minervini luôn xác nhận muộn/g, 'các đường trung bình dài luôn xác nhận muộn').replace(/theo Wyckoff/g, 'theo góc nhìn cung cầu')
+      .replace(/Wyckoff đọc cung cầu nên/g, 'góc nhìn cung cầu').replace(/Wyckoff/g, 'góc nhìn cung cầu').replace(/của Triền Luận/g, '').replace(/Triền Luận/g, 'cấu trúc giá ngắn hạn').replace(/Minervini/g, 'xu hướng dài hạn')
+      .replace(/điểm (Mua|Bán) [123]/g, function (m, a) { return a === 'Mua' ? 'điểm mua theo cấu trúc giá' : 'tín hiệu bán theo cấu trúc giá'; }).replace(/\(điểm mua theo cấu trúc giá hoặc Mua 3\)/g, '').replace(/Giai đoạn 2/g, 'giai đoạn tăng giá').replace(/Stage 2/g, 'giai đoạn tăng giá')
+      .replace(/, cắt lỗ theo mức ghi trong checklist/g, '').replace(/Góc nhìn cung cầu và cấu trúc giá ngắn hạn/g, 'Góc nhìn cung cầu và cấu trúc giá ngắn hạn').replace(/^góc nhìn/, 'Góc nhìn').replace(/\. góc nhìn/g, '. Góc nhìn'));
+  }
   var KN = { BUY: 'Mua', 'O-PF': 'Khả quan', 'M-PF': 'Phù hợp thị trường', 'U-PF': 'Kém khả quan', SELL: 'Bán' };
 
   /* ---------- bối cảnh thị trường chung (không dùng tên mùa nội bộ) ---------- */
@@ -349,6 +358,7 @@
       if (!TK) return;
       var ret = xh ? '<div class="kp"><div><small>Sức mạnh giá</small><b>' + (TK.rs != null ? n0(TK.rs) + '/99' : '—') + '</b><em>so với các cổ phiếu HOSE, 60 phiên</em></div><div><small>1 tháng</small><b style="color:' + (xh.p1t >= 0 ? GOOD : BAD) + '">' + sg(xh.p1t) + '</b><em>thay đổi giá</em></div><div><small>3 tháng</small><b style="color:' + (xh.p3t >= 0 ? GOOD : BAD) + '">' + sg(xh.p3t) + '</b><em>thay đổi giá</em></div><div><small>1 năm</small><b style="color:' + (xh.p1n >= 0 ? GOOD : BAD) + '">' + sg(xh.p1n) + '</b><em>thay đổi giá</em></div></div>' : '';
       used['Sức mạnh giá'] = 1; used['Vùng cân bằng giá'] = 1; used['Đường trung bình 50 phiên'] = 1; used['Đà giá'] = 1; if (hs.bb_duoi) used['Dải dao động 20 phiên'] = 1;
+      var KT = window.atlKtSum ? window.atlKtSum(hs) : null;
       var vt = TK.V.map(function (v) { return '<tr><td style="width:27%"><b>' + v.ten + '</b><br><span style="color:' + MUT + ';font-size:8.8px">' + v.sub + '</span></td><td style="width:17%"><span class="vd" style="background:' + ZC[v.z] + '">' + ZL[v.z] + '</span></td><td>' + esc(v.txt) + '</td></tr>'; }).join('');
       var ttT = hs.tt_diem != null ? '<table class="ql">' + TTL.map(function (l, i) { var ok = isT(hs['tt' + (i + 1)]); return '<tr><td style="width:14px" class="' + (ok ? 'ok' : 'no_') + '">' + (ok ? '✓' : '✗') + '</td><td>' + l + '</td></tr>'; }).join('') + '</table>' : '';
       var lvT = '<table class="tc"><tr><th>Mức giá</th><th>Giá (đ)</th><th>So với giá hiện tại</th></tr>' +
@@ -359,7 +369,7 @@
       var nganhT = xh ? '<p style="font-size:10.3px;margin:6px 0 0"><b>Vị thế trong ngành.</b> ' + esc(ma) + ' đứng thứ ' + xh.hang + '/' + xh.so_ma_nhom + ' về sức mạnh giá trong nhóm ' + esc(xh.nhom) + (dcd && dcd.hang ? '; nhóm này đang xếp thứ ' + dcd.hang + '/' + nNganh + ' nhóm ngành về độ mạnh' + (dcd.hang <= 5 ? ' (thuộc nhóm dẫn dắt thị trường)' : dcd.hang > nNganh - 5 ? ' (thuộc nhóm yếu của thị trường)' : '') : '') + '. Giá trị giao dịch bình quân ' + n0(xh.gtgd20) + ' tỷ đồng/phiên' + (xh.gtgd20 < 10 ? ': thanh khoản thấp, khó mua bán khối lượng lớn.' : '.') + '</p>' : '';
       pg((x ? '' : cover(c, (xh && xh.nhom) || '') + '<h1>' + esc(c.ten || ma) + ' (' + san + ': ' + esc(ma) + '): bức tranh kỹ thuật ' + TK.lab.toLowerCase() + '</h1><p class="sub">Giá đóng cửa ' + dmy(c.ngay) + ': ' + n0(P) + 'đ · ' + esc(J.why) + '</p>') +
         '<h2><span class="no">' + (x ? '03' : '01') + '</span>Phân tích kỹ thuật: ' + TK.lab.charAt(0) + TK.lab.slice(1).toLowerCase() + '</h2>' +
-        scale(TK.lv) + '<p>' + esc(TK.sum) + ' Kết luận này tổng hợp từ ba góc nhìn độc lập về diễn biến giá (bảng bên dưới) và sức mạnh giá của cổ phiếu so với thị trường; khi các góc nhìn cùng chiều thì độ tin cậy cao hơn.</p>' + ret +
+        scale(TK.lv) + '<p>' + esc(TK.sum) + (KT ? ' <b>' + esc(plainKT(KT.ten)) + '.</b> ' + esc(plainKT(KT.txt)) + ' <b>Nên ưu tiên góc nhìn ' + esc(plainKT(KT.uu)) + '</b>, vì ' + esc(plainKT(KT.vi)) + '.' : ' Kết luận này tổng hợp từ ba góc nhìn độc lập về diễn biến giá (bảng bên dưới) và sức mạnh giá của cổ phiếu so với thị trường.') + '</p>' + ret +
         chart('Diễn biến giá ' + rows.length + ' phiên gần nhất', 'đồng/cổ phiếu · ' + legend([['Trung bình 20 phiên', ACC, 1], ['Trung bình 50 phiên', '#C9A227', 1], ['Trung bình 200 phiên', RED, 1], ['Vùng cân bằng giá', '#E9DDB0']]) + ' · ' + (rows.some(function (q) { return q.gt > 0; }) ? 'giữa: giá trị giao dịch mỗi phiên và trung bình 20 phiên (cột đậm là phiên giao dịch từ 1,5 lần trung bình) · ' : '') + 'dưới cùng: đà giá (xanh là lực tăng, đỏ là lực giảm)', candles(rows, { zd: TK.zd, zg: TK.zg, tu: hs.tl_tt_tu, H: x ? 196 : 170 })) +
         '<h3>Ba góc nhìn kỹ thuật</h3><table class="tc"><tr><th>Góc nhìn</th><th>Đánh giá</th><th>Diễn giải</th></tr>' + vt + '</table>' +
         '<div class="g2" style="margin-top:4px"><div><h3>8 tiêu chí của một xu hướng tăng bền</h3>' + ttT + '</div><div><h3>Các mức giá quan trọng</h3>' + lvT + nganhT + '</div></div>', !x);
@@ -389,7 +399,7 @@
         return '<tr><td colspan="3" style="background:#F3F5F8;font-weight:700;color:' + NAVY + ';font-size:9.5px;letter-spacing:.05em;text-transform:uppercase">' + esc(g.nhom) + '</td></tr>' +
           g.rows.map(function (q) { return '<tr><td style="width:14px" class="' + (q.dat ? 'ok' : q.dat === false ? 'no_' : '') + '">' + (q.dat ? '✓' : q.dat === false ? '✗' : '?') + '</td><td>' + esc(plain(q.ten)) + '</td><td class="gt">' + esc(String(q.gt).replace(' so với ', ' so với ').replace(' cùng kỳ', ' cùng kỳ')) + '</td></tr>'; }).join('');
       }).join('');
-      var nx = (x.nhan_xet || []).slice(0, 4).map(plain);
+      var nx = (x.nhan_xet || []).slice(0, 4).map(plain), CBS = null; try { CBS = window.__cbSum ? window.__cbSum(x, window.__TT) : null; } catch (e) {}
       var finCharts = function () {
         if (!fin) return '';
         var ids = x.loai === 'ngan_hang' ? ['nim', 'npl', 'casa', 'baophu', 'cir', 'ldr'] : ['roa', 'de', 'br'], out = [], NM = { nim: 'NIM', npl: 'Nợ xấu', casa: 'CASA', cir: 'CIR', ldr: 'LDR' }, NT = { nim: 'Biên lãi ròng (NIM)', npl: 'Tỷ lệ nợ xấu', casa: 'Tiền gửi không kỳ hạn (CASA)', baophu: 'Dự phòng bao phủ nợ xấu', cir: 'Chi phí trên thu nhập (CIR)', ldr: 'Cho vay trên huy động (LDR)', roa: 'ROA (lợi nhuận trên tổng tài sản)', de: 'Nợ trên vốn chủ sở hữu', br: 'Biên lợi nhuận sau thuế' };
@@ -399,13 +409,13 @@
       if (roic) used['ROIC'] = 1;
       pg('<h2><span class="no">01</span>Kết quả kinh doanh</h2>' +
         (ssT ? ssT : FCS ? '<p class="note" style="margin:-2px 0 6px"><b>Trọng tâm khi đọc nhóm ' + esc(FCS.ten) + ':</b> ' + esc(FCS.why.replace(/: đọc trước/, ': nên xem trước')) + '</p>' : '') +
-        '<p>' + esc(nx.slice(0, 2).join(' ')) + (nx[2] && !/giá hợp lý|mô hình/.test(nx[2]) ? ' ' + esc(nx[2]) : '') + '</p>' +
+        (CBS ? '<p><b>' + esc(CBS.ten) + '.</b> ' + esc(plain(CBS.txt)) + '</p>' : '<p>' + esc(nx.slice(0, 2).join(' ')) + (nx[2] && !/giá hợp lý|mô hình/.test(nx[2]) ? ' ' + esc(nx[2]) : '') + '</p>') +
         '<div class="g2">' +
-        chart((fin ? 'Thu nhập hoạt động' : 'Doanh thu') + (dtS && dtS.yoy != null ? ' quý gần nhất ' + sg(dtS.yoy) + ' so với cùng kỳ' : ''), 'tỷ đồng', dtS ? cols(dtS.v, Q, { W: 330, H: 110, every: 2, fmt: function (v) { return v >= 10000 ? n1(v / 1000) + 'k' : n0(v); } }) : '') +
-        (marg.length ? chart(fin ? 'Biên lợi nhuận sau thuế' : 'Biên lợi nhuận gộp và biên lợi nhuận sau thuế', '% doanh thu · ' + legend([['Biên gộp (sau giá vốn)', ACC], ['Biên sau thuế', NAVY]]), lines(marg, Q, { W: 330, H: 110, dv: '%' })) : chart('Lợi nhuận 4 quý cộng dồn', 'tỷ đồng', ln4 ? cols(ln4.v, Q, { W: 330, H: 110, every: 2 }) : '')) +
+        chart((fin ? 'Thu nhập hoạt động' : 'Doanh thu') + (dtS && dtS.yoy != null ? ' quý gần nhất ' + sg(dtS.yoy) + ' so với cùng kỳ' : ''), 'tỷ đồng', dtS ? cols(dtS.v, Q, { W: 330, H: 102, every: 2, fmt: function (v) { return v >= 10000 ? n1(v / 1000) + 'k' : n0(v); } }) : '') +
+        (marg.length ? chart(fin ? 'Biên lợi nhuận sau thuế' : 'Biên lợi nhuận gộp và biên lợi nhuận sau thuế', '% doanh thu · ' + legend([['Biên gộp (sau giá vốn)', ACC], ['Biên sau thuế', NAVY]]), lines(marg, Q, { W: 330, H: 102, dv: '%' })) : chart('Lợi nhuận 4 quý cộng dồn', 'tỷ đồng', ln4 ? cols(ln4.v, Q, { W: 330, H: 102, every: 2 }) : '')) +
         '</div><div class="g2">' +
-        (cfo ? chart('Tiền thu về từ kinh doanh bằng ' + n0(cfoR) + '% lợi nhuận (4 quý cộng dồn)', 'tỷ đồng · ' + legend([['Tiền từ hoạt động kinh doanh', ACC], ['Lợi nhuận', GRAY]]), pair(cfo.v, cfo.v2, Q, { W: 330, H: 105 })) : chart('ROE 4 quý', '%', roeS ? lines([{ v: roeS.v, c: ACC }], Q, { W: 330, H: 105, dv: '%' }) : '')) +
-        (tv ? chart((netCash >= 0 ? 'Tiền mặt nhiều hơn nợ vay ' : 'Nợ vay nhiều hơn tiền mặt ') + n0(Math.abs(netCash)) + ' tỷ', 'tỷ đồng · ' + legend([['Tiền và đầu tư ngắn hạn', ACC], ['Nợ vay', GRAY]]), pair(tv.v, tv.v2, Q, { W: 330, H: 105 })) : (ser(x, 'roa') ? chart('ROA (lợi nhuận trên tổng tài sản) 4 quý', '%', lines([{ v: ser(x, 'roa').v, c: ACC }], Q, { W: 330, H: 105, dv: '%' })) : (cfo && roic ? chart('ROE và ROIC', '%', lines(prof, Q, { W: 330, H: 105, dv: '%' })) : ''))) +
+        (cfo ? chart('Tiền thu về từ kinh doanh bằng ' + n0(cfoR) + '% lợi nhuận (4 quý cộng dồn)', 'tỷ đồng · ' + legend([['Tiền từ hoạt động kinh doanh', ACC], ['Lợi nhuận', GRAY]]), pair(cfo.v, cfo.v2, Q, { W: 330, H: 98 })) : chart('ROE 4 quý', '%', roeS ? lines([{ v: roeS.v, c: ACC }], Q, { W: 330, H: 98, dv: '%' }) : '')) +
+        (tv ? chart((netCash >= 0 ? 'Tiền mặt nhiều hơn nợ vay ' : 'Nợ vay nhiều hơn tiền mặt ') + n0(Math.abs(netCash)) + ' tỷ', 'tỷ đồng · ' + legend([['Tiền và đầu tư ngắn hạn', ACC], ['Nợ vay', GRAY]]), pair(tv.v, tv.v2, Q, { W: 330, H: 98 })) : (ser(x, 'roa') ? chart('ROA (lợi nhuận trên tổng tài sản) 4 quý', '%', lines([{ v: ser(x, 'roa').v, c: ACC }], Q, { W: 330, H: 98, dv: '%' })) : (cfo && roic ? chart('ROE và ROIC', '%', lines(prof, Q, { W: 330, H: 98, dv: '%' })) : ''))) +
         '</div>' +
         (tbl4 ? '<h3>4 quý gần nhất so với cùng kỳ năm trước</h3>' + tbl4 : '') +
         '<h2 style="margin-top:12px"><span class="no">02</span>Chất lượng doanh nghiệp</h2>' +

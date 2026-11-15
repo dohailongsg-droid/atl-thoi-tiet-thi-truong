@@ -918,7 +918,7 @@
 
 
   /* ================= công cụ vẽ (đường xu hướng, tia, đường ngang, Fibonacci, hình chữ nhật, chữ, thước đo) ================= */
-  var DS = { tool: 'cursor', magnet: false }, DR_KEY = 'atl-dthi-dr', CUR = null;
+  var DS = { tool: 'cursor', magnet: false }, DR_KEY = 'atl-dthi-dr', CUR = null, HIST = {};
   function drLoad() { try { return JSON.parse(localStorage.getItem(DR_KEY) || '{}') || {}; } catch (e) { return {}; } }
   function drSave(o) { try { localStorage.setItem(DR_KEY, JSON.stringify(o)); } catch (e) {} }
   var FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1], FIBC = ['#9e9e9e', '#f23645', '#ff9800', '#4caf50', '#089981', '#00bcd4', '#9e9e9e'];
@@ -928,7 +928,9 @@
   function drawMount(env) {
     var chart = env.chart, se = env.candle, box = env.box, ts = chart.timeScale(), sym = env.sym;
     var all = drLoad(), list = (all[sym] || []).filter(function (x) { return x && x.type && x.a && typeof x.a.p === 'number'; }), pend = null, hov = null, ruler = null, sel = null, req = null;
-    function persist() { all[sym] = list; drSave(all); }
+    var HS = HIST[sym] || (HIST[sym] = { st: [], cur: JSON.stringify(list) });
+    function persist() { var j = JSON.stringify(list); if (j !== HS.cur) { HS.st.push(HS.cur); if (HS.st.length > 80) HS.st.shift(); HS.cur = j; } all[sym] = list; drSave(all); }
+    function undo() { if (pend) { pend = null; hov = null; redraw(); return true; } if (!HS.st.length) return false; var j = HS.st.pop(), arr = []; try { arr = JSON.parse(j) || []; } catch (e) {} HS.cur = j; list = arr; ruler = null; all[sym] = list; drSave(all); select(null); redraw(); return true; }
     function redraw() { if (req) req(); }
     function data() { return env.getData(); }
     function toAnchor(l, p) { var d = data(), n = d.t.length, i0 = Math.max(0, Math.min(n - 1, Math.round(l))); return { t: d.t[i0], f: +(l - i0).toFixed(3), p: p }; }
@@ -1265,13 +1267,14 @@
       if ((e.key === 'Enter' || e.key === 'Escape') && pend && pend.type === 'path' && pend.pts.length >= 2) { finishPath(); e.preventDefault(); return; }
       if (e.key === 'Escape') { if (pend || DS.tool !== 'cursor') { setTool('cursor'); } ruler = null; select(null); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { delSel(); e.preventDefault(); }
+      else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'z' || e.key === 'Z') && (window.atlTab === 'do-thi' || window.atlTab == null)) { if (undo()) e.preventDefault(); }
     }
     if (ATLCB_KEY.fn) document.removeEventListener('keydown', ATLCB_KEY.fn);
     ATLCB_KEY.fn = onKey; document.addEventListener('keydown', onKey);
     box.style.cursor = DS.tool === 'cursor' ? '' : 'crosshair';
     function vpIdx() { for (var i = 0; i < list.length; i++) if (list[i].type === 'vpvr') return i; return -1; }
     tbBuild();
-    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; ruler = null; persist(); select(null); }, count: function () { return list.length; }, redraw: redraw };
+    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; ruler = null; persist(); select(null); }, count: function () { return list.length; }, redraw: redraw, undo: undo, canUndo: function () { return !!pend || HS.st.length > 0; } };
     return CUR;
   }
   var ATLCB_KEY = { fn: null };
@@ -1293,5 +1296,5 @@
     box.addEventListener('dblclick', box._atld, true);
   }
 
-  window.ATLCB = { setWorld: function (w) { WORLD = w; }, hasWorld: function () { return !!WORLD; }, ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { toggleVP: function () { if (CUR) CUR.toggleVP(); }, vpOn: function () { return !!(CUR && CUR.vpOn()); }, mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; } }, wheelFix: wheelFix };
+  window.ATLCB = { setWorld: function (w) { WORLD = w; }, hasWorld: function () { return !!WORLD; }, ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { toggleVP: function () { if (CUR) CUR.toggleVP(); }, vpOn: function () { return !!(CUR && CUR.vpOn()); }, mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; }, undo: function () { return CUR ? CUR.undo() : false; }, canUndo: function () { return !!(CUR && CUR.canUndo()); } }, wheelFix: wheelFix };
 })();
