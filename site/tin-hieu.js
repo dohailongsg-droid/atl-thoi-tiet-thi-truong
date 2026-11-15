@@ -291,6 +291,18 @@
     buy_t: 'Supertrend đổi sang xanh (giá đóng cửa vượt dải trên)', sell_t: 'Supertrend đổi sang đỏ', src: 'Olivier Seban, mặc định TradingView 10/3',
     calc: function (D, P) { var s = ta.supertrend(D.h, D.l, D.c, P.f, P.len), n = D.c.length, cols = s.dir.map(function (d) { return d === -1 ? G : R; });
       return { buy: mk(n, function (i) { return s.dir[i] === -1 && s.dir[i - 1] === 1; }), sell: mk(n, function (i) { return s.dir[i] === 1 && s.dir[i - 1] === -1; }), plots: [['Supertrend', s.st, { color: G, width: 2, colors: cols }]] }; } });
+  def({ id: 'chand', name: 'Chandelier Exit', grp: 'Phổ biến', chart: true, pane: 'main', p: [{ k: 'n', n: 'Chandelier · số nến đỉnh/đáy', d: 22, min: 2, max: 200 }, { k: 'len', n: 'Chandelier · chu kỳ ATR', d: 22, min: 1, max: 200 }, { k: 'f', n: 'Chandelier · hệ số ATR', d: 3, min: 0.5, max: 10, step: 0.1 }],
+    buy_t: 'Giá đóng cửa vượt dải dừng lỗ phía trên (Chandelier chuyển sang MUA)', sell_t: 'Giá đóng cửa thủng dải dừng lỗ phía dưới (Chandelier chuyển sang BÁN)', src: 'Chuck LeBeau; dải dừng lỗ = đỉnh N nến − hệ số × ATR (mua), đáy N nến + hệ số × ATR (bán); mặc định TradingView 22/22/3',
+    calc: function (D, P) { var h = D.h, l = D.l, c = D.c, n = c.length, atr = ta.atr(h, l, c, P.len), hh = ta.highest(h, P.n), ll = ta.lowest(l, P.n), ls = A(n), ss = A(n), dir = A(n);
+      for (var i = 0; i < n; i++) {
+        var a = P.f * atr[i], l0 = hh[i] - a, s0 = ll[i] + a;
+        if (isna(l0) || isna(s0)) { dir[i] = i > 0 && !isna(dir[i - 1]) ? dir[i - 1] : 1; continue; }
+        var pl = i > 0 && !isna(ls[i - 1]) ? ls[i - 1] : l0, ps = i > 0 && !isna(ss[i - 1]) ? ss[i - 1] : s0, pc = i > 0 ? c[i - 1] : c[i];
+        ls[i] = pc > pl ? Math.max(l0, pl) : l0; ss[i] = pc < ps ? Math.min(s0, ps) : s0;
+        var pd = i > 0 && !isna(dir[i - 1]) ? dir[i - 1] : 1; dir[i] = c[i] > ps ? 1 : (c[i] < pl ? -1 : pd);
+      }
+      var line = dir.map(function (d, i) { return d === 1 ? ls[i] : ss[i]; }), cols = dir.map(function (d) { return d === 1 ? G : R; });
+      return { buy: mk(n, function (i) { return dir[i] === 1 && dir[i - 1] === -1; }), sell: mk(n, function (i) { return dir[i] === -1 && dir[i - 1] === 1; }), plots: [['Chandelier', line, { color: G, width: 2, colors: cols }]] }; } });
   def({ id: 'uo', name: 'Ultimate Oscillator', grp: 'Phổ biến', chart: true, pane: 'sub', p: [{ k: 'a', n: 'Ngắn', d: 7 }, { k: 'b', n: 'Vừa', d: 14 }, { k: 'c', n: 'Dài', d: 28 }],
     buy_t: 'Phân kỳ dương với đáy đầu dưới 30, rồi UO vượt đỉnh giữa hai đáy', sell_t: 'UO vượt lên trên 70', src: 'Larry Williams (1976)',
     calc: function (D, P) {
