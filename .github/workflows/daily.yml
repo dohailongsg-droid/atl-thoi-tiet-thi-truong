@@ -84,7 +84,7 @@ jobs:
           fi
           git config user.name  "atl-bot"
           git config user.email "atl-bot@users.noreply.github.com"
-          git add pipeline/state pipeline/dash_out/kiem_dinh.json
+          git add pipeline/state pipeline/dash_out/kiem_dinh.json pipeline/nn_lich_su.csv.gz
           git diff --cached --quiet || (git commit -m "Cập nhật trạng thái $(date -u +%F)" && git pull --rebase -X theirs --autostash && git push)
 
       - name: Chụp toàn bộ nội dung trang thành văn bản cho AI khác đọc (lỗi không làm đỏ cả lượt)
