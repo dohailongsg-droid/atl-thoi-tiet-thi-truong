@@ -34,6 +34,8 @@ python3 gia_hose.py || echo "gia_hose.py lỗi, bỏ qua"
 python3 hieu_suat_thang.py || echo "hieu_suat_thang.py lỗi, bỏ qua"
 # hiệu suất ngành so với VN-Index (lỗi không làm dừng pipeline)
 python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
+# lịch sử ~10 năm (2520 phiên) chỉ cho tab Đồ thị, ~3-4 phút; lỗi thì Đồ thị dùng 620 phiên của bước trên (không làm dừng pipeline)
+python3 -c "import vn_prices as vp; vp.fetch(count_back=2520, path='vn_prices_chart.csv.gz')" || echo "tải lịch sử 10 năm lỗi, Đồ thị dùng 620 phiên"
 # dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # lịch sử khối ngoại từ 2019-10 (nối thêm phiên mới) -> pipeline/nn_lich_su.csv.gz và site/data/bt_nn.json cho Backtest (lỗi không làm dừng pipeline)

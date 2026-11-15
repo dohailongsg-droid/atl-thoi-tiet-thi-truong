@@ -1,16 +1,18 @@
 """chart_data.py — Dữ liệu cho tab "Đồ thị": nến ngày từng mã HOSE + VN-Index -> ../site/data/chart/<MÃ>.json và _ds.json.
-Nguồn: vn_prices_long.csv.gz (giá Vietcap đã điều chỉnh, vừa tải trong run_all.sh). Giá mã đổi sang nghìn đồng; VNINDEX giữ điểm.
-Mỗi file ~620 phiên gần nhất, định dạng mảng song song: {"t":[ngày],"o","h","l","c","v"}. Lỗi không làm dừng pipeline."""
+Nguồn: vn_prices_chart.csv.gz (giá Vietcap đã điều chỉnh, ~10 năm, tải trong run_all.sh ngay trước bước này); nếu file đó thiếu hoặc lỗi thì dùng vn_prices_long.csv.gz (620 phiên). Giá mã đổi sang nghìn đồng; VNINDEX giữ điểm.
+Mỗi file tối đa 2520 phiên gần nhất (~10 năm), định dạng mảng song song: {"t":[ngày],"o","h","l","c","v"}. Lỗi không làm dừng pipeline."""
 import csv, json, os, sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PX = os.path.join(HERE, "vn_prices_long.csv.gz")
+PX_LONG = os.path.join(HERE, "vn_prices_long.csv.gz")
+PX_CHART = os.path.join(HERE, "vn_prices_chart.csv.gz")   # ~10 năm, chỉ dùng cho Đồ thị (các bước khác vẫn dùng 620 phiên)
+PX = PX_CHART if os.path.exists(PX_CHART) else PX_LONG
 SEC = os.path.join(HERE, "hose_sectors.csv")
 PX2 = os.path.join(HERE, "vn_prices_ngoai.csv.gz")   # mã HNX/UPCoM thanh khoản lớn (ma_ngoai.py)
 SEC2 = os.path.join(HERE, "ngoai_sectors.csv")
 OUT = os.path.join(HERE, "..", "site", "data", "chart")
-N = 620
+N = 2520
 
 
 def main():
