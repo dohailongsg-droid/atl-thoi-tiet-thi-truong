@@ -215,3 +215,8 @@
 {"ngay_ghi":"2026-11-15","ev":"dong","dm":"vnt","ma":"HHP","ngay_mua":"2026-11-04","ngay_thoat":"2026-11-06","ly_do":"Cắt lỗ −7%","lai_pct":-7.48,"phien_ban":"2026-11-v72","bo_sung":true}
 {"ngay_ghi":"2026-11-15","ev":"mo","dm":"vnt","ma":"VNM","loai":"B + BR","ngay_tin_hieu":"2026-11-06","ngay_mua":"2026-11-09","gia_mua":54.46,"ty_nav":3.35,"cat_lo":50.65,"phien_ban":"2026-11-v72","bo_sung":true}
 {"ngay_ghi":"2026-11-15","ev":"dong","dm":"vnt","ma":"VNM","ngay_mua":"2026-11-09","ngay_thoat":"2026-11-13","ly_do":"Nhãn SELL","lai_pct":-1.87,"phien_ban":"2026-11-v72","bo_sung":true}
+{"ngay_ghi":"2026-11-16","ev":"mo","dm":"atl","ma":"POW","loai":"Vé số","ngay_tin_hieu":"2026-11-13","ngay_mua":"2026-11-16","gia_mua":12.85,"ty_nav":2.98,"cat_lo":11.74,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-16","ev":"dong","dm":"dragon","ma":"VCK","ngay_mua":"2026-10-22","ngay_thoat":"2026-11-16","ly_do":"Nhãn SÚT","lai_pct":-4.01,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-16","ev":"dong","dm":"vnt","ma":"HSG","ngay_mua":"2026-10-21","ngay_thoat":"2026-11-16","ly_do":"Nhãn SELL · đã bán 50% theo TP 09/11, 10/11","lai_pct":-1.51,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-16","ev":"dong","dm":"vnt","ma":"HPG","ngay_mua":"2026-10-22","ngay_thoat":"2026-11-16","ly_do":"Nhãn SELL","lai_pct":-1.24,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-16","ev":"dong","dm":"vnt","ma":"VCK","ngay_mua":"2026-10-22","ngay_thoat":"2026-11-16","ly_do":"Nhãn SELL","lai_pct":-4.01,"phien_ban":"2026-11-v72","bo_sung":false}
