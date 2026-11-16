@@ -993,10 +993,27 @@
 
   function drawMount(env) {
     var chart = env.chart, se = env.candle, box = env.box, ts = chart.timeScale(), sym = env.sym;
-    var all = drLoad(), list = (all[sym] || []).filter(function (x) { return x && x.type && x.a && typeof x.a.p === 'number'; }), pend = null, hov = null, ruler = null, sel = null, req = null;
+    var all = drLoad(), list = vpMerge(all, sym), pend = null, hov = null, ruler = null, sel = null, req = null;
     var HS = HIST[sym] || (HIST[sym] = { st: [], cur: JSON.stringify(list) });
-    function persist() { var j = JSON.stringify(list); if (j !== HS.cur) { HS.st.push(HS.cur); if (HS.st.length > 80) HS.st.shift(); HS.cur = j; } all[sym] = list; drSave(all); }
-    function undo() { if (pend) { pend = null; hov = null; redraw(); return true; } if (!HS.st.length) return false; var j = HS.st.pop(), arr = []; try { arr = JSON.parse(j) || []; } catch (e) {} HS.cur = j; list = arr; ruler = null; all[sym] = list; drSave(all); select(null); redraw(); return true; }
+    function vpMerge(all, sym) {
+      function ok(x) { return x && x.type && x.a && typeof x.a.p === 'number'; }
+      var own = (all[sym] || []).filter(ok), gv = (all['*vp'] || []).filter(ok), seen = {};
+      gv.forEach(function (x) { seen[x.id] = 1; });
+      own.forEach(function (x) { if (x.type === 'vpfr' && !seen[x.id]) { gv.push(x); seen[x.id] = 1; } });
+      return own.filter(function (x) { return x.type !== 'vpfr'; }).concat(gv);
+    }
+    function store() { all[sym] = list.filter(function (x) { return x.type !== 'vpfr'; }); all['*vp'] = list.filter(function (x) { return x.type === 'vpfr'; }); drSave(all); }
+    function syncVP() {
+      var d = data(); if (!d || !d.t) return;
+      list.forEach(function (it) {
+        if (it.type !== 'vpfr' || !it.b) return;
+        var i0 = Math.max(0, Math.ceil(Math.min(toLogical(it.a), toLogical(it.b)))), i1 = Math.min(d.t.length - 1, Math.floor(Math.max(toLogical(it.a), toLogical(it.b)))), hi = -1e18, lo = 1e18, i;
+        for (i = i0; i <= i1; i++) { if (d.h[i] > hi) hi = d.h[i]; if (d.l[i] < lo) lo = d.l[i]; }
+        if (hi > lo) { it.a.p = hi; it.b.p = lo; }
+      });
+    }
+    function persist() { var j = JSON.stringify(list); if (j !== HS.cur) { HS.st.push(HS.cur); if (HS.st.length > 80) HS.st.shift(); HS.cur = j; } store(); }
+    function undo() { if (pend) { pend = null; hov = null; redraw(); return true; } if (!HS.st.length) return false; var j = HS.st.pop(), arr = []; try { arr = JSON.parse(j) || []; } catch (e) {} HS.cur = j; list = arr; ruler = null; store(); select(null); redraw(); return true; }
     function redraw() { if (req) req(); }
     function data() { return env.getData(); }
     function toAnchor(l, p) { var d = data(), n = d.t.length, i0 = Math.max(0, Math.min(n - 1, Math.round(l))); return { t: d.t[i0], f: +(l - i0).toFixed(3), p: p }; }
@@ -1052,11 +1069,19 @@
 
     /* ---- Volume at price: chia khối lượng từng nến theo các mức giá nó đi qua, tách nến tăng / nến giảm ---- */
     var VP_ROWS = 24;
-    function vpCompute(i0, i1) {
+    function vpS(id) {
+      var g = (env.getVP && env.getVP(id)) || {}, st = g.set || {}, y = g.sty || {};
+      function nm(k, d, mn, mx) { var v = parseFloat(st[k]); return isFinite(v) ? Math.max(mn, Math.min(mx, v)) : d; }
+      function col(n, d) { return (y[n] && y[n].color) || d; }
+      return { rows: Math.round(nm('Số hàng', VP_ROWS, 8, 100)), va: nm('Vùng giá trị (%)', 70, 10, 100), wv: nm('Chiều rộng vùng đang xem (%)', 30, 5, 60) / 100, wf: nm('Chiều rộng vùng cố định (%)', 70, 10, 100) / 100,
+        pl: st['Vị trí'] || 'Mặc định', cu: col('Khối lượng tăng', '#2962ff'), cd: col('Khối lượng giảm', '#fbc02d'), vu: col('Vùng giá trị tăng', '#2962ff'), vd: col('Vùng giá trị giảm', '#fbc02d'),
+        hu: !!(y['Khối lượng tăng'] || {}).hidden, hd: !!(y['Khối lượng giảm'] || {}).hidden, hvu: !!(y['Vùng giá trị tăng'] || {}).hidden, hvd: !!(y['Vùng giá trị giảm'] || {}).hidden, poc: y['POC'] || {} };
+    }
+    function vpCompute(i0, i1, S) {
       var d = data(), n = d.t.length; i0 = Math.max(0, Math.ceil(i0)); i1 = Math.min(n - 1, Math.floor(i1)); if (i1 < i0) return null;
       var lo = 1e18, hi = -1e18, i; for (i = i0; i <= i1; i++) { if (d.l[i] < lo) lo = d.l[i]; if (d.h[i] > hi) hi = d.h[i]; }
       if (!(hi > lo)) return null;
-      var N = VP_ROWS, st = (hi - lo) / N, up = [], dn = [], r; for (r = 0; r < N; r++) { up.push(0); dn.push(0); }
+      var VSx = S || vpS(), N = VSx.rows, st = (hi - lo) / N, up = [], dn = [], r; for (r = 0; r < N; r++) { up.push(0); dn.push(0); }
       for (i = i0; i <= i1; i++) {
         var l = d.l[i], h = d.h[i], v = d.v[i] || 0, isUp = d.c[i] >= d.o[i], tgt = isUp ? up : dn;
         if (h === l) { var rr = Math.min(N - 1, Math.max(0, Math.floor((l - lo) / st))); tgt[rr] += v; continue; }
@@ -1066,32 +1091,33 @@
       var tot = up.map(function (x, k) { return x + dn[k]; }), mx = 0, poc = 0, sum = 0;
       tot.forEach(function (x, k) { sum += x; if (x > mx) { mx = x; poc = k; } });
       var vl = poc, vh = poc, acc = tot[poc];
-      while (acc < sum * 0.7 && (vl > 0 || vh < N - 1)) {
+      while (acc < sum * VSx.va / 100 && (vl > 0 || vh < N - 1)) {
         var below = vl > 0 ? tot[vl - 1] : -1, above = vh < N - 1 ? tot[vh + 1] : -1;
         if (above >= below) { vh++; acc += tot[vh]; } else { vl--; acc += tot[vl]; }
       }
       return { lo: lo, st: st, up: up, dn: dn, tot: tot, mx: mx, poc: poc, vl: vl, vh: vh };
     }
-    function vpDraw(ctx, P, x0, dir, maxW, xEnd) {
+    function vpDraw(ctx, P, x0, dir, maxW, xEnd, S) {
       if (!P || !P.mx) return;
+      S = S || vpS();
       for (var r = 0; r < P.tot.length; r++) {
         var yT = se.priceToCoordinate(P.lo + (r + 1) * P.st), yB = se.priceToCoordinate(P.lo + r * P.st); if (yT == null || yB == null) continue;
         var inVA = r >= P.vl && r <= P.vh, hh = Math.max(1, Math.abs(yB - yT) - 1), y = Math.min(yT, yB);
         var wU = P.up[r] / P.mx * maxW, wD = P.dn[r] / P.mx * maxW;
-        ctx.fillStyle = inVA ? 'rgba(41,98,255,.62)' : 'rgba(41,98,255,.30)';
-        ctx.fillRect(dir > 0 ? x0 : x0 - wU, y, wU, hh);
-        ctx.fillStyle = inVA ? 'rgba(251,192,45,.62)' : 'rgba(251,192,45,.30)';
-        ctx.fillRect(dir > 0 ? x0 + wU : x0 - wU - wD, y, wD, hh);
+        var hideU = inVA ? S.hvu : S.hu, hideD = inVA ? S.hvd : S.hd;
+        if (!hideU) { ctx.fillStyle = rgba(inVA ? S.vu : S.cu, inVA ? 0.62 : 0.30); ctx.fillRect(dir > 0 ? x0 : x0 - wU, y, wU, hh); }
+        if (!hideD) { ctx.fillStyle = rgba(inVA ? S.vd : S.cd, inVA ? 0.62 : 0.30); ctx.fillRect(dir > 0 ? x0 + wU : x0 - wU - wD, y, wD, hh); }
       }
-      var yp = se.priceToCoordinate(P.lo + (P.poc + 0.5) * P.st);
-      if (yp != null) { ctx.strokeStyle = 'rgba(239,83,80,.9)'; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x0, yp); ctx.lineTo(xEnd, yp); ctx.stroke(); }
+      var yp = se.priceToCoordinate(P.lo + (P.poc + 0.5) * P.st), po = S.poc;
+      if (yp != null && !po.hidden) { ctx.strokeStyle = po.color || 'rgba(239,83,80,.9)'; ctx.lineWidth = po.width || 1; ctx.setLineDash(po.ls === 2 ? [6, 4] : po.ls === 1 ? [2, 3] : []); ctx.beginPath(); ctx.moveTo(x0, yp); ctx.lineTo(xEnd, yp); ctx.stroke(); ctx.setLineDash([]); }
     }
     function vpvrPaint(ctx, W) {
       var vr = ts.getVisibleLogicalRange(); if (!vr) return;
-      var P = vpCompute(vr.from, vr.to); vpDraw(ctx, P, W, -1, W * 0.3, W - W * 0.3);
+      var S = vpS('vpvr'), P = vpCompute(vr.from, vr.to, S), mw = W * S.wv;
+      if (S.pl === 'Bên trái') vpDraw(ctx, P, 0, 1, mw, W, S); else vpDraw(ctx, P, W, -1, mw, W - mw, S);
     }
     /* ---- vẽ ---- */
-    function paint(sc) {
+    function paint(sc) { syncVP();
       var ctx = sc.context, W = sc.mediaSize.width, H = sc.mediaSize.height, fg = env.fg || '#ddd';
       ctx.lineJoin = 'round'; ctx.lineCap = 'round';
       function dot(p) { ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2962ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 6.3); ctx.fill(); ctx.stroke(); }
@@ -1167,8 +1193,8 @@
           }
           else if (it.type === 'ray') { var dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, k = (W + 400) * 4; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x + dx / L * k, A.y + dy / L * k); ctx.stroke(); }
           else if (it.type === 'vpfr') {
-            var P = vpCompute(Math.min(toLogical(it.a), toLogical(it.b)), Math.max(toLogical(it.a), toLogical(it.b))), vx1 = Math.min(A.x, B.x), vx2 = Math.max(A.x, B.x);
-            vpDraw(ctx, P, vx1, 1, (vx2 - vx1) * 0.7, vx2);
+            var VS = vpS(it.id), P = vpCompute(Math.min(toLogical(it.a), toLogical(it.b)), Math.max(toLogical(it.a), toLogical(it.b)), VS), vx1 = Math.min(A.x, B.x), vx2 = Math.max(A.x, B.x);
+            var vw = (vx2 - vx1) * VS.wf; if (VS.pl === 'Bên phải') vpDraw(ctx, P, vx2, -1, vw, vx1, VS); else vpDraw(ctx, P, vx1, 1, vw, vx2, VS);
             if (P) { var yT = se.priceToCoordinate(P.lo + P.st * P.up.length), yB = se.priceToCoordinate(P.lo); if (yT != null && yB != null) { ctx.strokeStyle = on || ghost ? 'rgba(180,180,180,.8)' : 'rgba(150,150,150,.35)'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.strokeRect(vx1, yT, vx2 - vx1, yB - yT); ctx.setLineDash([]); } }
           }
           else if (it.type === 'range') rulerPaint(ctx, it);
@@ -1340,7 +1366,7 @@
     box.style.cursor = DS.tool === 'cursor' ? '' : 'crosshair';
     function vpIdx() { for (var i = 0; i < list.length; i++) if (list[i].type === 'vpvr') return i; return -1; }
     tbBuild();
-    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, setTool: setTool, clearAll: function () { list = []; ruler = null; persist(); select(null); }, count: function () { return list.length; }, redraw: redraw, undo: undo, canUndo: function () { return !!pend || HS.st.length > 0; } };
+    CUR = { toggleVP: function () { var i = vpIdx(); if (i >= 0) list.splice(i, 1); else { var d = data(); list.push({ id: 'vpvr', type: 'vpvr', a: { t: d.t[0], f: 0, p: 1 } }); } persist(); redraw(); }, vpOn: function () { return vpIdx() >= 0; }, vpItems: function () { return list.filter(function (it) { return it.type === 'vpvr' || it.type === 'vpfr'; }).map(function (it) { return { id: it.id, type: it.type }; }); }, delVP: function (id) { var i = -1; list.forEach(function (it, k) { if (it.id === id) i = k; }); if (i >= 0) { list.splice(i, 1); persist(); select(null); redraw(); } }, hasVP: function () { return list.some(function (it) { return it.type === 'vpvr' || it.type === 'vpfr'; }); }, clearVP: function () { list = list.filter(function (it) { return it.type !== 'vpvr' && it.type !== 'vpfr'; }); persist(); select(null); redraw(); }, setTool: setTool, clearAll: function () { list = []; ruler = null; persist(); select(null); }, count: function () { return list.length; }, redraw: redraw, undo: undo, canUndo: function () { return !!pend || HS.st.length > 0; } };
     return CUR;
   }
   var ATLCB_KEY = { fn: null };
@@ -1362,5 +1388,5 @@
     box.addEventListener('dblclick', box._atld, true);
   }
 
-  window.ATLCB = { setWorld: function (w) { WORLD = w; }, hasWorld: function () { return !!WORLD; }, ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { toggleVP: function () { if (CUR) CUR.toggleVP(); }, vpOn: function () { return !!(CUR && CUR.vpOn()); }, mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; }, undo: function () { return CUR ? CUR.undo() : false; }, canUndo: function () { return !!(CUR && CUR.canUndo()); } }, wheelFix: wheelFix };
+  window.ATLCB = { setWorld: function (w) { WORLD = w; }, hasWorld: function () { return !!WORLD; }, ta: ta, presets: PRESETS, template: TEMPLATE, meta: meta, compile: compile, exec: exec, mount: mount, makeCtx: makeCtx, draw: { toggleVP: function () { if (CUR) CUR.toggleVP(); }, vpOn: function () { return !!(CUR && CUR.vpOn()); }, hasVP: function () { return !!(CUR && CUR.hasVP()); }, vpItems: function () { return CUR ? CUR.vpItems() : []; }, delVP: function (id) { if (CUR) CUR.delVP(id); }, clearVP: function () { if (CUR) CUR.clearVP(); }, mount: drawMount, state: DS, tool: function (t) { if (CUR) CUR.setTool(t); else DS.tool = t; }, clearAll: function () { if (CUR) CUR.clearAll(); }, count: function () { return CUR ? CUR.count() : 0; }, undo: function () { return CUR ? CUR.undo() : false; }, canUndo: function () { return !!(CUR && CUR.canUndo()); } }, wheelFix: wheelFix };
 })();
