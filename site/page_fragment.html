@@ -2510,6 +2510,27 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .dgdb-p{font-size:.88rem;line-height:1.45}
 .dgdb-kl{margin:.9rem 0 .2rem;font-size:.95rem;line-height:1.55}
 .dgdb-dt{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+#card-dgdb{--dg-vin:#d29a5c}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) #card-dgdb{--dg-vin:#a8601f}}
+:root[data-theme="light"] #card-dgdb{--dg-vin:#a8601f}
+.dgdb-s{font-size:.85rem;color:var(--color-fg-muted);margin-top:-.15rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.dgdb-s i{display:inline-block;width:14px;height:0;border-top:2px solid var(--dg-vin);vertical-align:middle}
+.dgdb-lc{position:relative;width:100%;touch-action:pan-y;min-height:128px}
+.dgdb-c .dgdb-lc svg{height:auto;display:block;width:100%}
+.dgdb-ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dgdb-ln.m{stroke:var(--color-fg)}.dgdb-ln.v{stroke:var(--dg-vin)}
+.dgdb-ln.a{stroke:var(--color-fg-muted);stroke-width:1.4}.dgdb-ln.d{stroke:var(--color-fg-muted);stroke-width:1.4;stroke-dasharray:4 3}
+.dgdb-dot.m{fill:var(--color-fg)}.dgdb-dot.v{fill:var(--dg-vin)}.dgdb-dot.a,.dgdb-dot.d{fill:var(--color-fg-muted)}
+.dgdb-lb{font-size:11px;font-variant-numeric:tabular-nums}
+.dgdb-lb.m{fill:var(--color-fg)}.dgdb-lb.v{fill:var(--dg-vin)}.dgdb-lb.a,.dgdb-lb.d{fill:var(--color-fg-muted)}
+.dgdb-ax{font-size:10px;fill:var(--color-fg-muted)}
+.dgdb-zr{stroke:var(--cds-chart-grid);stroke-width:1}
+.dgdb-cur{stroke:var(--color-fg-muted);stroke-width:1;stroke-dasharray:2 2}
+.dgdb-tip{position:absolute;top:0;z-index:2;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:6px;box-shadow:var(--cds-shadow-popover);padding:6px 8px;font-size:12px;line-height:1.45;white-space:nowrap}
+.dgdb-tip .t{color:var(--color-fg-muted);margin-bottom:2px}
+.dgdb-tip b{font-weight:700;font-variant-numeric:tabular-nums}
+.dgdb-tip i{display:inline-block;width:14px;height:0;border-top:2px solid var(--color-fg);vertical-align:middle;margin-right:5px}
+.dgdb-tip i.v{border-color:var(--dg-vin)}.dgdb-tip i.a{border-color:var(--color-fg-muted)}.dgdb-tip i.d{border-color:var(--color-fg-muted);border-top-style:dashed}
         </style>
         <details class="mua-fold" id="mua-f3" open>
           <summary><span class="atl-h">Định giá &amp; đòn bẩy thị trường</span><span class="mua-gist" id="dgdb-gist"></span><span class="mua-tog"></span></summary>
@@ -2531,6 +2552,72 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var pl = document.createElementNS(ns, 'polyline'); pl.setAttribute('points', pts.join(' ')); pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', color || 'currentColor'); pl.setAttribute('stroke-width', '1.8'); pl.setAttribute('vector-effect', 'non-scaling-stroke'); s.appendChild(pl);
     var l = pts[pts.length - 1].split(','), c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', l[0]); c.setAttribute('cy', l[1]); c.setAttribute('r', '3'); c.setAttribute('fill', color || 'currentColor'); s.appendChild(c);
     return s;
+  }
+  function sg(v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + vn(Math.abs(v), 0) + '%'; }
+  function qlb(q) { return String(q || '').replace(/^Q(\d)\/(\d\d)$/, 'quý $1/20$2'); }
+  function lastv(a) { for (var i = a.length - 1; i >= 0; i--) if (a[i] != null) return a[i]; return null; }
+  var NS = 'http://www.w3.org/2000/svg';
+  function se(t, at) { var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); return e; }
+  // biểu đồ đường nhiều đường: nhãn + số ở đầu phải, rê chuột / chạm để xem số từng quý
+  function lineChart(o) {
+    var box = mk('div', 'dgdb-lc'), tip = mk('div', 'dgdb-tip'); tip.hidden = true;
+    var n = o.labels.length, padR = o.padR || 80, H = o.h || 122;
+    function draw() {
+      var W = box.clientWidth; if (W < 140) return;
+      var old = box.querySelector('svg'); if (old) box.removeChild(old);
+      var padL = 4, padT = 8, padB = 16, pw = W - padL - padR, ph = H - padT - padB, all = [];
+      o.series.forEach(function (s) { s.vals.forEach(function (v) { if (v != null) all.push(v); }); });
+      if (!all.length) return;
+      var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+      if (o.zero) { mn = Math.min(mn, 0); mx = Math.max(mx, 0); }
+      var pad = ((mx - mn) || 1) * 0.08; mn -= pad; mx += pad;
+      function X(i) { return padL + (n > 1 ? i / (n - 1) : 0) * pw; }
+      function Y(v) { return padT + (1 - (v - mn) / (mx - mn)) * ph; }
+      var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', 'aria-label': o.aria || '' });
+      if (o.zero) svg.appendChild(se('line', { x1: padL, x2: padL + pw, y1: Y(0), y2: Y(0), 'class': 'dgdb-zr' }));
+      var labs = [];
+      o.series.forEach(function (s) {
+        var d = '', pen = false, li = -1;
+        s.vals.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; li = i; });
+        if (li < 0) return;
+        svg.appendChild(se('path', { d: d, 'class': 'dgdb-ln ' + s.c }));
+        svg.appendChild(se('circle', { cx: X(li), cy: Y(s.vals[li]), r: 3, 'class': 'dgdb-dot ' + s.c }));
+        labs.push({ y: Y(s.vals[li]), s: s, v: s.vals[li] });
+      });
+      labs.sort(function (a, b) { return a.y - b.y; });       // tránh nhãn đè nhau
+      var gap = 12.5, top = padT + 4, bot = padT + ph + 2;
+      labs.forEach(function (l, i) { l.ly = Math.max(l.y, i ? labs[i - 1].ly + gap : top); });
+      for (var i = labs.length - 1; i >= 0; i--) { if (labs[i].ly > bot - (labs.length - 1 - i) * gap) labs[i].ly = bot - (labs.length - 1 - i) * gap; }
+      labs.forEach(function (l) {
+        var t = se('text', { x: padL + pw + 7, y: l.ly + 4, 'class': 'dgdb-lb ' + l.s.c });
+        t.textContent = l.s.n + ' ' + o.fmt(l.v); svg.appendChild(t);
+      });
+      var a1 = se('text', { x: padL, y: H - 3, 'class': 'dgdb-ax' }); a1.textContent = o.labels[0]; svg.appendChild(a1);
+      var a2 = se('text', { x: padL + pw, y: H - 3, 'class': 'dgdb-ax', 'text-anchor': 'end' }); a2.textContent = o.labels[n - 1]; svg.appendChild(a2);
+      var cur = se('line', { y1: padT, y2: padT + ph, 'class': 'dgdb-cur' }); cur.style.display = 'none'; svg.appendChild(cur);
+      var hit = se('rect', { x: 0, y: 0, width: padL + pw + 4, height: H, fill: 'transparent' }); svg.appendChild(hit);
+      function show(ev) {
+        var r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * (W / r.width);
+        var i = Math.max(0, Math.min(n - 1, Math.round((x - padL) / pw * (n - 1))));
+        tip.textContent = ''; tip.appendChild(mk('div', 't', o.labels[i]));
+        o.series.slice().reverse().forEach(function (s) {
+          var v = s.vals[i], row = mk('div'), sw = mk('i', s.c); row.appendChild(sw);
+          row.appendChild(document.createTextNode(s.full + ': ')); row.appendChild(mk('b', null, v == null ? '—' : o.fmt(v))); tip.appendChild(row);
+        });
+        tip.hidden = false; cur.style.display = ''; cur.setAttribute('x1', X(i)); cur.setAttribute('x2', X(i));
+        var tw = tip.offsetWidth, px = X(i) + 12; if (px + tw > W) px = X(i) - tw - 12; tip.style.left = Math.max(0, px) + 'px';
+      }
+      function hide() { tip.hidden = true; cur.style.display = 'none'; }
+      hit.addEventListener('pointermove', show);
+      hit.addEventListener('pointerdown', show);
+      hit.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hide(); });
+      box.insertBefore(svg, tip);
+    }
+    box.appendChild(tip);
+    if (window.ResizeObserver) new ResizeObserver(draw).observe(box); else window.addEventListener('resize', draw);
+    document.addEventListener('pointerdown', function (e) { if (!box.contains(e.target)) { tip.hidden = true; var c = box.querySelector('.dgdb-cur'); if (c) c.style.display = 'none'; } });
+    box.redraw = draw; setTimeout(draw, 0);
+    return box;
   }
   function lvl(pctBelow) { return pctBelow <= 25 ? 'rẻ' : pctBelow >= 75 ? 'đắt' : 'trung bình'; }
   function vi(pctBelow) { return pctBelow < 50 ? 'Rẻ hơn ' + (100 - pctBelow) + '% số phiên từ 2021' : 'Đắt hơn ' + pctBelow + '% số phiên từ 2021'; }
@@ -2557,11 +2644,51 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       c.appendChild(mk('div', 'dgdb-p', 'Bằng ' + vn(last.ty_le, 0) + '% vốn chủ của nhóm ' + last.n + ' công ty (cao nhất ' + q.length + ' quý: ' + vn(mxq.ty_le, 0) + '%, ' + mxq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + '). Mức ' + lv + ' so với ' + q.length + ' quý gần nhất.'));
       g.appendChild(c); parts.push('cho vay của công ty chứng khoán ở mức ' + lv); gist.push('cho vay ' + vn(last.cho_vay_ty / 1000, 0) + ' nghìn tỷ');
     }
+    var dt = d.dong_tien, dtOk = dt && dt.pcf && dt.cfo_ln && dt.tang_truong;
+    var dtNote = '';
+    if (dtOk) {
+      function cell(title, big, unit, sub, subVin, chart, text) {
+        var c = mk('div', 'dgdb-c'); c.appendChild(mk('div', 'dgdb-t', title));
+        var n = mk('div', 'dgdb-n', big); n.appendChild(mk('small', null, unit)); c.appendChild(n);
+        var sb = mk('div', 'dgdb-s'); if (subVin) sb.appendChild(mk('i')); sb.appendChild(document.createTextNode(sub)); c.appendChild(sb);
+        c.appendChild(chart); c.appendChild(mk('div', 'dgdb-p', text)); g.appendChild(c);
+      }
+      var nay = dt.nay || {}, nP = nay.pcf || {}, nE = nay.pe || {}, ql = dt.quy[dt.quy.length - 1];
+      // ô 4: P/CF
+      var pb = dt.pcf.bo_vin.slice(), pa = dt.pcf.phi_tc.slice(), lb = dt.quy.slice();
+      if (nP.bo_vin != null && nP.phi_tc != null) { pb.push(nP.bo_vin); pa.push(nP.phi_tc); lb.push('Nay ' + dm(nay.ngay)); }
+      var pbv = lastv(pb), pav = lastv(pa), pe0 = nE.bo_vin, t1 = 'Vốn hoá chia dòng tiền kinh doanh 4 quý của doanh nghiệp phi tài chính: ' + vn(pbv, 1) + ' lần khi bỏ nhóm Vin, ' + vn(pav, 1) + ' lần khi tính cả Vin. ';
+      if (pe0 != null) t1 += pbv > pe0 * 1.05 ? 'Cao hơn P/E cùng nhóm (' + vn(pe0, 1) + ' lần): tiền thu về ít hơn lợi nhuận trên sổ sách.' : pbv < pe0 * 0.95 ? 'Thấp hơn P/E cùng nhóm (' + vn(pe0, 1) + ' lần): tiền thu về nhiều hơn lợi nhuận trên sổ sách.' : 'Xấp xỉ P/E cùng nhóm (' + vn(pe0, 1) + ' lần): tiền thu về tương xứng lợi nhuận.';
+      cell('P/CF thị trường · phi tài chính', vn(pbv, 1), 'lần · bỏ Vin · ' + (nay.ngay ? dm(nay.ngay) : qlb(ql)), 'Gồm Vin: ' + vn(pav, 1) + ' lần', true,
+        lineChart({ labels: lb, fmt: function (v) { return vn(v, 1); }, aria: 'P/CF thị trường phi tài chính theo quý', series: [
+          { c: 'v', n: 'Có Vin', full: 'Phi tài chính (gồm Vin)', vals: pa }, { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: pb }] }), t1);
+      // ô 5: dòng tiền kinh doanh / lợi nhuận
+      var cb2 = dt.cfo_ln.bo_vin, ca2 = dt.cfo_ln.phi_tc, cbv = lastv(cb2), cav = lastv(ca2), c4 = cb2.length > 4 ? cb2[cb2.length - 5] : null;
+      var t2 = 'Cứ 100 đồng lợi nhuận 4 quý, doanh nghiệp phi tài chính (bỏ Vin) thu về ' + vn(cbv, 0) + ' đồng tiền kinh doanh' + (c4 != null ? ' (4 quý trước: ' + vn(c4, 0) + ')' : '') + '. ' +
+        (cbv >= 100 ? 'Lợi nhuận đang chuyển thành tiền đầy đủ.' : cbv >= 80 ? 'Lợi nhuận chuyển thành tiền gần đủ.' : 'Lợi nhuận chưa chuyển hết thành tiền (ATL chấm đạt từ 80%).') +
+        ' Tính cả Vin là ' + vn(cav, 0) + ' đồng, vì Vin nhận tiền khách đặt cọc mua nhà trước khi ghi nhận lợi nhuận.';
+      cell('Dòng tiền kinh doanh / lợi nhuận', vn(cbv, 0), '% · bỏ Vin · ' + qlb(ql), 'Gồm Vin: ' + vn(cav, 0) + '%', true,
+        lineChart({ labels: dt.quy, fmt: function (v) { return vn(v, 0) + '%'; }, aria: 'Dòng tiền kinh doanh so với lợi nhuận 4 quý, phi tài chính', series: [
+          { c: 'v', n: 'Có Vin', full: 'Phi tài chính (gồm Vin)', vals: ca2 }, { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: cb2 }] }), t2);
+      // ô 6: tăng trưởng lợi nhuận
+      var tt = dt.tang_truong, tc = dt.tap_trung, tb = lastv(tt.bo_vin), tm = lastv(tt.trung_vi), tq = tt.quy[tt.quy.length - 1];
+      var t3 = 'Lợi nhuận 4 quý của phi tài chính bỏ Vin tăng ' + sg(tb) + ' so với cùng kỳ' + (tm != null ? ', nhưng doanh nghiệp điển hình (trung vị) ' + (tm >= 0 ? 'chỉ tăng ' + sg(tm) : 'giảm ' + sg(tm)) : '') + '.';
+      if (tc) t3 += ' ' + vn(tc.ty_le_ma_tang, 0) + '% số mã có lợi nhuận tăng; 10 mã tăng nhiều nhất' + (tc.top10 && tc.top10.length ? ' (' + tc.top10.slice(0, 3).join(', ') + '…)' : '') + (tc.top10_ty_trong != null ? ' chiếm ' + vn(tc.top10_ty_trong, 0) + '% phần tăng ròng.' : '.');
+      cell('Tăng trưởng lợi nhuận 4 quý', sg(tb), '· bỏ Vin · ' + qlb(tq), 'Gồm Vin: ' + sg(lastv(tt.phi_tc)) + ' · Toàn thị trường: ' + sg(lastv(tt.tong)), false,
+        lineChart({ labels: tt.quy, fmt: sg, zero: true, padR: 96, aria: 'Tăng trưởng lợi nhuận 4 quý so với cùng kỳ', series: [
+          { c: 'a', n: 'Tổng', full: 'Toàn thị trường (gồm tài chính)', vals: tt.tong }, { c: 'v', n: 'Phi TC', full: 'Phi tài chính (gồm Vin)', vals: tt.phi_tc },
+          { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: tt.bo_vin }, { c: 'd', n: 'Điển hình', full: 'Doanh nghiệp điển hình (trung vị)', vals: tt.trung_vi }] }), t3);
+      parts.push('dòng tiền kinh doanh bằng ' + vn(cbv, 0) + '% lợi nhuận (bỏ Vin)');
+      parts.push(tm != null && tb > 0 && tm < tb * 0.5 ? 'lợi nhuận tăng tập trung (bỏ Vin ' + sg(tb) + ', doanh nghiệp điển hình ' + sg(tm) + ')' : 'lợi nhuận tăng ' + sg(tb) + ' (bỏ Vin)');
+      gist.push('dòng tiền = ' + vn(cbv, 0) + '% lợi nhuận');
+      dtNote = ' Dòng tiền và tăng trưởng lợi nhuận cộng từ BCTC quý của ' + dt.n_ma + ' doanh nghiệp phi tài chính trong Hồ sơ mã (HOSE và một số mã HNX/UPCoM lớn), công bố trễ khoảng 45 ngày; phần dòng tiền không gồm ngân hàng, chứng khoán, bảo hiểm (dòng tiền của họ không phản ánh chất lượng kinh doanh), riêng đường "Tổng" của tăng trưởng có gồm. Nhóm Vin = VIC, VHM, VRE, VPL; dòng tiền của Vin gồm cả tiền khách đặt cọc mua nhà. P/CF = vốn hoá / dòng tiền kinh doanh 4 quý, chỉ gồm mã có lãi 4 quý; điểm "Nay" dùng giá mới nhất. Doanh nghiệp điển hình = trung vị mức tăng của các mã phi tài chính bỏ Vin có lợi nhuận cùng kỳ năm trước dương.';
+    }
     var kl = 'Hiện tại: ' + parts.join('; ') + '. Định giá rẻ không có nghĩa là đã đáy: mùa của nhiệt kế vẫn quyết định tỷ trọng, còn P/E, P/B và đòn bẩy chỉ cho biết thị trường đắt hay rẻ và mức đòn bẩy rủi ro đến đâu.';
     document.getElementById('dgdb-kl').textContent = kl;
     document.getElementById('dgdb-gist').textContent = gist.join(' · ');
     var nt = 'P/E, P/B theo Vietcap (chuỗi từ 01/2021 đến ' + dmy(d.pe ? d.pe.ngay : d.cap_nhat) + '); cách tính khác FireAnt/TradingView nên số có thể lệch vài phần trăm. ';
     if (cv) nt += 'Cho vay của công ty chứng khoán là khoản "Các khoản cho vay" (gồm margin và ứng trước tiền bán) cộng từ BCTC ' + cv.quy[cv.quy.length - 1].n + ' công ty chứng khoán niêm yết, theo quý, công bố trễ khoảng 4 tuần; đây KHÔNG phải tổng margin toàn thị trường (số tổng chính thức không có nguồn miễn phí). Dữ liệu cập nhật ' + dmy(d.cap_nhat) + '.';
+    nt += dtNote;
     document.getElementById('dgdb-nt').textContent = nt;
     card.hidden = false;
     var e = document.getElementById('mua-f3'); if (e && !e.dataset.b) { e.dataset.b = '1';
