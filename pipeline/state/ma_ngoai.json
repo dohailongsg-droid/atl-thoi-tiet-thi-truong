@@ -1,38 +1,38 @@
 {
-"ngay": "2026-11-16",
+"ngay": "2026-11-17",
 "nguong": 5.0,
 "ma": {
 "AAS": {
 "san": "UPCOM",
-"tb20": 15.0
+"tb20": 11.7
 },
 "ABB": {
 "san": "UPCOM",
-"tb20": 10.8
+"tb20": 10.5
 },
 "ACV": {
 "san": "UPCOM",
-"tb20": 29.5
+"tb20": 30.0
 },
 "BVS": {
 "san": "HNX",
-"tb20": 19.3
+"tb20": 19.5
 },
 "CEO": {
 "san": "HNX",
-"tb20": 101.7
+"tb20": 102.6
 },
 "DDV": {
 "san": "UPCOM",
-"tb20": 10.3
+"tb20": 9.6
 },
 "DRI": {
 "san": "UPCOM",
-"tb20": 15.0
+"tb20": 15.3
 },
 "F88": {
 "san": "UPCOM",
-"tb20": 9.7
+"tb20": 9.3
 },
 "HNG": {
 "san": "UPCOM",
@@ -40,111 +40,111 @@
 },
 "HUT": {
 "san": "HNX",
-"tb20": 26.1
+"tb20": 27.6
 },
 "IDC": {
 "san": "HNX",
-"tb20": 30.7
+"tb20": 29.5
 },
 "KSF": {
 "san": "HNX",
-"tb20": 6.1
+"tb20": 6.0
 },
 "KSV": {
 "san": "HNX",
-"tb20": 5.1
+"tb20": 5.0
 },
 "MBS": {
 "san": "HNX",
-"tb20": 57.8
+"tb20": 58.1
 },
 "MSR": {
 "san": "UPCOM",
-"tb20": 105.9
+"tb20": 112.6
 },
 "MST": {
 "san": "HNX",
-"tb20": 9.3
+"tb20": 9.4
 },
 "NTP": {
 "san": "HNX",
-"tb20": 8.6
+"tb20": 9.0
 },
 "NVB": {
 "san": "HNX",
-"tb20": 16.4
+"tb20": 17.3
 },
 "OIL": {
 "san": "UPCOM",
-"tb20": 18.5
+"tb20": 19.2
 },
 "PHP": {
 "san": "UPCOM",
-"tb20": 22.5
+"tb20": 22.3
 },
 "PLC": {
 "san": "HNX",
-"tb20": 5.9
+"tb20": 5.5
 },
 "PVC": {
 "san": "HNX",
-"tb20": 4.9
+"tb20": 5.0
 },
 "PVS": {
 "san": "HNX",
-"tb20": 67.4
+"tb20": 69.8
 },
 "QNS": {
 "san": "UPCOM",
-"tb20": 6.0
+"tb20": 6.1
 },
 "SHS": {
 "san": "HNX",
-"tb20": 153.2
+"tb20": 151.6
 },
 "TIG": {
 "san": "HNX",
-"tb20": 11.3
+"tb20": 11.6
 },
 "TNG": {
 "san": "HNX",
-"tb20": 18.8
+"tb20": 17.7
 },
 "TOS": {
 "san": "UPCOM",
-"tb20": 6.9
+"tb20": 6.8
 },
 "TVN": {
 "san": "UPCOM",
-"tb20": 9.2
+"tb20": 8.4
 },
 "VC3": {
 "san": "HNX",
-"tb20": 43.3
+"tb20": 41.9
 },
 "VCP": {
 "san": "UPCOM",
-"tb20": 7.7
+"tb20": 8.4
 },
 "VEA": {
 "san": "UPCOM",
-"tb20": 23.0
+"tb20": 22.6
 },
 "VFS": {
 "san": "HNX",
-"tb20": 5.4
+"tb20": 5.9
 },
 "VGI": {
 "san": "UPCOM",
-"tb20": 10.2
+"tb20": 10.6
 },
 "VGS": {
 "san": "HNX",
-"tb20": 9.9
+"tb20": 9.6
 },
 "VGT": {
 "san": "UPCOM",
-"tb20": 6.2
+"tb20": 6.0
 },
 "VTZ": {
 "san": "HNX",
