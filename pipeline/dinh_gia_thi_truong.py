@@ -103,13 +103,19 @@ def main():
     cv = ctck_quarters()
     if cv:
         out["cho_vay"] = cv
+    # dòng tiền + tăng trưởng lợi nhuận toàn thị trường (cộng lại từ site/data/cb; lỗi thì giữ số lượt trước)
+    try:
+        import dong_tien_thi_truong
+        out["dong_tien"] = dong_tien_thi_truong.build()
+    except Exception as e:
+        print("dong_tien_thi_truong lỗi, giữ số lượt trước:", e)
     if "pe" not in out and "cho_vay" not in out:
         print("dinh_gia_thi_truong: không lấy được dữ liệu, giữ file cũ")
         return
     # thiếu một phần thì giữ phần cũ của lượt trước cho phần thiếu
     try:
         old = json.load(open(OUT, encoding="utf8"))
-        for k in ("pe", "pb", "cho_vay"):
+        for k in ("pe", "pb", "cho_vay", "dong_tien"):
             if k not in out and k in old:
                 out[k] = old[k]
     except Exception:
