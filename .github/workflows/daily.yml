@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,7 +58,7 @@ jobs:
       - name: Dữ liệu cơ bản toàn HOSE (Vietcap IQ, lỗi không làm dừng cả lượt)
         if: github.event_name != 'push' && github.event.schedule != '35 4 * * 1-5' && github.event.schedule != '16 2 * * 1-5'
         continue-on-error: true
-        timeout-minutes: 25
+        timeout-minutes: 15
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
       - name: Dòng tiền và tăng trưởng lợi nhuận thị trường (cần site/data/cb nên chạy sau bước trên; lỗi không làm dừng cả lượt)
