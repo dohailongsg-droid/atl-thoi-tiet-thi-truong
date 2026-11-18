@@ -12,10 +12,17 @@ DS = os.path.join(HERE, "..", "site", "data", "chart", "_ds.json")
 COUNT = 600
 T0 = time.time()
 LIMIT = 12 * 60
+OK = [0]
+BAD = [0]
+
+
+def _hong():
+    # nguồn hỏng: 40 mã đầu đều lỗi thì bỏ qua phần còn lại, khỏi chờ hết 12 phút
+    return OK[0] == 0 and BAD[0] >= 40
 
 
 def one(sym):
-    if time.time() - T0 > LIMIT:
+    if time.time() - T0 > LIMIT or _hong():
         return sym, None
     for a in range(3):
         try:
@@ -37,9 +44,11 @@ def one(sym):
             for key in "ohlc":
                 d[key] = [round(float(x) / k, 2) for x in it[key]]
             d["v"] = [int(float(x)) for x in it["v"]]
+            OK[0] += 1
             return sym, d
         except Exception:
             time.sleep(1 + a)
+    BAD[0] += 1
     return sym, None
 
 

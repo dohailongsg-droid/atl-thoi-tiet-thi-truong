@@ -24,18 +24,24 @@ HDR = {"User-Agent": "Mozilla/5.0", "Referer": "https://trading.vietcap.com.vn/"
 N = 620
 T0 = time.time()
 LIMIT = 8 * 60
+OK = [0]
+BAD = [0]
 
 
 def get(url, tries=3):
     for k in range(tries):
-        if time.time() - T0 > LIMIT:
+        # nguồn hỏng: 40 yêu cầu đầu đều lỗi thì dừng, khỏi chờ hết 8 phút
+        if time.time() - T0 > LIMIT or (OK[0] == 0 and BAD[0] >= 40):
             return None
         try:
             req = urllib.request.Request(url, headers=HDR)
             with urllib.request.urlopen(req, timeout=40) as r:
-                return json.loads(r.read().decode("utf-8")).get("data")
+                res = json.loads(r.read().decode("utf-8")).get("data")
+            OK[0] += 1
+            return res
         except Exception:
             time.sleep(1.5 * (k + 1))
+    BAD[0] += 1
     return None
 
 

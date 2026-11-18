@@ -110,6 +110,10 @@ def main():
             save(d)
         print("nn_lich_su: %d/%d mã (%.0fs, lỗi %d)" % (min(i + CH, len(todo)), len(todo), time.time() - t0, fail), flush=True)
         time.sleep(0.3)
+        # nguồn hỏng: 50 mã đầu đều lỗi, hoặc chạy quá 8 phút thì dừng sớm, giữ dữ liệu cũ (tránh kéo lượt chạy quá 40 phút)
+        if (done == 0 and fail >= 50) or time.time() - t0 > 8 * 60:
+            print("nn_lich_su: nguồn lỗi hoặc quá 8 phút, dừng sớm, giữ dữ liệu cũ", flush=True)
+            break
     save(d)
     # ghi cho Backtest
     try:
