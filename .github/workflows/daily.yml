@@ -66,6 +66,10 @@ jobs:
         timeout-minutes: 25
         run: python3 pipeline/co_ban_v2.py --all --workers 6
 
+      - name: Dòng tiền và tăng trưởng lợi nhuận thị trường (cần site/data/cb nên chạy sau bước trên; lỗi không làm dừng cả lượt)
+        continue-on-error: true
+        run: python3 pipeline/dong_tien_thi_truong.py --ghi
+
       - name: Cảnh báo Telegram (sau phiên báo đổi vùng và MUA mới, trong phiên chỉ báo lệnh đang giữ chạm điểm thoát)
         if: github.event_name != 'push'
         continue-on-error: true
