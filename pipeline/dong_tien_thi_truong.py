@@ -168,6 +168,28 @@ def build(cb_dir=CB):
             "n_ma": len(nonfin), "vin": sorted(VIN)}
 
 
+def ghi():
+    """Chạy trong workflow SAU bước khôi phục/cập nhật site/data/cb: ghép kết quả vào site/data/dinh_gia_thi_truong.json.
+    (Bước pipeline/run_all.sh chạy trước khi có site/data/cb nên không tính được ở đó.) Lỗi thì để nguyên file."""
+    out = os.path.join(HERE, "..", "site", "data", "dinh_gia_thi_truong.json")
+    if not os.path.exists(out):
+        print("Chưa có", out, "- bỏ qua")
+        return
+    try:
+        r = build()
+    except Exception as e:
+        print("dong_tien_thi_truong lỗi, giữ file như cũ:", e)
+        return
+    d = json.load(open(out, encoding="utf8"))
+    d["dong_tien"] = r
+    json.dump(d, open(out, "w", encoding="utf8"), ensure_ascii=False, separators=(",", ":"))
+    print("Đã ghi dong_tien:", r["quy"][-1], "P/CF bỏ Vin", r["nay"]["pcf"].get("bo_vin"),
+          "CFO/LN bỏ Vin", r["cfo_ln"]["bo_vin"][-1], "tăng LN bỏ Vin", r["tang_truong"]["bo_vin"][-1])
+
+
 if __name__ == "__main__":
-    r = build(sys.argv[1] if len(sys.argv) > 1 else CB)
-    print(json.dumps(r, ensure_ascii=False, indent=1))
+    if "--ghi" in sys.argv:
+        ghi()
+    else:
+        r = build(sys.argv[1] if len(sys.argv) > 1 else CB)
+        print(json.dumps(r, ensure_ascii=False, indent=1))
