@@ -1711,6 +1711,74 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
       </div>
       </div>
+<style id="non-css">
+#card-hs-non,#card-hs-th{--non-c:#7f9cc2}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) #card-hs-non{--non-c:#4a6d9c}}
+:root[data-theme="light"] #card-hs-non{--non-c:#4a6d9c}
+.non-warn{border:1px solid var(--color-warn);border-radius:6px;padding:.5rem .7rem;font-size:.85rem;line-height:1.5;background:rgba(224,176,74,.10)}
+.non-ch{position:relative;width:100%;touch-action:pan-y;min-height:200px;margin:.2rem 0 .4rem}
+.non-ch svg{display:block;width:100%;height:auto}
+.non-b80{fill:var(--non-c);opacity:.16}.non-b50{fill:var(--non-c);opacity:.34}
+.non-mid{fill:none;stroke:var(--color-fg-muted);stroke-width:1.2;stroke-dasharray:4 3}
+.non-px{fill:none;stroke:var(--color-fg);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.non-up{stroke:var(--color-ok);stroke-width:1.3;stroke-dasharray:2 3}.non-dn{stroke:var(--color-bad);stroke-width:1.3;stroke-dasharray:2 3}
+.non-lb{font-size:11px;font-variant-numeric:tabular-nums}.non-lb.ok{fill:var(--color-ok)}.non-lb.bad{fill:var(--color-bad)}
+.non-ax{font-size:10px;fill:var(--color-fg-muted)}
+.non-gr{stroke:var(--cds-chart-grid);stroke-width:1}
+.non-td{stroke:var(--color-fg-muted);stroke-width:1}.non-dot{fill:var(--color-fg)}
+.non-cur{stroke:var(--color-fg-muted);stroke-width:1;stroke-dasharray:2 2}
+.non-tip{z-index:20;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:6px;box-shadow:var(--cds-shadow-popover);padding:6px 8px;font-size:12px;line-height:1.5;white-space:nowrap;color:var(--color-fg)}
+.non-ctip{position:absolute}
+.non-tip .t{color:var(--color-fg-muted);margin-bottom:2px}.non-tip b{font-variant-numeric:tabular-nums}
+.non-bar-t{margin:.9rem 0 .4rem;font-size:.9rem;font-weight:600}
+.non-bar{display:flex;gap:2px;height:30px;border-radius:6px;overflow:hidden}
+.non-bar>div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--color-bg);white-space:nowrap;overflow:hidden;min-width:3px;cursor:default}
+.non-bar>.u{background:var(--color-ok)}.non-bar>.g{background:var(--cds-chart-muted)}.non-bar>.d{background:var(--color-bad)}
+.non-bar-l{display:flex;flex-wrap:wrap;gap:.3rem 1rem;margin-top:.4rem;font-size:.8rem;color:var(--color-fg-muted)}
+.non-lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:baseline}
+.non-lg.u i{background:var(--color-ok)}.non-lg.g i{background:var(--cds-chart-muted)}.non-lg.d i{background:var(--color-bad)}
+.non-bar-t2{margin:.35rem 0 0;font-size:.85rem;color:var(--color-fg-muted)}
+.non-qh{margin:1rem 0 0;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-fg-muted)}.non-qh span{font-weight:400;text-transform:none;letter-spacing:0}
+.non-q{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cds-gap-md);margin-top:.5rem}
+@media (max-width:760px){.non-q{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.non-qt{border:1px solid var(--color-border-line);border-radius:8px;padding:.6rem .75rem;display:flex;flex-direction:column;gap:.2rem}
+.non-qt .k{font-size:.75rem;color:var(--color-fg-muted)}
+.non-qt .v{font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}.non-qt .v.ok{color:var(--color-ok)}.non-qt .v.bad{color:var(--color-bad)}
+.non-qt .s{font-size:.78rem;line-height:1.4;color:var(--color-fg-muted)}
+.th-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px}
+@media (max-width:760px){.th-2{grid-template-columns:minmax(0,1fr);gap:1.2rem 0}}
+.th-h,.th-r{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:10px}
+.th-h{font-size:.75rem;color:var(--color-fg-muted);padding-bottom:.35rem}.th-h span:first-child{font-weight:600;color:var(--color-fg)}
+.th-r{padding:.55rem 0;border-top:1px solid var(--color-border-line);font-size:.85rem;line-height:1.4}
+.th-r small{display:block;font-size:.75rem;color:var(--color-fg-muted)}
+.th-r.l b{font-weight:700}.th-r.r{color:var(--color-fg-muted)}.th-r.r b{font-weight:500;color:var(--color-fg)}
+.th-bd{display:inline-block;font-size:.7rem;padding:1px 6px;border-radius:9px;border:1px solid var(--color-border-line);color:var(--color-fg-muted);font-weight:500;cursor:default;white-space:nowrap}
+.th-bd.bad{border-color:var(--color-bad);color:var(--color-bad)}.th-bd.ok{border-color:var(--color-ok);color:var(--color-ok)}
+.th-none{padding:.55rem 0;border-top:1px solid var(--color-border-line);font-size:.85rem;color:var(--color-fg-muted)}
+.th-more{margin-top:.2rem;background:none;border:0;color:var(--color-fg-muted);font-size:.8rem;cursor:pointer;padding:.3rem 0;text-decoration:underline}
+</style>
+<div class="atl-card atl-wide" id="card-hs-non" hidden>
+  <h2 class="atl-h" style="font-size:1.35rem;text-transform:none;letter-spacing:.01em;font-weight:700">Quant · Định lượng <span style="font-weight:400;font-size:.7em;opacity:.8">Quantitative</span></h2>
+  <p class="atl-note" id="non-sub">—</p>
+  <p class="atl-note" id="non-none" hidden>Mã mới niêm yết hoặc chưa đủ 1 năm dữ liệu giá để tính hình nón.</p>
+  <div id="non-body">
+    <div class="non-warn" id="non-warn" hidden></div>
+    <div class="non-ch" id="non-ch"></div>
+    <div class="non-bar-t">Nếu mua hôm nay, trong 20 phiên tới điều gì xảy ra trước?</div>
+    <div class="non-bar" id="non-bar"></div>
+    <div class="non-bar-l" id="non-bar-l"></div>
+    <p class="non-bar-t2" id="non-bar-t2"></p>
+    <p class="non-qh">Giá có thể đi đâu trong 20 phiên tới</p>
+    <div class="non-q" id="non-q"></div>
+    <p class="dg-note" id="non-foot" style="margin-top:var(--cds-gap-md)"></p>
+  </div>
+</div>
+<div class="atl-card atl-wide" id="card-hs-th" hidden>
+  <h2 class="atl-h">Tín hiệu kỹ thuật <small class="atl-note" id="th-sea" style="font-weight:400"></small></h2>
+  <p class="atl-note">Chỉ báo nào đang cho tín hiệu MUA mà chưa có tín hiệu bán. Nhãn "thắng x%" là tỷ lệ lệnh có lãi của chính chỉ báo đó trong mùa hiện tại, giai đoạn 7/2023–nay.</p>
+  <div id="th-box"></div>
+  <p class="dg-note" style="margin-top:var(--cds-gap-md)">Mua giá đóng cửa phiên sau tín hiệu, bán theo luật của chỉ báo hoặc cắt lỗ −7%, phí 0,3%, T+2, GTGD ≥ 10 tỷ. Bên "Bật trước đó" giá đã chạy một đoạn nên thống kê chỉ để tham khảo. Thứ hạng chỉ báo trong quá khứ không giữ được ở kiểm định walk-forward; tỷ trọng vẫn theo mùa thị trường. <span id="th-late"></span></p>
+</div>
       <div class="atl-card atl-wide" id="card-hs-dg" hidden>
           <h2 class="atl-h">Định giá doanh nghiệp</h2>
           <div id="dg-val"></div>
@@ -1736,6 +1804,217 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     </div>
     <p class="atl-note">Ba góc nhìn về cùng một cổ phiếu: Minervini hỏi "xu hướng tăng đã được xác nhận chưa?", Wyckoff hỏi "dòng tiền lớn đang tích luỹ hay phân phối?", Triền Luận hỏi "giá đang ở đâu trong cấu trúc của nó?". Điểm mua của hệ thống vẫn chỉ lấy từ bộ lọc Bollinger + RS > 80 theo vùng nhiệt kế; ba checklist chỉ để đọc cổ phiếu. Đồng hồ trong mỗi thẻ chỉ mô tả trạng thái cấu trúc giá theo logic riêng của từng trường phái (Xu hướng giảm · Đi ngang · Chớm tăng · Xu hướng tăng · Tăng suy yếu), không phải lời khuyên mua bán hay tín hiệu của hệ thống; ba đồng hồ có thể chỉ về các hướng khác nhau.</p>
   </section>
+<script>
+(function(){
+  'use strict';
+  function $(i){return document.getElementById(i);}
+/* NON-CORE-BEGIN — tính hình nón, thanh 3 kết cục và 4 chỉ số định lượng (dùng chung cho thẻ trang và báo cáo PDF) */
+  /* Đầu vào: J = data/chart/<MÃ>.json (t,o,h,l,c,v; giá nghìn đồng), VNI = data/chart/VNINDEX.json. Chỉ dùng nến ngày đã đóng. */
+  function nonQ(sorted, f) { var p = f * (sorted.length - 1), lo = Math.floor(p), hi = Math.ceil(p); return sorted[lo] + (sorted[hi] - sorted[lo]) * (p - lo); }
+  function nonWilson(k, n) { if (!n) return [0, 0]; var z = 1.96, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), s = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [Math.max(0, (c - s) / d) * 100, Math.min(1, (c + s) / d) * 100]; }
+  function nonRound100(a) {              // làm tròn để tổng đúng 100 (phần dư lớn nhất)
+    var f = a.map(function (x) { return Math.floor(x); }), rem = 100 - f.reduce(function (s, x) { return s + x; }, 0);
+    a.map(function (x, i) { return [x - Math.floor(x), i]; }).sort(function (p, q) { return q[0] - p[0]; }).slice(0, rem).forEach(function (q) { f[q[1]]++; });
+    return f;
+  }
+  function atlNon(J, VNI) {
+    if (!J || !J.c || J.c.length < 260) return null;
+    var n = J.c.length, c = J.c, hh = J.h, ll = J.l, t = J.t, P0 = c[n - 1], i, j, k, h;
+    var r = new Array(n); r[0] = 0; for (i = 1; i < n; i++) r[i] = Math.log(c[i] / c[i - 1]);
+    var W = Math.min(500, n - 21), lam = 0.97, v = 0, m0 = 0;
+    for (i = 1; i <= 60; i++) m0 += r[i] * r[i]; v = m0 / 60;
+    var sg = new Array(n); sg[0] = Math.sqrt(v);
+    for (i = 1; i < n; i++) { v = lam * v + (1 - lam) * r[i] * r[i]; sg[i] = Math.sqrt(v); }
+    var sNow = sg[n - 1], mu = 0, sW; for (i = n - W; i < n; i++) mu += r[i]; mu /= W;
+    var vv = 0; for (i = n - W; i < n; i++) vv += (r[i] - mu) * (r[i] - mu); sW = Math.sqrt(vv / W);
+    var kk = Math.max(0.6, Math.min(2.5, sNow / sW));
+    /* hình nón 1..20 phiên: phân vị của biến động h phiên trong W phiên gần nhất, nhân hệ số co giãn kk quanh trung vị */
+    var cone = [];
+    for (h = 1; h <= 20; h++) {
+      var s = []; for (j = n - 1 - W; j <= n - 1 - h; j++) s.push(Math.log(c[j + h] / c[j])); s.sort(function (a, b) { return a - b; });
+      var q10 = nonQ(s, .1), q25 = nonQ(s, .25), q50 = nonQ(s, .5), q75 = nonQ(s, .75), q90 = nonQ(s, .9);
+      function pz(q) { return P0 * Math.exp(q50 + (q - q50) * kk); }
+      cone.push({ lo80: pz(q10), lo50: pz(q25), mid: P0 * Math.exp(q50), hi50: pz(q75), hi80: pz(q90) });
+    }
+    /* thanh 3 kết cục: chạm +7% trước / lình xình / chạm −7% trước trong 20 phiên (giá cao/thấp trong phiên, từ T+2; cùng phiên chạm cả hai tính cắt lỗ) */
+    var nUp = 0, nDn = 0, nNg = 0, sNg = 0, N = 0;
+    for (j = n - 1 - W; j <= n - 21; j++) {
+      var E = c[j], res = 0; N++;
+      for (k = j + 2; k <= j + 20; k++) { var u = hh[k] >= E * 1.07, d = ll[k] <= E * 0.93; if (d) { res = -1; break; } if (u) { res = 1; break; } }
+      if (res > 0) nUp++; else if (res < 0) nDn++; else { nNg++; sNg += (c[j + 20] / E - 1) * 100; }
+    }
+    var pr = nonRound100([nUp / N * 100, nNg / N * 100, nDn / N * 100]), meanNg = nNg ? sNg / nNg : 0;
+    var ev = (nUp * 7 - nDn * 7 + sNg) / N - 0.3;
+    /* VaR / CVaR 95% 5 phiên */
+    var r5 = []; for (j = n - 1 - W; j <= n - 6; j++) r5.push((c[j + 5] / c[j] - 1) * 100); r5.sort(function (a, b) { return a - b; });
+    var var5 = nonQ(r5, .05), tail = r5.filter(function (x) { return x <= var5 + 1e-12; }), cvar5 = tail.reduce(function (s2, x) { return s2 + x; }, 0) / tail.length;
+    /* biến động năm hoá và phân vị so với chính mã */
+    var below = 0; for (i = n - W; i < n; i++) if (sg[i] < sNow) below++;
+    var volPct = below / W * 100, volYear = sNow * Math.sqrt(250) * 100;
+    /* beta với VN-Index (250 phiên gần nhất, ghép theo ngày) */
+    var beta = null, nb = 0;
+    if (VNI && VNI.t && VNI.c) {
+      var vm = {}; VNI.t.forEach(function (d2, q) { vm[d2] = VNI.c[q]; });
+      var xs = [], ys = [];
+      for (i = n - 1; i >= 1 && xs.length < 250; i--) { var a = vm[t[i]], b = vm[t[i - 1]]; if (a > 0 && b > 0) { xs.push(Math.log(a / b)); ys.push(r[i]); } }
+      nb = xs.length;
+      if (nb >= 120) { var mx = 0, my = 0; for (i = 0; i < nb; i++) { mx += xs[i]; my += ys[i]; } mx /= nb; my /= nb; var cv = 0, vx = 0; for (i = 0; i < nb; i++) { cv += (xs[i] - mx) * (ys[i] - my); vx += (xs[i] - mx) * (xs[i] - mx); } beta = vx > 0 ? cv / vx : null; }
+    }
+    var p60 = Math.max(0, n - 60);
+    return { n: n, W: W, P0: P0, ngay: t[n - 1], k: kk, sigNow: sNow, cone: cone, hist: { t: t.slice(p60), c: c.slice(p60) },
+      up7: P0 * 1.07, dn7: P0 * 0.93, N: N, cnt: [nUp, nNg, nDn], p: pr, meanNg: meanNg,
+      ci: [nonWilson(nUp, N), nonWilson(nNg, N), nonWilson(nDn, N)], ev: ev, var5: var5, cvar5: cvar5, volYear: volYear, volPct: volPct, beta: beta, nBeta: nb };
+  }
+  window.atlNon = atlNon;
+/* NON-CORE-END */
+/* NON-UI-BEGIN — hai thẻ trong Hồ sơ mã: "Giá có thể đi đâu trong 20 phiên tới" và "Tín hiệu kỹ thuật" */
+  var NS = 'http://www.w3.org/2000/svg';
+  function se(t, at, txt) { var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; }
+  function nf(x, d) { return (+x).toFixed(d).replace('.', ','); }
+  function sgn(x, d) { return (x > 0.0005 ? '+' : x < -0.0005 ? '−' : '') + nf(Math.abs(x), d); }
+  function fp(v) { return nf(v, v >= 10 ? 1 : 2); }
+  function dm(s) { return s ? s.slice(8, 10) + '/' + s.slice(5, 7) : ''; }
+  var NAME = { st: 'Supertrend', drg: 'Dragon Code', ichi: 'Ichimoku', vnt: 'VN Timing', ma200: 'MA 200', mcdx: 'MCDX', atr: 'ATR bứt phá', kc: 'Keltner', rsi: 'RSI 30/70', bb: 'ATL: Bollinger + RS > 80', dgr: 'Định giá rẻ', gtgd: 'GTGD đột biến', vp: 'Volume Profile', gmma: 'GMMA', chand: 'Chandelier' };
+  var SEA = { '1': 'Nghỉ đông', '2': 'Giáp hạt · Đầu xuân', '3': 'Ra hoa', '4': 'Đầu hạ trở lên' };
+  window.atlNonNames = NAME; window.atlNonSeasons = SEA;
+  var _j = {};
+  function getJ(u) { if (!_j[u]) _j[u] = fetch(u, { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); return _j[u]; }
+  /* gói dữ liệu dùng chung cho thẻ trên trang và báo cáo PDF */
+  window.atlNonBundle = function (ma) {
+    return Promise.all([getJ('data/chart/' + encodeURIComponent(ma) + '.json'), getJ('data/chart/VNINDEX.json'), getJ('data/ho_so_tin_hieu.json')]).then(function (z) {
+      var R = null; try { R = window.atlNon(z[0], z[1]); } catch (e) { R = null; }
+      var TJ = z[2] && z[2].ma ? z[2] : null, rows = TJ && TJ.ma[ma] ? TJ.ma[ma] : null, bao = false, vung = null;
+      try { var B = dash.data('che_do_bao'); bao = !!(B && B.status === 'ok' && B.data[0] && (B.data[0].bao_bat === true || B.data[0].bao_bat === 'true')); var N = dash.data('nhiet_ke'); if (N && N.status === 'ok' && N.data.length) vung = Math.round(+N.data[N.data.length - 1].vung); } catch (e) {}
+      return { ma: ma, non: R, tj: TJ, rows: rows, mua: TJ ? TJ.mua_nay : null, bao: bao, vung: vung, dong: vung === 1 };
+    });
+  };
+  /* gợi ý nổi dùng chung (rê chuột trên máy tính, chạm trên điện thoại) */
+  var tipEl = null, tipFor = null;
+  function tipInit() { if (tipEl) return; tipEl = document.createElement('div'); tipEl.className = 'non-tip'; tipEl.style.position = 'fixed'; tipEl.hidden = true; document.body.appendChild(tipEl);
+    document.addEventListener('pointerdown', function (e) { if (tipFor && !tipFor.contains(e.target)) hideTip(); }); window.addEventListener('scroll', hideTip, true); }
+  function showTip(el, html) { tipInit(); tipEl.innerHTML = html; tipEl.hidden = false; tipFor = el; var r = el.getBoundingClientRect(), w = tipEl.offsetWidth; var x = Math.max(8, Math.min(innerWidth - w - 8, r.left)); tipEl.style.left = x + 'px'; tipEl.style.top = Math.min(innerHeight - tipEl.offsetHeight - 8, r.bottom + 6) + 'px'; }
+  function hideTip() { if (tipEl) tipEl.hidden = true; tipFor = null; }
+  function tipOn(el, fn) {
+    el.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') showTip(el, fn()); });
+    el.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hideTip(); });
+    el.addEventListener('click', function (e) { e.stopPropagation(); if (tipEl && !tipEl.hidden && tipFor === el) hideTip(); else showTip(el, fn()); });
+  }
+
+  /* ---------- thẻ A ---------- */
+  var CUR = null;
+  function drawChart(R) {
+    var box = $('non-ch'); if (!box) return; var W = box.clientWidth; if (W < 200) return;
+    var old = box.querySelector('svg'); if (old) box.removeChild(old);
+    var tip = box.querySelector('.non-ctip'); if (!tip) { tip = document.createElement('div'); tip.className = 'non-tip non-ctip'; tip.hidden = true; box.appendChild(tip); }
+    var mob = W < 520, H = mob ? 210 : 260, padL = 36, padR = mob ? 66 : 80, padT = 20, padB = 20, pw = W - padL - padR, ph = H - padT - padB, hw = pw * 0.65, cw = pw * 0.35, x0 = padL + hw;
+    var hc = R.hist.c, nh = hc.length, cone = R.cone, all = hc.concat([R.up7, R.dn7]); cone.forEach(function (q) { all.push(q.lo80, q.hi80); });
+    var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all), pad = (mx - mn) * 0.06; mn -= pad; mx += pad;
+    function Xh(i) { return padL + i / (nh - 1) * hw; } function Xc(h) { return x0 + h / 20 * cw; } function Y(v) { return padT + (1 - (v - mn) / (mx - mn)) * ph; }
+    var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', 'aria-label': 'Hình nón biên độ giá 20 phiên tới' });
+    for (var g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * (g + 0.5) / 4; svg.appendChild(se('line', { x1: padL, x2: padL + pw, y1: Y(gv), y2: Y(gv), 'class': 'non-gr' })); svg.appendChild(se('text', { x: padL - 5, y: Y(gv) + 3.5, 'class': 'non-ax', 'text-anchor': 'end' }, fp(gv))); }
+    function poly(lo, hi, cls) { var p = [x0 + ',' + Y(R.P0)], h; for (h = 1; h <= 20; h++) p.push(Xc(h).toFixed(1) + ',' + Y(cone[h - 1][hi]).toFixed(1)); for (h = 20; h >= 1; h--) p.push(Xc(h).toFixed(1) + ',' + Y(cone[h - 1][lo]).toFixed(1)); svg.appendChild(se('polygon', { points: p.join(' '), 'class': cls })); }
+    poly('lo80', 'hi80', 'non-b80'); poly('lo50', 'hi50', 'non-b50');
+    var md = 'M' + x0 + ' ' + Y(R.P0).toFixed(1); for (var h2 = 1; h2 <= 20; h2++) md += 'L' + Xc(h2).toFixed(1) + ' ' + Y(cone[h2 - 1].mid).toFixed(1);
+    svg.appendChild(se('path', { d: md, 'class': 'non-mid' }));
+    svg.appendChild(se('line', { x1: x0, x2: x0 + cw, y1: Y(R.up7), y2: Y(R.up7), 'class': 'non-up' })); svg.appendChild(se('line', { x1: x0, x2: x0 + cw, y1: Y(R.dn7), y2: Y(R.dn7), 'class': 'non-dn' }));
+    svg.appendChild(se('text', { x: x0 + cw + 6, y: Y(R.up7) + 4, 'class': 'non-lb ok' }, '+7% ' + fp(R.up7))); svg.appendChild(se('text', { x: x0 + cw + 6, y: Y(R.dn7) + 4, 'class': 'non-lb bad' }, '−7% ' + fp(R.dn7)));
+    var pd = ''; hc.forEach(function (v, i) { pd += (i ? 'L' : 'M') + Xh(i).toFixed(1) + ' ' + Y(v).toFixed(1); }); svg.appendChild(se('path', { d: pd, 'class': 'non-px' }));
+    svg.appendChild(se('line', { x1: x0, x2: x0, y1: padT - 4, y2: padT + ph, 'class': 'non-td' })); svg.appendChild(se('circle', { cx: x0, cy: Y(R.P0), r: 3.2, 'class': 'non-dot' }));
+    svg.appendChild(se('text', { x: x0 - 4, y: padT - 7, 'class': 'non-ax', 'text-anchor': 'end' }, 'Hôm nay ' + dm(R.ngay)));
+    svg.appendChild(se('text', { x: padL, y: H - 4, 'class': 'non-ax' }, dm(R.hist.t[0]))); (cw < 140 ? [[10, '+10']] : [[5, '+5'], [10, '+10']]).forEach(function (q) { svg.appendChild(se('text', { x: Xc(q[0]), y: H - 4, 'class': 'non-ax', 'text-anchor': 'middle' }, q[1])); }); svg.appendChild(se('text', { x: Xc(20), y: H - 4, 'class': 'non-ax', 'text-anchor': 'end' }, cw < 140 ? '+20' : '+20 phiên'));
+    var cur = se('line', { y1: padT, y2: padT + ph, 'class': 'non-cur' }); cur.style.display = 'none'; svg.appendChild(cur);
+    var hit = se('rect', { x: padL, y: 0, width: pw, height: H, fill: 'transparent' }); svg.appendChild(hit);
+    function show(ev) {
+      var rc = svg.getBoundingClientRect(), x = (ev.clientX - rc.left) * (W / rc.width), html, cx;
+      if (x <= x0) { var i = Math.max(0, Math.min(nh - 1, Math.round((x - padL) / hw * (nh - 1)))), s = R.hist.t[i]; cx = Xh(i); html = '<div class="t">' + s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) + '</div>Giá đóng cửa: <b>' + fp(hc[i]) + '</b>'; }
+      else { var h3 = Math.max(1, Math.min(20, Math.round((x - x0) / cw * 20))), q = cone[h3 - 1]; cx = Xc(h3);
+        html = '<div class="t">Sau ' + h3 + ' phiên</div>80% số lần: <b>' + fp(q.lo80) + '–' + fp(q.hi80) + '</b><br>50% số lần: <b>' + fp(q.lo50) + '–' + fp(q.hi50) + '</b><br>Mức giữa: <b>' + fp(q.mid) + '</b>'; }
+      tip.innerHTML = html; tip.hidden = false; cur.style.display = ''; cur.setAttribute('x1', cx); cur.setAttribute('x2', cx);
+      var tw = tip.offsetWidth, px = cx + 12; if (px + tw > W) px = cx - tw - 12; tip.style.left = Math.max(0, px) + 'px'; tip.style.top = '4px';
+    }
+    function hide() { tip.hidden = true; cur.style.display = 'none'; }
+    hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show); hit.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hide(); });
+    box.insertBefore(svg, tip);
+  }
+  function drawBar(R) {
+    var bar = $('non-bar'), lg = $('non-bar-l'); bar.replaceChildren(); lg.replaceChildren(); var W = bar.clientWidth || 600;
+    var T = [['u', 'Chạm +7% trước', R.p[0], R.ci[0], R.cnt[0]], ['g', 'Lình xình', R.p[1], R.ci[1], R.cnt[1]], ['d', 'Chạm −7% trước', R.p[2], R.ci[2], R.cnt[2]]];
+    T.forEach(function (q) {
+      var d = document.createElement('div'); d.className = q[0]; d.style.flex = String(Math.max(q[2], 0.5)) + ' 1 0'; var inside = W * q[2] / 100 >= 130; d.textContent = inside ? q[1] + ' ' + q[2] + '%' : (W * q[2] / 100 >= 34 ? q[2] + '%' : '');
+      tipOn(d, function () { return '<b>' + q[1] + ': ' + q[2] + '%</b><br>Khoảng tin cậy 95%: ' + nf(q[3][0], 0) + '–' + nf(q[3][1], 0) + '%<br>' + R.N + ' lần mua thử trong 2 năm qua'; });
+      bar.appendChild(d);
+      var l = document.createElement('span'); l.className = 'non-lg ' + q[0]; l.appendChild(document.createElement('i')); l.appendChild(document.createTextNode(q[1] + ' ' + q[2] + '%')); lg.appendChild(l);
+    });
+  }
+  function drawQuant(R) {
+    var q = $('non-q'); q.replaceChildren();
+    function tile(k, v, s, cls) { var t = document.createElement('div'); t.className = 'non-qt'; var a = document.createElement('span'); a.className = 'k'; a.textContent = k; var b = document.createElement('span'); b.className = 'v ' + (cls || ''); b.textContent = v; var c = document.createElement('span'); c.className = 's'; c.textContent = s; t.append(a, b, c); q.appendChild(t); }
+    tile('Kỳ vọng mỗi lệnh', sgn(R.ev, 1) + '%', 'Bình quân một lệnh mua hôm nay, chốt +7% / cắt −7% / tối đa 20 phiên, đã trừ phí.', R.ev > 0 ? 'ok' : R.ev < 0 ? 'bad' : '');
+    tile('Rủi ro 5 phiên (VaR 95%)', sgn(R.var5, 1) + '%', '5% số lần xấu nhất giảm hơn mức này; trung bình nhóm xấu ' + sgn(R.cvar5, 1) + '%.');
+    tile('Biến động năm', nf(R.volYear, 0) + '%', R.volPct >= 50 ? 'Cao hơn ' + nf(R.volPct, 0) + '% thời gian 2 năm qua.' : 'Thấp hơn ' + nf(100 - R.volPct, 0) + '% thời gian 2 năm qua.');
+    tile('Beta với VN-Index', R.beta == null ? '—' : nf(R.beta, 1), R.beta == null ? 'Chưa đủ dữ liệu để tính.' : R.beta < 0.3 ? 'Ít đi theo VN-Index.' : 'VN-Index giảm 10% thì mã thường giảm khoảng ' + nf(R.beta * 10, 0) + '%.');
+  }
+  function drawA(B) {
+    var card = $('card-hs-non'); if (!card) return; var R = B.non;
+    if (!R) { card.hidden = false; $('non-body').hidden = true; $('non-none').hidden = false; $('non-sub').textContent = ''; return; }
+    card.hidden = false; $('non-body').hidden = false; $('non-none').hidden = true;
+    $('non-sub').textContent = 'Tính từ biên độ 2 năm của ' + B.ma + ', co giãn theo biến động gần đây. Vùng đậm: 50% số lần giá nằm trong; vùng nhạt: 80%. Giá tính bằng nghìn đồng. Không phải dự báo hướng đi.';
+    var w = $('non-warn'); if (B.bao || B.dong) { w.hidden = false; w.textContent = 'Thị trường đang ' + (B.bao ? 'trong chế độ bão' : 'ở mùa Nghỉ đông') + ': vùng thực tế có thể rộng hơn. Năm 2022 giá thủng đáy vùng 80% khoảng 1/4 số lần.'; } else w.hidden = true;
+    drawChart(R); drawBar(R); drawQuant(R);
+    var c5 = R.cone[4]; $('non-bar-t2').textContent = 'Sau 5 phiên giá thường nằm trong ' + fp(c5.lo80) + '–' + fp(c5.hi80) + ' (80% số lần).';
+    $('non-foot').textContent = 'Kiểm định 404 mã HOSE 2021–11/2026: vùng 80% chứa giá thật 78% số lần (sau 5 phiên) và 76% (sau 20 phiên); năm 2022 chỉ 73% và 67%. Hình nón nằm ngang vì không tìm thấy chỉ báo, mùa hay mô hình máy học nào dự báo hướng đi ổn định. Thanh 3 kết cục và Kỳ vọng tính từ chính 2 năm gần nhất của mã: mã đã tăng mạnh thường cho kỳ vọng dương, không có nghĩa sẽ lặp lại. Chạm mốc tính theo giá cao/thấp trong phiên, từ T+2. Biên độ HOSE ±7%. Tham khảo, không phải khuyến nghị đầu tư.';
+  }
+
+  /* ---------- thẻ B ---------- */
+  var OPEN = { l: false, r: false };
+  function thStat(TJ, id, mua) {
+    var s = TJ.thong_ke && TJ.thong_ke[id]; if (!s) return null; var B = s.B || {}, q = B[mua];
+    if (q && q[0] >= 30) return { q: q, all: false };
+    var t = B.tat_ca; if (t && t[0] >= 30) return { q: t, all: true }; return null;
+  }
+  function badge(TJ, id, mua) {
+    var st = thStat(TJ, id, mua); if (!st) return null; var w = st.q[1], b = document.createElement('span');
+    b.className = 'th-bd ' + (w < 45 ? 'bad' : w > 55 ? 'ok' : ''); b.textContent = 'thắng ' + nf(w, 0) + '%' + (st.all ? ' · mọi mùa' : ''); b.tabIndex = 0;
+    tipOn(b, function () { var S = TJ.thong_ke[id], se2 = st.all ? 'tat_ca' : mua; function f(p) { var q = S[p] && S[p][se2]; return q && q[0] ? 'thắng ' + nf(q[1], 0) + '% · lãi TB ' + sgn(q[2], 1) + '%/lệnh (' + q[0] + ' lệnh)' : 'chưa đủ lệnh'; }
+      return '<div class="t">' + (st.all ? 'Mọi mùa' : 'Mùa ' + SEA[mua]) + '</div>2020–6/2023: ' + f('A') + '<br>7/2023–nay: ' + f('B'); });
+    return b;
+  }
+  function sideEl(key, title, list, TJ, mua) {
+    var s = document.createElement('div'); s.className = 'th-side'; var h = document.createElement('div'); h.className = 'th-h'; h.innerHTML = '<span></span><span></span>'; h.children[0].textContent = title; h.children[1].textContent = 'Bán khi'; s.appendChild(h);
+    if (!list.length) { var e = document.createElement('div'); e.className = 'th-none'; e.textContent = 'Không có'; s.appendChild(e); return s; }
+    var show = list, more = 0; if (list.length > 5 && !OPEN[key]) { show = list.slice(0, 4); more = list.length - 4; }
+    show.forEach(function (r) {
+      var row = document.createElement('div'); row.className = 'th-r ' + key; var a = document.createElement('div'), b = document.createElement('div');
+      var nm = document.createElement('b'); nm.textContent = NAME[r[0]] || r[0]; a.appendChild(nm); var bd = badge(TJ, r[0], mua); if (bd) { a.appendChild(document.createTextNode(' ')); a.appendChild(bd); }
+      var sm = document.createElement('small'); sm.textContent = 'bật ' + dm(r[1]) + (key === 'r' ? ' · ' + r[2] + ' phiên trước' : ''); a.appendChild(sm);
+      b.appendChild(document.createTextNode(r[5])); var sm2 = document.createElement('small'); sm2.textContent = 'hoặc cắt lỗ −7% (' + fp(r[4]) + ')' + (r[6] ? ' · giá vào tạm tính' : ''); b.appendChild(sm2);
+      row.append(a, b); s.appendChild(row);
+    });
+    if (more) { var m = document.createElement('button'); m.type = 'button'; m.className = 'th-more'; m.textContent = '+' + more + ' tín hiệu khác ▾'; m.addEventListener('click', function () { OPEN[key] = true; if (CUR) drawB(CUR); }); s.appendChild(m); }
+    return s;
+  }
+  function drawB(B) {
+    var card = $('card-hs-th'); if (!card) return; var TJ = B.tj;
+    if (!TJ || !B.rows) { card.hidden = true; return; }
+    card.hidden = false; var mua = B.mua || '2';
+    $('th-sea').textContent = '· mùa ' + SEA[mua];
+    var rows = B.rows.slice().sort(function (a, b) { return a[2] - b[2]; }), L = rows.filter(function (r) { return r[2] <= 4; }), Rr = rows.filter(function (r) { return r[2] >= 5; });
+    var box = $('th-box'); box.replaceChildren();
+    if (!L.length && !Rr.length) { var p = document.createElement('p'); p.className = 'atl-note'; p.textContent = 'Hiện không có chỉ báo nào đang ở trạng thái MUA.'; box.appendChild(p); }
+    else { var g = document.createElement('div'); g.className = 'th-2'; g.append(sideEl('l', 'Đang bật (≤ 5 phiên)', L, TJ, mua), sideEl('r', 'Bật trước đó', Rr, TJ, mua)); box.appendChild(g); }
+    var n1 = $('th-late'); var last = (B.non && B.non.ngay) || ''; n1.textContent = ''; if (last && TJ.ngay && (Date.parse(last) - Date.parse(TJ.ngay)) / 864e5 > 4) n1.textContent = 'Dữ liệu tín hiệu cập nhật đến ' + dm(TJ.ngay) + '/' + TJ.ngay.slice(0, 4) + '.';
+  }
+
+  /* ---------- gắn vào Hồ sơ mã ---------- */
+  var TOK = 0;
+  window.atlNonDraw = function (ma) {
+    if (!ma) return; var my = ++TOK;
+    window.atlNonBundle(ma).then(function (B) { if (my !== TOK) return; CUR = B; window.__nonCur = B; OPEN.l = OPEN.r = false; drawA(B); drawB(B); });
+  };
+  (function () { var bx = $('non-ch'); if (bx && window.ResizeObserver) new ResizeObserver(function () { if (CUR && CUR.non) { drawChart(CUR.non); drawBar(CUR.non); } }).observe(bx); })();
+/* NON-UI-END */
+})();
+</script>
 <script>
 (function(){
   var cache={},pend=null;
@@ -2170,7 +2449,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       w.document.write('<p style="font:16px Arial;padding:24px">Đang dựng báo cáo '+ma+'…</p>');
       var x=window.__dgCur&&window.__dgCur.ma===ma?window.__dgCur:null;
       var run=function(){ttLoad(function(){try{window.atlBaoCao(x,w,ma);}catch(e){w.document.body.textContent='Không dựng được báo cáo: '+e.message;}});};
-      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=72';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
+      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=82';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
       if(x||(ma in cache))go();
       else fetch('data/cb/'+encodeURIComponent(ma)+'.json?v='+(new Date().toISOString().slice(0,10)),{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){x=j&&j.ma===ma?j:null;go();});});})();
   function mtDs(dg){var a=[];if(dg.vci)a.push('Vietcap '+n0(dg.vci.gia));(dg.ctck||[]).forEach(function(c){a.push(c.cty+' '+n0(c.gia));});return 'mục tiêu 12 tháng: '+a.join(' · ');}
@@ -6179,6 +6458,7 @@ render();if(!sec.hidden)show();
     { const dp = window.atlDialPos(r);
       [['tt', 'Minervini'], ['wy', 'Wyckoff'], ['tl', 'Triền Luận']].forEach(([k, who]) => dial($('dl-' + k), k, dp[k] ? dp[k][0] : null, dp[k] ? dp[k][1] : '', who, DL)); }
     window.atlKtDraw($('hs-kt'), r);
+    if (window.atlNonDraw) window.atlNonDraw(r.ma);
 
   }
 

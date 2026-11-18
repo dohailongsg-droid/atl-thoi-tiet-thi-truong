@@ -139,7 +139,12 @@
     'Nợ xấu': 'tỷ lệ các khoản vay khó đòi trên tổng dư nợ (NPL)',
     'CASA': 'tỷ lệ tiền gửi không kỳ hạn, nguồn vốn giá rẻ của ngân hàng',
     'CIR': 'chi phí hoạt động trên tổng thu nhập của ngân hàng',
-    'LDR': 'dư nợ cho vay trên tổng tiền huy động'
+    'LDR': 'dư nợ cho vay trên tổng tiền huy động',
+    'Vùng giá 80%': 'khoảng giá mà 80% số lần trong 2 năm qua giá đã nằm trong sau cùng số phiên; co giãn theo mức biến động gần đây',
+    'Kỳ vọng mỗi lệnh': 'lãi/lỗ bình quân của một lệnh mua ở giá hiện tại, chốt lời +7%, cắt lỗ −7%, giữ tối đa 20 phiên, theo lịch sử 2 năm của chính cổ phiếu, đã trừ phí',
+    'VaR 95%': 'giá trị chịu rủi ro: mức giảm mà chỉ 5% số lần xấu nhất vượt qua trong một khoảng thời gian; CVaR là mức giảm trung bình của nhóm 5% xấu nhất đó',
+    'Biến động năm': 'mức dao động giá bình quân quy về một năm (độ lệch chuẩn); càng cao giá càng lên xuống mạnh',
+    'Beta': 'mức cổ phiếu dao động so với VN-Index; Beta 1,2 nghĩa là VN-Index giảm 10% thì cổ phiếu thường giảm khoảng 12%'
   };
   var seen = {}, used = {}, glOver = {};
   function G(k, show) { used[k] = 1; show = show || k; if (seen[k]) return show; seen[k] = 1; return show + ' (' + GL[k].split(';')[0] + ')'; }
@@ -268,7 +273,7 @@
   function chart(t, u, body) { return body ? '<div class="ch"><p class="t">' + t + '</p><p class="u">' + u + '</p>' + body + '</div>' : ''; }
   function scale(lv) { var L = ['Tiêu cực', 'Kém tích cực', 'Trung tính', 'Khả quan', 'Tích cực'], C = [BAD, '#C77A1F', MUT, '#5E9E7E', GOOD]; return '<div class="sc">' + L.map(function (l, i) { return '<span' + (i === lv ? ' class="on" style="background:' + C[i] + '"' : '') + '>' + l.toUpperCase() + '</span>'; }).join('') + '</div>'; }
 
-  function build(x, ma) {
+  function build(x, ma, NB) {
     seen = {}; used = {}; glOver = {};
     var hs = (data('ho_so') || []).filter(function (q) { return q.ma === ma; })[0] || null;
     var xh = (data('xep_hang') || []).filter(function (q) { return q.ma === ma; })[0] || null;
@@ -280,6 +285,7 @@
     if (rows.length && rows[rows.length - 1].ngay > c.ngay) c.ngay = rows[rows.length - 1].ngay;
     var san = hs && hs.san ? hs.san : 'HOSE';
     var TK = tech(hs, xh, P), J = judge(x, hs, nk, TK, P), pages = [], pn = 0;
+    var NO = NB && NB.non ? NB.non : null, nonSent = NO ? 'Xác suất 20 phiên tới (lịch sử 2 năm): chạm +7% trước ' + NO.p[0] + '%, chạm −7% trước ' + NO.p[2] + '%; kỳ vọng mỗi lệnh ' + sg(NO.ev, 1) + ' sau phí.' : '';
     function pg(body, isCover) { pn++; pages.push('<div class="pg">' + (isCover ? '' : header(c)) + body + footer(c, pn) + '</div>'); }
     var ctx = J.vz ? J.vz[1] + '. Ở giai đoạn này ATL giữ tỷ trọng cổ phiếu ' + J.vz[2] + '.' : '';
 
@@ -312,6 +318,7 @@
       view.push('Doanh nghiệp đạt ' + qOk + '/' + qN + ' tiêu chí về tăng trưởng, khả năng sinh lời và an toàn tài chính' + (flags.length ? '; có ' + flags.length + ' điểm cần lưu ý trong báo cáo tài chính (xem phần Chất lượng doanh nghiệp).' : ', chưa thấy dấu hiệu bất thường.'));
       if (m) view.push('Giá hợp lý theo ước tính của ATL là ' + n0(m.gia_tb) + 'đ, giá bất tử (kịch bản xấu nhất) ' + n0(lo) + 'đ, vùng mua từ ' + n0(m.vung_an_toan) + 'đ trở xuống. Giá hiện tại ' + n0(P) + 'đ ' + (m.mos >= 0 ? 'thấp hơn giá hợp lý ' + n1(m.mos) + '%' : 'cao hơn giá hợp lý ' + n1(-m.mos) + '%') + (P < lo ? ' và thấp hơn cả giá bất tử.' : P <= m.vung_an_toan ? ', đang nằm trong vùng mua.' : '.'));
       if (TK) view.push('Về kỹ thuật: ' + TK.sum);
+      if (nonSent) view.push(nonSent);
       view.push('Nhận định: <b>' + J.rec.toLowerCase() + '</b>' + (J.rec === 'THEO DÕI' ? ', điều kiện để mua là ' + J.trig : '') + '.' + (J.vz ? ' ' + ctx : ''));
       var pts = [];
       if (yoyQ != null || yoy4 != null) pts.push(['Tăng trưởng.', 'Lợi nhuận quý gần nhất ' + sg(yoyQ) + ' so với cùng kỳ năm trước' + (yoy4 != null ? ', lợi nhuận 4 quý gần nhất ' + sg(yoy4) : '') + '; ' + (fin ? 'thu nhập hoạt động' : 'doanh thu') + ' quý ' + sg(dtS ? dtS.yoy : null) + '. Đạt ' + J.growthN + '/5 tiêu chí tăng trưởng.']);
@@ -371,11 +378,78 @@
       pg((x ? '' : cover(c, (xh && xh.nhom) || '') + '<h1>' + esc(c.ten || ma) + ' (' + san + ': ' + esc(ma) + '): bức tranh kỹ thuật ' + TK.lab.toLowerCase() + '</h1><p class="sub">Giá đóng cửa ' + dmy(c.ngay) + ': ' + n0(P) + 'đ · ' + esc(J.why) + '</p>') +
         '<h2><span class="no">' + (x ? '03' : '01') + '</span>Phân tích kỹ thuật: ' + TK.lab.charAt(0) + TK.lab.slice(1).toLowerCase() + '</h2>' +
         scale(TK.lv) + '<p>' + esc(TK.sum) + (KT ? ' <b>' + esc(plainKT(KT.ten)) + '.</b> ' + esc(plainKT(KT.txt)) + ' <b>Nên ưu tiên góc nhìn ' + esc(plainKT(KT.uu)) + '</b>, vì ' + esc(plainKT(KT.vi)) + '.' : ' Kết luận này tổng hợp từ ba góc nhìn độc lập về diễn biến giá (bảng bên dưới) và sức mạnh giá của cổ phiếu so với thị trường.') + '</p>' + ret +
-        chart('Diễn biến giá ' + rows.length + ' phiên gần nhất', 'đồng/cổ phiếu · ' + legend([['Trung bình 20 phiên', ACC, 1], ['Trung bình 50 phiên', '#C9A227', 1], ['Trung bình 200 phiên', RED, 1], ['Vùng cân bằng giá', '#E9DDB0']]) + ' · ' + (rows.some(function (q) { return q.gt > 0; }) ? 'giữa: giá trị giao dịch mỗi phiên và trung bình 20 phiên (cột đậm là phiên giao dịch từ 1,5 lần trung bình) · ' : '') + 'dưới cùng: đà giá (xanh là lực tăng, đỏ là lực giảm)', candles(rows, { zd: TK.zd, zg: TK.zg, tu: hs.tl_tt_tu, H: x ? 196 : 170 })) +
+        chart('Diễn biến giá ' + rows.length + ' phiên gần nhất', 'đồng/cổ phiếu · ' + legend([['Trung bình 20 phiên', ACC, 1], ['Trung bình 50 phiên', '#C9A227', 1], ['Trung bình 200 phiên', RED, 1], ['Vùng cân bằng giá', '#E9DDB0']]) + ' · ' + (rows.some(function (q) { return q.gt > 0; }) ? 'giữa: giá trị giao dịch mỗi phiên và trung bình 20 phiên (cột đậm là phiên giao dịch từ 1,5 lần trung bình) · ' : '') + 'dưới cùng: đà giá (xanh là lực tăng, đỏ là lực giảm)', candles(rows, { zd: TK.zd, zg: TK.zg, tu: hs.tl_tt_tu, H: x ? 196 : 132 })) +
         '<h3>Ba góc nhìn kỹ thuật</h3><table class="tc"><tr><th>Góc nhìn</th><th>Đánh giá</th><th>Diễn giải</th></tr>' + vt + '</table>' +
         '<div class="g2" style="margin-top:4px"><div><h3>8 tiêu chí của một xu hướng tăng bền</h3>' + ttT + '</div><div><h3>Các mức giá quan trọng</h3>' + lvT + nganhT + '</div></div>', !x);
     }
-    if (!x) techPage();
+    /* ======== trang mới: xác suất, rủi ro và tín hiệu (v82) ======== */
+    function nonSvg(R) {
+      var W = 714, H = 172, pl = 44, pr = 78, pt = 12, pb = 18, pw = W - pl - pr, ph = H - pt - pb, hw = pw * 0.62, cw = pw - hw, x0 = pl + hw;
+      var hc = R.hist.c, nh = hc.length, cone = R.cone, all = hc.concat([R.up7, R.dn7]); cone.forEach(function (q) { all.push(q.lo80, q.hi80); });
+      var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all), pd = (mx - mn) * 0.06; mn -= pd; mx += pd;
+      function Xh(i) { return pl + i / (nh - 1) * hw; } function Xc(h) { return x0 + h / 20 * cw; } function Y(v) { return pt + (1 - (v - mn) / (mx - mn)) * ph; }
+      var s = svgOpen(W, H), g, h;
+      for (g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * (g + 0.5) / 4; s += '<line x1="' + pl + '" x2="' + (pl + pw) + '" y1="' + Y(gv).toFixed(1) + '" y2="' + Y(gv).toFixed(1) + '" stroke="' + GRID + '" stroke-width=".6"/>' + txt(pl - 4, Y(gv) + 3, n0(gv * 1000), { fs: 7.5, a: 'end' }); }
+      function poly(lo, hi, op) { var p = [x0.toFixed(1) + ',' + Y(R.P0).toFixed(1)]; for (h = 1; h <= 20; h++) p.push(Xc(h).toFixed(1) + ',' + Y(cone[h - 1][hi]).toFixed(1)); for (h = 20; h >= 1; h--) p.push(Xc(h).toFixed(1) + ',' + Y(cone[h - 1][lo]).toFixed(1)); return '<polygon points="' + p.join(' ') + '" fill="' + ACC + '" opacity="' + op + '"/>'; }
+      s += poly('lo80', 'hi80', 0.15) + poly('lo50', 'hi50', 0.32);
+      var md = 'M' + x0.toFixed(1) + ' ' + Y(R.P0).toFixed(1); for (h = 1; h <= 20; h++) md += 'L' + Xc(h).toFixed(1) + ' ' + Y(cone[h - 1].mid).toFixed(1);
+      s += '<path d="' + md + '" fill="none" stroke="' + ACC + '" stroke-width="1" stroke-dasharray="3 2"/>';
+      s += '<line x1="' + x0.toFixed(1) + '" x2="' + (x0 + cw).toFixed(1) + '" y1="' + Y(R.up7).toFixed(1) + '" y2="' + Y(R.up7).toFixed(1) + '" stroke="' + GOOD + '" stroke-width="1" stroke-dasharray="4 3"/><line x1="' + x0.toFixed(1) + '" x2="' + (x0 + cw).toFixed(1) + '" y1="' + Y(R.dn7).toFixed(1) + '" y2="' + Y(R.dn7).toFixed(1) + '" stroke="' + BAD + '" stroke-width="1" stroke-dasharray="4 3"/>';
+      var pp = ''; hc.forEach(function (v, i) { pp += (i ? 'L' : 'M') + Xh(i).toFixed(1) + ' ' + Y(v).toFixed(1); });
+      s += '<path d="' + pp + '" fill="none" stroke="' + NAVY + '" stroke-width="1.4"/><line x1="' + x0.toFixed(1) + '" x2="' + x0.toFixed(1) + '" y1="' + (pt - 3) + '" y2="' + (pt + ph) + '" stroke="' + MUT + '" stroke-width=".6" stroke-dasharray="2 2"/><circle cx="' + x0.toFixed(1) + '" cy="' + Y(R.P0).toFixed(1) + '" r="2.6" fill="' + NAVY + '"/>';
+      var L = [[R.up7, '+7%: ' + n0(R.up7 * 1000), GOOD], [cone[19].hi80, '80%: ' + n0(cone[19].hi80 * 1000), ACC], [cone[19].lo80, '80%: ' + n0(cone[19].lo80 * 1000), ACC], [R.dn7, '−7%: ' + n0(R.dn7 * 1000), BAD]].map(function (q) { return { y: Y(q[0]), t: q[1], c: q[2] }; }).sort(function (a, b) { return a.y - b.y; });
+      for (var i = 1; i < L.length; i++) if (L[i].y - L[i - 1].y < 9) L[i].y = L[i - 1].y + 9;
+      L.forEach(function (q) { s += txt(x0 + cw + 5, q.y + 3, q.t, { fs: 7.8, a: 'start', c: q.c, w: 700 }); });
+      s += txt(x0 - 4, pt - 3 + 1, 'Hôm nay ' + dmy(R.ngay).slice(0, 5), { fs: 7.6, a: 'end' }) + txt(pl, H - 3, dmy(R.hist.t[0]).slice(0, 5), { fs: 7.5, a: 'start' });
+      [[5, '+5'], [10, '+10'], [20, '+20 phiên']].forEach(function (q) { s += txt(Xc(q[0]), H - 3, q[1], { fs: 7.5, a: q[0] === 20 ? 'end' : 'middle' }); });
+      return s + '</svg>';
+    }
+    function nonPage() {
+      if (!NO) return;
+      var R = NO, c20 = R.cone[19], c5 = R.cone[4], K = 1000, SEAN = window.atlNonSeasons || {}, NMS = window.atlNonNames || {}, TJ = NB.tj, mua = NB.mua || '2';
+      ['Vùng giá 80%', 'Kỳ vọng mỗi lệnh', 'VaR 95%', 'Biến động năm', 'Beta'].forEach(function (k) { used[k] = 1; });
+      var vol = R.volPct >= 50 ? 'cao hơn ' + n0(R.volPct) + '%' : 'thấp hơn ' + n0(100 - R.volPct) + '%';
+      var open = 'Dựa trên biên độ 2 năm của ' + esc(ma) + ', co giãn theo biến động gần đây (biến động hiện ' + vol + ' thời gian trong 2 năm qua), sau 20 phiên giá thường nằm trong ' + n0(c20.lo80 * K) + '–' + n0(c20.hi80 * K) + 'đ (80% số lần), vùng hẹp hơn ' + n0(c20.lo50 * K) + '–' + n0(c20.hi50 * K) + 'đ (50% số lần). Đây là biên độ, không phải dự báo hướng đi.' + (!x ? ' ' + esc(nonSent) : '');
+      var cols = [GOOD, GRAY, BAD], labs = ['Chạm +7% trước', 'Lình xình', 'Chạm −7% trước'];
+      var bar = '<div style="display:flex;height:22px;margin:3px 0 3px">' + R.p.map(function (v, i) { return '<div style="width:' + v + '%;background:' + cols[i] + ';color:' + (i === 1 ? INK : '#fff') + ';font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center;white-space:nowrap">' + (v >= 12 ? v + '%' : '') + '</div>'; }).join('') + '</div>' +
+        '<div>' + labs.map(function (l, i) { return '<span class="lg"><i style="background:' + cols[i] + '"></i>' + l + ' ' + R.p[i] + '% (khoảng tin cậy 95%: ' + n0(R.ci[i][0]) + '–' + n0(R.ci[i][1]) + '%)</span>'; }).join('') + '</div>';
+      var evTxt = R.ev > 0.5 ? 'Lợi thế thống kê nghiêng về bên mua nhưng mỏng; vẫn cần điểm vào tốt và cắt lỗ kỷ luật.' : R.ev < -0.5 ? 'Lịch sử bất lợi cho người mua ở trạng thái này; không nên mở vị thế mới chỉ dựa vào giá hiện tại.' : 'Gần như không có lợi thế thống kê ở giá hiện tại; kết quả phụ thuộc vào chọn điểm vào và quản trị rủi ro.';
+      var b = R.beta, bTxt = b == null ? '' : b >= 1.2 ? ' Beta ' + n1(b) + ': cổ phiếu dao động mạnh hơn thị trường, đặc biệt nhạy khi thị trường xấu.' : b >= 0.8 ? ' Beta ' + n1(b) + ': cổ phiếu đi gần với thị trường.' : b >= 0.3 ? ' Beta ' + n1(b) + ': cổ phiếu dao động nhẹ hơn thị trường.' : ' Beta ' + n1(b) + ': cổ phiếu ít đi theo VN-Index.';
+      var warn = NB.bao || NB.dong ? ' Lưu ý: thị trường đang ' + (NB.bao ? 'trong chế độ bão' : 'ở mùa Nghỉ đông') + ', vùng giá thực tế có thể rộng hơn vùng trên (năm 2022 giá thủng đáy vùng 80% khoảng 1/4 số lần).' : '';
+      var risk = '<p>' + evTxt + ' Trong 5% số lần xấu nhất, giá giảm hơn ' + n1(-R.var5).replace('-', '') + '% trong 5 phiên (trung bình nhóm này ' + n1(-R.cvar5) + '%).' + bTxt + warn + '</p>';
+      /* tín hiệu */
+      var rows = NB.rows ? NB.rows.slice().sort(function (a, b2) { return a[2] - b2[2]; }) : (TJ ? [] : null), Lr = rows ? rows.filter(function (r) { return r[2] <= 4; }) : [], Rr = rows ? rows.filter(function (r) { return r[2] >= 5; }) : [];
+      function stat(id) { var s2 = TJ && TJ.thong_ke && TJ.thong_ke[id], B2 = s2 && s2.B, q = B2 && B2[mua]; if (q && q[0] >= 30) return q; var t2 = B2 && B2.tat_ca; return t2 && t2[0] >= 30 ? t2 : null; }
+      var dd = function (iso) { return iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) : ''; };
+      function side(list, title, isR) {
+        var show = list.slice(0, 5), rest = list.length - show.length;
+        return '<table class="tc"><tr><th style="width:44%">' + title + '</th><th>Bán khi</th></tr>' + (show.length ? show.map(function (r) {
+          var st = stat(r[0]), bd = st ? ' <span class="' + (st[1] < 45 ? 'no_' : st[1] > 55 ? 'ok' : '') + '" style="font-size:8.8px;white-space:nowrap">thắng ' + n0(st[1]) + '%</span>' : '';
+          return '<tr><td><b>' + esc(NMS[r[0]] || r[0]) + '</b>' + bd + '<br><span style="color:' + MUT + ';font-size:8.8px">bật ' + dd(r[1]) + (isR ? ' · ' + r[2] + ' phiên trước' : '') + '</span></td><td>' + esc(r[5]) + '<br><span style="color:' + MUT + ';font-size:8.8px">hoặc cắt lỗ −7% (' + n0(r[4] * K) + 'đ)</span></td></tr>';
+        }).join('') : '<tr><td colspan="2" style="color:' + MUT + '">Không có</td></tr>') + (rest > 0 ? '<tr><td colspan="2" style="color:' + MUT + '">và ' + rest + ' tín hiệu khác</td></tr>' : '') + '</table>';
+      }
+      var sigHtml = '', sigSum = '';
+      if (rows) {
+        if (!Lr.length && !Rr.length) sigHtml = '<p>Không có chỉ báo nào đang ở trạng thái mua.</p>';
+        else sigHtml = '<div class="g2" style="gap:12px;align-items:start">' + side(Lr, 'Đang bật (≤ 5 phiên)', false) + side(Rr, 'Bật trước đó', true) + '</div>';
+        if (Lr.length) {
+          var ws = Lr.map(function (r) { var q = stat(r[0]); return q ? q[1] : null; }).filter(function (v) { return v != null; }), mnw = Math.min.apply(null, ws), mxw = Math.max.apply(null, ws);
+          sigSum = Lr.length + ' chỉ báo đang bật: ' + Lr.map(function (r) { return NMS[r[0]] || r[0]; }).join(', ') + '.' + (ws.length ? ' Trong mùa ' + (SEAN[mua] || '') + ', giai đoạn 7/2023–nay, tỷ lệ thắng của các chỉ báo này từ ' + n0(mnw) + '% đến ' + n0(mxw) + '%' + (mxw < 45 ? ': đều thấp, tín hiệu chưa đáng tin trong mùa này.' : mnw >= 55 ? ': đều khá, có thể dùng làm điểm vào kèm cắt lỗ −7%.' : ': không đồng đều, ưu tiên chỉ báo có tỷ lệ thắng cao hơn.') : '');
+        } else sigSum = 'Không có chỉ báo nào vừa bật; nếu muốn mua, chờ tín hiệu mới thay vì mua ở giữa nhịp.';
+      }
+      var tiles = '<div class="kp"><div><small>Kỳ vọng mỗi lệnh</small><b style="color:' + (R.ev > 0 ? GOOD : R.ev < 0 ? BAD : INK) + '">' + sg(R.ev, 1) + '</b><em>lãi/lỗ bình quân một lệnh mua hôm nay, đã trừ phí</em></div>' +
+        '<div><small>Rủi ro 5 phiên (VaR 95%)</small><b>' + sg(R.var5, 1) + '</b><em>5% số lần xấu nhất giảm hơn mức này; trung bình nhóm xấu ' + sg(R.cvar5, 1) + '</em></div>' +
+        '<div><small>Biến động năm</small><b>' + n0(R.volYear) + '%</b><em>' + (R.volPct >= 50 ? 'cao hơn ' + n0(R.volPct) : 'thấp hơn ' + n0(100 - R.volPct)) + '% thời gian 2 năm qua</em></div>' +
+        '<div><small>Beta với VN-Index</small><b>' + (b == null ? '—' : n1(b)) + '</b><em>' + (b == null ? 'chưa đủ dữ liệu' : b < 0.3 ? 'ít đi theo VN-Index' : 'VN-Index giảm 10% thì mã thường giảm khoảng ' + n0(b * 10) + '%') + '</em></div></div>';
+      pg((x ? '' : '') + '<h2><span class="no">' + (x ? '03' : '01') + '</span>Quant · Định lượng: xác suất, rủi ro và tín hiệu</h2>' +
+        '<p>' + open + '</p>' +
+        chart('Giá có thể đi đâu trong 20 phiên tới', 'nghìn đồng · đường: giá đóng cửa 60 phiên · vùng đậm: 50% số lần · vùng nhạt: 80% số lần · nét đứt giữa: mức giữa', nonSvg(R)) +
+        '<h3>Nếu mua ở giá hiện tại, trong 20 phiên tới điều gì xảy ra trước?</h3>' + bar +
+        '<p class="note">' + R.N + ' lần mua thử trong 2 năm qua · chạm mốc tính theo giá cao/thấp trong phiên, từ T+2 · phiên chạm cả hai mốc tính là cắt lỗ.</p>' + '<h3>Quant · Định lượng (Quantitative)</h3>' + tiles + risk +
+        (rows ? '<h3>Tín hiệu chỉ báo' + (SEAN[mua] ? ' · mùa ' + esc(SEAN[mua]) : '') + '</h3>' + sigHtml + '<p style="margin-top:5px">' + esc(sigSum) + '</p>' : '') +
+        '<p class="note">Kiểm định 404 mã HOSE 2021–11/2026: vùng 80% chứa giá thật 78% số lần (sau 5 phiên) và 76% (sau 20 phiên); năm 2022 chỉ 73% và 67%. Hình nón nằm ngang vì không tìm thấy chỉ báo, mùa hay mô hình máy học nào dự báo hướng đi ổn định. Thanh 3 kết cục và kỳ vọng tính từ chính 2 năm gần nhất của mã: mã đã tăng mạnh thường cho kỳ vọng dương, không có nghĩa sẽ lặp lại. Thống kê chỉ báo: mua giá đóng cửa phiên sau tín hiệu, bán theo luật của chỉ báo hoặc cắt lỗ −7%, phí 0,3%, T+2, GTGD ≥ 10 tỷ; thứ hạng chỉ báo trong quá khứ không giữ được ở kiểm định walk-forward. Biên độ HOSE ±7%.</p>');
+    }
+    if (!x) { techPage(); nonPage(); }
 
     /* ======== kết quả kinh doanh + chất lượng ======== */
     if (x) {
@@ -425,7 +499,7 @@
         '<h3 style="margin-top:0">Điểm cần lưu ý trong báo cáo tài chính</h3>' + (flags.length ? flags.slice(0, 4).map(function (f) { return '<div class="flag' + (f.muc === 'do' ? ' do' : '') + '">' + esc(plain(f.nd)) + '</div>'; }).join('') : fin ? '<p class="note">Bộ kiểm tra tự động từ bảng cân đối kế toán và báo cáo lưu chuyển tiền tệ chưa áp dụng cho ngân hàng, công ty chứng khoán, bảo hiểm; xem các chỉ số chất lượng tài sản bên dưới.</p>' : '<p class="note">Chưa thấy dấu hiệu bất thường ở các mục kiểm tra: khoản phải thu, hàng tồn kho, vay ngắn hạn, thu nhập bất thường, lãi từ công ty liên kết, dòng tiền, vốn góp, mức độ vay nợ.</p>') +
         '</div></div>' + finCharts());
 
-      techPage();
+      techPage(); nonPage();
 
       /* ======== định giá ======== */
       var ffRows = [];
@@ -470,13 +544,23 @@
     var s1 = TK && TK.sup.length ? TK.sup[0] : null, stopLv = TK && TK.zd != null && P > TK.zd && (P / TK.zd - 1) <= 0.12 ? ['cận dưới vùng cân bằng', TK.zd] : J.ma50 && P > J.ma50 && (P / J.ma50 - 1) <= 0.12 ? ['đường trung bình 50 phiên', Math.round(J.ma50 / 10) * 10] : null;
     var buy = J.rec === 'THEO DÕI' ? 'Chưa mua. Chỉ xem xét khi ' + J.trig + '.' : (s1 ? 'Ưu tiên mua khi giá điều chỉnh về gần ' + s1[0].toLowerCase() + ' (khoảng ' + n0(s1[1]) + 'đ) với khối lượng giao dịch giảm dần; ' : 'Ưu tiên mua ở các nhịp điều chỉnh có khối lượng giao dịch giảm dần; ') + 'không mua đuổi trong các phiên giá tăng mạnh.';
     used['T+2'] = 1; if (J.zone === 4) used['Vay ký quỹ'] = 1;
+    var wPos = J.label === 'Theo xu hướng giá' ? 8 : 15, bt = NO && NO.beta != null ? NO.beta : null, nz = NB && NB.vung;
+    var xTs = NO ? ' Với tỷ trọng ' + wPos + '% cho riêng mã này, trong 5% trường hợp xấu nhất danh mục có thể mất khoảng ' + n1(wPos * Math.abs(NO.cvar5) / 100) + '% tài sản trong 5 phiên.' + (bt != null && bt >= 1.2 && nz != null && nz <= 2 ? ' Beta cao trong mùa yếu: nên giữ tỷ trọng ở mức thấp của khoảng này.' : '') : '';
+    var xSl = NO ? ' Theo lịch sử 2 năm, giá chạm mức −7% (' + n0(NO.dn7 * 1000) + 'đ) trước mức +7% trong ' + NO.p[2] + '% số lần mua (20 phiên).' : '';
+    var xTp = NO ? ' Mức +7% (' + n0(NO.up7 * 1000) + 'đ) được chạm trước trong ' + NO.p[0] + '% số lần.' : '';
+    var xSig = '';
+    if (NO && (NB.rows || NB.tj)) {
+      var Lr2 = (NB.rows || []).filter(function (r) { return r[2] <= 4; }), mu2 = NB.mua || '2', best = null;
+      Lr2.forEach(function (r) { var s2 = NB.tj && NB.tj.thong_ke && NB.tj.thong_ke[r[0]], B2 = s2 && s2.B, q = B2 && (B2[mu2] && B2[mu2][0] >= 30 ? B2[mu2] : B2.tat_ca && B2.tat_ca[0] >= 30 ? B2.tat_ca : null); var w2 = q ? q[1] : -1; if (!best || w2 > best.w) best = { r: r, w: w2 }; });
+      xSig = best ? '<tr><td><b>Tín hiệu chỉ báo</b></td><td>Nếu mua theo ' + esc((window.atlNonNames || {})[best.r[0]] || best.r[0]) + ', bán khi ' + esc(best.r[5].charAt(0).toLowerCase() + best.r[5].slice(1)) + ' hoặc cắt lỗ −7%.' + (best.w >= 0 ? ' (Tỷ lệ thắng mùa này: ' + n0(best.w) + '%.)' : '') + '</td></tr>' : '<tr><td><b>Tín hiệu chỉ báo</b></td><td>Không có chỉ báo nào vừa bật; không mua chỉ vì giá đang nằm trong vùng xác suất.</td></tr>';
+    }
     var plan = '<h2><span class="no">' + (x ? '05' : '02') + '</span>Kế hoạch hành động</h2>' +
       '<div class="g2" style="grid-template-columns:36% 61%;gap:3%"><div><div class="rec" style="padding:12px 10px"><div class="r">' + J.rec + '</div><div class="l">Kiểu cơ hội: ' + J.label + '</div></div><p style="font-size:10.5px">' + esc(J.why) + '</p></div>' +
       '<div><table class="tc"><tr><th style="width:24%">Nội dung</th><th>Hướng dẫn</th></tr>' +
-      '<tr><td><b>Điểm mua</b></td><td>' + esc(buy) + '</td></tr>' +
-      '<tr><td><b>Tỷ trọng</b></td><td>' + (J.vz ? esc(J.vz[1]) + ': tổng tỷ trọng cổ phiếu của cả danh mục nên ở mức ' + J.vz[2] + '. ' : '') + (J.rec === 'THEO DÕI' ? 'Khi đủ điều kiện mua, riêng cổ phiếu này ' : 'Riêng cổ phiếu này ') + (J.label === 'Theo xu hướng giá' ? 'tối đa khoảng 8% tài sản; không mua thêm khi giá giảm, không vay tiền để mua.' : 'tối đa khoảng 10–15% tài sản, giải ngân làm 2–3 lần.') + '</td></tr>' +
-      '<tr><td><b>Điểm dừng lỗ</b></td><td>Bán nếu ' + (stopLv ? 'giá đóng cửa xuống dưới ' + stopLv[0] + ' (' + n0(stopLv[1]) + 'đ) hoặc ' : '') + 'lỗ 7% so với giá mua' + (stopLv ? ', tùy mức nào đến trước' : '') + '. Xác định mức này trước khi mua và tuân thủ.</td></tr>' +
-      '<tr><td><b>Chốt lời</b></td><td>' + (TK && TK.res.length ? 'Mức cản gần nhất: ' + TK.res[0][0].toLowerCase() + ' ' + n0(TK.res[0][1]) + 'đ. ' : '') + (x && m && m.gia_tb > P ? 'Giá hợp lý ' + n0(m.gia_tb) + 'đ là mốc tham chiếu để giảm dần vị thế. ' : '') + 'Khi đã có lãi, nâng dần điểm dừng lỗ theo đường trung bình 20 phiên để bảo vệ thành quả.</td></tr>' +
+      '<tr><td><b>Điểm mua</b></td><td>' + esc(buy) + '</td></tr>' + xSig +
+      '<tr><td><b>Tỷ trọng</b></td><td>' + (J.vz ? esc(J.vz[1]) + ': tổng tỷ trọng cổ phiếu của cả danh mục nên ở mức ' + J.vz[2] + '. ' : '') + (J.rec === 'THEO DÕI' ? 'Khi đủ điều kiện mua, riêng cổ phiếu này ' : 'Riêng cổ phiếu này ') + (J.label === 'Theo xu hướng giá' ? 'tối đa khoảng 8% tài sản; không mua thêm khi giá giảm, không vay tiền để mua.' : 'tối đa khoảng 10–15% tài sản, giải ngân làm 2–3 lần.') + esc(xTs) + '</td></tr>' +
+      '<tr><td><b>Điểm dừng lỗ</b></td><td>Bán nếu ' + (stopLv ? 'giá đóng cửa xuống dưới ' + stopLv[0] + ' (' + n0(stopLv[1]) + 'đ) hoặc ' : '') + 'lỗ 7% so với giá mua' + (stopLv ? ', tùy mức nào đến trước' : '') + '. Xác định mức này trước khi mua và tuân thủ.' + esc(xSl) + '</td></tr>' +
+      '<tr><td><b>Chốt lời</b></td><td>' + (TK && TK.res.length ? 'Mức cản gần nhất: ' + TK.res[0][0].toLowerCase() + ' ' + n0(TK.res[0][1]) + 'đ. ' : '') + (x && m && m.gia_tb > P ? 'Giá hợp lý ' + n0(m.gia_tb) + 'đ là mốc tham chiếu để giảm dần vị thế. ' : '') + 'Khi đã có lãi, nâng dần điểm dừng lỗ theo đường trung bình 20 phiên để bảo vệ thành quả.' + esc(xTp) + '</td></tr>' +
       '<tr><td><b>Khi nào xem lại</b></td><td>' + (x && m && m.moc_quy_toi ? 'Khi doanh nghiệp công bố báo cáo quý tới (so với các mốc kiểm chứng ở phần Định giá), hoặc khi ' : 'Khi ') + 'giá đóng cửa xuống dưới đường trung bình 50 phiên kèm khối lượng lớn.</td></tr>' +
       '</table><p class="note">Quy định giao dịch: ' + G('T+2') + '; biên độ dao động giá mỗi phiên ' + (san === 'HNX' ? '±10% (sàn HNX)' : san === 'UPCoM' ? '±15% (sàn UPCoM)' : '±7% (sàn HOSE)') + '. Vì vậy khi mua sai sẽ không bán ngay được: nên mua từng phần và không mua ở giá trần.</p></div></div>';
     var gk = Object.keys(GL).filter(function (k) { return used[k]; }).concat(Object.keys(glOver).filter(function (k) { return !GL[k]; }));
@@ -490,11 +574,16 @@
   function tenKB(t) { return t === 'Bảo thủ' ? 'Bất tử' : t; }
   window.atlBaoCao = function (x, w, ma) {
     ma = ma || (x && x.ma); if (x && x.ma !== ma) x = null;
-    var r = build(x, ma), base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '');
+    var cur = window.__nonCur && window.__nonCur.ma === ma && window.__nonCur.tj !== undefined ? Promise.resolve(window.__nonCur) : (window.atlNonBundle ? window.atlNonBundle(ma) : Promise.resolve(null));
+    var P2 = cur.catch(function () { return null; }).then(function (NB) { return render(x, w, ma, NB); }).catch(function (e) { if (w === 'html') throw e; try { w.document.body.textContent = 'Không dựng được báo cáo: ' + e.message; } catch (e2) {} });
+    return w === 'html' ? P2 : void 0;
+  };
+  function render(x, w, ma, NB) {
+    var r = build(x, ma, NB), base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '');
     var doc = '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=820"><base href="' + base + '"><title>' + r.title + '</title><style>' + CSS + '</style></head><body>' +
       '<div class="bar"><button onclick="atlBack()">← Quay lại trang</button><span class="tx">Báo cáo ' + esc(ma) + ' · ' + r.n + ' trang A4' + (x ? '' : ' (chỉ có phần kỹ thuật: mã này chưa có dữ liệu tài chính)') + '. Trong hộp in chọn <b>&nbsp;Lưu thành PDF&nbsp;</b>, khổ A4, lề "Không có". </span><button onclick="window.print()">In / Lưu PDF</button></div>' + r.html +
       '<script>function atlBack(){try{if(window.opener&&!window.opener.closed)window.opener.focus();}catch(e){}try{window.close();}catch(e){}setTimeout(function(){location.href=' + JSON.stringify(base + '#ho-so') + ';},250);}(function(){var go=function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);};var imgs=[].slice.call(document.images).filter(function(i){return !i.complete;});var n=imgs.length;var done=function(){if(--n<=0)(document.fonts&&document.fonts.ready?document.fonts.ready.then(go):go());};if(!n){n=1;done();}else imgs.forEach(function(i){i.onload=i.onerror=done;});})();<\/script></body></html>';
     if (w === 'html') return doc;
-    w.document.open(); w.document.write(doc); w.document.close();
-  };
+    try { w.document.open(); w.document.write(doc); w.document.close(); } catch (e) { w.document.body.textContent = 'Không dựng được báo cáo: ' + e.message; }
+  }
 })();
