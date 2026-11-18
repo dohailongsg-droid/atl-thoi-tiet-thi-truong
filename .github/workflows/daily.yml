@@ -70,6 +70,10 @@ jobs:
         continue-on-error: true
         run: python3 pipeline/dong_tien_thi_truong.py --ghi
 
+      - name: Tín hiệu kỹ thuật cho Hồ sơ mã (cần bt_px và site/data/cb; lỗi không làm dừng cả lượt)
+        continue-on-error: true
+        run: node pipeline/ho_so_tin_hieu.js
+
       - name: Cảnh báo Telegram (sau phiên báo đổi vùng và MUA mới, trong phiên chỉ báo lệnh đang giữ chạm điểm thoát)
         if: github.event_name != 'push'
         continue-on-error: true
