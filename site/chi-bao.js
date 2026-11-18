@@ -832,7 +832,7 @@
   }
   /* ================= vẽ lên biểu đồ ================= */
   function mount(env) {
-    var L = env.L, chart = env.chart, insts = [], mainMk = null, ovMain = null;
+    var L = env.L, chart = env.chart, insts = [], mainMk = null, ovMain = null, mainJ = null;
     function err(en, e) { if (env.onError) env.onError(en, e); }
     function mkSeries(I, p, pane) {
       var o = p.o, col = o.color || '#ccc', s;
@@ -899,11 +899,11 @@
         else {
           var tgt = (I.fast || I.first); if (!tgt) return;
           if (!I.mh) I.mh = L.createSeriesMarkers(tgt, []);
-          I.mh.setMarkers(sortMk(I.mk));
+          var jm = JSON.stringify(sortMk(I.mk)); if (I.mhj !== jm) { I.mhj = jm; I.mh.setMarkers(sortMk(I.mk)); }
         }
       });
       if (!mainMk) mainMk = L.createSeriesMarkers(env.candle, []);
-      mainMk.setMarkers(sortMk(main));
+      var jn = JSON.stringify(sortMk(main)); if (mainJ !== jn) { mainJ = jn; mainMk.setMarkers(sortMk(main)); }
     }
     function sortMk(a) { return a.slice().sort(function (x, y) { return x.time < y.time ? -1 : x.time > y.time ? 1 : 0; }).map(function (m) { return { time: m.time, position: m.position, color: m.color, shape: m.shape, text: m.text, size: m.size }; }); }
     function flushOverlays(d) {
@@ -930,7 +930,7 @@
     }
     try { chart._atlRT = function () { renderTables(); }; } catch (e) { }
     function renderTables() {
-      var box = env.tblBox; if (!box) return; box.textContent = ''; var miss = false;
+      var box = env.tblBox; if (!box) return; var sg = ''; try { sg = insts.map(function (I) { return I.out ? JSON.stringify(I.out.tables) : ''; }).join('|'); } catch (e) { sg = String(Math.random()); } if (window.__atlSm && renderTables.sg === sg) return; renderTables.sg = sg; box.textContent = ''; var miss = false;
       insts.forEach(function (I) {
         if (I.tblEl && I.tblEl.parentNode) I.tblEl.parentNode.removeChild(I.tblEl); I.tblEl = null;
         if (!I.out) return;
