@@ -744,7 +744,7 @@
     var xUp = ta.crossover(avgS, avgL), xDn = ta.crossunder(avgS, avgL), holding = false;
     for (i = 0; i < n; i++) {
       if (i < 60) continue;
-      if (!holding && xUp[i] && fanBull[i]) { c.mark(i, { pos: 'below', text: 'MUA', box: true, bg: '#2e9e4f', fg: '#fff' }); holding = true; }
+      if (!holding && fanBull[i] && !fanBull[i - 1]) { c.mark(i, { pos: 'below', text: 'MUA', box: true, bg: '#2e9e4f', fg: '#fff' }); holding = true; }
       else if (holding && xDn[i]) { c.mark(i, { pos: 'above', text: 'BÁN', box: true, bg: '#f23645', fg: '#fff' }); holding = false; }
     }
   }
