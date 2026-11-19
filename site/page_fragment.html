@@ -4288,6 +4288,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <button type="button" class="cb-btn" id="dthi-ex" title="Mở rộng khung trong trang (phím Esc để thoát)">⤢ Mở rộng</button>
         <button type="button" class="cb-btn" id="dthi-fs" title="Toàn màn hình (phím Esc để thoát)">⛶ Toàn màn hình</button>
       </div>
+      <style>html:not(.atl-adm) #cb-edit,html:not(.atl-adm) #cb-ed{display:none!important}</style><script>(function(){try{var h=location.hash||'';if(/admin/i.test(h))localStorage.setItem('atl_admin','1');else if(/khach/i.test(h))localStorage.removeItem('atl_admin');if(localStorage.getItem('atl_admin')==='1')document.documentElement.classList.add('atl-adm');}catch(e){}})();</script>
       <div class="dthi-bar" id="cb-bar"><button type="button" class="cb-btn" id="dthi-indbtn" title="Thêm / bỏ chỉ báo">ƒx Chỉ báo</button><span class="cb-lb" hidden></span><div class="atl-seg" id="cb-seg" hidden role="group" aria-label="Chỉ báo ATL"></div><button type="button" class="cb-btn" id="cb-edit" aria-expanded="false">＋ Soạn code</button><div id="dthi-fav" role="toolbar" aria-label="Công cụ vẽ yêu thích" title="Thanh yêu thích: rê chuột vào một công cụ ở cột bên trái rồi bấm ngôi sao (hoặc bấm chuột phải vào công cụ) để thêm hoặc bỏ"></div></div>
       </div>
       <div id="cb-ed" hidden>
@@ -4956,7 +4957,7 @@ render();if(!sec.hidden)show();
         var nm=document.createElement('span');nm.textContent=cbName(x)+sumIn(x.id);r.appendChild(nm);var vv=document.createElement('span');vv.className='cb-lgv';vv.dataset.k=x.id;r.appendChild(vv);r.addEventListener('contextmenu',function(e){e.preventDefault();openDlg(x.id);});
         r.appendChild(lgBtn(hid?'eyeoff':'eye',hid?'Hiện':'Ẩn',function(){CB.hid[x.id]=hid?0:1;saveCB();rebuild();}));
         r.appendChild(lgBtn('gear','Cài đặt',function(){openDlg(x.id);}));
-        r.appendChild(lgBtn('code','Sửa code',function(){$('cb-sel').value=x.clone?x.base:x.id;cbLoad();if($('cb-ed').hidden)$('cb-edit').click();}));
+        if(document.documentElement.classList.contains('atl-adm'))r.appendChild(lgBtn('code','Sửa code',function(){$('cb-sel').value=x.clone?x.base:x.id;cbLoad();if($('cb-ed').hidden)$('cb-edit').click();}));
         r.appendChild(lgBtn('del','Gỡ khỏi biểu đồ',function(){if(x.clone)dropClone(x.id);else CB.on[x.id]=0;saveCB();cbRender();rebuild();}));
         h.appendChild(r);});
       if(window.ATLCB&&ATLCB.draw&&ATLCB.draw.vpItems){var vfn=0;ATLCB.draw.vpItems().forEach(function(it){var rv=document.createElement('span');rv.className='cb-lg';var nv=document.createElement('span');nv.textContent=it.type==='vpvr'?'Volume Profile (vùng đang xem)':'Volume Profile cố định '+(++vfn);rv.appendChild(nv);var vlab=nv.textContent;rv.addEventListener('contextmenu',function(e){e.preventDefault();openVP(it.id,vlab);});rv.appendChild(lgBtn('gear','Cài đặt',function(){openVP(it.id,vlab);}));rv.appendChild(lgBtn('del','Gỡ bản này',function(){ATLCB.draw.delVP(it.id);renderLeg();}));h.appendChild(rv);});}
