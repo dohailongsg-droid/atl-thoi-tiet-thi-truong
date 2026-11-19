@@ -2401,7 +2401,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   function tenKB(t){return t==='Bảo thủ'?'Bất tử':t;}
   /* dải giá ở đầu Hồ sơ mã: Giá bất tử · Giá hợp lý · Vùng mua (thay đồng hồ đồng thuận) */
   function valStrip(x){var b=$('hs-val');if(!b)return;b.textContent='';var m=x&&x.dinh_gia&&x.dinh_gia.v2;if(!m||!m.kich_ban){b.hidden=true;return;}
-    var P=x.gia,bt=Math.min.apply(null,m.kich_ban.map(function(a){return a.gia;})),hl=m.gia_tb,vm=m.vung_an_toan;
+    var P=(window.__livePx&&window.__livePx.ma===x.ma&&window.__livePx.gia>0)?window.__livePx.gia:x.gia,bt=Math.min.apply(null,m.kich_ban.map(function(a){return a.gia;})),hl=m.gia_tb,vm=m.vung_an_toan;
     var cell=function(lab,val,tip,hot){var c=el('div','hv-c'+(hot?' hot':''));c.appendChild(el('div','hv-l',lab));c.appendChild(el('div','hv-v',val));c.dataset.tip=tip;return c;};
     b.appendChild(cell('Giá bất tử',n1(bt/1000),'Giá trị ở kịch bản thấp nhất của mô hình 3 kịch bản (lợi nhuận kém, chi phí vốn cao hơn). Giá thị trường thấp hơn mức này nghĩa là thị trường đang định giá còn thấp hơn cả kịch bản xấu của mô hình.',P<bt));
     b.appendChild(cell('Giá hợp lý',n1(hl/1000),'Bình quân có trọng số của ba kịch bản bất tử, cơ sở, lạc quan. Không phải trung điểm giữa giá thấp nhất và cao nhất.',false));
@@ -6339,7 +6339,7 @@ render();if(!sec.hidden)show();
       const why = 'Đồng thuận ' + pc + '% · ' + S.filter((q) => q.s > 0).length + ' tốt, ' + S.filter((q) => q.s === 0).length + ' trung tính, ' + S.filter((q) => q.s < 0).length + ' xấu' + (hz === 4 ? ' · có lực bán' : '');
       tk.title = n >= 3 ? LBH[hz] + ' · ' + why + '. Chỉ để mô tả: thử trên giá 2020–nay, mức đồng thuận này không giúp mã vượt thị trường sau 20 phiên.' : ''; }
 
-    if (window.__dg) window.__dg(r.ma);
+    window.__livePx = { ma: r.ma, gia: +r.gia * 1000 }; if (window.__dg) window.__dg(r.ma);
     // suc khoe doanh nghiep (bao cao tai chinh quy, toan HOSE)
     { const CB = dash.data('co_ban'), bx = $('hs-cb'), sm = $('hs-cb-sum'), dl = $('dl-cb'), vb = $('hs-cb-val'); bx.replaceChildren(); vb.replaceChildren();
       const cr = CB.status === 'ok' ? CB.data.find((x) => x.ma === r.ma) : null;
