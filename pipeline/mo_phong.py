@@ -4,7 +4,7 @@ boloc_all.json (để biết vùng nhiệt kế lúc có tín hiệu), vn_prices
 Đầu ra: dash_out/mo_phong.json. Không đọc dữ liệu cá nhân, không gọi mạng.
 
 Quy ước (ghi cả trong file kết quả để trang hiển thị):
-- Mã MUA của bộ lọc: 6,5% NAV/mã, vào ATO phiên sau tín hiệu (giá đã ghi trong nhật ký).
+- Mã MUA của bộ lọc: 5% NAV/mã, vào ATO phiên sau tín hiệu (giá đã ghi trong nhật ký).
 - Vé số / Trứng rồng: 3% NAV/mã (Trứng rồng tạm dùng 3% như vé số), vào giá đóng cửa phiên sau tín hiệu.
 - Thoát đúng giá và ngày hệ thống đã ghi (cắt lỗ −7% hoặc theo quy tắc MA20 / dải trên / đáy 10 phiên...).
 - Mã MUA chỉ vào nếu tổng tỷ trọng cổ phiếu sau khi mua không vượt trần theo vùng nhiệt kế lúc có tín hiệu.
@@ -16,7 +16,7 @@ import pandas as pd
 import vn_prices as vp
 
 VON = 1_000_000_000
-TY_MUA, TY_VE = 0.065, 0.03
+TY_MUA, TY_VE = 0.05, 0.03
 FEE = 0.0015
 CAP = {1: 0.30, 2: 0.30, 3: 0.50, 4: 0.80, 5: 0.80, 6: 0.0}
 MAXX, MAXB, LAI_VAY = 2.0, 1.0, 0.12   # bản không trần: cổ phiếu tối đa 200% NAV, vay tối đa 100% NAV, lãi vay 12%/năm
@@ -100,7 +100,7 @@ def main():
                 cap_nhat=datetime.date.today().isoformat())
     assume = [
         "Vốn giả định 1 tỷ đồng, không dùng margin.",
-        "Mã MUA của bộ lọc: 6,5% NAV mỗi mã; vào ATO phiên sau tín hiệu. Vé số và Trứng rồng: 3% NAV mỗi mã; vào giá đóng cửa phiên sau tín hiệu.",
+        "Mã MUA của bộ lọc: 5% NAV mỗi mã; vào ATO phiên sau tín hiệu. Vé số và Trứng rồng: 3% NAV mỗi mã; vào giá đóng cửa phiên sau tín hiệu.",
         "Thoát đúng giá và ngày hệ thống đã ghi trong nhật ký (cắt lỗ −7% hoặc theo quy tắc MA20, dải trên Bollinger, đáy 10 phiên).",
         "Mã MUA chỉ được vào nếu tổng tỷ trọng cổ phiếu sau khi mua không vượt trần theo vùng nhiệt kế lúc có tín hiệu (vùng 1–2: 30%, vùng 3: 50%, vùng 4–5: 80%, vùng 6: không mua mới).",
         "Phí và thuế 0,3% mỗi vòng (0,15% mỗi chiều như backtest). Làm tròn lô 100 cổ phiếu. Giá mark-to-market theo giá đóng cửa.",

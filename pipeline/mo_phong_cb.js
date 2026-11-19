@@ -34,10 +34,13 @@ function r3(x) { return Math.round(x * 1000) / 1000; }
 const KIND = {
   dragon: { file: 'mo_phong_dragon.json', ten: 'Dragon Code', w: { 'MÚC': 0.03, 'THÊM': 0.02 }, sell: { 'SÚT': 1 }, mua_t: 'MÚC 3% NAV, THÊM 2% NAV', ban_t: 'nhãn SÚT' },
   dgr: { file: path.join('cb', '_mo_phong_dgr.json'), ten: 'Định giá rẻ', w: { 'RẺ': 0.05 }, sell: {}, custom: true, sl: null, mh: 250, maxx: 1.0, maxb: 0 },
-  vnt: { file: 'mo_phong_vnt.json', ten: 'VN Timing', w: { B: 0.02, SB: 0.01, SPr: 0.01, BR: 0.01 }, sell: { SELL: 1 }, half: { TP: 1 }, mua_t: 'B (Buy) 2% NAV, SB (Strong Buy) 1%, SPr (Spring) 1%, BR (Breakout) 1%', ban_t: 'nhãn SELL (nhãn TP chỉ bán 50% số cổ phiếu đang giữ)' }
+  vnt: { file: 'mo_phong_vnt.json', ten: 'VN Timing', w: { B: 0.02, SB: 0.01, SPr: 0.01, BR: 0.01 }, sell: { SELL: 1 }, half: { TP: 1 }, mua_t: 'B (Buy) 2% NAV, SB (Strong Buy) 1%, SPr (Spring) 1%, BR (Breakout) 1%', ban_t: 'nhãn SELL (nhãn TP chỉ bán 50% số cổ phiếu đang giữ)' },
+  gmma: { file: 'mo_phong_gmma.json', ten: 'GMMA', w: { 'MUA': 0.05 }, sell: { 'BÁN': 1 }, mua_t: 'MUA 5% NAV (nhóm EMA ngắn 3–15 cắt lên và tách khỏi nhóm EMA dài 30–60)', ban_t: 'nhãn BÁN (nhóm EMA ngắn cắt xuống dưới nhóm EMA dài)' },
+  ichimoku: { file: 'mo_phong_ichimoku.json', ten: 'Ichimoku', w: { 'MUA': 0.05 }, sell: { 'BÁN': 1 }, mua_t: 'MUA 5% NAV (giá vượt mây Kumo và Tenkan cắt lên Kijun)', ban_t: 'nhãn BÁN (giá đóng cửa xuống dưới mây Kumo)' },
+  keltner: { file: 'mo_phong_keltner.json', ten: 'Keltner Channel', w: { 'MUA': 0.05 }, sell: { 'BÁN': 1 }, mua_t: 'MUA 5% NAV (giá đóng cửa vượt lên dải trên Keltner, EMA20 ± 2×ATR10)', ban_t: 'nhãn BÁN (giá đóng cửa xuống dưới đường giữa Keltner)' }
 };
 const ONLY = process.argv.slice(2).filter(function (a) { return KIND[a]; });
-const RUN = ONLY.length ? ONLY : ['dragon', 'vnt'];
+const RUN = ONLY.length ? ONLY : ['dragon', 'vnt', 'gmma', 'ichimoku', 'keltner'];
 const KSL = function (kd) { return KIND[kd].sl === undefined ? SL : KIND[kd].sl; }, KMH = function (kd) { return KIND[kd].mh || MH; };
 RUN.filter(function (id) { return !KIND[id].custom; }).forEach(function (id) { FN[id] = A.compile(A.presets.find(function (q) { return q.id === id; }).code); });
 
@@ -56,7 +59,7 @@ function main() {
   const zoneOf = function (d) { if (NK[d] != null) return NK[d]; let z = null; Object.keys(NK).forEach(function (k) { if (k <= d) z = NK[k]; }); return z == null ? nkLast : z; };
 
   /* 1. tín hiệu và giá của từng mã */
-  const PX = {}, TI = {}, EV = { dragon: [], vnt: [], dgr: [] }, SELL = { dragon: {}, vnt: {}, dgr: {} }, DG = {}; let fail = 0;
+  const PX = {}, TI = {}, EV = {}, SELL = {}, DG = {}; Object.keys(KIND).forEach(function (kd) { EV[kd] = []; SELL[kd] = {}; }); let fail = 0;
   const LS = RUN.indexOf('dgr') >= 0 ? (rd(path.join(SITE, 'data', 'cb', '_dinh_gia_ls.json')) || {}) : {};
   ds.forEach(function (x) {
     const sym = x[0]; if (sym === 'VNINDEX' || / · (HNX|UPCoM)$/.test(x[2] || '')) return;
