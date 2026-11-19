@@ -665,6 +665,7 @@
   function PE(c) {
     var n = c.n, NA = c.NA, isna = c.isna;
     var K = c.input('Dải ± độ lệch chuẩn (0 = ẩn)', 1, { min: 0, max: 3, step: 0.5 });
+    var VZ = c.input('Tô vùng P/E ở lâu nhất (0 = ẩn)', 1, { min: 0, max: 1, step: 1 });
     if (!c.x) throw new Error('Chưa có dữ liệu P/E của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
     var v = c.x.pe, s = 0, q = 0, k = 0, i;
     for (i = 0; i < n; i++) if (!isna(v[i])) { s += v[i]; k++; }
@@ -672,6 +673,21 @@
     for (i = 0; i < n; i++) if (!isna(v[i])) q += (v[i] - m) * (v[i] - m);
     var sd = k ? Math.sqrt(q / k) : NA, mid = [], up = [], lo = [];
     for (i = 0; i < n; i++) { mid.push(m); up.push(m + K * sd); lo.push(m - K * sd); }
+    if (VZ) {
+      var lo0 = Infinity, hi0 = -Infinity, k0 = 0;
+      for (i = 0; i < n; i++) if (!isna(v[i])) { k0++; if (v[i] < lo0) lo0 = v[i]; if (v[i] > hi0) hi0 = v[i]; }
+      if (k0 >= 20 && hi0 > lo0) {
+        var NB = 24, bw = (hi0 - lo0) / NB, cnt = new Array(NB).fill(0), bi;
+        for (i = 0; i < n; i++) { if (isna(v[i])) continue; bi = Math.min(NB - 1, Math.max(0, Math.floor((v[i] - lo0) / bw))); cnt[bi]++; }
+        var mx = 0, mi = 0; for (i = 0; i < NB; i++) if (cnt[i] > mx) { mx = cnt[i]; mi = i; }
+        var l2 = mi, h2 = mi;
+        while (l2 > 0 && cnt[l2 - 1] >= mx * 0.6) l2--;
+        while (h2 < NB - 1 && cnt[h2 + 1] >= mx * 0.6) h2++;
+        var zLo = lo0 + l2 * bw, zHi = lo0 + (h2 + 1) * bw, zU = [], zD = [];
+        for (i = 0; i < n; i++) { zU.push(zHi); zD.push(zLo); }
+        c.fill(zU, zD, { up: 'rgba(255,179,0,.16)', down: 'rgba(255,179,0,.16)', from: 0 });
+      }
+    }
     c.plot('P/E', v, { color: '#42a5f5', width: 2 });
     c.plot('P/E trung bình', mid, { color: '#ffb300', width: 1 });
     if (K > 0) { c.plot('P/E +σ', up, { color: '#ef5350', width: 1, style: 'dotted' }); c.plot('P/E −σ', lo, { color: '#26a69a', width: 1, style: 'dotted' }); }
@@ -680,6 +696,7 @@
   function PB(c) {
     var n = c.n, NA = c.NA, isna = c.isna;
     var K = c.input('Dải ± độ lệch chuẩn (0 = ẩn)', 1, { min: 0, max: 3, step: 0.5 });
+    var VZ = c.input('Tô vùng P/B ở lâu nhất (0 = ẩn)', 1, { min: 0, max: 1, step: 1 });
     if (!c.x) throw new Error('Chưa có dữ liệu P/B của mã này (file tạo ở lần chạy "Cập nhật số liệu hằng ngày"), hoặc đang xem khung Giờ / VN-Index.');
     var v = c.x.pb, s = 0, q = 0, k = 0, i;
     for (i = 0; i < n; i++) if (!isna(v[i])) { s += v[i]; k++; }
@@ -687,9 +704,92 @@
     for (i = 0; i < n; i++) if (!isna(v[i])) q += (v[i] - m) * (v[i] - m);
     var sd = k ? Math.sqrt(q / k) : NA, mid = [], up = [], lo = [];
     for (i = 0; i < n; i++) { mid.push(m); up.push(m + K * sd); lo.push(m - K * sd); }
+    if (VZ) {
+      var lo0 = Infinity, hi0 = -Infinity, k0 = 0;
+      for (i = 0; i < n; i++) if (!isna(v[i])) { k0++; if (v[i] < lo0) lo0 = v[i]; if (v[i] > hi0) hi0 = v[i]; }
+      if (k0 >= 20 && hi0 > lo0) {
+        var NB = 24, bw = (hi0 - lo0) / NB, cnt = new Array(NB).fill(0), bi;
+        for (i = 0; i < n; i++) { if (isna(v[i])) continue; bi = Math.min(NB - 1, Math.max(0, Math.floor((v[i] - lo0) / bw))); cnt[bi]++; }
+        var mx = 0, mi = 0; for (i = 0; i < NB; i++) if (cnt[i] > mx) { mx = cnt[i]; mi = i; }
+        var l2 = mi, h2 = mi;
+        while (l2 > 0 && cnt[l2 - 1] >= mx * 0.6) l2--;
+        while (h2 < NB - 1 && cnt[h2 + 1] >= mx * 0.6) h2++;
+        var zLo = lo0 + l2 * bw, zHi = lo0 + (h2 + 1) * bw, zU = [], zD = [];
+        for (i = 0; i < n; i++) { zU.push(zHi); zD.push(zLo); }
+        c.fill(zU, zD, { up: 'rgba(171,71,188,.16)', down: 'rgba(171,71,188,.16)', from: 0 });
+      }
+    }
     c.plot('P/B', v, { color: '#ab47bc', width: 2 });
     c.plot('P/B trung bình', mid, { color: '#ffb300', width: 1 });
     if (K > 0) { c.plot('P/B +σ', up, { color: '#ef5350', width: 1, style: 'dotted' }); c.plot('P/B −σ', lo, { color: '#26a69a', width: 1, style: 'dotted' }); }
+  }
+
+  /* ================= chỉ báo mẫu: GMMA (Guppy Multiple Moving Average) ================= */
+  function GMMA(c) {
+    var ta = c.ta, C = c.close, n = c.n;
+    var SL = [3, 5, 8, 10, 12, 15], LL = [30, 35, 40, 45, 50, 60];
+    var se = SL.map(function (l) { return ta.ema(C, l); }), le = LL.map(function (l) { return ta.ema(C, l); });
+    se.forEach(function (a, i) { c.plot('EMA ngắn ' + SL[i], a, { color: '#26c6da', width: 1 }); });
+    le.forEach(function (a, i) { c.plot('EMA dài ' + LL[i], a, { color: '#ab47bc', width: 1 }); });
+    var avgS = new Array(n), avgL = new Array(n), fanBull = new Array(n), i, j;
+    for (i = 0; i < n; i++) {
+      var sS = 0, sL = 0, mn = Infinity, mx = -Infinity;
+      for (j = 0; j < se.length; j++) sS += se[j][i];
+      for (j = 0; j < le.length; j++) sL += le[j][i];
+      avgS[i] = sS / se.length; avgL[i] = sL / le.length;
+      for (j = 0; j < se.length; j++) if (se[j][i] < mn) mn = se[j][i];
+      for (j = 0; j < le.length; j++) if (le[j][i] > mx) mx = le[j][i];
+      fanBull[i] = mn > mx;
+    }
+    var xUp = ta.crossover(avgS, avgL), xDn = ta.crossunder(avgS, avgL), holding = false;
+    for (i = 0; i < n; i++) {
+      if (i < 60) continue;
+      if (!holding && xUp[i] && fanBull[i]) { c.mark(i, { pos: 'below', text: 'MUA', box: true, bg: '#2e9e4f', fg: '#fff' }); holding = true; }
+      else if (holding && xDn[i]) { c.mark(i, { pos: 'above', text: 'BÁN', box: true, bg: '#f23645', fg: '#fff' }); holding = false; }
+    }
+  }
+
+  /* ================= chỉ báo mẫu: Ichimoku Kinko Hyo ================= */
+  function ICHI(c) {
+    var ta = c.ta, H = c.high, L = c.low, C = c.close, n = c.n, NA = c.NA, i;
+    var isna = c.isna;
+    function mid(len) { var hh = ta.highest(H, len), ll = ta.lowest(L, len), o = new Array(n); for (var k = 0; k < n; k++) o[k] = (isna(hh[k]) || isna(ll[k])) ? NA : (hh[k] + ll[k]) / 2; return o; }
+    var T = mid(9), K = mid(26), B = mid(52);
+    var A = new Array(n); for (i = 0; i < n; i++) A[i] = (isna(T[i]) || isna(K[i])) ? NA : (T[i] + K[i]) / 2;
+    function fwd(a, k) { var o = new Array(n); for (var j = 0; j < n; j++) { var s = j + k; o[j] = (s >= 0 && s < n && !isna(a[s])) ? a[s] : NA; } return o; }
+    var senA = fwd(A, 26), senB = fwd(B, 26); // dịch 26 phiên sang phải (tương lai)
+    c.plot('Tenkan-sen', T, { color: '#42a5f5', width: 1 });
+    c.plot('Kijun-sen', K, { color: '#ef5350', width: 1.4 });
+    c.plot('Senkou A', senA, { color: 'rgba(76,175,80,.7)', width: 1 });
+    c.plot('Senkou B', senB, { color: 'rgba(255,82,82,.7)', width: 1 });
+    c.fill(senA, senB, { up: 'rgba(76,175,80,.14)', down: 'rgba(255,82,82,.14)', from: 0 });
+    var xUp = ta.crossover(T, K), xDn = ta.crossunder(T, K), holding = false;
+    for (i = 0; i < n; i++) {
+      if (i < 52) continue;
+      var topCloud = Math.max(isna(senA[i]) ? -Infinity : senA[i], isna(senB[i]) ? -Infinity : senB[i]);
+      var botCloud = Math.min(isna(senA[i]) ? Infinity : senA[i], isna(senB[i]) ? Infinity : senB[i]);
+      if (!holding && xUp[i] && C[i] > topCloud) { c.mark(i, { pos: 'below', text: 'MUA', box: true, bg: '#2e9e4f', fg: '#fff' }); holding = true; }
+      else if (holding && C[i] < botCloud) { c.mark(i, { pos: 'above', text: 'BÁN', box: true, bg: '#f23645', fg: '#fff' }); holding = false; }
+    }
+  }
+
+  /* ================= chỉ báo mẫu: Keltner Channel ================= */
+  function KELT(c) {
+    var ta = c.ta, H = c.high, L = c.low, C = c.close, n = c.n, i;
+    var EL = c.input('Chu kỳ EMA (đường giữa)', 20, { min: 2, max: 200, step: 1 });
+    var AL = c.input('Chu kỳ ATR', 10, { min: 2, max: 100, step: 1 });
+    var MU = c.input('Hệ số ATR', 2, { min: 0.5, max: 6, step: 0.1 });
+    var mid = ta.ema(C, EL), atr = ta.atr(H, L, C, AL), up = [], lo = [];
+    for (i = 0; i < n; i++) { up.push(mid[i] + MU * atr[i]); lo.push(mid[i] - MU * atr[i]); }
+    c.plot('Keltner giữa (EMA)', mid, { color: '#ffb300', width: 1.4 });
+    c.plot('Keltner trên', up, { color: '#ef5350', width: 1, style: 'dotted' });
+    c.plot('Keltner dưới', lo, { color: '#26a69a', width: 1, style: 'dotted' });
+    var xUpB = ta.crossover(C, up), holding = false;
+    for (i = 0; i < n; i++) {
+      if (i < EL + AL) continue;
+      if (!holding && xUpB[i]) { c.mark(i, { pos: 'below', text: 'MUA', box: true, bg: '#2e9e4f', fg: '#fff' }); holding = true; }
+      else if (holding && C[i] < mid[i]) { c.mark(i, { pos: 'above', text: 'BÁN', box: true, bg: '#f23645', fg: '#fff' }); holding = false; }
+    }
   }
 
   /* ================= chỉ báo mẫu: MA / EMA / WMA (thêm nhiều đường, mỗi đường một chu kỳ) ================= */
@@ -726,7 +826,10 @@
     { id: 'pe', name: 'P/E', pane: 'sub', code: '//@pane sub\n//@name P/E\n' + body(PE) },
     { id: 'pb', name: 'P/B', pane: 'sub', code: '//@pane sub\n//@name P/B\n' + body(PB) },
     { id: 'wmr', name: 'WORLD MACRO', pane: 'sub', code: '//@pane sub\n//@name WORLD MACRO RISK\n//@world\n' + body(WMR) },
-    { id: 'vmr', name: 'VN MACRO', pane: 'sub', code: '//@pane sub\n//@name VIETNAM MACRO RISK\n//@world\n' + body(VMR) }
+    { id: 'vmr', name: 'VN MACRO', pane: 'sub', code: '//@pane sub\n//@name VIETNAM MACRO RISK\n//@world\n' + body(VMR) },
+    { id: 'gmma', name: 'GMMA (Guppy)', pane: 'main', code: '//@pane main\n//@name GMMA\n' + body(GMMA) },
+    { id: 'ichimoku', name: 'Ichimoku', pane: 'main', code: '//@pane main\n//@name Ichimoku\n' + body(ICHI) },
+    { id: 'keltner', name: 'Keltner Channel', pane: 'main', code: '//@pane main\n//@name Keltner Channel\n' + body(KELT) }
   ];
   /* chỉ báo phổ biến lấy từ thư viện tín hiệu chung (tin-hieu.js): cùng công thức và điểm MUA/BÁN với Backtest và Bộ lọc */
   if (typeof ATLTH !== 'undefined') ATLTH.list.forEach(function (d) {
@@ -940,7 +1043,7 @@
           var pn = I.meta && I.meta.pane === 'sub' && pix != null ? chart.panes()[pix] : null, pe = pn && pn.getHTMLElement && pn.getHTMLElement();
           if (pe && pe.nodeType === 1) {
             host = document.createElement('div'); host.className = 'cb-pt';
-            host.style.cssText = 'position:absolute;top:3px;right:' + (chart.priceScale('right', pix).width() + 62) + 'px;z-index:6;pointer-events:none;background:rgba(19,23,34,.85);padding:2px 3px;border-radius:3px;font-size:9.5px;line-height:1.15;opacity:.95';
+            host.style.cssText = 'position:absolute;top:3px;right:' + (chart.priceScale('right', pix).width() + 5) + 'px;z-index:6;pointer-events:none;background:rgba(19,23,34,.85);padding:2px 3px;border-radius:3px;font-size:9.5px;line-height:1.15;opacity:.95';
             if (getComputedStyle(pe).position === 'static') pe.style.position = 'relative';
             pe.appendChild(host); I.tblEl = host;
           }

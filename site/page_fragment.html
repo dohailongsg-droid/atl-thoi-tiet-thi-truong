@@ -567,12 +567,15 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <button type="button" id="dm-sw-dc" aria-pressed="false">Mô phỏng Dragon Code</button>
         <button type="button" id="dm-sw-vt" aria-pressed="false">Mô phỏng VN Timing</button>
         <button type="button" id="dm-sw-dg" aria-pressed="false" title="Mua khi giá thấp hơn Giá bất tử và Vùng mua của mô hình định giá; bán 50% ở giá hợp lý, phần còn lại khi mất MA50.">Mô phỏng Định giá rẻ</button>
+        <button type="button" id="dm-sw-gmma" aria-pressed="false" title="Mua khi nhóm EMA ngắn (3–15) cắt lên và tách khỏi nhóm EMA dài (30–60); bán khi cắt xuống lại.">Mô phỏng GMMA</button>
+        <button type="button" id="dm-sw-ichimoku" aria-pressed="false" title="Mua khi giá vượt mây Kumo và Tenkan cắt lên Kijun; bán khi giá xuống dưới mây.">Mô phỏng Ichimoku</button>
+        <button type="button" id="dm-sw-keltner" aria-pressed="false" title="Mua khi giá vượt dải trên Keltner (EMA20 ± 2×ATR10); bán khi giá xuống dưới đường giữa.">Mô phỏng Keltner</button>
       </div>
       <div class="sm" id="dm-sim" hidden>
         <div class="atl-seg" id="sm-vt" role="group" aria-label="Giới hạn tỷ trọng" style="margin:0 0 var(--cds-gap-sm)"><button type="button" data-v="mo" aria-pressed="true">Không trần (tối đa 200%)</button><button type="button" data-v="tran" aria-pressed="false">Có trần theo vùng nhiệt kế</button></div>
         <div class="atl-card" id="sm-cmp-card">
           <h2 class="atl-h">So sánh bốn mô phỏng</h2>
-          <p class="atl-note" id="sm-cmp-note">Cùng vốn 1 tỷ, cùng bắt đầu 20/10/2026, cùng phí 0,3% mỗi vòng và cùng cách giới hạn tỷ trọng đang chọn ở trên. Khác nhau ở luật mua bán và cỡ lệnh: ATL 6,5% NAV mỗi mã (vé số 3%), Long đầu 2% mỗi mã, Dragon Code và VN Timing mua từng phần theo nhãn, tổng tối đa 5% mỗi mã (Dragon Code: MÚC 3% + THÊM 2%; VN Timing: B 2% + SB, SPr, BR mỗi nhãn 1%), chỉ mã có GTGD trung bình 20 phiên từ 20 tỷ. Bấm một dòng để xem chi tiết.</p>
+          <p class="atl-note" id="sm-cmp-note">Cùng vốn 1 tỷ, cùng bắt đầu 20/10/2026, cùng phí 0,3% mỗi vòng và cùng cách giới hạn tỷ trọng đang chọn ở trên. Khác nhau ở luật mua bán và cỡ lệnh: ATL 5% NAV mỗi mã (vé số 3%), Long đầu 2% mỗi mã, Dragon Code và VN Timing mua từng phần theo nhãn tổng tối đa 5% mỗi mã (Dragon Code: MÚC 3% + THÊM 2%; VN Timing: B 2% + SB, SPr, BR mỗi nhãn 1%), GMMA/Ichimoku/Keltner mua 5% một lần theo đúng luật gốc của từng chỉ báo, chỉ mã có GTGD trung bình 20 phiên từ 20 tỷ. Bấm một dòng để xem chi tiết.</p>
           <div class="atl-tablebox"><table class="sm-tbl" id="sm-cmp"><thead><tr><th>Mô phỏng</th><th class="num">Lãi/lỗ</th><th class="num">So với VN-Index</th><th class="num">Sụt giảm tối đa</th><th class="num">Lệnh</th><th class="num">Thắng / đã đóng</th><th class="num">Lãi TB lệnh đóng</th><th class="num">Tỷ trọng cổ phiếu</th></tr></thead><tbody></tbody></table></div>
           <p class="atl-note" id="sm-cmp-foot"></p>
           <div id="sm-fw" hidden style="margin-top:var(--cds-gap-md)">
@@ -738,9 +741,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   function pc(x,d){if(x==null)return '—';d=d==null?2:d;return (x>0?'+':x<0?'−':'')+Math.abs(x).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';}
   function dm(d){return d?d.slice(8,10)+'/'+d.slice(5,7):'—';}
   function cls(x){return x==null?'':x>0?'pos':x<0?'neg':'';}
-  var VT='mo';try{if(localStorage.getItem('atl-sm-vt')==='tran')VT='tran';}catch(e){}
+  var VT='tran';try{if(localStorage.getItem('atl-sm-vt')==='mo')VT='mo';}catch(e){}
   function pick(R){if(!R)return R;if(VT==='mo'&&R.khong_tran){var o={};for(var k in R)o[k]=R[k];var K=R.khong_tran;['nav','lenh','bo_qua','tong','gia_dinh'].forEach(function(q){if(K[q]!=null)o[q]=K[q];});o._mo=1;return o;}return R;}
-  var D=null,mode='me',DS={sim:null,ld:null,dc:null,vt:null,dg:null},FILE={sim:'mo_phong.json',ld:'mo_phong_long_dau.json',dc:'mo_phong_dragon.json',vt:'mo_phong_vnt.json',dg:'cb/_mo_phong_dgr.json'},LOADING={},NAME={sim:'ATL',ld:'Long đầu',dc:'Dragon Code',vt:'VN Timing',dg:'Định giá rẻ'},SIMS=['sim','ld','dc','vt','dg'];
+  var D=null,mode='me',DS={sim:null,ld:null,dc:null,vt:null,dg:null,gmma:null,ichimoku:null,keltner:null},FILE={sim:'mo_phong.json',ld:'mo_phong_long_dau.json',dc:'mo_phong_dragon.json',vt:'mo_phong_vnt.json',dg:'cb/_mo_phong_dgr.json',gmma:'mo_phong_gmma.json',ichimoku:'mo_phong_ichimoku.json',keltner:'mo_phong_keltner.json'},LOADING={},NAME={sim:'ATL',ld:'Long đầu',dc:'Dragon Code',vt:'VN Timing',dg:'Định giá rẻ',gmma:'GMMA',ichimoku:'Ichimoku',keltner:'Keltner Channel'},SIMS=['sim','ld','dc','vt','dg','gmma','ichimoku','keltner'];
   function tile(k,v,s,c){var t=el('div','atl-tile');t.appendChild(el('span','k',k));t.appendChild(el('span','v'+(c?' '+c:''),v));if(s)t.appendChild(el('span','s',s));return t;}
   function chartLines(box,nav){
     box.textContent='';var W=Math.max(300,box.clientWidth||600),H=220,m={l:46,r:16,t:12,b:26};
@@ -788,7 +791,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     if(D.trang_thai!=='ok'){note.textContent='Chưa có lệnh nào trong nhật ký tín hiệu để mô phỏng.';tiles.textContent='';tb.textContent='';$('sm-tb2').querySelector('tbody').textContent='';$('sm-pg').style.display='none';drawCmp();return;}
     var T=D.tong,n=T.so_phien;
     var isLd=mode==='ld';$('sm-th-loai').textContent=isLd?'Nhóm':'Loại';
-    note.textContent=(D._mo?(mode==='dg'?'Bản KHÔNG TRẦN: bỏ trần theo vùng nhiệt kế, cổ phiếu tối đa 100% NAV (20 mã × 5%), không dùng margin. ':'Bản KHÔNG TRẦN: mọi tín hiệu đều được mua, cổ phiếu tối đa 200% NAV (vay margin tối đa 100% NAV, lãi vay 12%/năm) để kiểm tra luật mua bán có hiệu quả không. '):(DS[mode]&&DS[mode].khong_tran?'Bản CÓ TRẦN theo vùng nhiệt kế (cách vận hành chuẩn). ':''))+'Mô phỏng '+NAME[mode]+' từ '+dm(D.ngay_bat_dau)+' đến '+dm(D.ngay_cuoi)+': mới '+n+' phiên và '+T.so_lenh+' lệnh, chưa đủ để kết luận hơn hay kém giao dịch tay. Số liệu dài dần mỗi ngày '+(mode==='dg'?'theo giá đóng cửa so với Giá bất tử và Vùng mua của từng mã. Chiến lược này giữ lệnh dài (kiểm định: khoảng 180 phiên mỗi lệnh) nên cần nhiều tháng mới có lệnh đóng.':mode==='dc'||mode==='vt'?'theo tín hiệu của chỉ báo '+NAME[mode]+' trên nến ngày.':'theo nhật ký tín hiệu của hệ thống.');
+    note.textContent=(D._mo?(mode==='dg'?'Bản KHÔNG TRẦN: bỏ trần theo vùng nhiệt kế, cổ phiếu tối đa 100% NAV (20 mã × 5%), không dùng margin. ':'Bản KHÔNG TRẦN: mọi tín hiệu đều được mua, cổ phiếu tối đa 200% NAV (vay margin tối đa 100% NAV, lãi vay 12%/năm) để kiểm tra luật mua bán có hiệu quả không. '):(DS[mode]&&DS[mode].khong_tran?'Bản CÓ TRẦN theo vùng nhiệt kế (cách vận hành chuẩn). ':''))+'Mô phỏng '+NAME[mode]+' từ '+dm(D.ngay_bat_dau)+' đến '+dm(D.ngay_cuoi)+': mới '+n+' phiên và '+T.so_lenh+' lệnh, chưa đủ để kết luận hơn hay kém giao dịch tay. Số liệu dài dần mỗi ngày '+(mode==='dg'?'theo giá đóng cửa so với Giá bất tử và Vùng mua của từng mã. Chiến lược này giữ lệnh dài (kiểm định: khoảng 180 phiên mỗi lệnh) nên cần nhiều tháng mới có lệnh đóng.':(mode==='dc'||mode==='vt'||mode==='gmma'||mode==='ichimoku'||mode==='keltner')?'theo tín hiệu của chỉ báo '+NAME[mode]+' trên nến ngày.':'theo nhật ký tín hiệu của hệ thống.');
     tiles.textContent='';
     tiles.appendChild(tile('Vốn ban đầu',n0(D.von)+' đ','Giả định'));
     tiles.appendChild(tile('Giá trị danh mục (NAV)',n0(T.nav)+' đ',pc(T.lai_pct)+' · '+(T.lai_dong>=0?'+':'−')+n0(Math.abs(T.lai_dong))+' đ',cls(T.lai_pct)));
@@ -817,7 +820,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     fill(tb,D.lenh.filter(function(r){return r.trang_thai==='Đang giữ';}),'Hiện không giữ mã nào.');
     window.atlMonthPager($('sm-pg'),D.lenh.filter(function(r){return r.trang_thai!=='Đang giữ';}),function(r){return r.ngay_thoat||r.ngay_mua;},function(list){fill(tb2,list,'Chưa có lệnh nào đã đóng.');});
     var cc=$('sm-cho-card'),ch=$('sm-cho');cc.hidden=!(D.cho&&D.cho.length);ch.textContent='';
-    if(!cc.hidden){$('sm-cho-note').textContent=mode==='dg'?'Mã đang thấp hơn Giá bất tử và Vùng mua ở phiên gần nhất. Mô phỏng sẽ mua ở giá đóng cửa phiên tới nếu còn chỗ, ưu tiên mã thấp hơn giá hợp lý nhiều nhất.':(mode==='dc'||mode==='vt')?'Tín hiệu mua của phiên gần nhất. Mô phỏng sẽ mua ở giá đóng cửa phiên tới nếu còn chỗ trong giới hạn tỷ trọng, ưu tiên mã có sức mạnh giá cao hơn.':isLd?'Kết quả lần xét lại gần nhất, sẽ vào hoặc ra ở giá đóng cửa phiên tới, với tỷ trọng dự kiến bên dưới.':'Tín hiệu mới chưa vào lệnh. Mô phỏng sẽ mua khi có giá phiên sau (ATO với mã MUA, giá đóng cửa với vé số), với tỷ trọng dự kiến bên dưới.';
+    if(!cc.hidden){$('sm-cho-note').textContent=mode==='dg'?'Mã đang thấp hơn Giá bất tử và Vùng mua ở phiên gần nhất. Mô phỏng sẽ mua ở giá đóng cửa phiên tới nếu còn chỗ, ưu tiên mã thấp hơn giá hợp lý nhiều nhất.':(mode==='dc'||mode==='vt'||mode==='gmma'||mode==='ichimoku'||mode==='keltner')?'Tín hiệu mua của phiên gần nhất. Mô phỏng sẽ mua ở giá đóng cửa phiên tới nếu còn chỗ trong giới hạn tỷ trọng, ưu tiên mã có sức mạnh giá cao hơn.':isLd?'Kết quả lần xét lại gần nhất, sẽ vào hoặc ra ở giá đóng cửa phiên tới, với tỷ trọng dự kiến bên dưới.':'Tín hiệu mới chưa vào lệnh. Mô phỏng sẽ mua khi có giá phiên sau (ATO với mã MUA, giá đóng cửa với vé số), với tỷ trọng dự kiến bên dưới.';
       var w=el('div','atl-chips');D.cho.forEach(function(r){var c=el('span','atl-chip',r.ma+' · '+r.loai+' · '+(r.ty*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'% NAV');w.appendChild(c);});ch.appendChild(w);}
     var bq=$('sm-bq');bq.textContent='';$('sm-bq-card').hidden=!(D.bo_qua&&D.bo_qua.length);
     (D.bo_qua||[]).forEach(function(r){bq.appendChild(el('li',null,r.ma+' ('+dm(r.ngay)+'): '+r.ly_do+(r.lai_pct!=null?' · nếu vẫn mua: '+pc(r.lai_pct)+' ('+(r.trang_thai==='Đã đóng'?'đã bán':'tính tới giá hiện tại')+')':'')));});
@@ -843,7 +846,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       .then(function(j){DS[m]=j;LOADING[m]=false;if(mode===m){D=pick(j);render();}else if(mode!=='me')drawCmp();}).catch(function(){LOADING[m]=false;if(mode!=='me')drawCmp();if(mode===m){$('sm-note').textContent='Chưa có dữ liệu mô phỏng '+NAME[m]+'. Dữ liệu xuất hiện sau lần chạy workflow "Cập nhật số liệu hằng ngày" tiếp theo.';$('sm-tiles').textContent='';}});}
   function setMode(m){
     mode=m;var sim=m!=='me';
-    $('dm-sw-me').setAttribute('aria-pressed',String(!sim));$('dm-sw-sim').setAttribute('aria-pressed',String(m==='sim'));$('dm-sw-ld').setAttribute('aria-pressed',String(m==='ld'));$('dm-sw-dc').setAttribute('aria-pressed',String(m==='dc'));$('dm-sw-vt').setAttribute('aria-pressed',String(m==='vt'));$('dm-sw-dg').setAttribute('aria-pressed',String(m==='dg'));
+    $('dm-sw-me').setAttribute('aria-pressed',String(!sim));$('dm-sw-sim').setAttribute('aria-pressed',String(m==='sim'));$('dm-sw-ld').setAttribute('aria-pressed',String(m==='ld'));$('dm-sw-dc').setAttribute('aria-pressed',String(m==='dc'));$('dm-sw-vt').setAttribute('aria-pressed',String(m==='vt'));$('dm-sw-dg').setAttribute('aria-pressed',String(m==='dg'));$('dm-sw-gmma').setAttribute('aria-pressed',String(m==='gmma'));$('dm-sw-ichimoku').setAttribute('aria-pressed',String(m==='ichimoku'));$('dm-sw-keltner').setAttribute('aria-pressed',String(m==='keltner'));
     $('dm-sim').hidden=!sim;$('dm-me').style.display=sim?'none':'grid';$('dm-root').classList.toggle('sim',sim);
     if(sim){D=pick(DS[m]);if(D){render();}else{$('sm-note').textContent='Đang tải dữ liệu mô phỏng…';$('sm-tiles').textContent='';$('sm-ld-card').hidden=true;load(m);}SIMS.forEach(function(q){if(q!==m)load(q);});drawCmp();setTimeout(drawCharts,0);}
     else if(window.__dmBoot)window.__dmBoot();}
@@ -853,6 +856,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   $('dm-sw-dc').addEventListener('click',function(){setMode('dc');});
   $('dm-sw-vt').addEventListener('click',function(){setMode('vt');});
   $('dm-sw-dg').addEventListener('click',function(){setMode('dg');});
+  $('dm-sw-gmma').addEventListener('click',function(){setMode('gmma');});
+  $('dm-sw-ichimoku').addEventListener('click',function(){setMode('ichimoku');});
+  $('dm-sw-keltner').addEventListener('click',function(){setMode('keltner');});
   window.addEventListener('resize',function(){if(mode!=='me')drawCharts();});
   (function(){var g=$('sm-vt');function sync(){[].forEach.call(g.children,function(b){b.setAttribute('aria-pressed',String(b.dataset.v===VT));});}sync();
     g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;VT=b.dataset.v;try{localStorage.setItem('atl-sm-vt',VT);}catch(x){}sync();if(mode!=='me'&&DS[mode]){D=pick(DS[mode]);render();}else if(mode!=='me')drawCmp();});})();
@@ -4746,7 +4752,7 @@ render();if(!sec.hidden)show();
       labNS='';$('dthi-tbl').textContent='';cbmsg('');
       box.style.height=(S.ex?boxH():430+extra*140)+'px';
       chart=L.createChart(box,{autoSize:true,layout:{background:{type:'solid',color:bg},textColor:fg,fontSize:11,panes:{separatorColor:grid,enableResize:true}},
-        crosshair:{mode:L.CrosshairMode.Normal},grid:{vertLines:{color:grid,visible:!!S.grid},horzLines:{color:grid,visible:!!S.grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:4,timeVisible:S.tf==='H',secondsVisible:false},
+        crosshair:{mode:L.CrosshairMode.Normal},grid:{vertLines:{color:grid,visible:!!S.grid},horzLines:{color:grid,visible:!!S.grid}},rightPriceScale:{borderColor:grid},timeScale:{borderColor:grid,rightOffset:11,timeVisible:S.tf==='H',secondsVisible:false},
         localization:{locale:'vi-VN',priceFormatter:function(p){return p.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});}}});
       smartChart(chart);
       var cd=chart.addSeries(L.CandlestickSeries,{upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN,priceLineVisible:true},0);
