@@ -1353,6 +1353,12 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <div id="hn-mua-list" data-source="hom_nay"></div>
       </div>
 
+      <div class="atl-card atl-wide" id="card-la-chan" style="display:none">
+        <h2 class="atl-h">Lá chắn đang giữ lại</h2>
+        <p class="atl-note">Tín hiệu MUA xuất hiện trong thời gian lá chắn chống sập bật (sau 3 lần cắt lỗ liên tiếp). Trang không tính các mã này là đang giữ và không khuyến nghị mua lúc này; số liệu trên thẻ chỉ để theo dõi nếu mua theo luật gốc. Mô phỏng ATL và sổ ghi nhận vẫn tính đủ để so luật gốc với luật có lá chắn.</p>
+        <div id="hn-lc-list" data-source="hom_nay"></div>
+      </div>
+
       <div class="atl-card atl-wide" id="card-dang-giu">
         <h2 class="atl-h">Đang giữ</h2>
         <p class="atl-note">Mã đã có tín hiệu MUA, chưa chạm điểm bán hay cắt lỗ. Lãi/lỗ tính từ giá mua ATO phiên sau tín hiệu. Lệnh Vé số / Trứng rồng đang giữ cũng nằm ở đây, có nhãn riêng; lệnh đã đóng chuyển xuống Lịch sử tín hiệu.</p>
@@ -5791,7 +5797,7 @@ render();if(!sec.hidden)show();
   dash.calc('dem_loai', {
     title: 'Số mã theo loại tín hiệu', description: 'Đếm số mã của từng loại trong danh sách hôm nay.',
     inputs: ['hom_nay'],
-    fn: (hom_nay) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ', 'VÉ SỐ', 'TRỨNG RỒNG', 'BÁN THÁO'].map((loai) => ({ loai, so_ma: hom_nay.filter((r) => r.loai === loai).length })),
+    fn: (hom_nay) => ['MUA', 'THEO DÕI', 'ĐANG GIỮ', 'LÁ CHẮN', 'VÉ SỐ', 'TRỨNG RỒNG', 'BÁN THÁO'].map((loai) => ({ loai, so_ma: hom_nay.filter((r) => r.loai === loai).length })),
   });
   const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
   const mark = (e, r, field) => { if (r.dai) return e; e.dataset.source = 'hom_nay'; e.dataset.field = field; e.dataset.where = 'ma=' + enc(r.ma) + '&loai=' + enc(r.loai); return e; };
@@ -5886,6 +5892,7 @@ render();if(!sec.hidden)show();
       const dk = el('p', 'atl-note'); dk.appendChild(el('strong', '', 'Điều kiện mua: ')); dk.appendChild(document.createTextNode('đóng cửa dưới ')); dk.appendChild(mark(el('span', '', f2(num(r.dai_duoi))), r, 'dai_duoi')); dk.appendChild(document.createTextNode(' thì mua ATO phiên sau.')); c.appendChild(dk);
     }
     if (r.loai === 'MUA') c.appendChild(el('p', 'atl-note', 'Mua ATO phiên kế tiếp. Lãi/lỗ và cắt lỗ sẽ tính lại theo giá ATO thực tế.'));
+    if (r.loai === 'LÁ CHẮN') c.appendChild(el('p', 'atl-note', 'Tín hiệu MUA ngày ' + dmy(r.ngay_tin_hieu) + ' xuất hiện khi lá chắn chống sập đang bật, nên không tính là lệnh đang giữ. Nếu mua theo luật gốc (ATO ' + f2(num(r.gia_mua)) + '), hiện ' + (r.lai_lo_pct == null ? '—' : d3.format('+.2f')(+r.lai_lo_pct) + '%') + '. Chỉ để theo dõi hiệu quả lá chắn.'));
     return c;
   }
 
@@ -5909,16 +5916,17 @@ render();if(!sec.hidden)show();
     }
     const D = dash.data('dem_loai');
     if (D.status === 'ok') { const g = (k) => (D.data.find((x) => x.loai === k) || {}).so_ma ?? 0; $('hn-n-mua').textContent = g('MUA'); $('hn-n-giu').textContent = g('ĐANG GIỮ') + ldOpen.length; }
-    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
+    if (H.status !== 'ok') { ['hn-mua-list', 'hn-giu-list', 'hn-td-list', 'hn-lc-list'].forEach((id) => { if (H.status === 'error') window.atlFail($(id)); else $(id).replaceChildren(); }); }
     else {
       const rows = H.data, by = (k) => rows.filter((r) => r.loai === k);
       const ngay = (rows[0] && rows.find((r) => r.loai !== 'ĐANG GIỮ') || {}).ngay_tin_hieu || (N.status === 'ok' ? N.data[N.data.length - 1].ngay : '');
       const gp = B.status === 'ok' && B.data.length && (B.data[0].giua_phien === true || B.data[0].giua_phien === 'true');
       $('hn-mua-note').textContent = gp ? 'Dữ liệu giữa phiên ' + dmy(ngay) + ' (chưa chốt giá đóng cửa): tín hiệu bên dưới chỉ tạm thời, chính thức sau 15:15.' : 'Tín hiệu tính trên giá đóng cửa phiên ' + dmy(ngay) + '; vào lệnh ATO phiên giao dịch kế tiếp.';
       const zt = N.status === 'ok' && Z ? Z[+N.data[N.data.length - 1].vung] : null;
-      list($('hn-mua-list'), by('MUA').concat(by('TRỨNG RỒNG'), by('VÉ SỐ')), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
+      list($('hn-mua-list'), by('MUA').concat(by('TRỨNG RỒNG'), by('VÉ SỐ')), 'Phiên ' + dmy(ngay) + ' không có mã đạt điều kiện MUA.' + (by('LÁ CHẮN').length ? ' ' + by('LÁ CHẮN').length + ' mã đạt điều kiện nhưng đang bị lá chắn chống sập giữ lại (xem mục Lá chắn đang giữ lại bên dưới).' : '') + (zt ? ' ' + zt.tag : '') + ' Không có tín hiệu thì đứng ngoài cũng là một quyết định.');
       list($('hn-giu-list'), by('ĐANG GIỮ').concat(ldOpen.map((r) => ({ loai: 'ĐANG GIỮ', dai: r.loai, ma: r.ma, nganh: r.nganh, ngay_tin_hieu: r.ngay, gia_mua: r.gia_mua, gia_hien_tai: r.gia_hien_tai, lai_lo_pct: r.lai_lo, cat_lo: r.cat_lo, st_tuan: r.nguong_thoat, muc_tieu_1: null, muc_tieu_2: null, dai_duoi: null }))), 'Chưa có lệnh nào đang giữ.');
       list($('hn-td-list'), by('THEO DÕI'), 'Không có mã nào sát dải dưới.');
+      const lcr = by('LÁ CHẮN'), lcc = $('card-la-chan'); if (lcc) lcc.style.display = lcr.length ? '' : 'none'; list($('hn-lc-list'), lcr, '');
     }
     const tls = document.querySelector('#tb-ls tbody'), tdt = document.querySelector('#tb-td-ls tbody');
     const emptyRow = (tb, n, txt) => { const t = el('tr'), c = el('td', '', txt); c.colSpan = n; c.style.color = 'var(--color-fg-muted)'; t.appendChild(c); tb.replaceChildren(t); };
@@ -7002,7 +7010,8 @@ render();if(!sec.hidden)show();
     const el = document.getElementById('lc-line'); if (!el) return;
     if (d.trang_thai === 'chua_co_du_lieu') return;
     const nghi = d.trang_thai === 'nen_nghi';
-    el.textContent = nghi ? 'Lá chắn chống sập: NÊN NGHỈ MỞ LỆNH MỚI. ' + d.thong_diep + ' (Chỉ để theo dõi, không bắt buộc.)' : 'Lá chắn chống sập: bình thường, chuỗi cắt lỗ ' + d.chuoi_cat_lo + '/' + d.nguong + ' (đủ ' + d.nguong + ' lần liên tiếp thì nên nghỉ ' + d.nghi_phien + ' phiên).';
+    el.textContent = nghi ? 'Lá chắn chống sập: NÊN NGHỈ MỞ LỆNH MỚI. ' + d.thong_diep + ' Tín hiệu MUA mới được xếp ở mục Lá chắn đang giữ lại, không tính là lệnh đang giữ; mô phỏng ATL vẫn ghi đủ để so luật gốc.' : 'Lá chắn chống sập: bình thường, chuỗi cắt lỗ ' + d.chuoi_cat_lo + '/' + d.nguong + ' (đủ ' + d.nguong + ' lần liên tiếp thì nên nghỉ ' + d.nghi_phien + ' phiên).';
+    const h = d.hieu_qua; if (h && h.n_bi_giu > 0) { const sg = (v) => (v > 0 ? '+' : '') + v + '%'; el.textContent += ' Theo dõi hiệu quả: lá chắn đã giữ lại ' + h.n_bi_giu + ' tín hiệu MUA' + (h.n_da_dong ? ', đã đóng ' + h.n_da_dong + ' lệnh, lãi TB ' + sg(h.lai_tb_da_dong) + (h.ti_le_thang != null ? ' (thắng ' + h.ti_le_thang + '%)' : '') : ', chưa có lệnh nào đóng') + (h.lai_tb_ngoai_cua_so != null ? '. Lệnh đã đóng ngoài thời gian lá chắn: lãi TB ' + sg(h.lai_tb_ngoai_cua_so) + ' (' + h.n_lenh_ngoai_cua_so + ' lệnh)' : '') + '.'; }
     if (nghi) { el.style.color = 'var(--color-bad, #f0716b)'; el.style.fontWeight = '600'; }
     el.style.display = '';
   }).catch(() => {});
