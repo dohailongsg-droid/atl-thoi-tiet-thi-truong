@@ -629,7 +629,7 @@
   function GTGD(c) {
     var n = c.n, NA = c.NA, isna = c.isna;
     var L = c.input('Đường MA (nến)', 20, { min: 2, max: 200, step: 1 });
-    if (c.sym === 'VNINDEX') throw new Error('Giá trị giao dịch chỉ dùng cho cổ phiếu.');
+    if (c.sym === 'VNINDEX' || c.sym === 'VN30' || c.sym === 'VN30F1M') throw new Error('Giá trị giao dịch chỉ dùng cho cổ phiếu.');
     var g = new Array(n), cols = new Array(n), i;
     for (i = 0; i < n; i++) {
       var v = c.x && !isna(c.x.gt[i]) ? c.x.gt[i] : c.close[i] * c.volume[i] / 1e6;

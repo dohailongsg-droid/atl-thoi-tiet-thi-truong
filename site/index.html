@@ -437,6 +437,14 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .dthi-vsp{flex:0 0 7px;cursor:row-resize;border-radius:4px;touch-action:none}.dthi-vsp:hover,.dthi-vsp.on{background:var(--cds-chart-grid,#555)}
 #dthi-side[hidden]{display:none}
 #dthi-wrap.lay2{flex-wrap:wrap}#dthi-wrap.lay2 #dthi-side{order:9;flex:0 0 100%!important;margin-top:8px}#dthi-wrap.lay2 #dthi-sp{display:none}#dthi-wrap.lay2 .dthi-vsp{height:7px}
+/* 2 khung: lưới 2 cột (cột công cụ vẽ bên trái trải qua cả 2 hàng) để cột công cụ cao không đẩy khung 2 xuống xa; khung 2 nằm sát ngay dưới khung 1 */
+#dthi-wrap.lay2{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;align-items:start}
+#dthi-wrap.lay2 #dthi-tool{grid-column:1;grid-row:1 / span 2;align-self:start;max-height:calc(100vh - 16px);overflow-y:auto;scrollbar-width:none}
+#dthi-wrap.lay2 #dthi-main{grid-column:2;grid-row:1}
+#dthi-wrap.lay2 #dthi-side{grid-column:2;grid-row:2;margin-top:6px}
+@media (max-width:700px){#dthi-wrap.lay2{grid-template-columns:minmax(0,1fr)}#dthi-wrap.lay2 #dthi-tool,#dthi-wrap.lay2 #dthi-main,#dthi-wrap.lay2 #dthi-side{grid-column:1;grid-row:auto;max-height:none}}
+/* toàn màn hình / mở rộng: nội dung cao hơn màn hình thì cuộn, không bóp hàng nút phía trên (trước đây hàng nút bị cắt nửa chữ) */
+#dthi-stage.dthi-ex>*{flex-shrink:0}
 .dthi-mini{display:flex;flex-direction:column;min-width:0;border:1px solid var(--cds-chart-grid,#333);border-radius:8px;overflow:hidden}
 .dthi-mh{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:11.5px;color:var(--color-fg-muted);flex-wrap:wrap}
 .dthi-mh b{color:var(--color-fg);font-size:12.5px}
@@ -4322,7 +4330,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     <div class="atl-card atl-wide" id="dthi-stage">
       <div id="dthi-top">
       <div class="dthi-bar">
-        <input type="search" id="dthi-in" list="dthi-dl" placeholder="Nhập mã: HAH, FPT, VNINDEX…" autocomplete="off" spellcheck="false" maxlength="8" aria-label="Mã cổ phiếu">
+        <input type="search" id="dthi-in" list="dthi-dl" placeholder="Mã hoặc chỉ số: HAH, VNINDEX, VN30, VN100, BANK, VNREAL…" autocomplete="off" spellcheck="false" maxlength="8" aria-label="Mã cổ phiếu">
         <datalist id="dthi-dl"></datalist>
         <div class="atl-seg" id="dthi-tf" role="group" aria-label="Khung nến"><button type="button" data-v="H" aria-pressed="false">Giờ</button><button type="button" data-v="D" aria-pressed="true">Ngày</button><button type="button" data-v="W" aria-pressed="false">Tuần</button></div>
         <div class="atl-seg" id="dthi-rg" role="group" aria-label="Khoảng xem"><button type="button" data-v="60" aria-pressed="false">3T</button><button type="button" data-v="125" aria-pressed="false">6T</button><button type="button" data-v="250" aria-pressed="true">1N</button><button type="button" data-v="0" aria-pressed="false">Tất cả</button></div>
@@ -4865,7 +4873,7 @@ render();if(!sec.hidden)show();
       var my=++seq;S.ma=m;$('dthi-in').value=m;note('Đang tải '+m+'…');
       fetch(BASE+m+'.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
         if(my!==seq)return;raw=j;save();prep(function(){build();pollLive();});
-      }).catch(function(){if(my!==seq)return;raw=null;if(chart){try{chart.remove();}catch(e){}chart=null;}$('dthi-box').textContent='';$('dthi-box').style.height='0';note('Không có dữ liệu mã '+m+' (chỉ có mã HOSE và VNINDEX, hoặc dữ liệu chưa được tạo ở lần cập nhật hằng ngày gần nhất).');});}
+      }).catch(function(){if(my!==seq)return;raw=null;if(chart){try{chart.remove();}catch(e){}chart=null;}$('dthi-box').textContent='';$('dthi-box').style.height='0';note('Không có dữ liệu mã '+m+' (chỉ có mã HOSE, các chỉ số và nhóm ngành trong danh sách gợi ý, hoặc dữ liệu chưa được tạo ở lần cập nhật hằng ngày gần nhất).');});}
     /* ---- nến trong phiên: tải file live mỗi phút khi tab đang mở ---- */
     function pollLive(){
       fetch(LIVE+'?t='+Math.floor(Date.now()/60000),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
