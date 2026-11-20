@@ -141,6 +141,36 @@ def main():
         if cache:
             import pickle
             pickle.dump(got, open(cache, "wb"))
+    # lượt thứ 2 cho mã tải hỏng (ít luồng hơn, tránh bị giới hạn tốc độ)
+    miss = [x for x in syms if not got.get(x, ({}, []))[1] and not got.get(x, ({}, []))[0]]
+    if miss and not cache and OK[0] > 0:
+        with ThreadPoolExecutor(4) as ex:
+            for sym, flow, ratios in ex.map(fetch, miss):
+                if flow or ratios:
+                    got[sym] = (flow, ratios)
+    # P/E, P/B theo quý: lưu lại lần tải tốt gần nhất (state/ratios_cache.json, workflow tự commit);
+    # lần nào Vietcap lỗi/hết giờ thì dùng bản đã lưu, không để khung P/E, P/B trống
+    rc_path = os.path.join(HERE, "state", "ratios_cache.json")
+    try:
+        rc = json.load(open(rc_path, encoding="utf-8"))
+    except Exception:
+        rc = {}
+    n_new = n_old = 0
+    for sym in syms:
+        flow, ratios = got.get(sym, ({}, []))
+        if ratios:
+            rc[sym] = [list(r) for r in ratios][-16:]
+            n_new += 1
+        elif rc.get(sym):
+            got[sym] = (flow, [tuple(r) for r in rc[sym]])
+            n_old += 1
+    try:
+        os.makedirs(os.path.dirname(rc_path), exist_ok=True)
+        with open(rc_path, "w", encoding="utf-8") as f:
+            json.dump(rc, f, separators=(",", ":"))
+    except Exception:
+        pass
+    print("chi_bao_phu: P/E, P/B tải mới %d mã, dùng bản lưu %d mã, thiếu %d mã" % (n_new, n_old, len(syms) - n_new - n_old))
     n_out = 0
     for sym in syms:
         g = C[sym].dropna().tail(N)
