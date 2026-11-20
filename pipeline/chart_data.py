@@ -64,6 +64,11 @@ def main():
 if __name__ == "__main__":
     main()
     try:
+        import chi_so_them
+        chi_so_them.main()
+    except Exception as e:
+        print("chi_so_them lỗi, bỏ qua:", e, file=sys.stderr)
+    try:
         import macro_tg
         macro_tg.main()
     except Exception as e:
