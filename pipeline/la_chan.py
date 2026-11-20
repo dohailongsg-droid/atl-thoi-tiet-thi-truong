@@ -61,5 +61,24 @@ res = dict(cap_nhat=datetime.date.today().isoformat(), trang_thai=tt, thong_diep
            backtest=dict(giai_doan="01/2020 → 27/10/2026, vùng 1–2, mỗi lệnh 6,5% NAV, tối đa 4 lệnh",
                          khong_nghi=dict(lai_nam=-0.8, sut_toi_da=-20.9), co_la_chan=dict(lai_nam=0.3, sut_toi_da=-11.5), so_lan_kich_hoat=9,
                          ghi_chu="Lợi ích tập trung ở hai giai đoạn sập (3/2020 và 2022); chỉ kích hoạt khoảng 9 lần trong 6,5 năm. Là đề xuất theo dõi, chưa phải quy tắc bắt buộc; xem xét ở review 17/11/2026."))
+# ---- v1.7: cửa sổ nghỉ + tín hiệu MUA bị giữ lại (chỉ để trang ẩn khỏi "Đang giữ" và đo hiệu quả lá chắn; mô phỏng/sổ forward-test vẫn tính đủ) ----
+cua_so = [dict(tu=d.strftime("%Y-%m-%d"), den=cong_phien(d, NGHI).strftime("%Y-%m-%d")) for d in kich_hoat]
+def _trong_cua_so(nd):
+    return any(pd.Timestamp(w["tu"]) <= nd <= pd.Timestamp(w["den"]) for w in cua_so)
+bi_giu = []
+for r in R[1:]:
+    r = list(r) + [""] * (19 - len(r)); ma_, tin_ = str(r[2]), str(r[3])
+    if len(ma_) != 3 or not tin_.startswith("MUA"): continue
+    try: nd_ = pd.Timestamp(str(r[0])[:10])
+    except Exception: continue
+    if _trong_cua_so(nd_):
+        bi_giu.append(dict(ma=ma_, ngay=nd_.strftime("%Y-%m-%d"), lai_lo=pnum(r[17]), ly_do=str(r[18]).strip()))
+dong_ = [x["lai_lo"] for x in bi_giu if x["lai_lo"] is not None]
+ngoai_ = [x["pnl"] for x in lenh if not _trong_cua_so(x["ngay_tin_hieu"])]
+tb_ = lambda v: round(sum(v) / len(v), 2) if v else None
+hieu_qua = dict(n_bi_giu=len(bi_giu), n_da_dong=len(dong_), n_dang_mo=len(bi_giu) - len(dong_), lai_tb_da_dong=tb_(dong_),
+                ti_le_thang=round(sum(1 for v in dong_ if v > 0) / len(dong_) * 100) if dong_ else None,
+                n_lenh_ngoai_cua_so=len(ngoai_), lai_tb_ngoai_cua_so=tb_(ngoai_))
+res.update(cua_so=cua_so, bi_giu=bi_giu, hieu_qua=hieu_qua)
 json.dump(res, open("dash_out/la_chan.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False)
 print("la_chan:", tt, "| chuỗi", chuoi, "| lệnh đóng", len(lenh))

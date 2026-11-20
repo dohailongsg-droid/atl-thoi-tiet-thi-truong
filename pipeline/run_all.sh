@@ -53,6 +53,8 @@ python3 cau_truc.py || echo "cau_truc.py lỗi, bỏ qua"
 python3 dinh_gia_thi_truong.py || echo "dinh_gia_thi_truong.py lỗi, bỏ qua"
 # lịch sự kiện 45 ngày: đáo hạn phái sinh, cổ tức, phát hành, họp cổ đông (lỗi không làm dừng pipeline)
 python3 su_kien.py || echo "su_kien.py lỗi, bỏ qua"
+# lá chắn giữ lại: ẩn tín hiệu MUA trong cửa sổ nghỉ khỏi "Đang giữ" ở trang (chạy SAU mô phỏng để mô phỏng vẫn tính luật gốc; lỗi không làm dừng pipeline)
+python3 dash_la_chan.py || echo "dash_la_chan.py lỗi, bỏ qua"
 # sang thư mục trang (co_ban.json cập nhật riêng theo quý nên không bị ghi đè)
 cp dash_out/*.json ../site/data/
 # bộ lọc chỉ báo cho tab Bộ lọc (chạy đúng mã chỉ báo của trang; lỗi không làm dừng pipeline)
