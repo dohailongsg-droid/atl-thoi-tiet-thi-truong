@@ -171,6 +171,14 @@ def main():
     except Exception:
         pass
     print("chi_bao_phu: P/E, P/B tải mới %d mã, dùng bản lưu %d mã, thiếu %d mã" % (n_new, n_old, len(syms) - n_new - n_old))
+    # khối ngoại dự phòng: lịch sử đã lưu trong nn_lich_su.csv.gz (nn_lich_su.py nối thêm mỗi lượt), dùng khi lượt tải này thiếu ngày/mã
+    nn_fb = {}
+    try:
+        h = pd.read_csv(os.path.join(HERE, "nn_lich_su.csv.gz"), usecols=["symbol", "date", "net"])
+        for sy, dd, nt in zip(h["symbol"], h["date"], h["net"]):
+            nn_fb.setdefault(sy, {})[str(dd)[:10]] = float(nt)
+    except Exception:
+        pass
     n_out = 0
     for sym in syms:
         g = C[sym].dropna().tail(N)
@@ -178,7 +186,8 @@ def main():
             continue
         dates = list(g.index)
         flow, ratios = got.get(sym, ({}, []))
-        nn = [round(flow[d][0], 1) if d in flow else None for d in dates]
+        fb = nn_fb.get(sym, {})
+        nn = [round(flow[d][0], 1) if d in flow else (round(fb[str(d)[:10]], 1) if str(d)[:10] in fb else None) for d in dates]
         gt = [round(flow[d][1], 1) if d in flow else None for d in dates]
         pe, pb = valuation(dates, [float(x) for x in g.values], ratios)
 
