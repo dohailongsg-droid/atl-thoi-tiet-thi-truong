@@ -934,6 +934,7 @@
     return { marks: list, fills: out.fills.map(function (f) { return { up: f.o.up, down: f.o.down }; }), bgCols: uniq(out.bg.map(function (b) { return b[1]; }), 8), barCols: uniq(out.bar.map(function (b) { return b[1]; }), 8) };
   }
   /* ================= vẽ lên biểu đồ ================= */
+  var OC = {}, OCo = [];   /* bộ nhớ kết quả chỉ báo của các mã vừa xem (tối đa 160 lượt tính) */
   function mount(env) {
     var L = env.L, chart = env.chart, insts = [], mainMk = null, ovMain = null, mainJ = null;
     function err(en, e) { if (env.onError) env.onError(en, e); }
@@ -946,8 +947,18 @@
       return s;
     }
     function update(I, d) {
-      var idx = env.getIdx ? env.getIdx(d) : null, out;
-      try { out = exec(I.fn, d, idx, env.getSettings ? env.getSettings(I.en.id) : null); } catch (e) { err(I.en, e); return; }
+      var out, set_ = env.getSettings ? env.getSettings(I.en.id) : null, ck = null;
+      if (I._d === d && I._o) out = I._o;                       /* cùng dữ liệu: không tính lại (lượt gắn và lượt nạp trong cùng một lần vẽ) */
+      else {
+        try { if (env.ck) { var k0 = env.ck(d); if (k0) ck = k0 + '|' + I.en.id + '|' + I.en.code.length + '|' + JSON.stringify(set_ || {}); } } catch (e) { ck = null; }
+        if (ck && OC[ck]) out = OC[ck];                          /* mã vừa xem: lấy kết quả đã tính */
+        else {
+          var idx = env.getIdx ? env.getIdx(d) : null;
+          try { out = exec(I.fn, d, idx, set_); } catch (e) { err(I.en, e); return; }
+          if (ck) { OC[ck] = out; OCo.push(ck); while (OCo.length > 160) delete OC[OCo.shift()]; }
+        }
+      }
+      I._d = d; I._o = out;
       var pane = 0;
       if (I.meta.pane === 'sub') { if (I.pane == null) I.pane = chart.panes().length; pane = I.pane; }
       var STY = (env.getStyle && env.getStyle(I.en.id)) || {};
