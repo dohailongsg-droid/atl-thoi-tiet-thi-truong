@@ -1,6 +1,6 @@
 /* Lớp thay thế `dash` của Claude Dashboard để trang chạy độc lập: nạp data/*.json, tự tính các calc, vẽ lại khi đổi kích thước. */
 (() => {
-  const IDS = ['ban_do_nhiet', 'che_do_bao', 'co_ban', 'dong_chu_dao', 'dong_tien_ma', 'dong_tien_nganh', 'gia_ngay', 'ho_so', 'hom_nay', 'kiem_dinh',
+  const IDS = ['ban_do_nhiet', 'che_do_bao', 'co_ban', 'dong_chu_dao', 'dong_tien_ma', 'dong_tien_nganh', 'gia_ngay', 'ho_so', 'ho_so_chi_so', 'hom_nay', 'kiem_dinh',
     'lenh_dai', 'lich_su_loc', 'nhiet_ke', 'rrg_ma', 'rrg_nganh', 'xep_hang'];
   const store = {}, calcs = {}, cbs = [];
   IDS.forEach((id) => { store[id] = { status: 'loading', data: [], columns: [], meta: [] }; });
