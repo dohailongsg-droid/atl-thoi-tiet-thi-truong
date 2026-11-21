@@ -38,6 +38,8 @@ python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
 python3 -c "import vn_prices as vp; vp.fetch(count_back=2520, path='vn_prices_chart.csv.gz')" || echo "tải lịch sử 10 năm lỗi, Đồ thị dùng 620 phiên"
 # dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
+# Hồ sơ mã cho chỉ số (VN-Index, VN30, ngành, nhóm ATL): cần file nến chỉ số vừa ghi ở bước trên (lỗi không làm dừng pipeline)
+python3 ho_so_chi_so.py || echo "ho_so_chi_so.py lỗi, bỏ qua"
 # lịch sử khối ngoại từ 2019-10 (nối thêm phiên mới) -> pipeline/nn_lich_su.csv.gz và site/data/bt_nn.json cho Backtest (lỗi không làm dừng pipeline)
 python3 nn_lich_su.py || echo "nn_lich_su.py lỗi, bỏ qua"
 # top khối ngoại mua/bán ròng 5-10-20 phiên (cần chart/x của bước trên; lỗi không làm dừng pipeline)

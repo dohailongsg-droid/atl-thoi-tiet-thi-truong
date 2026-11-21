@@ -73,6 +73,7 @@ function main() {
   const out = {}; let nSym = 0, nFail = 0;
   const lastD = M.d[M.d.length - 1];
 
+  const GAN = 5, gan = {};
   Object.keys(SY).forEach(function (sym) {
     let D; try { D = dOf(sym); } catch (e) { nFail++; return; } if (!D) return;
     const n = D.c.length, a = D.a, c = D.c, rows = [];
@@ -80,6 +81,7 @@ function main() {
     let K = 1000; const ch = rd(path.join(SITE, 'data', 'chart', sym + '.json'));
     if (ch && ch.t && ch.t.length) { const li = ch.t.indexOf(D.t[n - 1]); if (li >= 0 && ch.c[li] > 0) K = c[n - 1] / ch.c[li]; }
     const live = D.t[n - 1] === lastD;
+    const gb = {}, gs = {};
     IDS.forEach(function (id) {
       try {
         const def = TH.get(id); if (!def) return;
@@ -104,6 +106,16 @@ function main() {
         }
         /* --- tín hiệu đang bật --- */
         if (!live) return;
+        /* --- huy hiệu B/S ở tab Đồ thị: bộ lọc vừa MUA / vừa BÁN trong GAN phiên gần nhất (không áp GTGD) --- */
+        for (let i = Math.max(1, n - GAN); i < n; i++) if (B[i]) (gb[id] = [id, D.t[i], n - 1 - i]);
+        {                                                                // BÁN = lệnh mở từ một tín hiệu MUA vừa thoát theo luật của tác giả (không tính cắt lỗ cố định)
+          let busy2 = -1;
+          for (let i = Math.max(1, n - 2 - ST.mh - GAN); i < n - 1; i++) {
+            if (i <= busy2 || !B[i]) continue; const e2 = i + 1; let x2 = -1;
+            for (let k = e2 + 2; k < n && k <= e2 + ST.mh; k++) if (ex[k] || (SA && SA(k, e2))) { x2 = k; break; }
+            if (x2 < 0) break; busy2 = x2; if (x2 >= n - GAN) gs[id] = [id, D.t[x2], n - 1 - x2];
+          }
+        }
         let li = -1; for (let i = n - 1; i >= Math.max(1, n - LOOK); i--) if (B[i]) { li = i; break; } if (li < 0) return;
         const e = li + 1, tam = li === n - 1; let closed = false;
         if (!tam) { const pe = c[e]; for (let k = e + 2; k < n && k <= e + ST.mh; k++) { if ((ST.sl && (c[k] / pe - 1) * 100 <= -ST.sl) || ex[k] || (SA && SA(k, e))) { closed = true; break; } } if (!closed && n - 1 >= e + ST.mh) closed = true; }
@@ -116,13 +128,14 @@ function main() {
       } catch (e) { nFail++; }
     });
     nSym++; if (rows.length) out[sym] = rows;
+    const lb_ = Object.values(gb), ls_ = Object.values(gs); if (lb_.length || ls_.length) gan[sym] = { b: lb_, s: ls_ };
   });
 
   /* làm tròn thống kê */
   const thong_ke = {};
   IDS.forEach(function (id) { thong_ke[id] = {}; ['A', 'B'].forEach(function (per) { thong_ke[id][per] = {}; for (const k in stat[id][per]) { const q = stat[id][per][k]; thong_ke[id][per][k] = [q[0], r1(q[1] / q[0] * 100), r1(q[2] / q[0])]; } }); });
   const chi_bao = {}; IDS.forEach(function (id) { const d = TH.get(id); if (d) chi_bao[id] = { ten: d.name, ban: BAN[id] || d.sell_t || '' }; });
-  const res = { ngay: lastD, mua_nay: season(M.z[M.z.length - 1]), chi_bao: chi_bao, thong_ke: thong_ke, ma: out };
+  const res = { ngay: lastD, mua_nay: season(M.z[M.z.length - 1]), chi_bao: chi_bao, thong_ke: thong_ke, ma: out, gan: gan };
   fs.writeFileSync(path.join(SITE, 'data', 'ho_so_tin_hieu.json'), JSON.stringify(res));
   console.log('ho_so_tin_hieu: ' + nSym + ' mã, ' + Object.keys(out).length + ' mã có tín hiệu đang bật, ' + nFail + ' lỗi nhỏ, ngày ' + lastD + ', mùa hiện tại ' + res.mua_nay);
 
