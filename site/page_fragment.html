@@ -1639,6 +1639,12 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           @media(min-width:1300px){#ho-so .hs-tech{grid-template-columns:repeat(3,minmax(0,1fr))}}
           @media(min-width:1200px){#ho-so .dg-trend{grid-template-columns:repeat(4,minmax(0,1fr))}}
           .dg-t svg{height:70px!important}
+          .tg-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:2px 0 10px;font-size:var(--cds-font-size-body)}.tg-kv .k{color:var(--color-fg-muted)}
+          .tg-gia{margin:0 0 12px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,#d9a400 12%,transparent);line-height:1.5}
+          .tg-cap{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 4px}
+          .tg-tb{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption)}.tg-tb th,.tg-tb td{padding:5px 4px;border-bottom:1px solid var(--color-border-line);text-align:left}.tg-tb th{color:var(--color-fg-muted);font-weight:500}.tg-tb .r{text-align:right}
+          .tg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:7px;background:#d4a72c;vertical-align:0}.tg-dot.tot{background:var(--sem-up,#3fb950)}.tg-dot.xau{background:var(--sem-down,#f85149)}
+          @media(max-width:999px){#dg-row .dg-left{display:contents}#dg-row #card-hs-cl{order:2}#dg-row #card-hs-nx{order:3}}
           .dg-watch>div{padding:10px 12px;border:1px solid var(--color-border-line);border-radius:8px;font-size:var(--cds-font-size-caption);line-height:1.5}
           .dg-watch b{display:block;font-size:11px;color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
           </style>
@@ -1647,29 +1653,18 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <div class="atl-ticks" id="hs-cb-val" data-source="co_ban ho_so"></div>
           <div id="dg-ind"></div>
         </div>
+        <div class="atl-card" id="card-hs-nx" hidden>
+          <h2 class="atl-h">Nhận xét cơ bản</h2>
+          <div id="dg-tong"></div>
+          <p class="dg-note" id="dg-foot" style="margin-top:var(--cds-gap-md)"></p>
+        </div>
         </div>
         <div class="atl-card" id="card-hs-cl" hidden>
           <h2 class="atl-h">Chất lượng &amp; sức khỏe doanh nghiệp</h2>
           <div id="dg-cl"></div>
         </div>
       </div>
-      <div class="atl-card atl-wide" id="card-hs-nx" hidden>
-        <h2 class="atl-h">Nhận xét tổng về cơ bản</h2>
-        <p class="dg-note" style="margin-bottom:8px">Gộp ba ô phía trên: 16 biểu đồ xu hướng (ưu tiên các ô có ★), chỉ tiêu theo ngành và chất lượng doanh nghiệp. Viết theo quy tắc cố định từ số liệu báo cáo tài chính; mô tả doanh nghiệp, không phải tín hiệu mua bán.</p>
-        <div id="dg-tong"></div>
-        <p class="dg-note" id="dg-foot" style="margin-top:var(--cds-gap-md)"></p>
-      </div>
       <div class="atl-wide dg-sec" id="kt-sec"><div><h2 class="atl-h" style="margin:0">Phân tích kỹ thuật</h2><span class="atl-note">Ba góc nhìn về diễn biến giá: xu hướng dài hạn (Minervini), cung cầu qua giá và giá trị giao dịch (Wyckoff), cấu trúc giá ngắn hạn (Triền Luận). Đối chiếu với biểu đồ ở đầu trang.</span></div></div>
-      <div class="atl-card atl-wide" id="card-hs-kt">
-        <h2 class="atl-h">Kết luận kỹ thuật: ba góc nhìn đang nói gì</h2>
-        <div id="hs-kt"></div>
-      </div>
-<div class="atl-card atl-wide" id="card-hs-th" hidden>
-  <h2 class="atl-h">Tín hiệu kỹ thuật <small class="atl-note" id="th-sea" style="font-weight:400"></small></h2>
-  <p class="atl-note">Chỉ báo nào đang cho tín hiệu MUA mà chưa có tín hiệu bán. Nhãn "thắng x%" là tỷ lệ lệnh có lãi của chính chỉ báo đó trong mùa hiện tại, giai đoạn 7/2023–nay.</p>
-  <div id="th-box"></div>
-  <p class="dg-note" style="margin-top:var(--cds-gap-md)">Mua giá đóng cửa phiên sau tín hiệu, bán theo luật của chỉ báo hoặc cắt lỗ −7%, phí 0,3%, T+2, GTGD ≥ 10 tỷ. Bên "Bật trước đó" giá đã chạy một đoạn nên thống kê chỉ để tham khảo. Thứ hạng chỉ báo trong quá khứ không giữ được ở kiểm định walk-forward; tỷ trọng vẫn theo mùa thị trường. <span id="th-late"></span></p>
-</div>
       <div class="atl-wide atl-hs-row hs-tech">
       <div class="atl-card" id="card-hs-tt">
         <h2 class="atl-h">Trend Template (Minervini)</h2>
@@ -1704,6 +1699,16 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <details class="atl-more"><summary>Kiểm định điểm sức khỏe</summary>
         <p class="atl-note" id="hs-cb-kd">Ngưỡng 20%, 15% và 2 lần do mình chọn, chưa tối ưu. Đã thử trên VN30 (2019 đến nay, 813 quan sát): điểm cao hơn không cho lãi vượt VN-Index đều hơn (từ 75% điểm: +2,5% sau 60 phiên; 50–75%: −2,8%; dưới 50%: +1,2%), chênh lệch nằm trong khoảng nhiễu. Vốn hóa, EPS, P/E, P/B, NIM và LDR chỉ để tham khảo, trung vị là của cùng ngành trong HOSE. Ô thứ 7 của ngân hàng là nợ xấu (NPL) không quá 2%, theo số công bố trên Vietcap; LDR chỉ để tham khảo. ROE tính bằng lợi nhuận cổ đông công ty mẹ chia vốn chủ của cổ đông công ty mẹ (bình quân đầu và cuối 4 quý). Ngân hàng chấm 6 ô, chứng khoán chấm 5 ô, doanh nghiệp chấm 8 ô. Ngưỡng và kiểm định ở trên làm trên VN30, nay áp dụng cùng cách chấm cho toàn HOSE nhưng chưa kiểm định riêng cho nhóm vốn hóa nhỏ. Dữ liệu từ báo cáo quý đã công bố, cập nhật hằng ngày.</p></details>
       </div>
+      </div>
+<div class="atl-card atl-wide" id="card-hs-th" hidden>
+  <h2 class="atl-h">Tín hiệu kỹ thuật <small class="atl-note" id="th-sea" style="font-weight:400"></small></h2>
+  <p class="atl-note">Chỉ báo nào đang cho tín hiệu MUA mà chưa có tín hiệu bán. Nhãn "thắng x%" là tỷ lệ lệnh có lãi của chính chỉ báo đó trong mùa hiện tại, giai đoạn 7/2023–nay.</p>
+  <div id="th-box"></div>
+  <p class="dg-note" style="margin-top:var(--cds-gap-md)">Mua giá đóng cửa phiên sau tín hiệu, bán theo luật của chỉ báo hoặc cắt lỗ −7%, phí 0,3%, T+2, GTGD ≥ 10 tỷ. Bên "Bật trước đó" giá đã chạy một đoạn nên thống kê chỉ để tham khảo. Thứ hạng chỉ báo trong quá khứ không giữ được ở kiểm định walk-forward; tỷ trọng vẫn theo mùa thị trường. <span id="th-late"></span></p>
+</div>
+      <div class="atl-card atl-wide" id="card-hs-kt">
+        <h2 class="atl-h">Kết luận kỹ thuật: ba góc nhìn đang nói gì</h2>
+        <div id="hs-kt"></div>
       </div>
       <div class="atl-card atl-wide" id="card-hs-dg" hidden>
           <h2 class="atl-h">Định giá doanh nghiệp</h2>
@@ -2186,7 +2191,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       else if(c4!=null&&dir){var df=(cur-c4)*dir,th=Math.abs(c4)*0.05;tr=df>th?1:df<-th?-1:0;}
       var sc=(c?c.muc:0)+tr*0.6,muc=sc>0.5?'tot':sc<-0.5?'xau':'tb';
       var val=q.v2?'':fmtv(cur,q.dv)+((id==='dt'||id==='ln')&&q.yoy!=null?' ('+sg(q.yoy)+' cùng kỳ)':'');
-      stars.push({id:id,ten:q.ten.replace(/ \(.*$/,''),val:val,xu:dot(capT(q,x)),ss:c?c.txt:'',mucSS:c?c.muc:null,tr:tr,muc:muc,why:M?M[2]:''});});
+      stars.push({id:id,ssc:c,ten:q.ten.replace(/ \(.*$/,''),val:val,xu:dot(capT(q,x)),ss:c?c.txt:'',mucSS:c?c.muc:null,tr:tr,muc:muc,why:M?M[2]:''});});
     var sT=stars.filter(function(q){return q.muc==='tot';}),sX=stars.filter(function(q){return q.muc==='xau';});
     /* 2. bốn nhóm biểu đồ */
     var groups=[];NHOM_TT.forEach(function(g){var t=groupT(g,x);if(t)groups.push({nhom:g,muc:t[0],txt:t[1]});});
@@ -2224,24 +2229,34 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var watch=[];co.forEach(function(c){watch.push((c.muc==='do'?'Cờ đỏ: ':'Lưu ý: ')+c.nd);});
     sX.forEach(function(q){var t=q.mucSS!=null&&q.mucSS<0&&q.ss?low(q.ss):q.xu||low(q.ss||'');watch.push(dot('★ '+q.ten+' đang yếu'+(t?': '+low(t):'')));});
     if(gro&&gro.muc==='xau'&&!sX.some(function(q){return q.id==='ln';}))watch.push(gro.txt);
-    return {lv:lv,muc:lv==='kha'?'tot':lv,ten:ten,txt:txt,diem:S,stars:stars,nhomSao:FC.ten,whySao:FC.why,groups:groups,nT:gT.length,nX:gX.length,indTxt:indTxt,iG:iG,iB:iB,ql:{z:z,ten:z==null?null:LZ[z],ok:ok,nn:nn,txt:qlTxt,rank:QR,co:co.length,doo:nDo},val:val,watch:watch,ky:x.ky_bao_cao};}
+    return {lv:lv,muc:lv==='kha'?'tot':lv,ten:ten,txt:txt,kq:kq,diem:S,stars:stars,nhomSao:FC.ten,whySao:FC.why,groups:groups,nT:gT.length,nX:gX.length,indTxt:indTxt,iG:iG,iB:iB,ql:{z:z,ten:z==null?null:LZ[z],ok:ok,nn:nn,txt:qlTxt,rank:QR,co:co.length,doo:nDo},val:val,watch:watch,ky:x.ky_bao_cao};}
   window.__cbSum=cbSum;
   function renderTong(x){var bx=$('dg-tong');if(!bx)return;bx.textContent='';var R=cbSum(x,window.__TT);
-    var v=el('div','tg-v '+R.muc);v.appendChild(el('b','t',R.ten+' · báo cáo '+R.ky));v.appendChild(document.createTextNode(R.txt));bx.appendChild(v);
-    var two=el('div','tg-2'),L=el('div'),Rt=el('div');
-    L.appendChild(h('★ Chỉ số trọng tâm'+(R.nhomSao?' của nhóm '+R.nhomSao:'')));
-    if(R.stars.length){var ul=el('ul','tg-st');R.stars.forEach(function(q){var li=el('li');li.appendChild(el('i',q.muc));var d=el('div');d.appendChild(el('b',null,q.ten+(q.val?' '+q.val:'')+': '));d.appendChild(document.createTextNode((q.muc==='tot'?'tốt. ':q.muc==='xau'?'yếu. ':'trung bình. ')+q.xu+(q.ss?' '+q.ss+'.':'')));if(q.why)li.title=q.why;li.appendChild(d);ul.appendChild(li);});L.appendChild(ul);
-      var nt=R.stars.filter(function(q){return q.muc==='tot';}).length,nx=R.stars.filter(function(q){return q.muc==='xau';}).length;
-      L.appendChild(el('p','dg-note',nt+'/'+R.stars.length+' chỉ số trọng tâm tốt'+(nx?', '+nx+' yếu':'')+'. Chấm xanh = tốt, vàng = trung bình, đỏ = yếu, xét cả xu hướng của chính mã lẫn vị trí so với ngành. '+R.whySao)).style.marginTop='6px';}
-    else L.appendChild(el('p','dg-note','Chưa đủ dữ liệu cho các chỉ số trọng tâm.'));
-    Rt.appendChild(h('Ba ô phía trên nói gì'));var u2=el('ul','tg-st');
-    function row(muc,ten,t){var li=el('li');li.appendChild(el('i',muc));var d=el('div');d.appendChild(el('b',null,ten+': '));d.appendChild(document.createTextNode(t));li.appendChild(d);u2.appendChild(li);}
-    row(R.nX===0&&R.nT>=R.groups.length-1?'tot':R.nX>=2?'xau':'tb','16 biểu đồ',R.nT+'/'+R.groups.length+' nhóm tốt'+(R.nX?', '+R.nX+' nhóm yếu':'')+'. '+R.groups.map(function(g){return g.nhom+': '+g.txt;}).join(' '));
-    row(R.iB.length>R.iG.length?'xau':R.iG.length>R.iB.length?'tot':'tb','Chỉ tiêu theo ngành',R.indTxt);
-    if(R.ql.txt)row(R.ql.z>=3?'tot':R.ql.z<=1?'xau':'tb','Chất lượng & sức khỏe',R.ql.txt);
-    if(R.val)row(R.val.st==='dat'?'xau':R.val.st==='hl'?'tb':'tot','Định giá',R.val.txt);
-    Rt.appendChild(u2);two.appendChild(L);two.appendChild(Rt);bx.appendChild(two);
-    if(R.watch.length){bx.appendChild(h('Cần kiểm tra thêm trước khi tin vào kết luận'));var fl=el('div','dg-fl');R.watch.slice(0,5).forEach(function(t){fl.appendChild(el('div',/^Cờ đỏ/.test(t)?'do':'',t));});bx.appendChild(fl);}}
+    var low=function(t){return /^[A-ZĐ][a-zà-ỹ]/.test(t)?t.charAt(0).toLowerCase()+t.slice(1):t;};
+    /* 1. kết luận một dòng */
+    var v=el('div','tg-v '+R.muc);v.appendChild(el('b','t',R.ten+' · báo cáo '+R.ky));bx.appendChild(v);
+    /* 2. mạnh / yếu: chỉ tên nhóm hoặc chỉ số, không kèm số, không nhắc lại cờ cảnh báo */
+    var mn=[],yu=[],add=function(a,t){t=low(String(t||'').replace(/ \(.*$/,''));if(t&&a.indexOf(t)<0)a.push(t);};
+    R.groups.forEach(function(g){if(g.muc==='tot')add(mn,g.nhom);else if(g.muc==='xau')add(yu,g.nhom);});
+    R.stars.forEach(function(q){if(q.muc==='tot')add(mn,q.ten);else if(q.muc==='xau')add(yu,q.ten);});
+    if(mn.length||yu.length){var kv=el('div','tg-kv');
+      if(mn.length){kv.appendChild(el('span','k','Mạnh'));kv.appendChild(el('span',null,mn.slice(0,3).join(', ')));}
+      if(yu.length){kv.appendChild(el('span','k','Yếu'));kv.appendChild(el('span',null,yu.slice(0,3).join(', ')));}
+      bx.appendChild(kv);}
+    /* 3. giá so với cơ bản */
+    if(R.kq){var gb=el('div','tg-gia');gb.appendChild(el('b',null,'Giá so với cơ bản: '));gb.appendChild(document.createTextNode(R.kq));bx.appendChild(gb);}
+    /* 4. chỉ số trọng tâm của nhóm: giá trị của mã, trung vị nhóm, hạng */
+    if(R.stars.length){
+      bx.appendChild(el('div','tg-cap','★ Chỉ số trọng tâm'+(R.nhomSao?' của nhóm '+R.nhomSao:'')+' · hạng trong nhóm'));
+      var tb=el('table','tg-tb'),th=el('tr');['Chỉ số','Mã','Trung vị nhóm','Hạng'].forEach(function(t,i){th.appendChild(el('th',i?'r':'',t));});tb.appendChild(th);
+      R.stars.forEach(function(q){var c=q.ssc,M=SS_META[q.id],f=function(z){return (Math.abs(z)>=100?n0(z):n1(z)).replace(/,0$/,'')+(M?M[1]:'');};
+        var tr=el('tr');if(q.why)tr.title=q.why;tr.appendChild(el('td',null,q.ten));
+        tr.appendChild(el('td','r',c?f(c.v):(q.val||'—')));tr.appendChild(el('td','r',c?f(c.med):'—'));
+        var tdh=el('td','r',c?c.hang+'/'+c.n:'—');tdh.appendChild(el('i','tg-dot '+q.muc));tr.appendChild(tdh);tb.appendChild(tr);});
+      bx.appendChild(tb);
+      if(R.whySao)bx.appendChild(el('p','dg-note',R.whySao)).style.marginTop='6px';
+    }
+  }
 
   function renderQL(x){
     var cq=x.chat_luong,cc=$('dg-cl');cc.textContent='';var G=qlRows(x);
