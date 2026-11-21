@@ -2889,8 +2889,11 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       for (var i = labs.length - 1; i >= 0; i--) { if (labs[i].ly > bot - (labs.length - 1 - i) * gap) labs[i].ly = bot - (labs.length - 1 - i) * gap; }
       labs.forEach(function (l) {
         var t = se('text', { x: padL + pw + 7, y: l.ly + 4, 'class': 'dgdb-lb ' + l.s.c });
-        t.textContent = l.s.n + ' ' + o.fmt(l.v); svg.appendChild(t);
+        t.textContent = (l.s.n ? l.s.n + ' ' : '') + o.fmt(l.v); svg.appendChild(t);
       });
+      if (o.mark && o.series[0].vals[o.mark.i] != null) { var mv = o.series[0].vals[o.mark.i];   /* điểm mốc (VD đỉnh cũ) */
+        svg.appendChild(se('circle', { cx: X(o.mark.i), cy: Y(mv), r: 3, 'class': 'dgdb-dot a' }));
+        var mt = se('text', { x: X(o.mark.i), y: Y(mv) - 7, 'class': 'dgdb-lb a', 'text-anchor': 'middle' }); mt.textContent = o.mark.t; svg.appendChild(mt); }
       var a1 = se('text', { x: padL, y: H - 3, 'class': 'dgdb-ax' }); a1.textContent = o.labels[0]; svg.appendChild(a1);
       var a2 = se('text', { x: padL + pw, y: H - 3, 'class': 'dgdb-ax', 'text-anchor': 'end' }); a2.textContent = o.labels[n - 1]; svg.appendChild(a2);
       var cur = se('line', { y1: padT, y2: padT + ph, 'class': 'dgdb-cur' }); cur.style.display = 'none'; svg.appendChild(cur);
@@ -2935,7 +2938,21 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       g.appendChild(c); parts.push((k === 'pe' ? 'P/E ' : 'P/B ') + lvl(x.pct_thap_hon)); gist.push((k === 'pe' ? 'P/E ' : 'P/B ') + vn(x.hien_tai, 2));
     });
     var cv = d.cho_vay && d.cho_vay.quy && d.cho_vay.quy.length ? d.cho_vay : null, lv = '';
-    if (cv) {
+    var qv = cv ? cv.quy.filter(function (a) { return a.ty_le_vh != null; }) : [];
+    if (qv.length >= 8) {   /* v98: margin / vốn hoá HOSE, 1 đường từ 2018 */
+      var lq = qv[qv.length - 1], vv = qv.map(function (a) { return a.ty_le_vh; }), y0 = qv[0].quy.slice(0, 4);
+      var mxv = Math.max.apply(null, vv), bl = vv.filter(function (v) { return v < lq.ty_le_vh; }).length / (vv.length - 1) * 100;
+      lv = lq.ty_le_vh >= mxv - 0.1 ? 'cao nhất từ ' + y0 : bl >= 75 ? 'ở mức cao so với từ ' + y0 : bl <= 25 ? 'ở mức thấp so với từ ' + y0 : 'ở mức trung bình so với từ ' + y0;
+      var ci = -1, cm = -1; for (var z = 0; z < qv.length - 12; z++) if (vv[z] > cm) { cm = vv[z]; ci = z; }   /* đỉnh cũ: trước 12 quý gần nhất */
+      var ql_ = function (k) { return k.replace(/^(\d{2})(\d{2})Q(\d)$/, 'Q$3/$2'); }, c = mk('div', 'dgdb-c');
+      c.appendChild(mk('div', 'dgdb-t', 'Margin'));
+      c.appendChild(lineChart({ labels: qv.map(function (a) { return ql_(a.quy); }), h: 128, padR: 44, fmt: function (v) { return vn(v, 1) + '%'; }, aria: 'Margin so với vốn hoá HOSE theo quý',
+        mark: ci >= 0 && mxv - cm > 0.3 ? { i: ci, t: 'Đỉnh ' + qv[ci].quy.slice(0, 4) + ': ' + vn(cm, 1) + '%' } : null,
+        series: [{ c: 'm', n: '', full: 'Margin / vốn hoá HOSE', vals: vv }] }));
+      var pp = mk('div', 'dgdb-p'); pp.appendChild(mk('b', null, 'Margin / vốn hoá HOSE: ')); pp.appendChild(document.createTextNode(lv + '.')); c.appendChild(pp);
+      info(c, 'Dư nợ cho vay ' + lq.n + ' CTCK niêm yết, ' + lq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + ': ' + vn(lq.cho_vay_ty / 1000, 1) + ' nghìn tỷ. Không báo trước được các đợt giảm.');
+      g.appendChild(c); parts.push('margin/vốn hoá ' + lv); gist.push('margin ' + vn(lq.ty_le_vh, 1) + '% vốn hoá');
+    } else if (cv) {
       var q = cv.quy, last = q[q.length - 1], rt = q.map(function (a) { return a.ty_le; }), below = rt.filter(function (v) { return v < last.ty_le; }).length;
       var rk = Math.round(below / (rt.length - 1) * 100); lv = rk >= 75 ? 'cao' : rk <= 25 ? 'thấp' : 'trung bình';
       var mxq = q.reduce(function (a, b) { return b.ty_le > a.ty_le ? b : a; }), c = mk('div', 'dgdb-c');
@@ -4862,6 +4879,7 @@ render();if(!sec.hidden)show();
     function smartChart(ch){var add=ch.addSeries;ch.addSeries=function(){var s=add.apply(ch,arguments);return smartWrap(s);};}
     function build(){
       var box=$('dthi-box');if(!raw||!window.LightweightCharts)return;
+      var PF=null;if(chart&&fastNext){try{PF=chart.panes().map(function(p){return p.getStretchFactor();});}catch(e){PF=null;}}   /* nhớ bố cục khung của mã trước để lượt nhanh giữ đúng kích thước */
       if(chart){try{chart.remove();}catch(e){}chart=null;}box.textContent='';feeds=[];
       var L=window.LightweightCharts,d=view(),n=d.t.length,I=S.eye?{}:S.ind;
       var fg=css('--color-fg-muted')||'#999',grid=css('--cds-chart-grid')||'#2c2c2c',bg=css('--color-panel')||'#1c1c1c';
@@ -4902,7 +4920,8 @@ render();if(!sec.hidden)show();
       labHook(box,chart,cd,'',S.ma);ctxHook(box,chart,1);cd.applyOptions({title:(CB.lab._sym||{}).v?S.ma:''});if((CB.lab._px||{}).v===false)cd.applyOptions({lastValueVisible:false});
       insts.forEach(function(I){if(I.meta.pane==='sub'&&I.pane!=null)pkeys.push([I.en.id,I.pane]);});
       var papi=chart.panes(),PKo=pkeys.filter(function(k){return papi[k[1]];}).map(function(k){return {key:k[0],p:papi[k[1]]};});
-      var ps=chart.panes(),ph=S.ph||{};if(ps.length>1){ps[0].setStretchFactor(ph._m||4);for(var q=1;q<ps.length;q++)ps[q].setStretchFactor(1.3);PKo.forEach(function(o){if(ph[o.key])o.p.setStretchFactor(ph[o.key]);});}
+      if(FAST&&PF&&PF.length>chart.panes().length){try{while(chart.panes().length<PF.length)chart.addPane(true);var pz=chart.panes();PF.forEach(function(f,q){if(pz[q])pz[q].setStretchFactor(f);});}catch(e){}}   /* lượt nhanh: khung chỉ báo trống, cùng chiều cao như lúc vẽ đủ */
+      var ps=chart.panes(),ph=S.ph||{};if(!(FAST&&PF)&&ps.length>1){ps[0].setStretchFactor(ph._m||4);for(var q=1;q<ps.length;q++)ps[q].setStretchFactor(1.3);PKo.forEach(function(o){if(ph[o.key])o.p.setStretchFactor(ph[o.key]);});}
       if(box._atlph)box.removeEventListener('pointerup',box._atlph,true);
       box._atlph=function(){setTimeout(function(){try{if(pmax||chart.panes().length<2)return;var o={_m:chart.panes()[0].getStretchFactor()};PKo.forEach(function(z){o[z.key]=z.p.getStretchFactor();});S.ph=o;save();}catch(e){}},120);};
       box.addEventListener('pointerup',box._atlph,true);
