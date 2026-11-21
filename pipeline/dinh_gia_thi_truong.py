@@ -5,6 +5,10 @@
 2. "Cho vay của công ty chứng khoán" theo quý: cộng khoản "Các khoản cho vay" (mục BSS215, gồm margin và ứng trước tiền bán)
    trong BCTC của nhóm công ty chứng khoán niêm yết dưới đây. KHÔNG phải số tổng margin toàn thị trường (không có nguồn miễn phí),
    và trễ khoảng 4 tuần sau khi hết quý. Tỷ lệ = cho vay / vốn chủ của chính nhóm đó, để so các quý với nhau.
+   v98: thêm TCX, VPX, VCK, PHS; giữ toàn bộ quý từ 2018; thêm "ty_le_vh" = cho vay / vốn hoá HOSE cuối quý (%).
+   Vốn hoá HOSE theo quý = cộng marketCap (Vietcap statistics-financial) của các mã trong hose_sectors.csv,
+   lưu ở state/von_hoa_quy.json (tải lại tối đa 1 lần/7 ngày). Quý thiếu dữ liệu (ít mã) thì ước bằng
+   quý trước × biến động VN-Index. Kiểm định: claude/margin-kiem-dinh.md (không báo trước được các đợt giảm).
 
 Lỗi nguồn: giữ nguyên file lượt trước, không làm dừng pipeline."""
 import json, os, sys, time, datetime, urllib.request
@@ -17,7 +21,8 @@ HDR = {"User-Agent": "Mozilla/5.0", "Referer": "https://trading.vietcap.com.vn/"
        "Origin": "https://trading.vietcap.com.vn", "Accept-Encoding": "identity"}
 # công ty chứng khoán niêm yết (HOSE/HNX/UPCoM); thiếu mã nào thì số chỉ là của nhóm còn lại, đã ghi số công ty (n)
 CTCK = ["SSI", "VND", "VCI", "HCM", "SHS", "MBS", "FTS", "BSI", "CTS", "AGR", "VIX", "ORS", "TVS", "BVS", "VDS", "SBS",
-        "APS", "TCI", "DSC", "VFS", "BMS", "APG", "ART", "PSI", "HAC", "EVS", "IVS", "VUA"]
+        "APS", "TCI", "DSC", "VFS", "BMS", "APG", "ART", "PSI", "HAC", "EVS", "IVS", "VUA", "TCX", "VPX", "VCK", "PHS"]
+STATE_VH = os.path.join(HERE, "state", "von_hoa_quy.json")
 
 
 def get(url, tries=3):
@@ -83,13 +88,83 @@ def ctck_quarters():
     # chỉ giữ quý có đủ phần lớn công ty (tránh quý mới nhất mới có vài công ty công bố làm số tụt giả)
     nmax = max(a["n"] for a in qs.values())
     keys = [k for k in keys if qs[k]["n"] >= 0.8 * nmax]
-    keys = keys[-16:]
     rows = []
     for k in keys:
         a = qs[k]
         rows.append({"quy": "%dQ%d" % k, "cho_vay_ty": round(a["loan"] / 1e9, 0), "von_chu_ty": round(a["eq"] / 1e9, 0),
                      "ty_le": round(a["loan"] / a["eq"] * 100, 1), "n": a["n"], "cong_bo_den": a["pub"]})
+    try:
+        vh = von_hoa_quy([r["quy"] for r in rows])
+        for r in rows:
+            c = vh.get(r["quy"])
+            if c:
+                r["von_hoa_ty"] = round(c, 0); r["ty_le_vh"] = round(r["cho_vay_ty"] / c * 100, 2)
+    except Exception as e:
+        print("dinh_gia_thi_truong: vốn hoá lỗi, bỏ tỷ lệ cho vay/vốn hoá:", str(e)[:150])
     return {"n_ctck_tra_cuu": len(CTCK), "quy": rows}
+
+
+def vni_quy():
+    """giá đóng cửa VN-Index cuối mỗi quý (Vietcap gap-chart)."""
+    body = json.dumps({"timeFrame": "ONE_DAY", "symbols": ["VNINDEX"], "to": int(time.time()) + 86400, "countBack": 2600}).encode()
+    h = dict(HDR, **{"Content-Type": "application/json"})
+    req = urllib.request.Request("https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart", data=body, headers=h, method="POST")
+    with urllib.request.urlopen(req, timeout=40) as r:
+        j = json.loads(r.read().decode("utf-8"))[0]
+    out = {}
+    for t, c in zip(j["t"], j["c"]):
+        d = datetime.datetime.fromtimestamp(int(t) + 25200, datetime.timezone.utc).date()
+        out["%dQ%d" % (d.year, (d.month - 1) // 3 + 1)] = float(c)   # ghi đè theo thứ tự → còn phiên cuối quý
+    return out
+
+
+def von_hoa_quy(need):
+    """{ 'YYYYQn': vốn hoá HOSE (tỷ đồng) } cho các quý trong need."""
+    try:
+        st = json.load(open(STATE_VH, encoding="utf8"))
+    except Exception:
+        st = {"ngay": "", "quy": {}}
+    q = st.get("quy", {})
+    old = (datetime.date.today() - datetime.date.fromisoformat(st["ngay"])).days if st.get("ngay") else 999
+    if old >= 7 or need[-1] not in q:
+        import csv
+        syms = [r["symbol"] for r in csv.DictReader(open(os.path.join(HERE, "hose_sectors.csv"), encoding="utf8"))]
+        def one(s):
+            d = get(IQ + "company/%s/statistics-financial" % s, tries=2)
+            o = {}
+            for r in d or []:
+                if r.get("quarter") in (1, 2, 3, 4) and r.get("year") and r.get("marketCap"):
+                    o.setdefault("%sQ%s" % (r["year"], r["quarter"]), float(r["marketCap"]) / 1e9)
+            return o
+        with ThreadPoolExecutor(8) as ex:
+            res = list(ex.map(one, syms))
+        agg = {}
+        for o in res:
+            for k, v in o.items():
+                a = agg.setdefault(k, [0.0, 0]); a[0] += v; a[1] += 1
+        ok = sum(1 for o in res if o)
+        if ok >= 0.7 * len(syms):            # đủ mã mới ghi đè; quý nào mới có nhiều mã hơn thì thay
+            for k, (c, n) in agg.items():
+                if k not in q or n >= q[k]["n"]:
+                    q[k] = {"cap": round(c, 0), "n": n}
+            st = {"ngay": datetime.date.today().isoformat(), "quy": q}
+            os.makedirs(os.path.dirname(STATE_VH), exist_ok=True)
+            json.dump(st, open(STATE_VH, "w", encoding="utf8"), separators=(",", ":"))
+        print("dinh_gia_thi_truong: vốn hoá tải %d/%d mã" % (ok, len(syms)))
+    ns = sorted(v["n"] for v in q.values())
+    nmed = ns[len(ns) // 2] if ns else 0
+    out, vq = {}, None
+    for k in need:
+        v = q.get(k)
+        if v and v["n"] >= 0.75 * nmed:
+            out[k] = v["cap"]
+        elif out:
+            if vq is None:
+                vq = vni_quy()
+            pk = max(out)
+            if pk in vq and k in vq:
+                out[k] = out[pk] * vq[k] / vq[pk]
+    return out
 
 
 def main():
