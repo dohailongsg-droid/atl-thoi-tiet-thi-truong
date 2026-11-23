@@ -959,7 +959,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     else txt+='Ba khung thời gian đang ở mức gần nhau.';
     txt+=' Có '+nf(CT.tang_deu,0)+'% mã xếp xu hướng tăng đều và '+nf(CT.giam_deu,0)+'% xếp xu hướng giảm đều.';
     $('ct-mota').textContent=txt;
-    $('ct-src').textContent='Tính ngày '+dm(CT.ngay)+' trên '+CT.so_ma+' mã HOSE có GTGD trung bình 20 phiên từ 3 tỷ và đủ 200 phiên giá. Chỉ mô tả, không phải tín hiệu mua bán.';
   }
   getJ('nganh_chuyen_pha.json').then(drawCP).catch(function(){$('cp-list').textContent='';$('cp-list').appendChild(el('p','atl-note','Chưa có dữ liệu. Dữ liệu xuất hiện sau lần chạy workflow tiếp theo.'));});
   getJ('cau_truc_thi_truong.json').then(function(j){CT=j;drawCT();}).catch(function(){drawCT();});
@@ -1013,7 +1012,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     else if(l10-g7>=10)txt+='Số mã lỗ trên 7% nhiều hơn rõ rệt số mã lãi trên 7%.';
     else txt+='Số mã lãi trên 7% và lỗ trên 7% đang khá cân bằng.';
     if(PB.nhan){var mo=$('pb-mota');mo.textContent='';mo.appendChild(el('b',null,PB.nhan+'. '));mo.appendChild(document.createTextNode(PB.nhan_cau));}else $('pb-mota').textContent=txt;
-    $('pb-src').textContent='Tính ngày '+dm(PB.ngay)+' trên '+PB.so_ma+' mã HOSE có GTGD trung bình 20 phiên từ 3 tỷ. Lãi/lỗ = giá đóng cửa hôm nay so với 20 phiên trước. Chỉ mô tả, không phải tín hiệu mua bán.';
   }
   getJ('phan_bo_loi_lo.json').then(function(j){PB=j;drawPB();}).catch(function(){drawPB();});
 })();
@@ -1166,8 +1164,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     k.appendChild(kpi('Khối ngoại ròng',sg(kn.rong_ty,0)+' tỷ','Mua '+n0(kn.mua_ty)+' · bán '+n0(kn.ban_ty),cl(kn.rong_ty)));
     body.appendChild(k);
     var pm=d.vni_phut||[],s1=chart('VN-Index trong ngày',pm.map(function(p){return p[1];}),pm.map(function(p){return p[0];}),d.vni_ref,null);
-    var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng) qua các lần cập nhật',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
-    var cn=(d.chuoi||[]).filter(function(p){return p.ngoai!=null;}),s4=chart('Khối ngoại ròng qua các lần cập nhật (tỷ đồng, lũy kế trong phiên)',cn.map(function(p){return p.ngoai;}),cn.map(function(p){return p.gio;}),0);
+    var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng)',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
+    var cn=(d.chuoi||[]).filter(function(p){return p.ngoai!=null;}),s4=chart('Khối ngoại ròng',cn.map(function(p){return p.ngoai;}),cn.map(function(p){return p.gio;}),0);
     var s3=liq(d),gc=el('div','lv-g3');[s1,s2,s3,s4].forEach(function(q){if(q)gc.appendChild(q);});if(gc.childNodes.length)body.appendChild(gc);
     bangDien(d,body);
     var gr=el('div','lv-grid'),bt2=tacDong(d);if(bt2)gr.appendChild(bt2);
@@ -1468,7 +1466,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   <p class="atl-note" id="ng-kl" style="margin-top:var(--cds-gap-md)"></p>
   <p class="dg-note" id="ng-foot"></p>
 </div>
-      <div class="atl-wide dg-sec" id="dg-sec" hidden><div><h2 class="atl-h" style="margin:0">Phân tích cơ bản</h2><span class="atl-note" id="dg-sub">—</span></div></div>
+      <div class="atl-wide dg-sec" id="dg-sec" hidden><div><h2 class="atl-h" style="margin:0">Phân tích nội tại doanh nghiệp</h2><span class="atl-note" id="dg-sub">—</span></div></div>
       <div class="atl-card atl-wide" id="card-hs-xh" hidden>
         <h2 class="atl-h">Xu hướng 12 quý</h2>
         <div id="dg-trend"></div>
@@ -1479,6 +1477,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <style>
           .dg-star{color:#d9a400;margin-left:5px;font-size:.95em;cursor:help}.dg-t.key{border-color:color-mix(in srgb,#d9a400 55%,var(--color-border-line))}.dg-focus{margin:0 0 var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5}.dg-focus b{color:var(--color-fg)}
           .dg-sec{display:flex;justify-content:space-between;align-items:center;gap:var(--cds-gap-md);flex-wrap:wrap;margin-top:var(--cds-gap-md)}
+#dg-sec{margin-top:0}
+#ct-src:empty,#pb-src:empty,#tg-note:empty,#th-sum:empty,#th-foot:empty{display:none}
           .dg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:var(--cds-gap-sm);margin:0 0 var(--cds-gap-md)}
           .dg-k{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-panel);display:flex;flex-direction:column;gap:2px;min-width:0}
           .dg-k .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
@@ -2419,7 +2419,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var R=g.quy,key=tile.dk,v=R.map(function(r){return r[key]==null?null:r[key];}),ok=v.filter(function(a){return a!=null;});if(ok.length<3)return;
     var bar=tile.loai==='bar',srt=ok.slice().sort(function(a,b){return a-b;}),p20=srt[Math.floor(srt.length*0.2)],p80=srt[Math.min(srt.length-1,Math.floor(srt.length*0.8))];
     var mn=Math.min.apply(null,ok),mx=Math.max.apply(null,ok);if(bar)mn=Math.min(0,mn);var pd=(mx-mn)*0.06||1;if(!bar)mn-=pd;mx+=pd;
-    var ns='http://www.w3.org/2000/svg',W=900,H=230,PL=46,PR=12,PT=10,PB=22,n=v.length,svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.style.cssText='width:100%;height:230px;display:block;color:var(--color-fg-muted)';
+    var pr=el('div','ng-big');pr.style.cssText='visibility:hidden;height:0;margin:0;border:0';host.appendChild(pr);var pcs=getComputedStyle(pr),W=Math.max(300,Math.round(pr.clientWidth-2-parseFloat(pcs.paddingLeft)-parseFloat(pcs.paddingRight)));pr.remove();
+    var ns='http://www.w3.org/2000/svg',H=230,PL=46,PR=12,PT=10,PB=22,n=v.length,svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.style.cssText='width:100%;height:230px;display:block;color:var(--color-fg-muted)';
     function E(t,at,txt){var e=document.createElementNS(ns,t);for(var k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;}
     function X(i){return PL+(n===1?0:(i+(bar?0.5:0))/(bar?n:n-1)*(W-PL-PR));}function Y(a){return PT+(1-(a-mn)/(mx-mn))*(H-PT-PB);}
     E('rect',{x:PL,y:Y(p20),width:W-PL-PR,height:Math.max(0,Y(mn)-Y(p20)),fill:'currentColor',opacity:'.07'});
@@ -3215,9 +3216,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .ct-src{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
         </style>
         <h2 class="atl-h">Cấu trúc thị trường</h2>
-        <p class="atl-note">Tỷ lệ mã HOSE đang nằm trên từng đường trung bình (MA20, MA50, MA200) và số mã xếp đúng thứ tự xu hướng. Đây là bức tranh xu hướng, khác với nhiệt kế cảm xúc theo phiên.</p>
-        <p class="atl-note">Cách đọc: đường càng cao thì càng nhiều mã đang trên đường MA đó. Khi các đường cắt nhau, hoặc vượt qua mốc 50%, cấu trúc của thị trường đang đổi. Đường nét đứt màu tím là VN-Index (đọc theo trục bên phải) để so sánh cùng kỳ. Đây là mô tả, không phải tín hiệu mua bán.</p>
-        <div class="ct-body">
+                        <div class="ct-body">
           <div>
             <div class="ct-rows" id="ct-rows"></div>
             <p class="ct-mota" id="ct-mota"></p>
@@ -3243,9 +3242,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 @media (min-width:900px){#card-phan-bo .ct-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:start}}
         </style>
         <h2 class="atl-h">Phân bố lãi/lỗ 20 phiên</h2>
-        <p class="atl-note">Trong các mã HOSE, bao nhiêu phần trăm đang lãi hoặc lỗ ở các mức khác nhau so với 20 phiên trước. Cho biết sức lan tỏa của đợt tăng hoặc giảm: tăng trên diện rộng hay chỉ vài mã.</p>
-        <p class="atl-note">Cách đọc: các thanh là tỷ lệ mã trong từng nhóm (tổng 100%, độ dài thanh phóng gấp đôi để dễ nhìn). Đường xanh là % mã lãi trên 7%, đường đỏ là % mã lỗ trên 7%. Các mốc lãi và lỗ đối xứng (7%, 10%, 20%) để so sánh hai phía công bằng, mốc 7% bằng biên độ HOSE và mức cắt lỗ của hệ thống, nét đứt tím là VN-Index (trục phải). Đây là mô tả, không phải tín hiệu mua bán.</p>
-        <div class="pb-k" id="pb-k"></div>
+                        <div class="pb-k" id="pb-k"></div>
         <div class="ct-body">
           <div>
             <div class="ct-rows" id="pb-rows"></div>
@@ -4364,7 +4361,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
                 var c=el('td'),g=el('button','bt-btn s','Lọc mã →');g.type='button';g.style.padding='2px 8px';g.style.fontSize='12px';g.title='Sang tab Bộ lọc, bật sẵn chỉ báo này để xem các mã đang có tín hiệu';g.addEventListener('click',function(){toBL(r.id);});c.appendChild(g);tr.appendChild(c);
                 if(r.sc==null)tr.style.opacity=.55;tb.appendChild(tr);});
               t.appendChild(tb);w.appendChild(t);out.appendChild(w);
-              var nt=el('p','lv-note');nt.style.maxWidth='none';nt.textContent='Cách đọc: bảng đã xếp sẵn, chỉ báo đứng trên là hợp thị trường hơn. Cột "Thắng VN-Index" là cột chính: 2/2 nghĩa là lệnh của chỉ báo lãi hơn VN-Index ở cả 2 khung. Hai cột khung thời gian là mức lãi bình quân mỗi lệnh trừ đi mức tăng của VN-Index. "% lệnh đang lãi" chỉ đếm số lệnh có lãi, còn hai cột khung đo mức lãi bình quân SO VỚI VN-Index, nên hai thứ có thể ngược nhau: 60% lệnh đang lãi nhưng khung vẫn đỏ khi các lệnh lãi chỉ lãi ít, lệnh lỗ thì lỗ nhiều, hoặc lãi ít hơn mức tăng của VN-Index. Cột "Lãi TB lệnh" cho biết mức lãi thật trước khi trừ VN-Index. Số mờ là dưới 5 lệnh, không tính. Bảng này mô tả thị trường đang thưởng cho kiểu chiến lược nào; kiểm định 146 lần xếp hạng (cách nhau 10 phiên, từ 1/2021 đến 11/2026, 41 chỉ báo tính được từ giá) cho thấy chỉ báo đang thắng không thắng tiếp một cách đáng tin: 5 chỉ báo đứng đầu theo điểm 10 và 20 phiên chỉ hơn mức trung bình +0,07% mỗi lệnh ở 10 phiên kế tiếp và +0,01% ở 20 phiên kế tiếp, hơn trung bình ở khoảng một nửa số kỳ (51% và 46%) và tương quan giữa thứ hạng với kết quả sau đó gần bằng 0. Vì vậy dùng bảng này để hiểu thị trường đang thưởng cho kiểu chiến lược nào và chọn kiểu lọc mã, không phải để tăng tỷ trọng hay đuổi theo chỉ báo đứng đầu. Tham khảo, không phải khuyến nghị đầu tư.';out.appendChild(nt);staleP(out);});
+              staleP(out);});
             if(RES)views[views.length-1]();else out.appendChild(el('p','lv-note','Xếp hạng các chỉ báo theo kết quả lệnh mua của chúng trong 10 và 20 phiên gần nhất so với VN-Index. Bấm "Tính ngay" để tải lịch sử giá và tính trên máy bạn; kết quả được lưu lại cho lần mở sau.'));}
           var sc0=box.querySelector('.hot-tb'),st0=sc0?sc0.scrollTop:0,sl0=sc0?sc0.scrollLeft:0;host.appendChild(box);var sc1=box.querySelector('.hot-tb');if(sc1){sc1.scrollTop=st0;sc1.scrollLeft=sl0;}
         };
@@ -7030,7 +7027,7 @@ render();if(!sec.hidden)show();
     if (!window.atlVis || !window.atlVis('th')) return;
     if (!D || !D.thang) { $('th-sum').textContent = loaded ? 'Chưa có dữ liệu hiệu suất theo tháng. Chạy workflow “Cập nhật số liệu hằng ngày” để tạo.' : 'Đang tải…'; tb.replaceChildren(); return; }
     const run = D.thang_dang_chay, ry = +run.slice(0, 4), rm = +run.slice(5, 7);
-    const nxM = rm === 12 ? 1 : rm + 1;
+    const nxM = rm;
     let years = [...new Set(Object.keys(D.thang).map((k) => +k.slice(0, 4)))].sort((a, b) => b - a);
     if (rng) years = years.filter((y) => y > ry - rng);
     const get = (y, m) => { const v = D.thang[y + '-' + String(m).padStart(2, '0')]; return typeof v === 'number' ? v : null; };
@@ -7071,10 +7068,8 @@ render();if(!sec.hidden)show();
     tb.appendChild(body);
     const a = colVals[nxM];
     const y0 = years[years.length - 1], y1 = years[0];
-    $('th-sum').textContent = a.length
-      ? 'Tháng ' + nxM + ' (tháng kế tiếp): trung bình ' + f2(a.reduce((s, x) => s + x, 0) / a.length) + '%, trung vị ' + f2(med(a)) + '%, tăng ' + a.filter((x) => x > 0).length + '/' + a.length + ' năm (' + y0 + '–' + y1 + '). Ô viền vàng là tháng kế tiếp.'
-      : 'Chưa đủ dữ liệu cho tháng ' + nxM + '.';
-    $('th-foot').textContent = 'Hiệu suất tháng = đóng cửa phiên cuối tháng so với phiên cuối tháng trước. YTD = so với đóng cửa cuối năm trước. Tháng đang chạy (chữ nghiêng, tới phiên ' + D.cap_nhat.split('-').reverse().join('/') + ') không tính vào thống kê. Mỗi tháng chỉ có khoảng ' + years.length + ' năm mẫu, chênh lệch giữa các tháng nhỏ hơn độ dao động giữa các năm: chỉ để tham khảo mùa vụ, không phải tín hiệu mua bán. Nguồn: VN-Index từ Vietcap (' + (D.nguon || '') + ').';
+    $('th-sum').textContent = a.length ? '' : 'Chưa đủ dữ liệu cho tháng ' + nxM + '.';
+    $('th-foot').textContent = '';
   }
   window.atlDrawTH = draw;
   function setR(r) { rng = r; $('th-b10').setAttribute('aria-pressed', String(r === 10)); $('th-ball').setAttribute('aria-pressed', String(r === 0)); draw(); }
@@ -7269,7 +7264,7 @@ render();if(!sec.hidden)show();
         const v = document.createElement('span'); v.className = 'v'; v.textContent = f(x.tuan) + '%'; v.style.color = col(x.tuan); r.appendChild(n); r.appendChild(tr); r.appendChild(v); bars.appendChild(r);
       });
       const t = (d.cap_nhat || '').slice(0, 10).split('-').reverse().join('/');
-      document.getElementById('tg-note').textContent = 'Giá đóng cửa gần nhất của từng thị trường (chỉ số nào chưa mở cửa hoặc đang giao dịch thì lấy giá tại lúc cập nhật). Tuần = so với đóng cửa 7 ngày trước, tháng = 30 ngày trước, từ đầu năm = so với đóng cửa cuối năm trước. Thứ tự: VN-Index, Mỹ, Đông Bắc Á, vàng – đô la – dầu – bitcoin, rồi các thị trường khác.';
+      document.getElementById('tg-note').textContent = '';
       document.getElementById('tg-foot').textContent = 'Cập nhật ' + t + ' · nguồn Yahoo Finance, Stooq (dự phòng), Vietcap (VN-Index)' + ((d.loi || []).length ? ' · chưa lấy được: ' + d.loi.join(', ') : '') + '. Chưa có P/E, P/B vì không có nguồn miễn phí đáng tin cho chỉ số quốc tế. Chỉ để tham khảo.';
     }).catch(() => { const n = document.getElementById('tg-note'); if (n) n.textContent = 'Chưa có dữ liệu thị trường thế giới. Mục này hiện sau lần chạy cập nhật đầu tiên.'; });
   })();
