@@ -245,7 +245,29 @@ def beta_cua(ma):
     return 0.67 * raw + 0.33, len(rs)
 
 
-def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm):
+def thieu_dp_ngan_hang(bs, nt):
+    """v105: tỷ lệ thiếu dự phòng theo từng quý của ngân hàng = max(0, nợ nhóm 3-5 - dự phòng cho vay) x 0,8 / vốn chủ, tối đa 50%.
+    Dùng trừ vào Giá bất tử (chỉ kịch bản thấp nhất). Trả về {(năm, quý): tỷ lệ}."""
+    out = {}
+    nts = {(r["yearReport"], r["lengthReport"]): r for r in (nt or [])}
+    for r in (bs or []):
+        k = (r["yearReport"], r["lengthReport"])
+        n = nts.get(k)
+        if not n:
+            continue
+        try:
+            grp = [n.get("nob%d" % j) for j in (42, 43, 44)]
+            dp, eq = r.get("bsb105"), r.get("bsa78")
+            if any(v is None for v in grp) or dp is None or not eq or float(eq) <= 0:
+                continue
+            thieu = max(0.0, sum(float(v) for v in grp) + float(dp))   # bsb105 là số âm
+            out[k] = min(0.5, thieu * 0.8 / float(eq))
+        except Exception:
+            continue
+    return out
+
+
+def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm, sf=0.0):
     mc = macro()
     rf, erp = float(mc.get("rf") or 0.045), float(mc.get("erp") or 0.07)
     b, nobs = beta_cua(ma)
@@ -302,6 +324,9 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
                 return None
             kb.append({"ten": ten[i], "w": w[i], "dau_vao": f"ROE {r_ * 100:.1f}%", "he_so": round(pb, 2), "he_so_ten": "P/B hợp lý",
                        "ke": round(k_e, 4), "g": g, "gia": round(bvps * pb)})
+        if sf and sf > 0:
+            kb[0]["gia"] = round(kb[0]["gia"] * (1 - sf))
+            kb[0]["thieu_dp_pct"] = round(sf * 100, 1)
         sens_unit = ("ROE ±1 điểm", bvps * 0.01 / (ke - gt[1]))
         base_earn = None
     else:
@@ -311,6 +336,23 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
         mar = [f(x, "isa22") / f(x, "isa3") for x in inc[-20:] if f(x, "isa3") and f(x, "isa3") > 0 and f(x, "isa22") is not None]
         avg_m = sum(mar) / len(mar) if len(mar) >= 8 else None
         e_bt = min(ln4, avg_m * rev4) if avg_m and avg_m > 0 else ln4 * 0.9
+        # v105: lợi nhuận lõi = lợi nhuận trừ thu nhập khác (sau thuế 20%), chỉ để thận trọng hơn ở kịch bản Bất tử
+        loi_lo = None
+        try:
+            lo_c = []
+            for x in inc[-20:]:
+                l_, o_ = f(x, "isa22"), f(x, "isa14")
+                lo_c.append(None if l_ is None else (max(0.0, l_ - max(0.0, o_ or 0.0) * 0.8) if l_ > 0 else l_))
+            ln4c = sum(v or 0 for v in lo_c[-4:])
+            mar_c = [lo_c[i] / f(inc[-20:][i], "isa3") for i in range(len(lo_c)) if lo_c[i] is not None and f(inc[-20:][i], "isa3") and f(inc[-20:][i], "isa3") > 0]
+            avg_c = sum(mar_c) / len(mar_c) if len(mar_c) >= 8 else None
+            if ln4c > 0:
+                e_c = min(ln4c, avg_c * rev4) if avg_c and avg_c > 0 else ln4c * 0.9
+                if e_c < e_bt:
+                    loi_lo = round((1 - e_c / e_bt) * 100, 1)
+                    e_bt = e_c
+        except Exception:
+            loi_lo = None
         ln_prev = sum(f(x, "isa22") or 0 for x in inc[-8:-4]) if len(inc) >= 8 else None
         gr = (ln4 / ln_prev - 1) if ln_prev and ln_prev > 0 else 0.0
         g_cs = min(0.12, max(0.0, gr * 0.5))
@@ -335,6 +377,8 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
             d_ln = 0.02 * rev_ttm * 0.8
             sens_unit = ("biên gộp ±2 điểm", d_ln / shares * kb[1]["he_so"])
         info = {"tang_truong_co_so": round(g_cs * 100, 1), "tang_truong_lac_quan": round(g_lq * 100, 1)}
+        if loi_lo:
+            info["bat_tu_tru_thu_nhap_khac_pct"] = loi_lo
     if any(k["gia"] <= 0 for k in kb):
         return None
     gia_tb = sum(k["gia"] * k["w"] for k in kb)
@@ -401,7 +445,7 @@ def dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, ep
     out["bang_quy"] = rows
     return out
 
-def dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf=None, n=32):
+def dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf=None, n=32, sf_map=None):
     """Định giá 3 kịch bản tại TỪNG quý trong quá khứ, chỉ dùng báo cáo đến hết quý đó (không nhìn trước).
     Trả về danh sách dòng [năm, quý, giá bất tử, giá hợp lý (bình quân có trọng số), LN quý so cùng kỳ %, doanh thu quý so cùng kỳ %,
     dòng tiền kinh doanh 4 quý (1 dương / 0 âm / None không có)]. Dùng cho bộ lọc cơ bản, backtest và mô phỏng "Định giá rẻ".
@@ -424,7 +468,7 @@ def dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf=None, n=32):
             eq = (float(s["marketCap"]) / float(s["pb"])) if s.get("pb") and s.get("marketCap") else None
             bvps = eq / shares if eq else None
             roe = float(s["roe"]) if s.get("roe") else None
-            v = dinh_gia_v2(ma, {}, st_k, inc_k, 1.0, shares, fin, is_bank, roe, bvps, ln4, ln4 / shares)
+            v = dinh_gia_v2(ma, {}, st_k, inc_k, 1.0, shares, fin, is_bank, roe, bvps, ln4, ln4 / shares, (sf_map or {}).get(key, 0.0))
         except Exception:
             v = None
         y = inc[k - 4]
@@ -753,8 +797,15 @@ def build(ma):
                    "tang_giam_pct": r1((sum(x["gia"] for x in ds_mt) / len(ds_mt) / price - 1) * 100, 1)} if ds_mt else None
     dg["gia_dinh"] = {"coe": COE, "g": G}
     dg["dai_chinh"] = dg["dai"][0]["ten"] if dg["dai"] else None
+    sf_map = {}
+    if is_bank:
+        try:
+            sf_map = thieu_dp_ngan_hang(_fs(ma, "BALANCE_SHEET"), _fs(ma, "NOTE"))
+        except Exception as e:
+            cano.append("Không tính được thiếu dự phòng: " + str(e)[:80])
     try:
-        dg["v2"] = dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm)
+        dg["v2"] = dinh_gia_v2(ma, cp, st, inc, price, shares, fin, is_bank, roe, bvps, ln4, eps_ttm,
+                               sf_map.get((inc[-1]["yearReport"], inc[-1]["lengthReport"]), 0.0))
     except Exception as e:
         dg["v2"] = None
         cano.append("Không tính được định giá v2: " + str(e)[:80])
@@ -930,7 +981,7 @@ def build(ma):
     except Exception as e:
         cano.append("Không tính được điểm sức khỏe: " + str(e)[:80])
     try:
-        dg_ls = dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf_rows)
+        dg_ls = dinh_gia_ls(ma, st, inc, shares, fin, is_bank, cf_rows, sf_map=sf_map)
     except Exception:
         dg_ls = []
     return {"dg_ls": dg_ls, "sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
