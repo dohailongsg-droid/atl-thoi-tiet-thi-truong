@@ -376,7 +376,7 @@
         (!TK.res.length ? '<p class="note">Giá đang ở trên tất cả các mức tham chiếu: không còn mức cản gần phía trên.</p>' : '') + (!TK.sup.length ? '<p class="note">Giá đang ở dưới tất cả các mức tham chiếu: chưa có mức hỗ trợ gần phía dưới.</p>' : '');
       var nganhT = xh ? '<p style="font-size:10.3px;margin:6px 0 0"><b>Vị thế trong ngành.</b> ' + esc(ma) + ' đứng thứ ' + xh.hang + '/' + xh.so_ma_nhom + ' về sức mạnh giá trong nhóm ' + esc(xh.nhom) + (dcd && dcd.hang ? '; nhóm này đang xếp thứ ' + dcd.hang + '/' + nNganh + ' nhóm ngành về độ mạnh' + (dcd.hang <= 5 ? ' (thuộc nhóm dẫn dắt thị trường)' : dcd.hang > nNganh - 5 ? ' (thuộc nhóm yếu của thị trường)' : '') : '') + '. Giá trị giao dịch bình quân ' + n0(xh.gtgd20) + ' tỷ đồng/phiên' + (xh.gtgd20 < 10 ? ': thanh khoản thấp, khó mua bán khối lượng lớn.' : '.') + '</p>' : '';
       pg((x ? '' : cover(c, (xh && xh.nhom) || '') + '<h1>' + esc(c.ten || ma) + ' (' + san + ': ' + esc(ma) + '): bức tranh kỹ thuật ' + TK.lab.toLowerCase() + '</h1><p class="sub">Giá đóng cửa ' + dmy(c.ngay) + ': ' + n0(P) + 'đ · ' + esc(J.why) + '</p>') +
-        '<h2><span class="no">' + (x ? '04' : '01') + '</span>Phân tích kỹ thuật: ' + TK.lab.charAt(0) + TK.lab.slice(1).toLowerCase() + '</h2>' +
+        '<h2><span class="no">' + (x ? '05' : '01') + '</span>Phân tích kỹ thuật: ' + TK.lab.charAt(0) + TK.lab.slice(1).toLowerCase() + '</h2>' +
         scale(TK.lv) + '<p>' + esc(TK.sum) + (KT ? ' <b>' + esc(plainKT(KT.ten)) + '.</b> ' + esc(plainKT(KT.txt)) + ' <b>Nên ưu tiên góc nhìn ' + esc(plainKT(KT.uu)) + '</b>, vì ' + esc(plainKT(KT.vi)) + '.' : ' Kết luận này tổng hợp từ ba góc nhìn độc lập về diễn biến giá (bảng bên dưới) và sức mạnh giá của cổ phiếu so với thị trường.') + '</p>' + ret +
         chart('Diễn biến giá ' + rows.length + ' phiên gần nhất', 'đồng/cổ phiếu · ' + legend([['Trung bình 20 phiên', ACC, 1], ['Trung bình 50 phiên', '#C9A227', 1], ['Trung bình 200 phiên', RED, 1], ['Vùng cân bằng giá', '#E9DDB0']]) + ' · ' + (rows.some(function (q) { return q.gt > 0; }) ? 'giữa: giá trị giao dịch mỗi phiên và trung bình 20 phiên (cột đậm là phiên giao dịch từ 1,5 lần trung bình) · ' : '') + 'dưới cùng: đà giá (xanh là lực tăng, đỏ là lực giảm)', candles(rows, { zd: TK.zd, zg: TK.zg, tu: hs.tl_tt_tu, H: x ? 196 : 132 })) +
         '<h3>Ba góc nhìn kỹ thuật</h3><table class="tc"><tr><th>Góc nhìn</th><th>Đánh giá</th><th>Diễn giải</th></tr>' + vt + '</table>' +
@@ -441,7 +441,7 @@
         '<div><small>Rủi ro 5 phiên (VaR 95%)</small><b>' + sg(R.var5, 1) + '</b><em>5% số lần xấu nhất giảm hơn mức này; trung bình nhóm xấu ' + sg(R.cvar5, 1) + '</em></div>' +
         '<div><small>Biến động năm</small><b>' + n0(R.volYear) + '%</b><em>' + (R.volPct >= 50 ? 'cao hơn ' + n0(R.volPct) : 'thấp hơn ' + n0(100 - R.volPct)) + '% thời gian 2 năm qua</em></div>' +
         '<div><small>Beta với VN-Index</small><b>' + (b == null ? '—' : n1(b)) + '</b><em>' + (b == null ? 'chưa đủ dữ liệu' : b < 0.3 ? 'ít đi theo VN-Index' : 'VN-Index giảm 10% thì mã thường giảm khoảng ' + n0(b * 10) + '%') + '</em></div></div>';
-      pg((x ? '' : '') + '<h2><span class="no">' + (x ? '04' : '01') + '</span>Quant · Định lượng: xác suất, rủi ro và tín hiệu</h2>' +
+      pg((x ? '' : '') + '<h2><span class="no">' + (x ? '05' : '01') + '</span>Quant · Định lượng: xác suất, rủi ro và tín hiệu</h2>' +
         '<p>' + open + '</p>' +
         chart('Giá có thể đi đâu trong 20 phiên tới', 'nghìn đồng · đường: giá đóng cửa 60 phiên · vùng đậm: 50% số lần · vùng nhạt: 80% số lần · nét đứt giữa: mức giữa', nonSvg(R)) +
         '<h3>Nếu mua ở giá hiện tại, trong 20 phiên tới điều gì xảy ra trước?</h3>' + bar +
@@ -465,7 +465,52 @@
       }
       var QRK = window.__qlRank ? window.__qlRank(x) : null;
       var isBk = x.loai === 'ngan_hang', NGC = null; try { NGC = window.__nganhCtx ? window.__nganhCtx(ma) : null; } catch (e) {}
-      var ngT = NGC && NGC.kl ? '<p class="note" style="margin:-2px 0 4px;font-size:9.3px;line-height:1.3"><b>Bối cảnh ngành.</b> ' + esc(plain(NGC.kl)) + '</p>' : '';
+      var ngPage = function () {
+        var Z = NGC && NGC.quy ? NGC.quy.slice(-12) : null; if (!Z || !Z.length) return '';
+        var L = Z[Z.length - 1], P4 = Z.length > 4 ? Z[Z.length - 5] : {}, lab = Z.map(function (r) { return 'Q' + r.k.slice(5) + '/' + r.k.slice(2, 4); }), sr = function (k) { return Z.map(function (r) { return r[k] == null ? null : r[k]; }); };
+        if (NGC.ht && (NGC.ht.pb != null || NGC.ht.pe != null)) { L = JSON.parse(JSON.stringify(L)); if (NGC.ht.pb != null) L.pb = NGC.ht.pb; if (NGC.ht.pe != null) L.pe = NGC.ht.pe; }
+        var nx = NGC.nx || {}, ex = NGC.ex || {}, bk = L.nplp != null, tenN = esc(NGC.ten), pbMain = bk || /Chứng khoán|Bảo hiểm/.test(NGC.ten);
+        var fz = function (z) { return (Math.abs(z) >= 100 ? n0(z) : n1(z)); };
+        var tile = function (sm, bv, em) { return '<div><small>' + sm + '</small><b>' + bv + '</b><em>' + em + '</em></div>'; };
+        var bienK = L.bien_gop != null ? 'bien_gop' : L.bien_rong != null ? 'bien_rong' : null, bienN = bienK === 'bien_gop' ? 'Biên gộp' : 'Biên lợi nhuận ròng';
+        var r1t = [tile('Lợi nhuận ngành', n0(L.ln) + ' tỷ', (L.ln_yoy != null ? sg(L.ln_yoy) + ' cùng kỳ' : '')),
+          tile(bk ? 'Thu nhập hoạt động' : 'Doanh thu ngành', n0(L.dt) + ' tỷ', (L.dt_yoy != null ? sg(L.dt_yoy) + ' cùng kỳ' : '')),
+          bk ? tile('Tín dụng ngành', L.tin_dung != null ? n1(L.tin_dung) + '%' : '—', 'tăng trưởng cùng kỳ') : tile(bienN, bienK ? n1(L[bienK]) + '%' : '—', bienK && P4[bienK] != null ? 'cùng kỳ năm trước ' + n1(P4[bienK]) + '%' : ''),
+          tile('ROE ngành', L.roe != null ? n1(L.roe) + '%' : '—', P4.roe != null ? 'cùng kỳ năm trước ' + n1(P4.roe) + '%' : 'lợi nhuận 4 quý / vốn chủ')].join('');
+        var r2t = [tile('P/B ngành', L.pb != null ? n2(L.pb) + ' lần' : '—', L.pb_tv5 != null ? 'trung vị 5 năm ' + n2(L.pb_tv5) + (ex.pb ? ' · ' + esc(ex.pb.toLowerCase()) : '') : ''),
+          tile('P/E ngành', L.pe != null ? n1(L.pe) + ' lần' : '—', L.pe_tv5 != null ? 'trung vị 5 năm ' + n1(L.pe_tv5) + (ex.pe ? ' · ' + esc(ex.pe.toLowerCase()) : '') : ''),
+          bk ? tile('Nợ xấu toàn ngành', n2(L.nplp) + '%', 'nợ nhóm 2: ' + n2(L.g2p) + '%') : tile('Mã tăng lợi nhuận', L.rong_t != null ? L.rong_t + '/' + L.rong_n + ' mã' : '—', L.rong_ln != null ? n0(L.rong_ln) + '% số mã của nhóm' : ''),
+          bk ? tile('Bộ đệm dự phòng', L.cov != null ? n0(L.cov) + '%' : '—', 'dự phòng / nợ xấu' + (L.cov != null ? (L.cov >= 100 ? ' · đã phủ hết' : ' · chưa phủ hết') : '')) : tile(L.vay_rong_vc != null ? 'Vay ròng / vốn chủ' : 'Số mã', L.vay_rong_vc != null ? n0(L.vay_rong_vc) + '%' : NGC.n + ' mã', L.vay_rong_vc != null ? 'mức vay của cả nhóm' : 'cộng báo cáo tài chính')].join('');
+        var kp = '<div class="kp">' + r1t + '</div><div class="kp" style="margin-top:5px">' + r2t + '</div>';
+        /* nhận xét ngành */
+        var pts = [], tt = nx.tang_truong, dgx = nx.dinh_gia, cls = nx.clts, rw = L.rong_n ? L.rong_t / L.rong_n : null;
+        if (L.ln_yoy != null) pts.push(['Tăng trưởng', 'Lợi nhuận cả nhóm ' + sg(L.ln_yoy) + ' so với cùng kỳ' + (L.dt_yoy != null ? ', doanh thu ' + sg(L.dt_yoy) : '') + (rw != null ? '; ' + L.rong_t + '/' + L.rong_n + ' mã tăng lợi nhuận' : '') + '. ' + (L.ln_yoy >= 10 && rw != null && rw >= 0.6 ? 'Sóng lợi nhuận lan rộng, không chỉ do vài mã lớn.' : L.ln_yoy > 0 ? 'Lợi nhuận tăng nhưng chưa lan đều trong nhóm.' : 'Lợi nhuận cả nhóm đang giảm.')]);
+        var mk = pbMain ? ['P/B', L.pb, L.pb_tv5, 'lần', n2, ex.pb] : ['P/E', L.pe, L.pe_tv5, 'lần', n1, ex.pe];
+        if (mk[1] != null && mk[2] != null) { var dd = (mk[1] / mk[2] - 1) * 100; pts.push(['Định giá', mk[0] + ' ngành ' + mk[4](mk[1]) + ' lần, ' + (dd <= 0 ? 'rẻ hơn ' : 'đắt hơn ') + n0(Math.abs(dd)) + '% so với trung vị 5 năm (' + mk[4](mk[2]) + ' lần)' + (mk[5] ? ' và ở mức ' + esc(mk[5].toLowerCase()) : '') + '. ' + (dd <= -15 ? 'Thị trường đang trả giá thấp cho cả nhóm so với lịch sử; rẻ có thể do kỳ vọng xấu đi hoặc do cơ hội thật, cần đối chiếu với chất lượng lợi nhuận.' : dd >= 15 ? 'Nhóm đã được trả giá cao hơn lịch sử, kỳ vọng cao nên nhạy với tin xấu.' : 'Định giá quanh mức bình thường của chính nhóm.')]); }
+        if (cls && cls.text) pts.push(['Chất lượng tài sản', esc(plain(cls.text)).replace(/^Cần theo dõi: /, 'Cần theo dõi: ') + (bk && L.cov != null && L.cov < 100 ? ' Dự phòng chưa phủ hết nợ xấu nghĩa là lợi nhuận các quý sau còn phải gánh thêm chi phí trích lập.' : '')]);
+        else if (bienK && P4[bienK] != null) { var db = L[bienK] - P4[bienK]; pts.push(['Biên lợi nhuận', bienN + ' cả nhóm ' + n1(L[bienK]) + '%, ' + (db >= 0.3 ? 'cao hơn' : db <= -0.3 ? 'thấp hơn' : 'ngang') + ' cùng kỳ năm trước (' + n1(P4[bienK]) + '%)' + (db >= 0.3 ? ': lợi nhuận tăng nhờ biên cải thiện, bền hơn tăng nhờ doanh thu đơn thuần.' : db <= -0.3 ? ': biên đang bị bào mòn, cần xem chi phí đầu vào và giá bán.' : '.')]); }
+        if (dcd && dcd.hang) pts.push(['Dòng tiền', 'Nhóm ' + tenN + ' đang xếp thứ ' + dcd.hang + '/' + nNganh + ' nhóm ngành về độ mạnh (dòng chủ đạo)' + (dcd.hang <= 5 ? ', thuộc nhóm dẫn dắt thị trường.' : dcd.hang > nNganh - 5 ? ', thuộc nhóm yếu nhất thị trường.' : '.')]);
+        if (xh && xh.hang) pts.push(['Vị thế của ' + esc(ma), 'Xếp hạng ' + xh.hang + '/' + xh.so_ma_nhom + ' trong nhóm theo sức mạnh giá' + (isBk && NGC.bank && NGC.bank.hang ? '; xếp ' + NGC.bank.hang[0] + '/' + NGC.bank.hang[1] + ' về chất lượng tài sản' : '') + '.']);
+        var gOk = tt && tt.muc === 'tot', gBad = tt && (tt.muc === 'xau' || tt.muc === 'do'), vOk = dgx && dgx.muc === 'tot', vBad = dgx && (dgx.muc === 'xau' || dgx.muc === 'do'), cWarn = cls && cls.muc && cls.muc !== 'tot';
+        var imp = gOk && vOk ? 'Tăng trưởng đang tốt mà định giá rẻ hơn lịch sử: bối cảnh thuận lợi cho cả nhóm, nên ưu tiên mã đầu ngành.' : gOk && vBad ? 'Tăng trưởng tốt nhưng đã được trả giá cao: dễ điều chỉnh mạnh nếu kết quả quý tới không vượt kỳ vọng.' : gBad && vOk ? 'Rẻ nhưng lợi nhuận đang yếu đi: coi chừng bẫy giá trị, chờ lợi nhuận quay đầu rồi mới tăng tỷ trọng.' : gBad && vBad ? 'Vừa yếu vừa đắt: chưa phải thời điểm tốt cho cả nhóm.' : 'Bối cảnh ngành trung tính: quyết định nên dựa nhiều hơn vào vị thế của từng mã.';
+        if (cWarn && bk) imp += ' Với ngân hàng, ưu tiên mã có bộ đệm dự phòng từ 100% nợ xấu trở lên, tránh mã dự phòng mỏng.';
+        pts.push(['Hàm ý đầu tư', imp]);
+        var com = pts.map(function (q) { return '<p style="margin:0 0 3px;font-size:10.2px;line-height:1.38"><b>' + q[0] + '.</b> ' + q[1] + '</p>'; }).join('');
+        var c1 = chart('Lợi nhuận ngành ' + (L.ln_yoy != null ? sg(L.ln_yoy) + ' so với cùng kỳ' : ''), 'tỷ đồng · 12 quý', cols(sr('ln'), lab, { W: 220, H: 74, every: 3, fmt: function (v) { return v >= 10000 ? n1(v / 1000) + 'k' : n0(v); } }));
+        var c2 = L.pb != null && pbMain ? chart('P/B ngành ' + n2(L.pb) + ' lần' + (L.pb_tv5 != null ? ', trung vị 5 năm ' + n2(L.pb_tv5) : ''), 'lần · nét đứt = trung vị 5 năm', lines([{ v: sr('pb'), c: ACC }], lab, { W: 220, H: 74, ref: L.pb_tv5, dv: 'lần' })) : (L.pe != null ? chart('P/E ngành ' + n1(L.pe) + ' lần' + (L.pe_tv5 != null ? ', trung vị 5 năm ' + n1(L.pe_tv5) : ''), 'lần · nét đứt = trung vị 5 năm', lines([{ v: sr('pe'), c: ACC }], lab, { W: 220, H: 74, ref: L.pe_tv5, dv: 'lần' })) : '');
+        var c3 = bk ? chart('Nợ xấu toàn ngành ' + n2(L.nplp) + '%', '% dư nợ · 12 quý', lines([{ v: sr('nplp'), c: ACC }], lab, { W: 220, H: 74, dv: '%' })) : (bienK ? chart(bienN + ' ngành ' + n1(L[bienK]) + '%', '% doanh thu · 12 quý', lines([{ v: sr(bienK), c: ACC }], lab, { W: 220, H: 74, dv: '%' })) : chart('ROE ngành ' + (L.roe != null ? n1(L.roe) + '%' : ''), '% · 12 quý', lines([{ v: sr('roe'), c: ACC }], lab, { W: 220, H: 74, dv: '%' })));
+        /* vị thế so với nhóm */
+        var pos = '';
+        if (typeof ssR !== 'undefined' && ssR && ssR.length) {
+          pos = '<h3>Vị thế của ' + esc(ma) + ' so với nhóm</h3><table><tr><th>Chỉ số</th><th>' + esc(ma) + '</th><th>Trung vị nhóm</th><th>Hạng</th><th>Nhận định</th></tr>' + ssR.map(function (q) { var c = q[1], M = window.__ssMeta[q[2]]; return '<tr><td>' + esc(q[0]) + '</td><td>' + fz(c.v) + '</td><td>' + fz(c.med) + '</td><td>' + (M[0] === 0 ? '—' : c.hang + '/' + c.n) + '</td><td class="' + (c.muc > 0 ? 'ok' : c.muc < 0 ? 'no_' : '') + '">' + (c.muc > 0 ? 'tốt hơn nhóm' : c.muc < 0 ? 'kém hơn nhóm' : 'ngang nhóm') + '</td></tr>'; }).join('') + '</table>';
+        }
+        var bkT = '';
+        if (isBk && NGC.bkList && NGC.bkList.length) {
+          bkT = '<h3>Xếp hạng chất lượng tài sản trong ' + NGC.bkList.length + ' ngân hàng (nhóm đầu, nhóm cuối và vị trí của ' + esc(ma) + ')</h3><p class="note" style="margin:0 0 3px">Hạng tổng hợp của nợ nhóm 2, nợ xấu hình thành mới, bộ đệm dự phòng và chi phí dự phòng (1 là tốt nhất).</p><table><tr><th>Hạng</th><th>Mã</th><th>Nợ nhóm 2 (%)</th><th>Nợ xấu (%)</th><th>Dự phòng / nợ xấu (%)</th><th>Chi phí dự phòng 4 quý (%)</th></tr>' + (function () { var N = NGC.bkList.length, me = -1; NGC.bkList.forEach(function (q, i) { if (q.ma === ma) me = i; }); var keep = {}; for (var i = 0; i < N; i++) if (i < 6 || i >= N - 3 || (me >= 0 && Math.abs(i - me) <= 1)) keep[i] = 1; var out = '', prev = -1; NGC.bkList.forEach(function (q, i) { if (!keep[i]) return; if (prev >= 0 && i - prev > 1) out += '<tr><td colspan="6" style="color:' + MUT + ';text-align:center">…</td></tr>'; prev = i; var c = q.c || {}; out += '<tr' + (q.ma === ma ? ' class="hl"' : '') + '><td>' + (i + 1) + '</td><td>' + esc(q.ma) + '</td><td>' + (c.g2p != null ? n2(c.g2p) : '—') + '</td><td>' + (c.nplp != null ? n2(c.nplp) : '—') + '</td><td>' + (c.cov != null ? n0(c.cov) : '—') + '</td><td>' + (c.cc != null ? n2(c.cc) : '—') + '</td></tr>'; }); return out; })() + '</table>';
+        }
+        return '<h2><span class="no">01</span>Phân tích ngành ' + tenN + '</h2><p class="note" style="margin:-2px 0 5px">' + NGC.n + ' mã, cộng báo cáo tài chính đến ' + lab[lab.length - 1] + '. Ngành là bối cảnh để đọc doanh nghiệp, không phải tín hiệu mua.</p>' + com + kp + '<div class="g3" style="margin-top:5px">' + c1 + c2 + c3 + '</div>' + pos + bkT;
+      };
+      var ngT = '';
       var bg = ser(x, 'bg'), br = ser(x, 'br'), roic = ser(x, 'roic'), fcf = ser(x, 'fcf');
       var bq = m && m.bang_quy ? m.bang_quy : [];
       var tbl4 = bq.length ? '<table><tr><th>Quý</th><th>' + (fin ? 'Thu nhập' : 'Doanh thu') + ' (tỷ)</th><th>So cùng kỳ</th><th>Lợi nhuận sau thuế (tỷ)</th><th>So cùng kỳ</th>' + (fin ? '' : '<th>Biên lợi nhuận</th>') + '</tr>' +
@@ -483,9 +528,24 @@
         ids.forEach(function (id) { var q = ser(x, id); if (q && out.length < 3) { if (NM[id]) used[NM[id]] = 1; out.push(chart(esc(NT[id] || plain(q.ten)) + ' ' + fv(q.v[last(q.v)], q.dv) + (q.dv === '%' ? '%' : ''), q.dv, lines([{ v: q.v, c: ACC }], Q, { W: 220, H: 70, dv: q.dv }))); } });
         return out.length ? '<h3>Chất lượng tài sản và hiệu quả hoạt động</h3><div class="g3">' + out.join('') + '</div>' : '';
       };
+      /* v105: ngân hàng: khối "Chất lượng tài sản" nằm ngay trang 1 (không tách trang riêng để khỏi trống) */
+      var bankQ = '';
+      if (isBk) {
+        var BK = NGC && NGC.bank, CL = BK && BK.clts ? BK.clts.slice(-Q.length) : null, Qc = CL ? Q.slice(-CL.length) : Q;
+        var ca = function (k) { return CL ? CL.map(function (r) { return r[k] == null ? null : r[k]; }) : []; }, lv = function (a) { var i = last(a); return i >= 0 ? a[i] : null; };
+        var mkC = function (t, k) { var a = ca(k), v = lv(a); return a.some(function (q) { return q != null; }) ? chart(t + (v != null ? ' ' + n2(v) + '%' : ''), '% · 12 quý gần nhất', lines([{ v: a, c: ACC }], Qc, { W: 330, H: 70, dv: '%' })) : ''; };
+        var covA = ca('cov'), cov25A = ca('cov25');
+        var covC = covA.some(function (q) { return q != null; }) ? chart('Dự phòng phủ nợ xấu ' + (lv(covA) != null ? n0(lv(covA)) + '%' : ''), '% · ' + legend([['Dự phòng / nợ xấu', ACC], ['Dự phòng / nợ nhóm 2–5', GRAY]]), lines([{ v: covA, c: ACC }, { v: cov25A, c: GRAY }], Qc, { W: 330, H: 70, dv: '%' })) : '';
+        bankQ = '<h2 style="margin-top:12px"><span class="no">03</span>Chất lượng tài sản</h2>' +
+          (BK && BK.kl ? '<p style="margin-bottom:3px"><b>' + esc(plain(BK.kl.text)) + '</b>' + (BK.hang ? ' Xếp <b>' + BK.hang[0] + '/' + BK.hang[1] + '</b> ngân hàng về chất lượng tài sản (hạng tổng hợp 4 chỉ tiêu; 1 là tốt nhất).' : '') + ' Đạt <b>' + qOk + '/' + qN + '</b> tiêu chí chung' + (QRK ? ', xếp ' + esc(QRK.txt) : '') + '.</p>' : '') +
+          '<div class="g2">' + mkC('Nợ nhóm 2 (nợ cần chú ý)', 'g2p') + covC + '</div>' +
+          '<div class="g2">' + mkC('Nợ xấu hình thành mới trong quý', 'form') + mkC('Chi phí dự phòng 4 quý', 'cc') + '</div>' +
+          finCharts();
+      }
       if (roic) used['ROIC'] = 1;
-      pg('<h2><span class="no">01</span>Ngành và kết quả kinh doanh</h2>' + ngT +
-        (ssT ? ssT : FCS ? '<p class="note" style="margin:-2px 0 6px"><b>Trọng tâm khi đọc nhóm ' + esc(FCS.ten) + ':</b> ' + esc(FCS.why.replace(/: đọc trước/, ': nên xem trước')) + '</p>' : '') +
+      var ngHtml = ngPage(); if (ngHtml) pg(ngHtml);
+      pg('<h2><span class="no">02</span>Kết quả kinh doanh</h2>' + ngT +
+        (false ? ssT : FCS ? '<p class="note" style="margin:-2px 0 6px"><b>Trọng tâm khi đọc nhóm ' + esc(FCS.ten) + ':</b> ' + esc(FCS.why.replace(/: đọc trước/, ': nên xem trước')) + '</p>' : '') +
         (CBS ? '<p><b>' + esc(CBS.ten) + '.</b> ' + esc(plain(CBS.txt)) + '</p>' : '<p>' + esc(nx.slice(0, 2).join(' ')) + (nx[2] && !/giá hợp lý|mô hình/.test(nx[2]) ? ' ' + esc(nx[2]) : '') + '</p>') +
         '<div class="g2">' +
         chart((fin ? 'Thu nhập hoạt động' : 'Doanh thu') + (dtS && dtS.yoy != null ? ' quý gần nhất ' + sg(dtS.yoy) + ' so với cùng kỳ' : ''), 'tỷ đồng', dtS ? cols(dtS.v, Q, { W: 330, H: 86, every: 2, fmt: function (v) { return v >= 10000 ? n1(v / 1000) + 'k' : n0(v); } }) : '') +
@@ -495,31 +555,13 @@
         (tv ? chart((netCash >= 0 ? 'Tiền mặt nhiều hơn nợ vay ' : 'Nợ vay nhiều hơn tiền mặt ') + n0(Math.abs(netCash)) + ' tỷ', 'tỷ đồng · ' + legend([['Tiền và đầu tư ngắn hạn', ACC], ['Nợ vay', GRAY]]), pair(tv.v, tv.v2, Q, { W: 330, H: 80 })) : (ser(x, 'roa') ? chart('ROA (lợi nhuận trên tổng tài sản) 4 quý', '%', lines([{ v: ser(x, 'roa').v, c: ACC }], Q, { W: 330, H: 80, dv: '%' })) : (cfo && roic ? chart('ROE và ROIC', '%', lines(prof, Q, { W: 330, H: 80, dv: '%' })) : ''))) +
         '</div>' +
         (tbl4 ? '<h3>4 quý gần nhất so với cùng kỳ năm trước</h3>' + tbl4 : '') +
-        (isBk ? '' : '<h2 style="margin-top:12px"><span class="no">02</span>Chất lượng doanh nghiệp</h2>' +
+        (isBk ? bankQ : '<h2 style="margin-top:12px"><span class="no">03</span>Chất lượng doanh nghiệp</h2>' +
         '<div class="g2" style="grid-template-columns:58% 39%;gap:3%"><div><p style="font-size:10.5px;margin-bottom:3px">Đạt <b>' + qOk + '/' + qN + '</b> tiêu chí' + (QRK ? ', xếp ' + esc(QRK.txt) + ' theo bộ tiêu chí chung' : '') + '. ' + (prof.length && !fin ? 'ROE ' + n1(roeNow) + '%' + (roic ? ', ' + G('ROIC') + ' ' + n1(roic.v[last(roic.v)]) + '%' : '') + '. ' : '') + (fcf ? 'Tiền còn lại sau khi đầu tư tài sản (dòng tiền tự do) 4 quý: ' + n0(fcf.v[last(fcf.v)]) + ' tỷ đồng.' : '') + '</p>' +
         '<table class="ql">' + qlHtml + '</table></div><div>' +
         '<h3 style="margin-top:0">Điểm cần lưu ý trong báo cáo tài chính</h3>' + (flags.length ? flags.slice(0, 4).map(function (f) { return '<div class="flag' + (f.muc === 'do' ? ' do' : '') + '">' + esc(plain(f.nd)) + '</div>'; }).join('') : fin ? '<p class="note">Bộ kiểm tra tự động từ bảng cân đối kế toán và báo cáo lưu chuyển tiền tệ chưa áp dụng cho ngân hàng, công ty chứng khoán, bảo hiểm; xem các chỉ số chất lượng tài sản bên dưới.</p>' : '<p class="note">Chưa thấy dấu hiệu bất thường ở các mục kiểm tra: khoản phải thu, hàng tồn kho, vay ngắn hạn, thu nhập bất thường, lãi từ công ty liên kết, dòng tiền, vốn góp, mức độ vay nợ.</p>') +
         '</div></div>' + finCharts()));
 
-      /* v105: ngân hàng có trang riêng "Chất lượng tài sản" */
-      if (isBk) {
-        var BK = NGC && NGC.bank, CL = BK && BK.clts ? BK.clts.slice(-Q.length) : null, Qc = CL ? Q.slice(-CL.length) : Q;
-        var ca = function (k) { return CL ? CL.map(function (r) { return r[k] == null ? null : r[k]; }) : []; }, lv = function (a) { var i = last(a); return i >= 0 ? a[i] : null; };
-        var mkC = function (t, k, dp) { var a = ca(k), v = lv(a); return a.some(function (q) { return q != null; }) ? chart(t + (v != null ? ' ' + (dp === 0 ? n0(v) : n2(v)) + '%' : ''), '% · 12 quý gần nhất', lines([{ v: a, c: ACC }], Qc, { W: 330, H: 88, dv: '%' })) : ''; };
-        var covA = ca('cov'), cov25A = ca('cov25');
-        var covC = covA.some(function (q) { return q != null; }) ? chart('Dự phòng phủ nợ xấu ' + (lv(covA) != null ? n0(lv(covA)) + '%' : ''), '% · ' + legend([['Dự phòng / nợ xấu', ACC], ['Dự phòng / nợ nhóm 2–5', GRAY]]), lines([{ v: covA, c: ACC }, { v: cov25A, c: GRAY }], Qc, { W: 330, H: 88, dv: '%' })) : '';
-        var rkT = BK && BK.hang ? '<p class="note" style="margin:0 0 5px">Xếp <b>' + BK.hang[0] + '/' + BK.hang[1] + '</b> ngân hàng về chất lượng tài sản (hạng tổng hợp của nợ nhóm 2, nợ xấu hình thành mới, bộ đệm dự phòng và chi phí dự phòng; 1 là tốt nhất).</p>' : '';
-        pg('<h2><span class="no">02</span>Chất lượng tài sản</h2>' +
-          (BK && BK.kl ? '<p><b>' + esc(plain(BK.kl.text)) + '</b></p>' : '') + rkT +
-          '<div class="g2">' + mkC('Nợ nhóm 2 (nợ cần chú ý)', 'g2p') + covC + '</div>' +
-          '<div class="g2">' + mkC('Nợ xấu hình thành mới trong quý', 'form') + mkC('Chi phí dự phòng 4 quý', 'cc') + '</div>' +
-          finCharts() +
-          '<h3>Chất lượng doanh nghiệp theo bộ tiêu chí chung</h3>' +
-          '<div class="g2" style="grid-template-columns:58% 39%;gap:3%"><div><p style="font-size:10.5px;margin-bottom:3px">Đạt <b>' + qOk + '/' + qN + '</b> tiêu chí' + (QRK ? ', xếp ' + esc(QRK.txt) + ' theo bộ tiêu chí chung' : '') + '.</p>' +
-          '<table class="ql">' + qlHtml + '</table></div><div>' +
-          '<h3 style="margin-top:0">Điểm cần lưu ý trong báo cáo tài chính</h3>' + (flags.length ? flags.slice(0, 4).map(function (f) { return '<div class="flag' + (f.muc === 'do' ? ' do' : '') + '">' + esc(plain(f.nd)) + '</div>'; }).join('') : '<p class="note">Bộ kiểm tra tự động từ bảng cân đối kế toán và báo cáo lưu chuyển tiền tệ chưa áp dụng cho ngân hàng; xem các chỉ số chất lượng tài sản ở trên.</p>') +
-          '</div></div>');
-      }
+      /* ngành lên trang riêng ngay trước kết quả kinh doanh */
 
       /* ======== định giá ======== */
       var ffRows = [];
@@ -542,7 +584,7 @@
         '<tr><td>Lợi nhuận quý từ ' + n0(m.moc_quy_toi.dat_co_so_ty) + ' tỷ đồng</td><td>Giữ kịch bản cơ sở: ' + n0(kb[1].gia) + 'đ</td><td>Giá trị nghiêng về kịch bản bất tử</td></tr>' +
         '<tr><td>Lợi nhuận quý từ ' + n0(m.moc_quy_toi.giu_ttm_ty) + ' tỷ đồng (bằng ' + m.moc_quy_toi.quy_cu + ')</td><td>Lợi nhuận 4 quý không giảm</td><td>Lùi về giá bất tử: khoảng ' + n0(lo) + 'đ</td></tr>' +
         (cfoR != null ? '<tr><td>Tiền thu về từ kinh doanh 4 quý từ 80% lợi nhuận</td><td>Lợi nhuận đáng tin cậy hơn</td><td>Tiếp tục lưu ý chất lượng lợi nhuận</td></tr>' : '') + '</table>' : '';
-      pg('<h2><span class="no">03</span>Định giá' + (m ? ': giá hợp lý ' + n0(m.gia_tb) + 'đ/cổ phiếu' : '') + '</h2>' +
+      pg('<h2><span class="no">04</span>Định giá' + (m ? ': giá hợp lý ' + n0(m.gia_tb) + 'đ/cổ phiếu' : '') + '</h2>' +
         (m ? '<p>ATL ước tính giá trị cổ phiếu theo ba kịch bản lợi nhuận (bất tử, cơ sở, lạc quan) rồi lấy bình quân theo xác suất, gọi là giá hợp lý. Giá bất tử là giá trị ở kịch bản xấu nhất; vùng mua là giá hợp lý trừ 20% để có khoảng đệm cho sai số của ước tính. Mỗi kịch bản quy lợi nhuận ra giá trị dựa trên khả năng sinh lời của doanh nghiệp và ' + G('Lợi nhuận yêu cầu', 'lợi nhuận yêu cầu') + ' ' + n1(m.ke * 100) + '%/năm.</p>' +
           '<div class="kp"><div><small>Giá bất tử</small><b>' + n0(lo) + '</b><em>kịch bản xấu nhất · lạc quan ' + n0(hi) + '</em></div><div><small>Giá so với giá hợp lý</small><b style="color:' + (m.mos >= 0 ? GOOD : BAD) + '">' + (m.mos >= 0 ? 'thấp hơn ' : 'cao hơn ') + n0(Math.abs(m.mos)) + '%</b><em>giá hợp lý ' + n0(m.gia_tb) + 'đ</em></div><div><small>Vùng mua</small><b>≤ ' + n0(m.vung_an_toan) + '</b><em>giá hợp lý trừ 20% · ' + (P <= m.vung_an_toan ? 'giá đang trong vùng mua' : 'giá chưa vào vùng mua') + '</em></div><div><small>Lợi nhuận yêu cầu</small><b>' + n1(m.ke * 100) + '%/năm</b><em>lãi suất phi rủi ro ' + n1(m.rf * 100) + '% + phần bù rủi ro</em></div></div>' : '') +
         '<div class="g2"><div>' + kbT +
@@ -575,7 +617,7 @@
       Lr2.forEach(function (r) { var s2 = NB.tj && NB.tj.thong_ke && NB.tj.thong_ke[r[0]], B2 = s2 && s2.B, q = B2 && (B2[mu2] && B2[mu2][0] >= 30 ? B2[mu2] : B2.tat_ca && B2.tat_ca[0] >= 30 ? B2.tat_ca : null); var w2 = q ? q[1] : -1; if (!best || w2 > best.w) best = { r: r, w: w2 }; });
       xSig = best ? '<tr><td><b>Tín hiệu chỉ báo</b></td><td>Nếu mua theo ' + esc((window.atlNonNames || {})[best.r[0]] || best.r[0]) + ', bán khi ' + esc(best.r[5].charAt(0).toLowerCase() + best.r[5].slice(1)) + ' hoặc cắt lỗ −7%.' + (best.w >= 0 ? ' (Tỷ lệ thắng mùa này: ' + n0(best.w) + '%.)' : '') + '</td></tr>' : '<tr><td><b>Tín hiệu chỉ báo</b></td><td>Không có chỉ báo nào vừa bật; không mua chỉ vì giá đang nằm trong vùng xác suất.</td></tr>';
     }
-    var plan = '<h2><span class="no">' + (x ? '05' : '02') + '</span>Kế hoạch hành động</h2>' +
+    var plan = '<h2><span class="no">' + (x ? '06' : '02') + '</span>Kế hoạch hành động</h2>' +
       '<div class="g2" style="grid-template-columns:36% 61%;gap:3%"><div><div class="rec" style="padding:12px 10px"><div class="r">' + J.rec + '</div><div class="l">Kiểu cơ hội: ' + J.label + '</div></div><p style="font-size:10.5px">' + esc(J.why) + '</p></div>' +
       '<div><table class="tc"><tr><th style="width:24%">Nội dung</th><th>Hướng dẫn</th></tr>' +
       '<tr><td><b>Điểm mua</b></td><td>' + esc(buy) + '</td></tr>' + xSig +

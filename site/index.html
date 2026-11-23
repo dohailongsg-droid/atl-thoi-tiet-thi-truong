@@ -2498,7 +2498,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     D.rows.forEach(function(r){b.appendChild(ngRowEl(r,D.Q,g));});
     $('ng-kl').textContent=g.ket_luan||'';
     $('ng-foot').textContent='Cộng BCTC '+g.n_ma+' mã trong nhóm ATL ('+g.ds_ma.join(', ')+'). Tham khảo, không phải khuyến nghị đầu tư.';}
-  window.__nganhCtx=function(ma){var d=NG.d;if(!d)return null;var nm=(d.ma_nhom||{})[ma];if(!nm||!d.nhom[nm])return null;var o={ten:nm,kl:d.nhom[nm].ket_luan||''},nb=(d.ngan_hang||{})[ma];if(nb&&nb.clts)o.bank={kl:nb.kl,hang:clHang(nb),clts:nb.clts};return o;};
+  window.__nganhCtx=function(ma){var d=NG.d;if(!d)return null;var nm=(d.ma_nhom||{})[ma];if(!nm||!d.nhom[nm])return null;var o={ten:nm,kl:d.nhom[nm].ket_luan||'',quy:d.nhom[nm].quy||[],n:d.nhom[nm].n_ma,nx:d.nhom[nm].nhan_xet_hang||{},ex:d.nhom[nm].nhan_xet||{},ht:d.nhom[nm].hien_tai||{}},nb=(d.ngan_hang||{})[ma];if(nb&&nb.clts)o.bank={kl:nb.kl,hang:clHang(nb),clts:nb.clts};if(nb&&nb.clts){var A=d.ngan_hang||{},ks=['g2p','form','cov','cc'],ls=[];for(var m in A){if(m.charAt(0)==='_'||!A[m]||!A[m].hang||!A[m].clts)continue;var s=0,n=0;ks.forEach(function(k){var r=A[m].hang[k];if(r){s+=r[0];n++;}});if(n>=3)ls.push({ma:m,v:s/n,c:A[m].clts[A[m].clts.length-1]});}ls.sort(function(a,b){return a.v-b.v;});o.bkList=ls;}return o;};
   window.__nganh=function(ma,ix){
     ngLoad(function(){
       var name=null;
