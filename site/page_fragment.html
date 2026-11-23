@@ -4607,8 +4607,9 @@ render();if(!sec.hidden)show();
     function merged(){
       if(!raw)return null;
       var b=liveD&&liveD.nen&&liveD.nen[S.ma];
-      if(!b||!liveD.ngay||liveD.ngay<=raw.t[raw.t.length-1])return raw;
-      var m={t:raw.t.concat([liveD.ngay]),o:raw.o.concat([b[0]]),h:raw.h.concat([b[1]]),l:raw.l.concat([b[2]]),c:raw.c.concat([b[3]]),v:raw.v.concat([b[4]])};
+      if(!b||!liveD.ngay||liveD.ngay<raw.t[raw.t.length-1])return raw;
+      var k0=liveD.ngay===raw.t[raw.t.length-1]?raw.t.length-1:raw.t.length;   /* v102: cùng ngày thì thay nến cuối bằng nến trực tiếp */
+      var m={t:raw.t.slice(0,k0).concat([liveD.ngay]),o:raw.o.slice(0,k0).concat([b[0]]),h:raw.h.slice(0,k0).concat([b[1]]),l:raw.l.slice(0,k0).concat([b[2]]),c:raw.c.slice(0,k0).concat([b[3]]),v:raw.v.slice(0,k0).concat([b[4]])};
       m.live=true;return m;}
     function view(){
       if(S.tf==='H'&&rawH)return rawH;
@@ -4619,7 +4620,7 @@ render();if(!sec.hidden)show();
       if(d.tf==='H'){if(!idxRawH)return null;var mh={},rr=idxRawH,q;for(q=0;q<rr.t.length;q++)mh[rr.t[q]]=rr.c[q];var oh=[],lh=NaN;for(q=0;q<d.t.length;q++){if(mh[d.t[q]]!=null)lh=mh[d.t[q]];oh.push(lh);}return {c:oh};}
       if(!idxRaw)return null;
       var mp={},r=idxRaw,i;for(i=0;i<r.t.length;i++)mp[r.t[i]]=r.c[i];
-      var b=liveD&&liveD.nen&&liveD.nen.VNINDEX;if(b&&liveD.ngay&&liveD.ngay>r.t[r.t.length-1])mp[liveD.ngay]=b[3];
+      var b=liveD&&liveD.nen&&liveD.nen.VNINDEX;if(b&&liveD.ngay&&liveD.ngay>=r.t[r.t.length-1])mp[liveD.ngay]=b[3];
       var out=[],last=NaN;for(i=0;i<d.t.length;i++){if(mp[d.t[i]]!=null)last=mp[d.t[i]];out.push(last);}
       return {c:out};}
     /* ---- dựng biểu đồ ---- */
@@ -4684,7 +4685,7 @@ render();if(!sec.hidden)show();
     /* ---- bố cục 3 khung: VN-Index cố định + mã chính theo tuần, cạnh biểu đồ chính ---- */
     var MC={},minis=[],miniKey='',miniMa='',miniFix=null,fastNext=false,RC={},RCo=[];
     function mget(sym){return MC[sym]?Promise.resolve(MC[sym]):fetch(BASE+sym+'.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){MC[sym]=j;return j;});}
-    function mmerge(sym,r){var b=liveD&&liveD.nen&&liveD.nen[sym];if(!b||!liveD.ngay||liveD.ngay<=r.t[r.t.length-1])return r;return {t:r.t.concat([liveD.ngay]),o:r.o.concat([b[0]]),h:r.h.concat([b[1]]),l:r.l.concat([b[2]]),c:r.c.concat([b[3]]),v:r.v.concat([b[4]])};}
+    function mmerge(sym,r){var b=liveD&&liveD.nen&&liveD.nen[sym];if(!b||!liveD.ngay||liveD.ngay<r.t[r.t.length-1])return r;var k=liveD.ngay===r.t[r.t.length-1]?r.t.length-1:r.t.length;return {t:r.t.slice(0,k).concat([liveD.ngay]),o:r.o.slice(0,k).concat([b[0]]),h:r.h.slice(0,k).concat([b[1]]),l:r.l.slice(0,k).concat([b[2]]),c:r.c.slice(0,k).concat([b[3]]),v:r.v.slice(0,k).concat([b[4]])};}
     function miniData(sym,tf){
       if(tf==='H')return getH(sym);
       return mget(sym).then(function(r0){var r=mmerge(sym,r0),d=tf==='W'?weekly(r):r;d=Object.assign({},d);d.tf=tf;d.sym=sym;return getX(sym).catch(function(){return null;}).then(function(xd){d.x=alignX(d,xd);return d;});});}
@@ -4806,13 +4807,18 @@ render();if(!sec.hidden)show();
     function valAt(se,t){var a;try{a=se.data();}catch(e){return null;}var lo=0,hi=a.length-1,k=-1,tk=tkey(t);while(lo<=hi){var m=(lo+hi)>>1;if(tkey(a[m].time)<=tk){k=m;lo=m+1;}else hi=m-1;}if(k<0)return null;var q=a[k];return {time:q.time,value:q.close!=null?q.close:q.value};}
     function syncHook(){syncOff();if(S.lay!==2||!S.m3||S.m3.s||!chart||!mainCd||!m3c||!m3c.__cd)return;
       var A={k:'a',c:chart,s:mainCd},B={k:'b',c:m3c,s:m3c.__cd};
+      var same=(S.m3.tf||'D')===S.tf;   /* cùng khung thời gian: khớp theo số nến tính từ nến cuối (giữ cả khoảng trống bên phải) */
+      function nb(X){try{return X.s.data().length;}catch(e){return 0;}}
       function link(P,Q){var ts=P.c.timeScale();
-        var h=function(r){if(!r||Date.now()-(SY.ign[P.k]||0)<200)return;SY.ign[Q.k]=Date.now();try{Q.c.timeScale().setVisibleRange(r);}catch(e){}};
-        ts.subscribeVisibleTimeRangeChange(h);SY.un.push(function(){ts.unsubscribeVisibleTimeRangeChange(h);});
+        if(same){var h=function(r){if(!r||Date.now()-(SY.ign[P.k]||0)<200)return;var d=nb(Q)-nb(P);SY.ign[Q.k]=Date.now();try{Q.c.timeScale().setVisibleLogicalRange({from:r.from+d,to:r.to+d});}catch(e){}};
+          ts.subscribeVisibleLogicalRangeChange(h);SY.un.push(function(){ts.unsubscribeVisibleLogicalRangeChange(h);});}
+        else{var h=function(r){if(!r||Date.now()-(SY.ign[P.k]||0)<200)return;SY.ign[Q.k]=Date.now();try{Q.c.timeScale().setVisibleRange(r);}catch(e){}};
+          ts.subscribeVisibleTimeRangeChange(h);SY.un.push(function(){ts.unsubscribeVisibleTimeRangeChange(h);});}
         var x=function(p){if(SY.lk||(p&&p.time!=null&&!p.point))return;SY.lk=1;try{var v=p&&p.time!=null&&p.point?valAt(Q.s,p.time):null;if(v)Q.c.setCrosshairPosition(v.value,v.time,Q.s);else Q.c.clearCrosshairPosition();}catch(e){}SY.lk=0;};
         P.c.subscribeCrosshairMove(x);SY.un.push(function(){P.c.unsubscribeCrosshairMove(x);});}
       link(A,B);link(B,A);
-      try{var r=chart.timeScale().getVisibleRange();if(r){SY.ign.b=Date.now();m3c.timeScale().setVisibleRange(r);}}catch(e){}}
+      try{SY.ign.b=Date.now();if(same){var r=chart.timeScale().getVisibleLogicalRange(),d=nb(B)-nb(A);if(r)m3c.timeScale().setVisibleLogicalRange({from:r.from+d,to:r.to+d});}
+        else{var r2=chart.timeScale().getVisibleRange();if(r2)m3c.timeScale().setVisibleRange(r2);}}catch(e){}}
     function buildMinis(force){
       var side=$('dthi-side');if(!side)return;
       var key=[S.lay,JSON.stringify(S.m1),JSON.stringify(S.m2),JSON.stringify(S.m3),liveD&&liveD.cap_nhat,$('dthi-box').offsetHeight,S.grid,css('--color-panel'),JSON.stringify(CB.on)+JSON.stringify(CB.hid)+JSON.stringify(CB.set)+JSON.stringify(CB.sty)].join('|');
@@ -4849,16 +4855,21 @@ render();if(!sec.hidden)show();
     /* ---- cập nhật mượt trong phiên: chỉ đẩy nến cuối thay vì nạp lại toàn bộ (như TradingView / FireAnt) ---- */
     function sameP(p,q){var k;for(k in p){if(p[k]!==q[k])return false;}for(k in q){if(!(k in p))return false;}return true;}
     function smartWrap(s){
-      var sd=s.setData,prev=null;
+      var sd=s.setData,ps=[];   /* v102: nhớ 3 lần nạp gần nhất (nến được nạp 2 lần mỗi lượt: bản thường rồi bản tô màu theo chỉ báo) */
+      function tk(t){return t&&typeof t==='object'?t.year*1e4+t.month*100+t.day:t;}
+      function keep(a){ps=[a].concat(ps.filter(function(p){return p!==a;})).slice(0,3);}
       s.setData=function(a){
         try{
-          if(window.__atlSm&&prev&&a&&prev.length>0&&a.length>=prev.length&&a.length-prev.length<=1){
-            var k=prev.length,ok=a[k-1].time===prev[k-1].time,i;
-            for(i=0;ok&&i<k-1;i++){if(!sameP(prev[i],a[i]))ok=false;}
-            if(ok){for(i=k-1;i<a.length;i++)s.update(a[i]);prev=a;return;}
+          if(window.__atlSm&&a&&a.length){
+            for(var j=0;j<ps.length;j++){var prev=ps[j];
+              if(!(prev.length>0&&a.length>=prev.length&&a.length-prev.length<=1))continue;
+              var k=prev.length,ok=tk(a[k-1].time)===tk(prev[k-1].time),i;
+              for(i=0;ok&&i<k-1;i++){if(!sameP(prev[i],a[i]))ok=false;}
+              if(ok){for(i=k-1;i<a.length;i++)s.update(Object.assign({},a[i]));keep(a);return;}   /* gửi bản sao: thư viện tự đổi trường time của object được truyền vào */
+            }
           }
         }catch(e){}
-        prev=a;return sd.call(s,a);};
+        keep(a);return sd.call(s,a);};
       return s;}
     function smartChart(ch){var add=ch.addSeries;ch.addSeries=function(){var s=add.apply(ch,arguments);return smartWrap(s);};}
     function build(){
@@ -6373,6 +6384,17 @@ render();if(!sec.hidden)show();
     const IX = r.loai === 'chi_so'; window.__hsIdx = IX ? r : null;
     const w = 'ma=' + enc(r.ma);
     const xr = X.status === 'ok' ? X.data.find((x) => x.ma === r.ma) : null;
+    /* v102: trong phiên lấy giá trực tiếp (nen_nay.json, cập nhật ~5 phút) thay cho giá của lượt cập nhật số liệu */
+    function hsLive(r) {
+      fetch('https://raw.githubusercontent.com/dohailongsg-droid/atl-thoi-tiet-thi-truong/live/nen_nay.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' }).then((x) => x.ok ? x.json() : null).then((j) => {
+        if (!j || !j.nen || $('hs-ma').textContent !== r.ma) return; const b = j.nen[r.ma]; if (!b || !(b[3] > 0)) return;
+        const GD = dash.data('gia_ngay'); const rows = (GD && GD.status === 'ok' ? GD.data : []).filter((q) => q.ma === r.ma); if (!rows.length) return; const last = rows[rows.length - 1]; let ref;
+        if (last.ngay === j.ngay) { const pv = rows[rows.length - 2]; if (!pv) return; ref = +pv.c; } else if (last.ngay < j.ngay) ref = +last.c; else return;
+        if (!(ref > 0)) return; const pct = (b[3] / ref - 1) * 100;
+        $('hs-gia').textContent = f2(b[3]); const p1 = $('hs-p1'); p1.replaceChildren(el('span', pct >= 0 ? 'pos' : 'neg', fp(pct, 2) + '%'), document.createTextNode(' · giá lúc ' + (j.gio || '')));
+        window.__livePx = { ma: r.ma, gia: b[3] * 1000 }; if (window.__dg) window.__dg(r.ma);
+      }).catch(() => {});
+    }
     const sig = hn.filter((x) => x.ma === r.ma);
     $('hs-ma').textContent = r.ma;
     $('hs-ten').textContent = r.ten + (xr ? ' · ' + xr.nhom + ' · hạng ' + xr.hang + '/' + xr.so_ma_nhom + ' trong nhóm' : '') + (r.san ? ' · sàn ' + r.san + ' (ngoài HOSE: không có xếp hạng nhóm, điểm RS và tín hiệu bộ lọc; biên độ ' + (r.san === 'HNX' ? '±10%' : '±15%') + ')' : '');
@@ -6380,6 +6402,7 @@ render();if(!sec.hidden)show();
     const g = $('hs-gia'); g.textContent = IX ? (+r.gia).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : f2(r.gia); mark(g, 'ho_so', 'gia', w);
     idxMode(IX);
     const p1 = $('hs-p1'); p1.replaceChildren(); const pv = mark(el('span', +r.p1 >= 0 ? 'pos' : 'neg', fp(r.p1, 2) + '%'), 'ho_so', 'p1', w); p1.append(pv, document.createTextNode(' phiên gần nhất'));
+    if (!IX) hsLive(r);
 
     if (!st.gia) { $('ch-hs').dataset.source = 'gia_ngay'; st.gia = true; }
     const G = dash.data('gia_ngay');
