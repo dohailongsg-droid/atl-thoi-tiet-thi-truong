@@ -40,6 +40,10 @@ python3 -c "import vn_prices as vp; vp.fetch(count_back=2520, path='vn_prices_ch
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # Hồ sơ mã cho chỉ số (VN-Index, VN30, ngành, nhóm ATL): cần file nến chỉ số vừa ghi ở bước trên (lỗi không làm dừng pipeline)
 python3 ho_so_chi_so.py || echo "ho_so_chi_so.py lỗi, bỏ qua"
+# phân tích ngành + chất lượng tài sản ngân hàng cho Hồ sơ mã (cần file nến chỉ số ngành vừa ghi; lần đầu ~2 phút, sau đó dùng bản lưu state/bctc_quy; lỗi không làm dừng pipeline)
+python3 ho_so_nganh.py || echo "ho_so_nganh.py lỗi, bỏ qua"
+# số liệu riêng cho báo cáo PDF theo ngành: ngân hàng (cho vay, huy động, lợi suất, chi phí vốn) và công ty chứng khoán (margin, tự doanh) (lỗi không làm dừng pipeline)
+python3 bao_cao_nganh.py || echo "bao_cao_nganh.py lỗi, bỏ qua"
 # lịch sử khối ngoại từ 2019-10 (nối thêm phiên mới) -> pipeline/nn_lich_su.csv.gz và site/data/bt_nn.json cho Backtest (lỗi không làm dừng pipeline)
 python3 nn_lich_su.py || echo "nn_lich_su.py lỗi, bỏ qua"
 # top khối ngoại mua/bán ròng 5-10-20 phiên (cần chart/x của bước trên; lỗi không làm dừng pipeline)
