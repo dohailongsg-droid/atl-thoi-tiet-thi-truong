@@ -40,14 +40,14 @@ python3 -c "import vn_prices as vp; vp.fetch(count_back=2520, path='vn_prices_ch
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
 # Hồ sơ mã cho chỉ số (VN-Index, VN30, ngành, nhóm ATL): cần file nến chỉ số vừa ghi ở bước trên (lỗi không làm dừng pipeline)
 python3 ho_so_chi_so.py || echo "ho_so_chi_so.py lỗi, bỏ qua"
-# phân tích ngành + chất lượng tài sản ngân hàng cho Hồ sơ mã (cần file nến chỉ số ngành vừa ghi; lần đầu ~2 phút, sau đó dùng bản lưu state/bctc_quy; lỗi không làm dừng pipeline)
-python3 ho_so_nganh.py || echo "ho_so_nganh.py lỗi, bỏ qua"
 # lịch sử khối ngoại từ 2019-10 (nối thêm phiên mới) -> pipeline/nn_lich_su.csv.gz và site/data/bt_nn.json cho Backtest (lỗi không làm dừng pipeline)
 python3 nn_lich_su.py || echo "nn_lich_su.py lỗi, bỏ qua"
 # top khối ngoại mua/bán ròng 5-10-20 phiên (cần chart/x của bước trên; lỗi không làm dừng pipeline)
 python3 khoi_ngoai_top.py || echo "khoi_ngoai_top.py lỗi, bỏ qua"
 # thị trường thế giới: chỉ số, hàng hóa, bitcoin (lỗi không làm dừng pipeline)
 python3 the_gioi.py || echo "the_gioi.py lỗi, bỏ qua"
+# dòng vốn khối ngoại châu Á quy USD (VN, Đài Loan; Nhật/Ấn Độ đang thử nghiệm; lỗi không làm dừng pipeline)
+python3 dong_von_ngoai.py || echo "dong_von_ngoai.py lỗi, bỏ qua"
 # danh mục mô phỏng ATL (vốn 1 tỷ, theo tín hiệu trong nhật ký; lỗi không làm dừng pipeline)
 python3 mo_phong.py || echo "mo_phong.py lỗi, bỏ qua"
 python3 long_dau_mo_phong.py || echo "long_dau_mo_phong.py lỗi, bỏ qua"
