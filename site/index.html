@@ -3304,6 +3304,11 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         </div>
         <p class="atl-note" id="tg-foot"></p>
       </div>
+      <h2 class="atl-dvh" id="dvn-h" hidden>Dòng vốn ngoại</h2>
+      <div class="atl-card atl-wide" id="card-dvn" hidden>
+        <div class="atl-tablebox tg-tbx"><table id="tb-dvn"><thead><tr><th>Thị trường</th><th class="num">Tuần</th><th class="num">Tháng</th><th class="num">Quý</th><th class="num">Từ đầu năm</th></tr></thead><tbody></tbody></table></div>
+        <p class="atl-note" id="dvn-kl"></p>
+      </div>
     </div>
     <div class="atl-dv" data-view="th">
       <h2 class="atl-dvh">Hiệu suất VN-Index theo tháng</h2>
@@ -7303,6 +7308,29 @@ render();if(!sec.hidden)show();
       document.getElementById('tg-note').textContent = '';
       document.getElementById('tg-foot').textContent = 'Cập nhật ' + t + ' · nguồn Yahoo Finance, Stooq (dự phòng), Vietcap (VN-Index)' + ((d.loi || []).length ? ' · chưa lấy được: ' + d.loi.join(', ') : '') + '. Chưa có P/E, P/B vì không có nguồn miễn phí đáng tin cho chỉ số quốc tế. Chỉ để tham khảo.';
     }).catch(() => { const n = document.getElementById('tg-note'); if (n) n.textContent = 'Chưa có dữ liệu thị trường thế giới. Mục này hiện sau lần chạy cập nhật đầu tiên.'; });
+  })();
+  (function () {
+    const f = (v) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v)).toLocaleString('vi-VN');
+    const col = (v) => v == null ? '' : v > 0 ? 'var(--sem-up, #4cc38a)' : v < 0 ? 'var(--sem-down, #f0716b)' : '';
+    const ORD = ['VN', 'TW', 'JP', 'KR', 'TH', 'IN'];
+    fetch('data/dong_von_ngoai.json?v=' + new Date().toISOString().slice(0, 13), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
+      const rows = (d.thi_truong || []).slice().sort((a, b) => ORD.indexOf(a.ma) - ORD.indexOf(b.ma)); if (!rows.length) return;
+      const tb = document.querySelector('#tb-dvn tbody'); if (!tb) return; tb.textContent = '';
+      rows.forEach((x) => {
+        const tr = document.createElement('tr'); if (x.ma === 'VN') tr.style.fontWeight = '700';
+        [x.ten, x.tuan, x.thang, x.quy, x.nam].forEach((v, i) => {
+          const td = document.createElement('td'); if (i > 0) { td.className = 'num'; td.textContent = f(v); if (col(v)) td.style.color = col(v); } else td.textContent = v; tr.appendChild(td);
+        }); tb.appendChild(tr);
+      });
+      const vn = rows.find((x) => x.ma === 'VN'), peers = rows.filter((x) => x.ma !== 'VN' && x.tuan != null), kl = document.getElementById('dvn-kl');
+      if (vn && vn.tuan != null && peers.length) {
+        const sell = peers.filter((x) => x.tuan < 0).length, a = Math.abs(Math.round(vn.tuan)).toLocaleString('vi-VN');
+        kl.textContent = 'Tuần này khối ngoại ' + (vn.tuan < 0 ? 'bán ròng ' : 'mua ròng ') + a + ' triệu USD ở Việt Nam; ' + sell + '/' + peers.length + ' thị trường còn lại bán ròng.';
+      } else kl.hidden = true;
+      const h2 = document.getElementById('dvn-h'), tip = document.createElement('span'); tip.textContent = ' ⓘ'; tip.style.cssText = 'font-size:.5em;color:var(--color-fg-muted);cursor:help;vertical-align:middle'; tip.tabIndex = 0;
+      tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Tuần Nhật = tuần JPX gần nhất. Ô – là chưa đủ dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
+      h2.appendChild(tip); h2.hidden = false; document.getElementById('card-dvn').hidden = false;
+    }).catch(() => {});
   })();
   window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawNH && window.atlDrawNH(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); window.atlDrawCH && window.atlDrawCH(); };
   const h = location.hash.slice(1);
