@@ -15,9 +15,9 @@ SITE = os.environ.get("ATL_SITE", os.path.join(HERE, "..", "site"))
 NN = os.environ.get("ATL_NN_FILE", os.path.join(HERE, "nn_lich_su.csv.gz"))
 HIST = os.path.join(HERE, "state", "dvn_lich_su.json")
 OUT = os.path.join(SITE, "data", "dong_von_ngoai.json")
-BACKFILL = int(os.environ.get("ATL_DVN_BACKFILL", "70"))
+BACKFILL = int(os.environ.get("ATL_DVN_BACKFILL", "260"))
 UA = {"User-Agent": "Mozilla/5.0 (compatible; ATL-dashboard)", "Accept-Encoding": "identity"}
-FX_FALLBACK = {"VND": 26300.0, "TWD": 31.5, "JPY": 150.0, "INR": 85.0}
+FX_FALLBACK = {"VND": 26300.0, "TWD": 31.5, "JPY": 150.0, "INR": 85.0, "KRW": 1400.0}
 
 
 def http(url, tries=3, timeout=40, binary=False):
@@ -157,6 +157,44 @@ def jp_update(h, rate):
     return h
 
 
+def kr_update(h, rate):
+    """KRX data portal (MDCSTAT02203): khối ngoại ròng theo ngày, KOSPI + KOSDAQ, đơn vị won. Một lần gọi lấy cả khoảng ngày."""
+    import urllib.parse
+    today = datetime.date.today()
+    have = [d for d in h if h[d] is not None]
+    start = (datetime.date.fromisoformat(max(have)) - datetime.timedelta(days=7)) if have else datetime.date(today.year, 1, 1)
+    start = min(start, today); tot = {}
+    for mkt in ("STK", "KSQ"):
+        body = urllib.parse.urlencode({"bld": "dbms/MDC/STAT/standard/MDCSTAT02203", "locale": "ko_KR", "mktId": mkt, "trdVolVal": "2", "askBid": "3",
+                                       "strtDd": start.strftime("%Y%m%d"), "endDd": today.strftime("%Y%m%d"), "share": "1", "money": "1", "csvxls_isNo": "false"}).encode()
+        req = urllib.request.Request("https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd", data=body,
+                                     headers=dict(UA, **{"Referer": "https://data.krx.co.kr/contents/MDC/MDI/mdiLoader", "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}))
+        with urllib.request.urlopen(req, timeout=40) as r:
+            j = json.loads(r.read().decode("utf-8", "replace"))
+        rows = j.get("output") or []
+        print("[dvn] KRX", mkt, len(rows), "dòng; mẫu:", rows[:1], "| khoá:", sorted(rows[0].keys()) if rows else None)
+        for r in rows:
+            d = r["TRD_DD"].replace("/", "-")
+            tot[d] = tot.get(d, 0.0) + _num(r["TRDVAL4"])               # 외국인합계, won
+    for d, v in tot.items():
+        h[d] = round(v / rate / 1e6, 1)
+    return h
+
+
+def th_probe():
+    """Thái Lan (SET): chưa biết endpoint công khai nào ổn định -> thử vài địa chỉ, in kết quả ra log để chọn."""
+    for u in ("https://www.set.or.th/api/set/market/SET/investor-type?lang=en",
+              "https://www.set.or.th/api/set/market/investor-type/SET?lang=en",
+              "https://www.set.or.th/en/market/statistics/investor-type",
+              "https://www.settrade.com/api/set/market/SET/investor-type"):
+        try:
+            t = http(u, tries=1, timeout=25)
+            print("[dvn] TH ok", u, len(t), "ký tự:", re.sub(r"\s+", " ", t)[:400])
+        except Exception as e:
+            print("[dvn] TH lỗi", str(e)[:140])
+    return None
+
+
 def in_update(h):
     """NSDL Latest.aspx: cổ phiếu ròng (US$ triệu) của ngày báo cáo mới nhất; cộng dồn mỗi lần chạy."""
     html = http("https://www.fpi.nsdl.co.in/web/Reports/Latest.aspx")
@@ -199,6 +237,16 @@ def main():
         if w: rows.append(dict(ma="JP", ten="Nhật Bản", nguon="JPX (tuần, TSE+NSE)", **w))
     except Exception as e:
         status["JP"] = "lỗi: " + str(e)[:150]
+    try:
+        h = kr_update(hist.get("KR", {}), fx["KRW"]); hist["KR"] = h; status["KR"] = "ok %d ngày" % len(h)
+        w = windows(h, "KR")
+        if w: rows.append(dict(ma="KR", ten="Hàn Quốc", nguon="KRX (KOSPI+KOSDAQ)", **w))
+    except Exception as e:
+        status["KR"] = "lỗi: " + str(e)[:150]
+    try:
+        th_probe(); status["TH"] = "thăm dò, xem log [dvn] TH"
+    except Exception as e:
+        status["TH"] = "lỗi: " + str(e)[:100]
     try:
         h = in_update(hist.get("IN", {})); hist["IN"] = h; status["IN"] = "ok %d ngày" % len(h)
         w = windows(h, "IN")
