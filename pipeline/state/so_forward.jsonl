@@ -268,3 +268,12 @@
 {"ngay_ghi":"2026-11-23","ev":"dong","dm":"vnt","ma":"KBC","ngay_mua":"2026-11-05","ngay_thoat":"2026-11-23","ly_do":"Nhãn SELL","lai_pct":-1.86,"phien_ban":"2026-11-v72","bo_sung":false}
 {"ngay_ghi":"2026-11-23","ev":"dong","dm":"vnt","ma":"VRE","ngay_mua":"2026-11-10","ngay_thoat":"2026-11-23","ly_do":"Nhãn SELL","lai_pct":-2.99,"phien_ban":"2026-11-v72","bo_sung":false}
 {"ngay_ghi":"2026-11-23","ev":"dong","dm":"vnt","ma":"KHG","ngay_mua":"2026-11-13","ngay_thoat":"2026-11-23","ly_do":"Nhãn SELL","lai_pct":-3.33,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"long_dau","ma":"ORS","ngay_mua":"2026-10-21","ngay_thoat":"2026-11-25","ly_do":"Cắt lỗ −10%","lai_pct":-11.53,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"mo","dm":"dragon","ma":"CTS","loai":"THÊM","ngay_tin_hieu":"2026-11-23","ngay_mua":"2026-11-25","gia_mua":23,"ty_nav":1.94,"cat_lo":21.39,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"mo","dm":"dragon","ma":"HVN","loai":"THÊM","ngay_tin_hieu":"2026-11-23","ngay_mua":"2026-11-25","gia_mua":24.35,"ty_nav":2.05,"cat_lo":22.65,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"dragon","ma":"TPB","ngay_mua":"2026-10-26","ngay_thoat":"2026-11-25","ly_do":"Nhãn SÚT","lai_pct":-5.71,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"dragon","ma":"SSI","ngay_mua":"2026-11-05","ngay_thoat":"2026-11-25","ly_do":"Nhãn SÚT","lai_pct":-5.68,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"dragon","ma":"HDC","ngay_mua":"2026-11-10","ngay_thoat":"2026-11-25","ly_do":"Cắt lỗ −7%","lai_pct":-9.4,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"vnt","ma":"NKG","ngay_mua":"2026-10-21","ngay_thoat":"2026-11-25","ly_do":"Nhãn SELL · đã bán 50% theo TP 17/11, 18/11, 19/11","lai_pct":3.42,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"vnt","ma":"VIX","ngay_mua":"2026-10-22","ngay_thoat":"2026-11-25","ly_do":"Nhãn SELL","lai_pct":-2.29,"phien_ban":"2026-11-v72","bo_sung":false}
+{"ngay_ghi":"2026-11-25","ev":"dong","dm":"vnt","ma":"TPB","ngay_mua":"2026-10-22","ngay_thoat":"2026-11-25","ly_do":"Nhãn SELL","lai_pct":-3.66,"phien_ban":"2026-11-v72","bo_sung":false}
