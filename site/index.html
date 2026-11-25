@@ -76,6 +76,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 #tb-rs td.tb .ch{min-width:36px;padding:4px;border:1px solid currentColor}
 #tb-rs td.tb,#tb-rs th.tb{padding-right:8px}#tb-rs td.xh{font-size:.8em;min-width:96px;text-align:left;padding:0 8px;border-right:1px solid var(--color-border-line)}
 #tb-rs .ic{margin-left:5px}
+.atl-xh-bar{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm,8px);align-items:center;margin:0 0 var(--cds-gap-sm,8px)}.atl-xh-bar .atl-seg{flex-wrap:wrap}.atl-xh-bar select{max-width:15rem}
 .atl-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden}
 .atl-seg button{appearance:none;border:0;background:none;font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:6px 12px;cursor:pointer}
 .atl-seg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg)}
@@ -3351,33 +3352,13 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     <div class="atl-grid">
       <div class="atl-card atl-wide" id="card-xep-hang">
         <h2 class="atl-h" id="xh-h">Xếp hạng trong nhóm</h2>
-        <div class="atl-xh-top">
-          <div class="atl-xh-panel">
-            <div class="atl-xh-row"><span class="atl-xh-k">Nhóm</span><div class="atl-xh-v"><select id="xh-nhom" aria-label="Nhóm"></select></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">Lọc</span><div class="atl-xh-v">
-              <label class="atl-chk"><input type="checkbox" id="xh-50"> Chỉ mã trên MA50</label>
-              <label class="atl-chk"><input type="checkbox" id="xh-70"> Sức mạnh giá ≥ 70</label>
-              <label class="atl-chk"><input type="checkbox" id="xh-sig"> Chỉ mã có tín hiệu bộ lọc</label></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">Nhãn giá</span><div class="atl-xh-v">
-              <label class="atl-chk"><input type="checkbox" id="xh-cc"> Cạn cung</label>
-              <label class="atl-chk"><input type="checkbox" id="xh-tt"> Chống chịu, tăng tốc</label></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">Tam tài</span><div class="atl-xh-v" id="xh-rrg" role="radiogroup" aria-label="Tam tài">
-              <label class="atl-chk"><input type="radio" name="xh-rrg" value="" checked> Tất cả</label>
-              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s4"> ★★★★ (tốt nhất)</label>
-              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s3"> ★★★ trở lên</label>
-              <label class="atl-chk"><input type="radio" name="xh-rrg" value="s2"> ★★ trở lên</label>
-              <label class="atl-chk"><input type="radio" name="xh-rrg" value="xa"> Hết thời + mã bị xả (để tránh)</label></div></div>
-          </div>
-          <div class="atl-xh-panel atl-xh-leg">
-            <div class="atl-xh-row"><span class="atl-xh-k">Hạng</span><div class="atl-xh-v">Trên MA50 → ★★★★ (mạnh + địa lợi) → Sức mạnh giá → Điểm long đầu</div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">🐉 Long đầu</span><div class="atl-xh-v">Top 3 nhóm · trên MA50 · đủ thanh khoản · không Hết thời</div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">Pha giá</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Chống chịu, tăng tốc</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Dao rơi</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Vừa sập mạnh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Bán tháo</span></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">Thanh khoản</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Cạn cung</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Thanh khoản giảm · giá tăng</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Thanh khoản tăng · giá tăng</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Thanh khoản tăng · giá giảm</span></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k" data-tip="Tam tài: thiên · địa · nhân&#10;Thiên thời: ngành của mã đang tốt (RRG tuần: Dẫn dắt hoặc Cải thiện).&#10;Nhân hòa: mã tự mạnh (trên MA50, sức mạnh giá từ 70).&#10;Địa lợi: giá tăng khi thanh khoản co. Chỉ thêm sao khi mã đã có cả hai tài trên.&#10;Càng đủ tài, sao càng nhiều. Không phải tín hiệu mua.">Tam tài</span><div class="atl-xh-v"><span class="atl-pill" data-tip="Đủ cả ba tài&#10;Ngành đang tốt, mã tự mạnh, và giá tăng êm khi thanh khoản co. Hạng cao nhất."><i class="atl-dot" style="background:var(--z3)"></i>★★★★ Thiên thời · Địa lợi · Nhân hòa</span><span class="atl-pill" data-tip="Có thời, có thế&#10;Ngành đang tốt và mã tự mạnh. Chưa có Địa lợi: giá chưa tăng êm khi thanh khoản co."><i class="atl-dot" style="background:var(--z3)"></i>★★★ Thiên thời · Nhân hòa</span><span class="atl-pill" data-tip="Có thời, chưa có thế&#10;Ngành đang tốt nhưng bản thân mã chưa tự mạnh (dưới MA50 hoặc sức mạnh giá dưới 70). Chờ mã tự khẳng định. Địa lợi (nếu có) chưa tính sao khi chưa có Nhân hòa."><i class="atl-dot" style="background:var(--z7)"></i>★★ Thiên thời</span><span class="atl-pill" data-tip="Mạnh một mình&#10;Mã tự mạnh (trên MA50, sức mạnh giá từ 70) nhưng ngành chưa tốt. Đi ngược ngành nên cần thận trọng hơn. Địa lợi (nếu có) chưa tính sao khi chưa có Thiên thời."><i class="atl-dot" style="background:var(--z7)"></i>★★ Nhân hòa</span><span class="atl-pill" data-tip="Không có thời&#10;Ngành đang yếu (Tụt hậu hoặc Suy yếu) và mã chưa đủ mạnh. Không ưu tiên."><i class="atl-dot" style="background:var(--z2)"></i>Nghịch thời</span><span class="atl-xh-sep">tránh</span><span class="atl-pill" data-tip="Tránh&#10;Ngành đang tốt nhưng mã đang bị xả: thanh khoản tăng mà giá giảm."><i class="atl-dot" style="background:var(--z6)"></i>Hết thời</span></div></div>
-            <div class="atl-xh-row"><span class="atl-xh-k">RRG nhóm</span><div class="atl-xh-v"><span class="atl-pill"><i class="atl-dot" style="background:var(--z3)"></i>Dẫn dắt</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z7)"></i>Cải thiện</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z4)"></i>Suy yếu</span><span class="atl-xh-sep">tránh</span><span class="atl-pill"><i class="atl-dot" style="background:var(--z6)"></i>Tụt hậu</span></div></div>
-            <p class="atl-note" style="margin:0">Thiên thời = ngành (RRG) tốt · Nhân hòa = mã tự mạnh (trên MA50, sức mạnh giá ≥ 70) · Địa lợi = giá tăng khi thanh khoản co. Nhóm không có mã trên MA50 = chưa có mã dẫn dắt, bỏ qua. Không phải tín hiệu mua.</p>
-          </div>
+        <div class="atl-xh-bar">
+          <select id="xh-nhom" aria-label="Nhóm"></select>
+          <div class="atl-seg" id="xh-seg-tt" role="group" aria-label="Tam tài"><button type="button" data-v="" aria-pressed="true">Tất cả</button><button type="button" data-v="s4" aria-pressed="false">★★★★</button><button type="button" data-v="s3" aria-pressed="false">★★★+</button><button type="button" data-v="s2" aria-pressed="false">★★+</button><button type="button" data-v="xa" aria-pressed="false">Tránh</button></div>
+          <div class="atl-seg" id="xh-seg-loc" role="group" aria-label="Lọc"><button type="button" data-id="xh-50" aria-pressed="false">Trên MA50</button><button type="button" data-id="xh-70" aria-pressed="false">SMG ≥ 70</button><button type="button" data-id="xh-cc" aria-pressed="false">Cạn cung</button><button type="button" data-id="xh-tt" aria-pressed="false">Tăng tốc</button><button type="button" data-id="xh-sig" aria-pressed="false">Có tín hiệu</button></div>
         </div>
+        <div hidden><input type="checkbox" id="xh-50"><input type="checkbox" id="xh-70"><input type="checkbox" id="xh-sig"><input type="checkbox" id="xh-cc"><input type="checkbox" id="xh-tt">
+          <input type="radio" name="xh-rrg" value="" checked><input type="radio" name="xh-rrg" value="s4"><input type="radio" name="xh-rrg" value="s3"><input type="radio" name="xh-rrg" value="s2"><input type="radio" name="xh-rrg" value="xa"></div>
         <p class="atl-note" id="xh-none"></p>
         <div class="atl-tablebox" style="max-height:34rem">
           <table id="tb-xh" data-source="xep_hang" data-row-key="ma">
@@ -6493,7 +6474,7 @@ render();if(!sec.hidden)show();
     sel.value = st.nhom;
     const top = st.nhom === '__top';
     $('xh-th-nhom').hidden = !top;
-    $('xh-h').textContent = top ? 'Mã đứng đầu mỗi nhóm' : 'Xếp hạng trong nhóm ' + st.nhom;
+    $('xh-h').textContent = top ? 'Mã đứng đầu mỗi nhóm' : 'Xếp hạng trong nhóm ' + st.nhom; { const q = document.createElement('span'); q.textContent = ' ⓘ'; q.tabIndex = 0; q.style.color = 'var(--color-fg-muted)'; q.setAttribute('data-tip', 'Hạng: trên MA50 → ★★★★ → sức mạnh giá → điểm long đầu\n🐉 Long đầu: top 3 nhóm, trên MA50, đủ thanh khoản, không Hết thời\nTam tài: Thiên thời = ngành tốt (RRG Dẫn dắt/Cải thiện) · Nhân hòa = mã tự mạnh (trên MA50, sức mạnh giá ≥ 70) · Địa lợi = giá tăng khi thanh khoản co\nTránh = thanh khoản tăng · giá giảm (mã bị xả)\nPha giá, thanh khoản: xanh = tốt, đỏ = tránh. Không phải tín hiệu mua.'); $('xh-h').appendChild(q); }
     let rows = top ? all.filter((r) => +r.hang === 1) : all.filter((r) => r.nhom === st.nhom);
     if ($('xh-sig').checked) rows = rows.filter((r) => r.tin_hieu);
     if (top) rows = rows.filter((r) => isT(r.nhom_co_dan_dat));
@@ -6502,7 +6483,7 @@ render();if(!sec.hidden)show();
     const wc = $('xh-cc').checked, wt = $('xh-tt').checked;
     if (wc || wt) rows = rows.filter((r) => (wc && isT(r.can_cung)) || (wt && r.pha_gia === 'Chống chịu, tăng tốc'));
     const none = [...new Set(all.filter((r) => !isT(r.nhom_co_dan_dat)).map((r) => r.nhom))];
-    $('xh-none').textContent = top && none.length ? 'Nhóm chưa có mã dẫn dắt: ' + none.join(', ') + '.' : (!top && all.some((r) => r.nhom === st.nhom && !isT(r.nhom_co_dan_dat)) ? 'Nhóm này chưa có mã dẫn dắt: không có mã đủ thanh khoản nào đang trên MA50. Nên bỏ qua nhóm, chờ mã đầu tiên vượt lại MA50.' : '');
+    $('xh-none').title = top && none.length ? none.join(', ') : ''; $('xh-none').textContent = top && none.length ? none.length + ' nhóm chưa có mã dẫn dắt ⓘ' : (!top && all.some((r) => r.nhom === st.nhom && !isT(r.nhom_co_dan_dat)) ? 'Nhóm này chưa có mã dẫn dắt: không có mã đủ thanh khoản nào đang trên MA50. Nên bỏ qua nhóm, chờ mã đầu tiên vượt lại MA50.' : '');
     const fr = (document.querySelector('input[name="xh-rrg"]:checked') || {}).value || '', gn = (r) => r.rrg_nhom === 'Cải thiện' || r.rrg_nhom === 'Dẫn dắt';
     if (fr === 's4') rows = rows.filter((r) => String(r.dong_tien || '').startsWith('★★★★'));
     if (fr === 's3') rows = rows.filter((r) => String(r.dong_tien || '').startsWith('★★★'));
@@ -7390,6 +7371,11 @@ render();if(!sec.hidden)show();
       tip.title = 'RS ngày = xếp hạng % mức tăng 20 phiên so với toàn thị trường (cổ phiếu) hoặc so với các ngành (ngành). RS TB = trung bình RS ngày của 10/20/50 phiên. Xu hướng so RS 10 phiên với 50 phiên để thấy ngành đang nóng lên hay nguội đi. Kiểm định 2021–11/2026: chọn top theo RS TB ở mọi khung đều không tốt hơn rõ rệt so với bình quân; dùng để theo dõi luân chuyển dòng tiền, không phải tín hiệu mua.';
       h.appendChild(tip); draw(); $('card-rs').hidden = false;
     }).catch(() => {});
+  })();
+  (function () {
+    const tt = document.getElementById('xh-seg-tt'), lc = document.getElementById('xh-seg-loc'); if (!tt || !lc) return;
+    tt.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; tt.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); const r = document.querySelector('input[name="xh-rrg"][value="' + b.dataset.v + '"]'); r.checked = true; r.dispatchEvent(new Event('change')); });
+    lc.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); const c = document.getElementById(b.dataset.id); c.checked = on; c.dispatchEvent(new Event('change')); });
   })();
   window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawNH && window.atlDrawNH(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); window.atlDrawCH && window.atlDrawCH(); };
   const h = location.hash.slice(1);
