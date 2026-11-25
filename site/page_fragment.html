@@ -36,6 +36,13 @@
   z-index:5;min-width:9rem;max-width:16rem;font-variant-numeric:tabular-nums}
 .atl-tip .t{color:var(--cds-text-secondary)}
 .atl-controls{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);align-items:center}
+.atl-rs-ctl{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm,8px);align-items:center;margin:0 0 var(--cds-gap-sm,8px)}
+#tb-rs{border-collapse:separate;border-spacing:0 3px}#tb-rs th,#tb-rs td{text-align:center;padding:1px 2px;white-space:nowrap}#tb-rs th.l,#tb-rs td.l{text-align:left}
+#tb-rs td.nm{font-weight:600;padding-right:10px}#tb-rs td.mu{color:var(--color-fg-muted)}
+#tb-rs .ch{display:inline-block;min-width:26px;padding:3px;border-radius:5px;font-weight:650;font-variant-numeric:tabular-nums}
+#tb-rs td.tb .ch{min-width:36px;padding:4px;border:1px solid currentColor}
+#tb-rs td.tb,#tb-rs th.tb{padding-right:8px}#tb-rs td.xh{font-size:.8em;min-width:96px;text-align:left;padding:0 8px;border-right:1px solid var(--color-border-line)}
+#tb-rs .ic{margin-left:5px}
 .atl-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden}
 .atl-seg button{appearance:none;border:0;background:none;font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:6px 12px;cursor:pointer}
 .atl-seg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg)}
@@ -3370,6 +3377,16 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         <h2 class="atl-h" id="xh-ct-h">Tốc độ giá theo giai đoạn</h2>
         <p class="atl-note" id="xh-ct-note">Chọn một mã trong bảng.</p>
         <div class="atl-chart" id="ch-xh" data-source="xep_hang" style="min-height:12rem"></div>
+      </div>
+      <div class="atl-card atl-wide" id="card-rs" hidden>
+        <h2 class="atl-h" id="rs-h">RS ngành &amp; cổ phiếu</h2>
+        <div class="atl-rs-ctl">
+          <div class="atl-seg" id="rs-mode" role="group" aria-label="Chế độ"><button type="button" data-v="nganh" aria-pressed="true">Ngành</button><button type="button" data-v="cp" aria-pressed="false">Cổ phiếu</button></div>
+          <div class="atl-seg" id="rs-win" role="group" aria-label="Khung RS TB"><button type="button" data-v="10" aria-pressed="false">10 phiên</button><button type="button" data-v="20" aria-pressed="true">20 phiên</button><button type="button" data-v="50" aria-pressed="false">50 phiên</button></div>
+          <select id="rs-nhom" aria-label="Nhóm" hidden></select>
+        </div>
+        <div class="atl-tablebox" style="max-height:38rem"><table id="tb-rs" class="atl-rs"><thead></thead><tbody></tbody></table></div>
+        <p class="atl-note" id="rs-foot"></p>
       </div>
     </div>
     </div>
@@ -7297,6 +7314,48 @@ render();if(!sec.hidden)show();
       const h2 = document.getElementById('dvn-h'), tip = document.createElement('span'); tip.textContent = ' ⓘ'; tip.style.cssText = 'font-size:.5em;color:var(--color-fg-muted);cursor:help;vertical-align:middle'; tip.tabIndex = 0;
       tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Tuần Nhật = tuần JPX gần nhất. Ô – là chưa đủ dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
       h2.appendChild(tip); h2.hidden = false; document.getElementById('card-dvn').hidden = false;
+    }).catch(() => {});
+  })();
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    let D = null, mode = 'nganh', win = 20, nhom = null;
+    const mean = (a, need) => { const x = a.filter((v) => v != null); return x.length < need ? null : x.reduce((s, v) => s + v, 0) / x.length; };
+    const tone = (v) => v >= 80 ? '#9b6bd6' : v >= 60 ? '#3f9a62' : v >= 40 ? '#d4a62a' : '#e0584c';
+    const chip = (v, big) => { const td = document.createElement('td'); if (big) td.className = 'tb'; if (v == null) { td.textContent = '–'; td.className += ' mu'; return td; } const s = document.createElement('span'); s.className = 'ch'; const c = tone(v); s.style.color = c; s.style.background = 'color-mix(in srgb,' + c + ' 16%,transparent)'; s.textContent = Math.round(v); td.appendChild(s); return td; };
+    const th = (t, c) => { const e = document.createElement('th'); e.textContent = t; if (c) e.className = c; return e; };
+    function rows() {
+      const src = mode === 'nganh' ? D.nganh.map((r) => ({ k: r.ten, v: r.v })) : (D.cp[nhom] || []).map((r) => ({ k: r.ma, v: r.v }));
+      const ld = mode === 'nganh' ? (D.ld_nganh || []) : ((D.ld_cp || {})[nhom] || []);
+      const out = src.map((r) => { const t10 = mean(r.v.slice(0, 10), 6), t50 = mean(r.v.slice(0, 50), 40); return { k: r.k, v: r.v, tb: mean(r.v.slice(0, win), Math.ceil(win * 0.6)), d: t10 != null && t50 != null ? Math.round(t10 - t50) : null, ld: ld.indexOf(r.k) >= 0 }; });
+      return out.filter((r) => r.tb != null).sort((a, b) => b.tb - a.tb);
+    }
+    function draw() {
+      const R = rows(), thd = document.querySelector('#tb-rs thead'), tb = document.querySelector('#tb-rs tbody'), nw = mode === 'nganh' ? 5 : 3;
+      thd.textContent = ''; tb.textContent = '';
+      const hr = document.createElement('tr'); hr.appendChild(th('#', 'l')); hr.appendChild(th(mode === 'nganh' ? 'Ngành' : 'Mã', 'l')); hr.appendChild(th('RS TB', 'tb')); hr.appendChild(th('Xu hướng'));
+      D.ngay.slice(0, 20).forEach((d) => hr.appendChild(th(d.slice(8) + '-' + d.slice(5, 7)))); thd.appendChild(hr);
+      R.forEach((r, i) => {
+        const tr = document.createElement('tr'), n = document.createElement('td'); n.className = 'l mu'; n.textContent = i + 1; tr.appendChild(n);
+        const nm = document.createElement('td'); nm.className = 'l nm'; nm.textContent = r.k;
+        if (r.ld) { const s = document.createElement('span'); s.className = 'ic'; s.title = 'Long đầu'; s.textContent = '🐉'; nm.appendChild(s); }
+        if (i < nw) { const s = document.createElement('span'); s.className = 'ic'; s.title = 'Top RS TB'; s.textContent = '🌊'; nm.appendChild(s); }
+        tr.appendChild(nm); tr.appendChild(chip(Math.round(r.tb), true));
+        const x = document.createElement('td'); x.className = 'xh';
+        if (r.d == null) x.textContent = '—'; else if (r.d >= 10) { x.textContent = 'Nóng lên +' + r.d; x.style.cssText = 'color:var(--sem-up);font-weight:700'; } else if (r.d <= -10) { x.textContent = 'Nguội đi −' + (-r.d); x.style.cssText = 'color:var(--sem-down);font-weight:700'; } else { x.textContent = 'Đi ngang ' + (r.d >= 0 ? '+' : '−') + Math.abs(r.d); x.style.color = 'var(--color-fg-muted)'; }
+        tr.appendChild(x); r.v.slice(0, 20).forEach((v) => tr.appendChild(chip(v))); tb.appendChild(tr);
+      });
+      $('rs-foot').textContent = mode === 'nganh' ? '🐉 Ngành đang có long đầu · 🌊 Top 5 RS TB · Xu hướng = RS TB 10 phiên − RS TB 50 phiên' : '🐉 Long đầu của nhóm · 🌊 Top 3 RS TB trong nhóm · Xu hướng = RS TB 10 phiên − RS TB 50 phiên · mã GTGD TB20 ≥ 3 tỷ';
+    }
+    function seg(id, fn) { const g = $(id); g.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; g.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset.v); draw(); }); }
+    fetch('data/rs_nganh.json?v=' + new Date().toISOString().slice(0, 13), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
+      if (!d || !d.nganh || !d.nganh.length || !d.ngay || !d.ngay.length) return; D = d;
+      const sel = $('rs-nhom'), ns = Object.keys(d.cp).filter((k) => d.cp[k].length).sort((a, b) => a.localeCompare(b, 'vi'));
+      ns.forEach((k) => { const o = document.createElement('option'); o.value = k; o.textContent = k; sel.appendChild(o); }); nhom = ns.indexOf('Ngân hàng') >= 0 ? 'Ngân hàng' : ns[0]; sel.value = nhom;
+      sel.addEventListener('change', () => { nhom = sel.value; draw(); });
+      seg('rs-mode', (v) => { mode = v; sel.hidden = v !== 'cp'; }); seg('rs-win', (v) => { win = +v; });
+      const h = $('rs-h'), tip = document.createElement('span'); tip.textContent = ' ⓘ'; tip.style.cssText = 'font-size:.5em;color:var(--color-fg-muted);cursor:help;vertical-align:middle'; tip.tabIndex = 0;
+      tip.title = 'RS ngày = xếp hạng % mức tăng 20 phiên so với toàn thị trường (cổ phiếu) hoặc so với các ngành (ngành). RS TB = trung bình RS ngày của 10/20/50 phiên. Xu hướng so RS 10 phiên với 50 phiên để thấy ngành đang nóng lên hay nguội đi. Kiểm định 2021–11/2026: chọn top theo RS TB ở mọi khung đều không tốt hơn rõ rệt so với bình quân; dùng để theo dõi luân chuyển dòng tiền, không phải tín hiệu mua.';
+      h.appendChild(tip); draw(); $('card-rs').hidden = false;
     }).catch(() => {});
   })();
   window.atlRedraw = () => { window.atlDrawHN && window.atlDrawHN(); window.atlDrawXH && window.atlDrawXH(); window.atlDrawHS && window.atlDrawHS(); window.atlDrawNK && window.atlDrawNK(); window.atlDrawNH && window.atlDrawNH(); window.atlDrawRRG && window.atlDrawRRG(); window.atlDrawDT && window.atlDrawDT(); window.atlDrawTM && window.atlDrawTM(); window.atlDrawTH && window.atlDrawTH(); window.atlDrawCH && window.atlDrawCH(); };
