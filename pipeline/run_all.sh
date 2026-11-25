@@ -13,6 +13,8 @@ python3 dash_data.py > /dev/null && python3 dash_split.py
 python3 rrg_build.py
 python3 dash_today.py > /dev/null
 python3 xep_hang.py > /dev/null
+# RS ngày của ngành và cổ phiếu cho ô "RS ngành & cổ phiếu" (cần xep_hang.json vừa ghi; lỗi không làm dừng pipeline)
+python3 rs_nganh.py || echo "rs_nganh.py lỗi, bỏ qua"
 python3 ho_so.py > /dev/null
 python3 dash_tm.py > /dev/null
 python3 add_flow.py > /dev/null
