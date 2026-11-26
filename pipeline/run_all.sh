@@ -40,6 +40,8 @@ python3 nganh_hieu_suat.py || echo "nganh_hieu_suat.py lỗi, bỏ qua"
 python3 -c "import vn_prices as vp; vp.fetch(count_back=2520, path='vn_prices_chart.csv.gz')" || echo "tải lịch sử 10 năm lỗi, Đồ thị dùng 620 phiên"
 # dữ liệu nến cho tab Đồ thị (lỗi không làm dừng pipeline)
 python3 chart_data.py || echo "chart_data.py lỗi, bỏ qua"
+# VN-Index loại trừ nhóm Vin (VIC, VHM, VRE, VPL) cho biểu đồ VN-Index ở tab Mùa (cần chart/VNINDEX.json vừa ghi; lỗi không làm dừng pipeline)
+python3 vin_loai_tru.py || echo "vin_loai_tru.py lỗi, bỏ qua"
 # Hồ sơ mã cho chỉ số (VN-Index, VN30, ngành, nhóm ATL): cần file nến chỉ số vừa ghi ở bước trên (lỗi không làm dừng pipeline)
 python3 ho_so_chi_so.py || echo "ho_so_chi_so.py lỗi, bỏ qua"
 # phân tích ngành + chất lượng tài sản ngân hàng cho Hồ sơ mã (cần file nến chỉ số ngành vừa ghi; lần đầu ~2 phút, sau đó dùng bản lưu state/bctc_quy; lỗi không làm dừng pipeline)
