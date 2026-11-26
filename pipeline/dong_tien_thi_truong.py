@@ -46,6 +46,13 @@ def load(cb_dir):
         try:
             d = json.load(open(f, encoding="utf8"))
             x = d.get("xu_huong") or {}
+            try:     # v112: ưu tiên chuỗi dài từ 2018 (cb/dai/<MÃ>.json), thiếu hoặc lỗi thì dùng 12 quý như cũ
+                dd = json.load(open(os.path.join(cb_dir, "dai", ma + ".json"), encoding="utf8"))
+                xd = dd.get("xu_huong") or {}
+                if len(xd.get("quy") or []) > len(x.get("quy") or []) and dd.get("ky_bao_cao") == d.get("ky_bao_cao"):
+                    x = xd
+            except Exception:
+                pass
             quy = x.get("quy") or []
             ser = {c["id"]: c for c in (x.get("chuoi") or [])}
         except Exception:
@@ -80,8 +87,9 @@ def build(cb_dir=CB):
     nonfin = {m: f for m, f in firms.items() if f["loai"] == "doanh_nghiep"}
     allk = sorted({k for f in nonfin.values() for k in f["ln4"] if f["ln4"][k] is not None})
     cnt = {k: sum(1 for f in nonfin.values() if f["ln4"].get(k) is not None) for k in allk}
-    nmax = max(cnt.values())
-    keys = [k for k in allk if cnt[k] >= MIN_SHARE * nmax][-12:]
+    nmax = max(cnt[k] for k in allk[-12:])          # ngưỡng tính trên 12 quý gần nhất để số quý mới nhất không đổi khi thêm lịch sử
+    keys = [k for k in allk if cnt[k] >= MIN_SHARE * nmax]
+    keys = [k for k in keys if k >= (2018, 1)]
     if len(keys) < 8:
         raise RuntimeError("không đủ quý dữ liệu")
 
@@ -126,7 +134,7 @@ def build(cb_dir=CB):
 
     # tăng trưởng lợi nhuận 4 quý so với cùng kỳ
     npair = {k: sum(1 for f in nonfin.values() if f["ln4"].get(k) is not None and f["ln4"].get(prev4(k)) is not None) for k in keys}
-    pmax = max(npair.values())
+    pmax = max(npair[k] for k in keys[-12:])
     gk = [k for k in keys if npair[k] >= MIN_SHARE * pmax]        # quý có đủ cặp (quý này, cùng kỳ năm trước)
     gr = {"tong": [], "phi_tc": [], "bo_vin": [], "trung_vi": []}
     tc = None

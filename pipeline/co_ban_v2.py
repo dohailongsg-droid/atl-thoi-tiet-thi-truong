@@ -19,7 +19,9 @@ HDR = {"User-Agent": "Mozilla/5.0", "Referer": "https://trading.vietcap.com.vn/"
        "Origin": "https://trading.vietcap.com.vn", "Accept-Encoding": "identity"}
 COE, G = 0.12, 0.05
 KICH_BAN = (('Thận trọng', 0.13, 0.03), ('Cơ sở', 0.12, 0.05), ('Lạc quan', 0.11, 0.06))
-N_TREND, N_HIST = 12, 20       # 12 quý cho xu hướng, 20 quý (5 năm) cho dải định giá
+N_TREND, N_HIST = 12, 20
+DAI = True                     # v112: ghi thêm lịch sử dài từ 2018 vào site/data/cb/dai/<MA>.json
+OUT_DAI = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "site", "data", "cb", "dai")       # 12 quý cho xu hướng, 20 quý (5 năm) cho dải định giá
 
 
 def iq(path, tries=6):
@@ -811,68 +813,82 @@ def build(ma):
         cano.append("Không tính được định giá v2: " + str(e)[:80])
 
     # ---------- xu hướng 12 quý ----------
-    qs = inc[-N_TREND:]
-    stm = {(int(r["year"]), r["quarter"]): r for r in st}
-    labels = [qlabel(x["yearReport"], x["lengthReport"]) for x in qs]
-
-    def inc_series(f):
-        return [None if x.get(f) is None else float(x[f]) for x in qs]
-
-    def st_series(f, mul=100.0, neg=False):
-        out = []
-        for x in qs:
-            r = stm.get((x["yearReport"], x["lengthReport"]))
-            v = r.get(f) if r else None
-            out.append(None if v is None else abs(float(v)) * mul if neg else float(v) * mul)
-        return out
-
-    ln = inc_series("isa22")
-    series = []
-    if is_ck or is_bh:
-        series = ([("dt", "Doanh thu hoạt động", "tỷ", [None if v is None else v / 1e9 for v in inc_series("isa3")], "bar")] if is_ck else []) + [
-                  ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
-                  ("roe", "ROE 4 quý", "%", st_series("roe"), "line"),
-                  ("roa", "ROA 4 quý", "%", st_series("roa"), "line"),
-                  ("br", "Biên lợi nhuận ròng", "%", st_series("afterTaxProfitMargin"), "line"),
-                  (("de", "Nợ / vốn chủ", "lần", st_series("debtToEquity", mul=1.0), "line") if is_ck
-                   else ("de", "Đòn bẩy tài chính", "lần", st_series("financialLeverage", mul=1.0), "line"))]
-    elif is_bank:
-        toi = inc_series("isb38")
-        series = [("toi", "Tổng thu nhập hoạt động", "tỷ", [None if v is None else v / 1e9 for v in toi], "bar"),
-                  ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
-                  ("nim", "NIM", "%", st_series("netInterestMargin"), "line"),
-                  ("cir", "CIR (chi phí / thu nhập)", "%", st_series("cir", neg=True), "line"),
-                  ("npl", "Nợ xấu NPL", "%", st_series("npl"), "line"),
-                  ("roe", "ROE 4 quý", "%", st_series("roe"), "line")]
-    else:
-        dtt = inc_series("isa3")
-        series = [("dt", "Doanh thu thuần", "tỷ", [None if v is None else v / 1e9 for v in dtt], "bar"),
-                  ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
-                  ("bg", "Biên lợi nhuận gộp", "%", st_series("grossMargin"), "line"),
-                  ("br", "Biên lợi nhuận ròng", "%", st_series("afterTaxProfitMargin"), "line"),
-                  ("roe", "ROE 4 quý", "%", st_series("roe"), "line"),
-                  ("de", "Nợ / vốn chủ", "lần", st_series("debtToEquity", mul=1.0), "line")]
-    xu_huong = []
-    for sid, ten, dv, vals, kind in series:
-        vals = [None if v is None else round(v, 2) for v in vals]
-        yoy = None
-        if dv == "tỷ" and len(vals) >= 5 and vals[-1] is not None and vals[-5] not in (None, 0):
-            yoy = r1((vals[-1] / vals[-5] - 1) * 100, 1)
-        xu_huong.append({"id": sid, "ten": ten, "dv": dv, "loai": kind, "v": vals, "yoy": yoy})
-    NHOM_ID = {"dt": "Tăng trưởng", "toi": "Tăng trưởng", "ln": "Tăng trưởng", "bg": "Sinh lời", "br": "Sinh lời", "roe": "Sinh lời",
-               "roa": "Sinh lời", "nim": "Sinh lời", "cir": "Sinh lời", "de": "Dòng tiền & an toàn", "npl": "Chất lượng tài sản & huy động"}
-    for x in xu_huong:
-        x["nhom"] = NHOM_ID.get(x["id"], "Khác")
     bs_rows = cf_rows = None
     if not fin:
         try:
             bs_rows, cf_rows = _fs(ma, "BALANCE_SHEET"), _fs(ma, "CASH_FLOW")
         except Exception as e:
             cano.append("Không tải được bảng cân đối / lưu chuyển tiền tệ: " + str(e)[:80])
-    try:
-        xu_huong += chuoi_them(qs, inc, st, bs_rows, cf_rows, fin, is_bank, shares)
-    except Exception as e:
-        cano.append("Không tính được biểu đồ cơ bản mở rộng: " + str(e)[:80])
+
+    def trend(n, canol):
+        qs = inc[-n:]
+        stm = {(int(r["year"]), r["quarter"]): r for r in st}
+        labels = [qlabel(x["yearReport"], x["lengthReport"]) for x in qs]
+
+        def inc_series(f):
+            return [None if x.get(f) is None else float(x[f]) for x in qs]
+
+        def st_series(f, mul=100.0, neg=False):
+            out = []
+            for x in qs:
+                r = stm.get((x["yearReport"], x["lengthReport"]))
+                v = r.get(f) if r else None
+                out.append(None if v is None else abs(float(v)) * mul if neg else float(v) * mul)
+            return out
+
+        ln = inc_series("isa22")
+        series = []
+        if is_ck or is_bh:
+            series = ([("dt", "Doanh thu hoạt động", "tỷ", [None if v is None else v / 1e9 for v in inc_series("isa3")], "bar")] if is_ck else []) + [
+                      ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
+                      ("roe", "ROE 4 quý", "%", st_series("roe"), "line"),
+                      ("roa", "ROA 4 quý", "%", st_series("roa"), "line"),
+                      ("br", "Biên lợi nhuận ròng", "%", st_series("afterTaxProfitMargin"), "line"),
+                      (("de", "Nợ / vốn chủ", "lần", st_series("debtToEquity", mul=1.0), "line") if is_ck
+                       else ("de", "Đòn bẩy tài chính", "lần", st_series("financialLeverage", mul=1.0), "line"))]
+        elif is_bank:
+            toi = inc_series("isb38")
+            series = [("toi", "Tổng thu nhập hoạt động", "tỷ", [None if v is None else v / 1e9 for v in toi], "bar"),
+                      ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
+                      ("nim", "NIM", "%", st_series("netInterestMargin"), "line"),
+                      ("cir", "CIR (chi phí / thu nhập)", "%", st_series("cir", neg=True), "line"),
+                      ("npl", "Nợ xấu NPL", "%", st_series("npl"), "line"),
+                      ("roe", "ROE 4 quý", "%", st_series("roe"), "line")]
+        else:
+            dtt = inc_series("isa3")
+            series = [("dt", "Doanh thu thuần", "tỷ", [None if v is None else v / 1e9 for v in dtt], "bar"),
+                      ("ln", "Lợi nhuận cổ đông công ty mẹ", "tỷ", [None if v is None else v / 1e9 for v in ln], "bar"),
+                      ("bg", "Biên lợi nhuận gộp", "%", st_series("grossMargin"), "line"),
+                      ("br", "Biên lợi nhuận ròng", "%", st_series("afterTaxProfitMargin"), "line"),
+                      ("roe", "ROE 4 quý", "%", st_series("roe"), "line"),
+                      ("de", "Nợ / vốn chủ", "lần", st_series("debtToEquity", mul=1.0), "line")]
+        xu_huong = []
+        for sid, ten, dv, vals, kind in series:
+            vals = [None if v is None else round(v, 2) for v in vals]
+            yoy = None
+            if dv == "tỷ" and len(vals) >= 5 and vals[-1] is not None and vals[-5] not in (None, 0):
+                yoy = r1((vals[-1] / vals[-5] - 1) * 100, 1)
+            xu_huong.append({"id": sid, "ten": ten, "dv": dv, "loai": kind, "v": vals, "yoy": yoy})
+        NHOM_ID = {"dt": "Tăng trưởng", "toi": "Tăng trưởng", "ln": "Tăng trưởng", "bg": "Sinh lời", "br": "Sinh lời", "roe": "Sinh lời",
+                   "roa": "Sinh lời", "nim": "Sinh lời", "cir": "Sinh lời", "de": "Dòng tiền & an toàn", "npl": "Chất lượng tài sản & huy động"}
+        for x in xu_huong:
+            x["nhom"] = NHOM_ID.get(x["id"], "Khác")
+        try:
+            xu_huong += chuoi_them(qs, inc, st, bs_rows, cf_rows, fin, is_bank, shares)
+        except Exception as e:
+            canol.append("Không tính được biểu đồ cơ bản mở rộng: " + str(e)[:80])
+
+        return labels, xu_huong
+
+    labels, xu_huong = trend(N_TREND, cano)
+    xu_dai = None
+    if DAI:
+        try:
+            _c = []
+            _l, _x = trend(max(N_TREND, sum(1 for r in inc if r['yearReport'] >= 2018)), _c)
+            xu_dai = {"quy": _l, "chuoi": _x}
+        except Exception as e:
+            cano.append("Không tính được lịch sử dài: " + str(e)[:80])
 
     # ---------- chỉ tiêu theo ngành (so với trung vị 5 năm của chính mã) ----------
     def metric(ten, f, mul=100.0, dv="%", neg=False, tot="cao"):
@@ -987,7 +1003,7 @@ def build(ma):
     return {"dg_ls": dg_ls, "sk": sk, "ma": ma, "ten": cp.get("viOrganShortName") or cp.get("viOrganName") or ma, "loai": loai,
             "ngay": dt.date.today().isoformat(), "ky_bao_cao": ky, "gia": round(price),
             "cao_1n": None if not hi else round(float(hi)), "thap_1n": None if not lo_ else round(float(lo_)),
-            "xu_huong": {"quy": labels, "chuoi": xu_huong}, "chi_tieu": chi_tieu, "dinh_gia": dg, "chat_luong": cl_,
+            "xu_huong": {"quy": labels, "chuoi": xu_huong}, "_xu_dai": xu_dai, "chi_tieu": chi_tieu, "dinh_gia": dg, "chat_luong": cl_,
             "nhan_xet": [vn(t) for t in nx], "nhan_xet_ai": None, "canh_bao": [vn(t) for t in cano]}
 
 
@@ -1090,6 +1106,14 @@ def main():
     def one(ma):
         try:
             d = build(ma)
+            xd = d.pop("_xu_dai", None)
+            try:      # v112: lỗi phần dài chỉ bỏ qua, không ảnh hưởng file chính
+                if xd and len(xd.get("quy") or []) > 12:
+                    os.makedirs(OUT_DAI, exist_ok=True)
+                    json.dump({"ma": ma, "ngay": d["ngay"], "ky_bao_cao": d["ky_bao_cao"], "xu_huong": xd},
+                              open(os.path.join(OUT_DAI, ma + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+            except Exception as e:
+                print("co_ban_dai", ma, "lỗi:", str(e)[:100], file=sys.stderr)
             json.dump(d, open(os.path.join(OUT_DIR, ma + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
             if d.get("sk"):
                 sk[ma] = d["sk"]

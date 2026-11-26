@@ -101,6 +101,14 @@ def ctck_quarters():
                 r["von_hoa_ty"] = round(c, 0); r["ty_le_vh"] = round(r["cho_vay_ty"] / c * 100, 2)
     except Exception as e:
         print("dinh_gia_thi_truong: vốn hoá lỗi, bỏ tỷ lệ cho vay/vốn hoá:", str(e)[:150])
+    try:      # v112: dư nợ cho vay / tổng GTGD HOSE 20 phiên cuối quý (%); lỗi thì bỏ, trang tự về ô một đường
+        tk = gtgd20_quy({r["quy"] for r in rows})
+        for r in rows:
+            g = tk.get(r["quy"])
+            if g and g > 0:
+                r["gtgd20_ty"] = round(g, 0); r["ty_le_tk"] = round(r["cho_vay_ty"] / g * 100, 1)
+    except Exception as e:
+        print("dinh_gia_thi_truong: GTGD HOSE lỗi, bỏ tỷ lệ thanh khoản:", str(e)[:150])
     return {"n_ctck_tra_cuu": len(CTCK), "quy": rows}
 
 
@@ -115,6 +123,32 @@ def vni_quy():
     for t, c in zip(j["t"], j["c"]):
         d = datetime.datetime.fromtimestamp(int(t) + 25200, datetime.timezone.utc).date()
         out["%dQ%d" % (d.year, (d.month - 1) // 3 + 1)] = float(c)   # ghi đè theo thứ tự → còn phiên cuối quý
+    return out
+
+
+def gtgd20_quy(need):
+    """v112: { 'YYYYQn': tổng giá trị giao dịch HOSE 20 phiên cuối quý (tỷ đồng) } từ accumulatedValue của VN-Index (Vietcap gap-chart).
+    Vietcap đổi đơn vị từ 12/08/2025 (đồng -> triệu đồng): giá trị nhỏ hơn 1e11 được nhân 1e6."""
+    body = json.dumps({"timeFrame": "ONE_DAY", "symbols": ["VNINDEX"], "to": int(time.time()) + 86400, "countBack": 2600}).encode()
+    h = dict(HDR, **{"Content-Type": "application/json"})
+    req = urllib.request.Request("https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart", data=body, headers=h, method="POST")
+    with urllib.request.urlopen(req, timeout=40) as r:
+        j = json.loads(r.read().decode("utf-8"))[0]
+    days = []
+    for t, v in zip(j["t"], j["accumulatedValue"]):
+        if not v or float(v) <= 0:
+            continue
+        v = float(v)
+        v = v * 1e6 if v < 1e11 else v
+        days.append((datetime.datetime.fromtimestamp(int(t) + 25200, datetime.timezone.utc).date(), v / 1e9))
+    out = {}
+    for i, (d, _) in enumerate(days):
+        k = "%dQ%d" % (d.year, (d.month - 1) // 3 + 1)
+        nxt = days[i + 1][0] if i + 1 < len(days) else None
+        if nxt is None or "%dQ%d" % (nxt.year, (nxt.month - 1) // 3 + 1) != k:      # phiên cuối quý
+            w = days[max(0, i - 19):i + 1]
+            if len(w) == 20 and k in need:
+                out[k] = sum(x for _, x in w)
     return out
 
 
