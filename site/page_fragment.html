@@ -256,9 +256,9 @@ window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(w
     <button class="atl-tab" role="tab" id="tab-trong-phien" data-sec="trong-phien" aria-selected="true">Bảng giá</button>
     <button class="atl-tab" role="tab" id="tab-dong-tien" data-sec="dong-tien" aria-selected="false">Thị trường</button>
     <button class="atl-tab" role="tab" id="tab-nganh" data-sec="nganh" aria-selected="false">Ngành &amp; dòng tiền</button>
+    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
     <button class="atl-tab" role="tab" id="tab-ho-so" data-sec="ho-so" aria-selected="false">Hồ sơ mã</button>
     <button class="atl-tab" role="tab" id="tab-so-sanh" data-sec="so-sanh" aria-selected="false">So sánh</button>
-    <button class="atl-tab" role="tab" id="tab-hom-nay" data-sec="hom-nay" aria-selected="false">Hôm nay mua gì</button>
     <button class="atl-tab" role="tab" id="tab-bo-loc" data-sec="bo-loc" aria-selected="false">Bộ lọc</button>
     <button class="atl-tab" role="tab" id="tab-backtest" data-sec="backtest" aria-selected="false">Backtest</button>
     <button class="atl-tab" role="tab" id="tab-do-thi" data-sec="do-thi" aria-selected="false">Đồ thị</button>
@@ -2225,6 +2225,41 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var zc=function(pc){return pc<35?0:pc<55?1:pc<75?2:pc<90?3:4;},dem=[0,0,0,0,0];a.forEach(function(q){dem[zc(q.pct)]++;});
     return {hang:hang,n:n,top:top,bang:bang,ten:P.ten,dem:dem,txt:'hạng '+hang+'/'+n+' '+P.ten+' (top '+top+'%'+(bang>1?', đồng hạng với '+(bang-1)+' mã':'')+')'};}
   window.__qlRank=qlRank;
+  /* v112: Xu hướng 12 quý: bấm ô → biểu đồ lớn từ 2018 (tải data/cb/dai/<MÃ>.json khi bấm; thiếu/lỗi thì ô không mở, không báo lỗi) */
+  var DAI = {};
+  function daiLoad(ma, cb) {
+    var e = DAI[ma]; if (e === false) return cb(null); if (e && e.d) return cb(e.d);
+    if (e && e.w) { e.w.push(cb); return; }
+    e = DAI[ma] = { w: [cb] };
+    fetch('data/cb/dai/' + encodeURIComponent(ma) + '.json?v=' + new Date().toISOString().slice(0, 10), { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (j) {
+      var ok = j && j.xu_huong && j.xu_huong.quy && j.xu_huong.quy.length > 12 && j.xu_huong.chuoi, w = e.w; DAI[ma] = ok ? { d: j.xu_huong } : false; w.forEach(function (f) { try { f(ok ? j.xu_huong : null); } catch (er) {} }); });
+  }
+  function trendBig(x, s, tile, tw) {
+    var host = $('dg-trend'), same = false;
+    Array.prototype.forEach.call(host.querySelectorAll('.ng-big'), function (b) { if (b.dataset.k === s.id) same = true; b.remove(); });
+    Array.prototype.forEach.call(host.querySelectorAll('.dg-t.on'), function (t) { t.classList.remove('on'); t.setAttribute('aria-expanded', 'false'); });
+    if (same) return;
+    daiLoad(x.ma, function (D) {
+      if (!document.body.contains(tile)) return;
+      var L = D && D.chuoi.filter(function (c) { return c.id === s.id; })[0];
+      if (!L || !L.v || L.v.filter(function (a) { return a != null; }).length < 4 || !window.atlBig) { Array.prototype.forEach.call(host.querySelectorAll('.dg-t.ng-clk'), function (t) { t.classList.remove('ng-clk'); t.removeAttribute('role'); t.removeAttribute('tabindex'); t.dataset.off = '1'; }); return; }
+      Array.prototype.forEach.call(host.querySelectorAll('.ng-big'), function (b) { b.remove(); });
+      var QL = D.quy, f = function (a) { return fmtv(a, s.dv); }, bf = function (a) { return s.dv === 'tỷ' ? n0(a) : fmtv(a, s.dv); };
+      var nme = function (z) { return z.replace(/ \(.*$/, ''); }, two = L.v2 && (L.loai === 'cap' || L.loai === 'cap2'), ser = [];
+      if (L.loai === 'bar') ser.push({ v: L.v, name: nme(L.ten), color: 'var(--color-fg)', fmt: f, bfmt: bf, kind: 'bar' });
+      else if (L.loai === 'cap') ser.push({ v: L.v, name: L.ten1 || 'Chuỗi 1', color: C1, fmt: f, bfmt: bf, kind: 'bar' }, { v: L.v2, name: L.ten2 || 'Chuỗi 2', color: 'var(--color-fg-muted)', fmt: f, bfmt: bf, kind: 'bar' });
+      else if (L.loai === 'cap2') ser.push({ v: L.v, name: L.ten1 || 'Chuỗi 1', color: C1, fmt: f, bfmt: bf }, { v: L.v2, name: L.ten2 || 'Chuỗi 2', color: 'var(--color-fg)', fmt: f, bfmt: bf });
+      else ser.push({ v: L.v, name: nme(L.ten), color: 'var(--color-fg)', fmt: f, bfmt: bf });
+      var tk = []; QL.forEach(function (q, i) { if (/^Q1\//.test(q)) tk.push({ i: i, t: '20' + q.slice(3) }); });
+      var fi = 0; for (var i = 0; i < L.v.length; i++) if (L.v[i] != null) { fi = i; break; }
+      var box = window.atlBig({ title: nme(L.ten) + ' · từ ' + (/^Q\d\/\d\d$/.test(QL[fi]) ? '20' + QL[fi].slice(3) : QL[fi]), n: QL.length, xlab: function (i) { return QL[i]; }, ticks: tk, series: ser, legend: !!two, zero: L.loai === 'bar' || L.loai === 'cap',
+        refs: L.ref != null && (L.loai === 'line' || !L.loai) ? [{ v: L.ref }] : [], onClose: function () { trendBig(x, s, tile, tw); } });
+      box.dataset.k = s.id; box.style.gridColumn = '1 / -1';
+      var last = tile;
+      Array.prototype.forEach.call(tw.children, function (t) { if (t.classList.contains('dg-t') && t.offsetTop === tile.offsetTop) last = t; });
+      tw.insertBefore(box, last.nextSibling); tile.classList.add('on'); tile.setAttribute('aria-expanded', 'true');
+    });
+  }
   function renderTrend(x){
     var tr=$('dg-trend');tr.textContent='';var Q=x.xu_huong.quy,G={},NB=(x.loai==='ngan_hang'&&NG.d&&NG.d.ngan_hang&&NG.d.ngan_hang[x.ma]&&NG.d.ngan_hang[x.ma].clts)?NG.d.ngan_hang[x.ma]:null;
     var FC=focusOf(x),fcN=x.xu_huong.chuoi.filter(function(s){return FC.ids.indexOf(s.id)>=0;}).map(function(s){return s.ten.replace(/ \(.*$/,'');});
@@ -2239,7 +2274,11 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         else bb.textContent=fmtv(li>=0?s.v[li]:null,s.dv);d.appendChild(bb);
         if(s.v2){var lg=el('div','dg-lg');var i1=el('i');i1.style.background=C1;lg.appendChild(i1);lg.appendChild(document.createTextNode(s.ten1+' '));var i2=el('i');lg.appendChild(i2);lg.appendChild(document.createTextNode(s.ten2));d.appendChild(lg);}
         var sv=chartT(s,Q);if(sv)d.appendChild(sv);var q=el('div','q');q.appendChild(el('span',null,Q[0]));q.appendChild(el('span',null,Q[Q.length-1]));d.appendChild(q);
-        var ct=capT(s,x);if(ct)d.appendChild(el('div','dg-cap',ct));if(key){var ssb=el('div','dg-ss');ssb.dataset.id=s.id;d.appendChild(ssb);}tw.appendChild(d);});
+        var ct=capT(s,x);if(ct)d.appendChild(el('div','dg-cap',ct));if(key){var ssb=el('div','dg-ss');ssb.dataset.id=s.id;d.appendChild(ssb);}
+        d.classList.add('ng-clk');d.setAttribute('role','button');d.tabIndex=0;d.setAttribute('aria-expanded','false');
+        d.addEventListener('click',function(e){if(d.dataset.off)return;if(e.target.closest&&e.target.closest('.dg-ss,.dg-star'))return;trendBig(x,s,d,tw);});
+        d.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target===d&&!d.dataset.off){e.preventDefault();trendBig(x,s,d,tw);}});
+        tw.appendChild(d);});
       tr.appendChild(tw);});
     fillSS(x);}
   var SKL={c1:'Lợi nhuận quý tăng từ 20% so với cùng kỳ',c2:'Lợi nhuận đang tăng tốc (nhanh hơn quý trước)',c3:'Doanh thu quý tăng từ 15% so với cùng kỳ',c4:'Biên lợi nhuận ròng không thấp hơn cùng kỳ',c5:'ROE 4 quý từ 15%',c6:'Lợi nhuận 4 quý tăng liên tục 2 năm',c7:'Nợ phải trả không quá 2 lần vốn chủ',c8:'Dòng tiền kinh doanh từ 70% lợi nhuận'};
@@ -2934,8 +2973,115 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       <span class="atl-note">Cuộn xuống để xem lần lượt, hoặc bấm một mục để chỉ xem mục đó.</span>
     </div>
     <div class="atl-dv" data-view="mua">
+<script>
+/* v112: biểu đồ lớn dùng chung (Định giá & đòn bẩy, Xu hướng 12 quý). Dùng lại CSS .ng-big của Phân tích ngành. */
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function S(p, t, at, tx) { var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); if (tx != null) e.textContent = tx; p.appendChild(e); return e; }
+  function vn(x, d) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function nice(lo, hi, k) {
+    var span = (hi - lo) || 1, raw = span / k, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+    var st = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag, a = Math.floor(lo / st + 1e-9) * st, b = Math.ceil(hi / st - 1e-9) * st, t = [], dec = 0;
+    for (var v = a; v <= b + st * 1e-6; v += st) t.push(Math.round(v / st) * st);
+    for (var d = 0; d <= 3; d++) { dec = d; if (Math.abs(st * Math.pow(10, d) - Math.round(st * Math.pow(10, d))) < 1e-7) break; }
+    return { lo: a, hi: b, ticks: t, dec: dec };
+  }
+  function tipEl() {
+    var t = document.getElementById('atl-bigtip');
+    if (!t) { t = document.createElement('div'); t.id = 'atl-bigtip'; t.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;background:var(--cds-surface-popover,#222);color:var(--color-fg,#eee);border:1px solid var(--cds-border,#444);border-radius:6px;padding:4px 8px;font-size:12.5px;line-height:1.45;display:none;white-space:nowrap'; document.body.appendChild(t); }
+    return t;
+  }
+  /* cfg: {title, n, xlab(i), ticks:[{i,t}], series:[{v,name,color,fmt,bfmt,axis:'l'|'r',kind:'line'|'bar',dash}], refs:[{v,axis}], legend, zero, floor0, onClose} */
+  window.atlBig = function (cfg) {
+    var box = document.createElement('div'); box.className = 'ng-big';
+    var hd = document.createElement('div'); hd.className = 'ng-big-h';
+    var b = document.createElement('b'); b.textContent = cfg.title; hd.appendChild(b);
+    var cx = document.createElement('button'); cx.type = 'button'; cx.className = 'ng-x'; cx.textContent = 'Đóng'; cx.addEventListener('click', function (e) { e.stopPropagation(); if (cfg.onClose) cfg.onClose(); }); hd.appendChild(cx);
+    var holder = document.createElement('div'); holder.style.cssText = 'width:100%;color:var(--color-fg-muted)';
+    box.appendChild(hd); box.appendChild(holder);
+    if (cfg.legend && cfg.series.length > 1) {
+      var lg = document.createElement('div'); lg.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--color-fg-muted);margin-top:4px';
+      cfg.series.forEach(function (s) { var sp = document.createElement('span'); var i = document.createElement('span'); i.textContent = '━ '; i.style.color = s.color; sp.appendChild(i); sp.appendChild(document.createTextNode(s.name)); lg.appendChild(sp); });
+      box.appendChild(lg);
+    }
+    function draw() {
+      var W = Math.round(holder.clientWidth); if (W < 200) return; holder.textContent = '';
+      var n = cfg.n, H = W < 520 ? 210 : 250, PT = 10, PB = 22, hasR = cfg.series.some(function (s) { return s.axis === 'r'; });
+      var ax = {};
+      ['l', 'r'].forEach(function (a) {
+        var vals = [], bars = false;
+        cfg.series.forEach(function (s) { if ((s.axis || 'l') !== a) return; if (s.kind === 'bar') bars = true; s.v.forEach(function (x) { if (x != null) vals.push(x); }); });
+        (cfg.refs || []).forEach(function (r) { if ((r.axis || 'l') === a && r.v != null) vals.push(r.v); });
+        if (!vals.length) return;
+        var mn0 = Math.min.apply(null, vals), lo = mn0, hi = Math.max.apply(null, vals);
+        if (bars || cfg.zero) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+        var p = ((hi - lo) || Math.abs(hi) || 1) * 0.06;
+        if (!bars) lo -= p; hi += p;
+        if (cfg.floor0 && mn0 >= 0 && lo < 0) lo = 0;
+        ax[a] = nice(lo, hi, 4);
+      });
+      if (!ax.l) return;
+      var maxLen = 4;
+      cfg.series.forEach(function (s) { for (var i = n - 1; i >= 0; i--) if (s.v[i] != null) { maxLen = Math.max(maxLen, String((s.bfmt || s.fmt)(s.v[i])).length); break; } });
+      var GB = Math.max(40, maxLen * 6.6 + 8), PR = hasR ? 42 : 10, x0 = 42, x1 = W - PR - GB, x2 = W - PR;
+      var anyBar = cfg.series.some(function (s) { return s.kind === 'bar'; }), nb = cfg.series.filter(function (s) { return s.kind === 'bar'; }).length;
+      function X(i) { return anyBar ? x0 + (i + 0.5) / n * (x1 - x0) : x0 + (n > 1 ? i / (n - 1) : 0) * (x1 - x0); }
+      function Y(v, a) { var A = ax[a || 'l'] || ax.l; return PT + (1 - (v - A.lo) / (A.hi - A.lo)) * (H - PT - PB); }
+      var svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.style.cssText = 'width:100%;height:' + H + 'px;display:block;color:var(--color-fg-muted)';
+      ax.l.ticks.forEach(function (t) {
+        S(svg, 'line', { x1: x0, x2: x2, y1: Y(t, 'l'), y2: Y(t, 'l'), stroke: 'currentColor', 'stroke-opacity': t === 0 && ax.l.lo < 0 ? '.45' : '.15' });
+        S(svg, 'text', { x: x0 - 5, y: Y(t, 'l') + 3.5, 'text-anchor': 'end', 'font-size': 10, fill: 'currentColor' }, vn(t, ax.l.dec));
+      });
+      if (ax.r) { var rc = cfg.series.filter(function (s) { return s.axis === 'r'; })[0].color; ax.r.ticks.forEach(function (t) { S(svg, 'text', { x: x2 + 5, y: Y(t, 'r') + 3.5, 'font-size': 10, fill: rc }, vn(t, ax.r.dec)); }); }
+      var tk = cfg.ticks || [], kstep = 1; if (tk.length > 1) { var gap = Math.abs(X(tk[1].i) - X(tk[0].i)); kstep = Math.max(1, Math.ceil(36 / Math.max(1, gap))); }
+      tk.forEach(function (t, ti) { if (ti % kstep) return; S(svg, 'text', { x: X(t.i), y: H - 6, 'text-anchor': 'middle', 'font-size': 10, fill: 'currentColor' }, t.t); });
+      (cfg.refs || []).forEach(function (r) { if (r.v == null) return; S(svg, 'line', { x1: x0, x2: x2, y1: Y(r.v, r.axis), y2: Y(r.v, r.axis), stroke: 'currentColor', 'stroke-dasharray': '5 4', 'stroke-opacity': '.7' }); });
+      var bi = 0, badges = [];
+      cfg.series.forEach(function (s) {
+        var a = s.axis || 'l', li = -1, i;
+        for (i = 0; i < n; i++) if (s.v[i] != null) li = i;
+        if (li < 0) return;
+        if (s.kind === 'bar') {
+          var slot = (x1 - x0) / n, bw = slot * 0.66 / Math.max(1, nb), y0 = Y(0, a);
+          s.v.forEach(function (v, i) {
+            if (v == null) return; var y = Y(v, a), xx = x0 + i * slot + (slot - bw * nb) / 2 + bi * bw;
+            S(svg, 'rect', { x: xx.toFixed(1), y: Math.min(y, y0).toFixed(1), width: Math.max(1, bw - (nb > 1 ? 1 : 0)).toFixed(1), height: Math.max(1, Math.abs(y0 - y)).toFixed(1), fill: v < 0 ? 'var(--sem-down)' : s.color, opacity: nb > 1 ? (bi ? '.55' : '.95') : (i >= n - 4 ? '1' : '.5') });
+          });
+          bi++;
+        } else {
+          var d = '', pen = false;
+          s.v.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v, a).toFixed(1); pen = true; });
+          var p = S(svg, 'path', { d: d, fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }); if (s.dash) p.setAttribute('stroke-dasharray', '5 4');
+          S(svg, 'circle', { cx: X(li), cy: Y(s.v[li], a), r: 3.2, fill: s.color });
+        }
+        badges.push({ y: Y(s.v[li], a), x: X(li) + (s.kind === 'bar' ? (x1 - x0) / n / 2 + 4 : 8), s: s, v: s.v[li] });
+      });
+      badges.sort(function (p, q) { return p.y - q.y; });
+      badges.forEach(function (bd, i) { bd.ly = Math.max(bd.y, i ? badges[i - 1].ly + 13 : PT + 6); });
+      badges.forEach(function (bd) { S(svg, 'text', { x: bd.x, y: bd.ly + 4, 'font-size': 11.5, 'font-weight': 700, fill: bd.s.color }, (bd.s.bfmt || bd.s.fmt)(bd.v)); });
+      var guide = S(svg, 'line', { y1: PT, y2: H - PB, stroke: 'currentColor', 'stroke-opacity': '.5', 'stroke-dasharray': '2 2', visibility: 'hidden' });
+      function mv(ev) {
+        var p = ev.touches ? ev.touches[0] : ev, r = svg.getBoundingClientRect(); if (!r.width) return;
+        var xx = (p.clientX - r.left) / r.width * W, i = anyBar ? Math.floor((xx - x0) / ((x1 - x0) / n)) : Math.round((xx - x0) / (x1 - x0) * (n - 1));
+        i = Math.max(0, Math.min(n - 1, i)); guide.setAttribute('x1', X(i)); guide.setAttribute('x2', X(i)); guide.setAttribute('visibility', 'visible');
+        var t = tipEl(); t.textContent = ''; var h = document.createElement('div'); h.style.color = 'var(--color-fg-muted)'; h.textContent = cfg.xlab(i); t.appendChild(h);
+        cfg.series.forEach(function (s) { var row = document.createElement('div'), sw = document.createElement('span'); sw.textContent = '━ '; sw.style.color = s.color; row.appendChild(sw); row.appendChild(document.createTextNode((cfg.series.length > 1 ? s.name + ': ' : '') + (s.v[i] == null ? '—' : s.fmt(s.v[i])))); t.appendChild(row); });
+        t.style.display = 'block'; var tw = t.offsetWidth, x = p.clientX + 12; if (x + tw > innerWidth - 6) x = p.clientX - tw - 12; t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, p.clientY - t.offsetHeight - 10) + 'px';
+      }
+      function lv() { guide.setAttribute('visibility', 'hidden'); tipEl().style.display = 'none'; }
+      svg.style.cursor = 'crosshair'; svg.addEventListener('mousemove', mv); svg.addEventListener('mouseleave', lv);
+      svg.addEventListener('touchstart', mv, { passive: true }); svg.addEventListener('touchmove', mv, { passive: true }); svg.addEventListener('touchend', lv);
+      holder.appendChild(svg);
+    }
+    box.redraw = draw;
+    if (window.ResizeObserver) { var ro = new ResizeObserver(function () { draw(); }); ro.observe(holder); }
+    setTimeout(draw, 0);
+    return box;
+  };
+})();
+</script>
       <div class="atl-card atl-wide" id="card-lich-su">
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 class="atl-h" style="margin:0">VN-Index theo mùa</h2><div class="atl-seg" id="mua-rng" role="group" aria-label="Khung thời gian"><button type="button" data-v="y1" aria-pressed="true">1 năm</button><button type="button" data-v="all" aria-pressed="false">Từ 2020</button></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 class="atl-h" style="margin:0">VN-Index theo mùa</h2><div class="atl-seg" id="mua-rng" role="group" aria-label="Khung thời gian"><button type="button" data-v="all" aria-pressed="true">Từ 2020</button><button type="button" data-v="ytd" aria-pressed="false" title="Từ đầu năm; tháng 1–3 hiển thị 3 tháng gần nhất">YTD</button></div></div>
         <div class="atl-legend" id="lg-mua"></div><div id="mua-hv" style="min-height:1.5em;margin:2px 0 4px;font-size:.8125rem;color:var(--color-fg)" aria-live="off"></div>
         <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:38rem"></div>
       </div>
@@ -2971,11 +3117,17 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 .dgdb-tip .t{color:var(--color-fg-muted);margin-bottom:2px}
 .dgdb-tip b{font-weight:700;font-variant-numeric:tabular-nums}
 .dgdb-tip i{display:inline-block;width:14px;height:0;border-top:2px solid var(--color-fg);vertical-align:middle;margin-right:5px}
+.dgdb-c{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:10px 12px}
+.dgdb-clk{cursor:pointer}.dgdb-clk:hover{border-color:var(--color-fg-muted)}.dgdb-c.on{border-color:var(--color-fg);box-shadow:0 0 0 1px var(--color-fg)}
+.dgdb-clk:focus-visible{outline:2px solid var(--color-fg-muted);outline-offset:2px}
+.dgdb-ml{display:flex;align-items:baseline;gap:.9rem}.dgdb-ml b{flex:none;width:4.6rem;font-size:1.6rem;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}.dgdb-ml span{font-size:.95rem}
+.dgdb-ml.v b{color:var(--dg-vin)}
 .dgdb-tip i.v{border-color:var(--dg-vin)}.dgdb-tip i.a{border-color:var(--color-fg-muted)}.dgdb-tip i.d{border-color:var(--color-fg-muted);border-top-style:dashed}
         </style>
         <details class="mua-fold" id="mua-f3" open>
           <summary><span class="atl-h">Định giá &amp; đòn bẩy thị trường</span><span class="mua-gist" id="dgdb-gist"></span><span class="mua-tog"></span></summary>
           <div class="dgdb-g" id="dgdb-g"></div>
+          <div id="dgdb-big"></div>
           <p class="dgdb-kl" id="dgdb-kl"></p>
           <p class="atl-note" id="dgdb-nt"></p>
         </details>
@@ -3012,18 +3164,19 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
       if (o.zero) { mn = Math.min(mn, 0); mx = Math.max(mx, 0); }
       var pad = ((mx - mn) || 1) * 0.08; mn -= pad; mx += pad;
+      o.series.forEach(function (s) { var a = s.vals.filter(function (v) { return v != null; }); if (!a.length) return; var lo = Math.min.apply(null, a), hi = Math.max.apply(null, a), p = ((hi - lo) || 1) * 0.1; s.lo = lo - p; s.hi = hi + p; });
       function X(i) { return padL + (n > 1 ? i / (n - 1) : 0) * pw; }
-      function Y(v) { return padT + (1 - (v - mn) / (mx - mn)) * ph; }
+      function Y(v, s) { if (o.own && s) return padT + (1 - (v - s.lo) / ((s.hi - s.lo) || 1)) * ph; return padT + (1 - (v - mn) / (mx - mn)) * ph; }
       var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', 'aria-label': o.aria || '' });
       if (o.zero) svg.appendChild(se('line', { x1: padL, x2: padL + pw, y1: Y(0), y2: Y(0), 'class': 'dgdb-zr' }));
       var labs = [];
       o.series.forEach(function (s) {
         var d = '', pen = false, li = -1;
-        s.vals.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; li = i; });
+        s.vals.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v, s).toFixed(1); pen = true; li = i; });
         if (li < 0) return;
         svg.appendChild(se('path', { d: d, 'class': 'dgdb-ln ' + s.c }));
-        svg.appendChild(se('circle', { cx: X(li), cy: Y(s.vals[li]), r: 3, 'class': 'dgdb-dot ' + s.c }));
-        labs.push({ y: Y(s.vals[li]), s: s, v: s.vals[li] });
+        svg.appendChild(se('circle', { cx: X(li), cy: Y(s.vals[li], s), r: 3, 'class': 'dgdb-dot ' + s.c }));
+        labs.push({ y: Y(s.vals[li], s), s: s, v: s.vals[li] });
       });
       labs.sort(function (a, b) { return a.y - b.y; });       // tránh nhãn đè nhau
       var gap = 12.5, top = padT + 4, bot = padT + ph + 2;
@@ -3031,11 +3184,11 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       for (var i = labs.length - 1; i >= 0; i--) { if (labs[i].ly > bot - (labs.length - 1 - i) * gap) labs[i].ly = bot - (labs.length - 1 - i) * gap; }
       labs.forEach(function (l) {
         var t = se('text', { x: padL + pw + 7, y: l.ly + 4, 'class': 'dgdb-lb ' + l.s.c });
-        t.textContent = (l.s.n ? l.s.n + ' ' : '') + o.fmt(l.v); svg.appendChild(t);
+        t.textContent = (l.s.n ? l.s.n + ' ' : '') + (l.s.fmt || o.fmt)(l.v); svg.appendChild(t);
       });
       if (o.mark && o.series[0].vals[o.mark.i] != null) { var mv = o.series[0].vals[o.mark.i];   /* điểm mốc (VD đỉnh cũ) */
-        svg.appendChild(se('circle', { cx: X(o.mark.i), cy: Y(mv), r: 3, 'class': 'dgdb-dot a' }));
-        var mt = se('text', { x: X(o.mark.i), y: Y(mv) - 7, 'class': 'dgdb-lb a', 'text-anchor': 'middle' }); mt.textContent = o.mark.t; svg.appendChild(mt); }
+        svg.appendChild(se('circle', { cx: X(o.mark.i), cy: Y(mv, o.series[0]), r: 3, 'class': 'dgdb-dot a' }));
+        var mt = se('text', { x: X(o.mark.i), y: Y(mv, o.series[0]) - 7, 'class': 'dgdb-lb a', 'text-anchor': 'middle' }); mt.textContent = o.mark.t; svg.appendChild(mt); }
       var a1 = se('text', { x: padL, y: H - 3, 'class': 'dgdb-ax' }); a1.textContent = o.labels[0]; svg.appendChild(a1);
       var a2 = se('text', { x: padL + pw, y: H - 3, 'class': 'dgdb-ax', 'text-anchor': 'end' }); a2.textContent = o.labels[n - 1]; svg.appendChild(a2);
       var cur = se('line', { y1: padT, y2: padT + ph, 'class': 'dgdb-cur' }); cur.style.display = 'none'; svg.appendChild(cur);
@@ -3046,7 +3199,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         tip.textContent = ''; tip.appendChild(mk('div', 't', o.labels[i]));
         o.series.slice().reverse().forEach(function (s) {
           var v = s.vals[i], row = mk('div'), sw = mk('i', s.c); row.appendChild(sw);
-          row.appendChild(document.createTextNode(s.full + ': ')); row.appendChild(mk('b', null, v == null ? '—' : o.fmt(v))); tip.appendChild(row);
+          row.appendChild(document.createTextNode(s.full + ': ')); row.appendChild(mk('b', null, v == null ? '—' : (s.fmt || o.fmt)(v))); tip.appendChild(row);
         });
         tip.hidden = false; cur.style.display = ''; cur.setAttribute('x1', X(i)); cur.setAttribute('x2', X(i));
         var tw = tip.offsetWidth, px = X(i) + 12; if (px + tw > W) px = X(i) - tw - 12; tip.style.left = Math.max(0, px) + 'px';
@@ -3064,6 +3217,31 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     return box;
   }
   function info(c, t) { var s2 = mk('span', 'dgdb-i', ' ⓘ'); s2.title = t; s2.tabIndex = 0; s2.setAttribute('aria-label', t); var h = c.querySelector('.dgdb-t'); if (h) h.appendChild(s2); }
+  /* v112: bấm ô → biểu đồ lớn bên dưới lưới (dùng atlBig); ô đang mở viền sáng; bấm lại hoặc Đóng để thu */
+  var OPEN = null;
+  function qtk(labels) { var t = []; labels.forEach(function (l, i) { if (/^Q1\//.test(l)) t.push({ i: i, t: '20' + l.slice(3) }); }); return t; }
+  function firstYear(labels, vals) { for (var i = 0; i < vals.length; i++) if (vals[i] != null) return /^Q\d\/(\d\d)/.test(labels[i]) ? '20' + labels[i].slice(3, 5) : String(labels[i]).slice(0, 4); return ''; }
+  function clk(c, key, cfgf) {
+    if (!window.atlBig) return;
+    c.classList.add('dgdb-clk'); c.setAttribute('role', 'button'); c.tabIndex = 0; c.setAttribute('aria-expanded', 'false');
+    function go() {
+      var host = document.getElementById('dgdb-big'); if (!host) return;
+      var was = OPEN; host.textContent = ''; OPEN = null;
+      Array.prototype.forEach.call(document.querySelectorAll('#dgdb-g .dgdb-c.on'), function (x) { x.classList.remove('on'); x.setAttribute('aria-expanded', 'false'); });
+      if (was === key) return;
+      var cfg = null; try { cfg = cfgf(); } catch (er) { cfg = null; }
+      if (!cfg) return;
+      cfg.onClose = go; host.appendChild(window.atlBig(cfg)); OPEN = key; c.classList.add('on'); c.setAttribute('aria-expanded', 'true');
+    }
+    c.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.dgdb-i')) return; go(); });
+    c.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); go(); } });
+  }
+  function dayCfg(x, ten) {   /* chuỗi ngày [[ngày, giá trị]] */
+    var ch = x.chuoi;
+    return { title: ten + ' VN-Index · từ ' + String(ch[0][0]).slice(0, 4), n: ch.length, xlab: function (i) { return dmy(ch[i][0]); },
+      ticks: (function () { var t = [], py = ''; ch.forEach(function (a, i) { var y = String(a[0]).slice(0, 4); if (y !== py && i > 0) t.push({ i: i, t: y }); py = y; }); return t; })(),
+      series: [{ v: ch.map(function (a) { return a[1]; }), name: ten, color: 'var(--color-fg)', fmt: function (v) { return vn(v, 2); } }], refs: [{ v: x.trung_vi }] };
+  }
   function lvl(pctBelow) { return pctBelow <= 25 ? 'rẻ' : pctBelow >= 75 ? 'đắt' : 'trung bình'; }
   function vi(pctBelow) { return pctBelow < 50 ? 'Rẻ hơn ' + (100 - pctBelow) + '% số phiên từ 2021' : 'Đắt hơn ' + pctBelow + '% số phiên từ 2021'; }
   fetch('data/dinh_gia_thi_truong.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
@@ -3077,22 +3255,45 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       c.appendChild(spark(x.chuoi.map(function (a) { return a[1]; })));
       c.appendChild(mk('div', 'dgdb-p', (lvl(x.pct_thap_hon) === 'trung bình' ? 'Mức trung bình' : vi(x.pct_thap_hon)) + ' (trung vị ' + vn(x.trung_vi, 2) + ').'));
       info(c, (k === 'pe' ? 'P/E' : 'P/B') + ' theo Vietcap, chuỗi từ 01/2021 đến ' + dmy(x.ngay) + '. Thấp nhất ' + vn(x.min, 2) + ', cao nhất ' + vn(x.max, 2) + '. Cách tính khác FireAnt/TradingView nên số có thể lệch vài phần trăm.');
+      if (x.chuoi && x.chuoi.length > 20) clk(c, k, function () { return dayCfg(x, k === 'pe' ? 'P/E' : 'P/B'); });
       g.appendChild(c); parts.push((k === 'pe' ? 'P/E ' : 'P/B ') + lvl(x.pct_thap_hon)); gist.push((k === 'pe' ? 'P/E ' : 'P/B ') + vn(x.hien_tai, 2));
     });
     var cv = d.cho_vay && d.cho_vay.quy && d.cho_vay.quy.length ? d.cho_vay : null, lv = '';
     var qv = cv ? cv.quy.filter(function (a) { return a.ty_le_vh != null; }) : [];
-    if (qv.length >= 8) {   /* v98: margin / vốn hoá HOSE, 1 đường từ 2018 */
+    if (qv.length >= 8) {   /* v98: margin / vốn hoá HOSE; v112: thêm đường thanh khoản 1 tháng (ty_le_tk), thiếu thì về 1 đường như cũ */
       var lq = qv[qv.length - 1], vv = qv.map(function (a) { return a.ty_le_vh; }), y0 = qv[0].quy.slice(0, 4);
       var mxv = Math.max.apply(null, vv), bl = vv.filter(function (v) { return v < lq.ty_le_vh; }).length / (vv.length - 1) * 100;
       lv = lq.ty_le_vh >= mxv - 0.1 ? 'cao nhất từ ' + y0 : bl >= 75 ? 'ở mức cao so với từ ' + y0 : bl <= 25 ? 'ở mức thấp so với từ ' + y0 : 'ở mức trung bình so với từ ' + y0;
       var ci = -1, cm = -1; for (var z = 0; z < qv.length - 12; z++) if (vv[z] > cm) { cm = vv[z]; ci = z; }   /* đỉnh cũ: trước 12 quý gần nhất */
-      var ql_ = function (k) { return k.replace(/^(\d{2})(\d{2})Q(\d)$/, 'Q$3/$2'); }, c = mk('div', 'dgdb-c');
+      var ql_ = function (k) { return k.replace(/^(\d{2})(\d{2})Q(\d)$/, 'Q$3/$2'); }, c = mk('div', 'dgdb-c'), labQ = qv.map(function (a) { return ql_(a.quy); });
       c.appendChild(mk('div', 'dgdb-t', 'Margin'));
-      c.appendChild(lineChart({ labels: qv.map(function (a) { return ql_(a.quy); }), h: 128, padR: 44, fmt: function (v) { return vn(v, 1) + '%'; }, aria: 'Margin so với vốn hoá HOSE theo quý',
-        mark: ci >= 0 && mxv - cm > 0.3 ? { i: ci, t: 'Đỉnh ' + qv[ci].quy.slice(0, 4) + ': ' + vn(cm, 1) + '%' } : null,
-        series: [{ c: 'm', n: '', full: 'Margin / vốn hoá HOSE', vals: vv }] }));
-      var pp = mk('div', 'dgdb-p'); pp.appendChild(mk('b', null, 'Margin / vốn hoá HOSE: ')); pp.appendChild(document.createTextNode(lv + '.')); c.appendChild(pp);
-      info(c, 'Dư nợ cho vay ' + lq.n + ' CTCK niêm yết, ' + lq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + ': ' + vn(lq.cho_vay_ty / 1000, 1) + ' nghìn tỷ. Không báo trước được các đợt giảm.');
+      var kk = qv.map(function (a) { return a.ty_le_tk == null ? null : a.ty_le_tk; }), kn = kk.filter(function (v) { return v != null; }), two = kn.length >= 8 && kk[kk.length - 1] != null;
+      var mfmt = function (v) { return vn(v, 1) + '%'; }, tfmt = function (v) { return vn(v, 0) + '%'; };
+      if (two) {
+        var lk = kk[kk.length - 1], mxk = Math.max.apply(null, kn), blk = kn.filter(function (v) { return v < lk; }).length / (kn.length - 1) * 100;
+        [['m', mfmt(lq.ty_le_vh), 'vốn hoá HOSE'], ['v', tfmt(lk), 'thanh khoản 1 tháng']].forEach(function (r) { var row = mk('div', 'dgdb-ml ' + r[0]); row.appendChild(mk('b', null, r[1])); row.appendChild(mk('span', null, r[2])); c.appendChild(row); });
+        c.appendChild(lineChart({ labels: labQ, h: 128, padR: 44, own: true, fmt: mfmt, aria: 'Margin so với vốn hoá HOSE và so với thanh khoản 1 tháng theo quý',
+          series: [{ c: 'm', n: '', full: 'Vốn hoá HOSE', vals: vv }, { c: 'v', n: '', full: 'Thanh khoản 1 tháng', vals: kk, fmt: tfmt }] }));
+        var s1 = lq.ty_le_vh >= mxv - 0.1 ? 2 : bl >= 75 ? 1 : bl <= 25 ? -1 : 0, s2 = lk >= mxk - 0.5 ? 2 : blk >= 75 ? 1 : blk <= 25 ? -1 : 0;
+        var nm = function (s) { return s === 2 ? 'cao nhất từ ' + y0 : s === 1 ? 'ở mức cao' : s === -1 ? 'ở mức thấp' : 'ở mức trung bình'; };
+        var kl2 = s1 === 2 && s2 === 2 ? 'Cả hai cao nhất từ ' + y0 + '.' : s1 === s2 ? 'Cả hai ' + nm(s1) + ' so với từ ' + y0 + '.' : 'Vốn hoá ' + nm(s1) + '; thanh khoản ' + nm(s2) + (s1 === 2 || s2 === 2 ? '' : ' so với từ ' + y0) + '.';
+        var pp2 = mk('div', 'dgdb-p'); pp2.appendChild(mk('b', null, kl2)); c.appendChild(pp2);
+        info(c, 'Margin = dư nợ cho vay của ' + lq.n + ' công ty chứng khoán niêm yết (' + lq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + ': ' + vn(lq.cho_vay_ty / 1000, 1) + ' nghìn tỷ, gồm margin và ứng trước tiền bán, công bố trễ khoảng 4 tuần). Vốn hoá HOSE: dư nợ chia vốn hoá HOSE cuối quý. Thanh khoản 1 tháng: dư nợ chia tổng giá trị giao dịch HOSE 20 phiên cuối quý (theo VN-Index của Vietcap). Mỗi đường co theo thang riêng. Không báo trước được các đợt giảm.');
+        clk(c, 'mg', function () {
+          return { title: 'Margin · từ ' + y0, n: qv.length, xlab: function (i) { return labQ[i]; }, ticks: qtk(labQ), legend: true, floor0: true,
+            series: [{ v: vv, name: 'vốn hoá HOSE', color: 'var(--color-fg)', fmt: mfmt, axis: 'l' }, { v: kk, name: 'thanh khoản 1 tháng', color: 'var(--dg-vin)', fmt: tfmt, axis: 'r' }] };
+        });
+      } else {
+        c.appendChild(lineChart({ labels: labQ, h: 128, padR: 44, fmt: mfmt, aria: 'Margin so với vốn hoá HOSE theo quý',
+          mark: ci >= 0 && mxv - cm > 0.3 ? { i: ci, t: 'Đỉnh ' + qv[ci].quy.slice(0, 4) + ': ' + vn(cm, 1) + '%' } : null,
+          series: [{ c: 'm', n: '', full: 'Margin / vốn hoá HOSE', vals: vv }] }));
+        var pp = mk('div', 'dgdb-p'); pp.appendChild(mk('b', null, 'Margin / vốn hoá HOSE: ')); pp.appendChild(document.createTextNode(lv + '.')); c.appendChild(pp);
+        info(c, 'Dư nợ cho vay ' + lq.n + ' CTCK niêm yết, ' + lq.quy.replace(/^(\d{4})Q(\d)$/, 'quý $2/$1') + ': ' + vn(lq.cho_vay_ty / 1000, 1) + ' nghìn tỷ. Không báo trước được các đợt giảm.');
+        clk(c, 'mg', function () {
+          return { title: 'Margin / vốn hoá HOSE · từ ' + y0, n: qv.length, xlab: function (i) { return labQ[i]; }, ticks: qtk(labQ), floor0: true,
+            series: [{ v: vv, name: 'Margin / vốn hoá HOSE', color: 'var(--color-fg)', fmt: mfmt }] };
+        });
+      }
       g.appendChild(c); parts.push('margin/vốn hoá ' + lv); gist.push('margin ' + vn(lq.ty_le_vh, 1) + '% vốn hoá');
     } else if (cv) {
       var q = cv.quy, last = q[q.length - 1], rt = q.map(function (a) { return a.ty_le; }), below = rt.filter(function (v) { return v < last.ty_le; }).length;
@@ -3116,28 +3317,36 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       }
       var nay = dt.nay || {}, nP = nay.pcf || {}, nE = nay.pe || {}, ql = dt.quy[dt.quy.length - 1];
       // ô 4: P/CF
+      var L12 = function (a) { return a.length > 12 ? a.slice(a.length - 12) : a.slice(); }, LONG = dt.quy.length > 12;
       var pb = dt.pcf.bo_vin.slice(), pa = dt.pcf.phi_tc.slice(), lb = dt.quy.slice();
       if (nP.bo_vin != null && nP.phi_tc != null) { pb.push(nP.bo_vin); pa.push(nP.phi_tc); lb.push('Nay ' + dm(nay.ngay)); }
+      var pbF = pb, paF = pa, lbF = lb; pb = L12(pb); pa = L12(pa); lb = L12(lb);
       var pbv = lastv(pb), pav = lastv(pa), pe0 = nE.bo_vin, t1 = pe0 == null ? 'Vốn hoá chia dòng tiền kinh doanh 4 quý.' : pbv > pe0 * 1.05 ? 'Cao hơn P/E (' + vn(pe0, 1) + '): tiền thu về ít hơn lãi sổ sách.' : pbv < pe0 * 0.95 ? 'Thấp hơn P/E (' + vn(pe0, 1) + '): tiền thu về nhiều hơn lãi sổ sách.' : 'Xấp xỉ P/E (' + vn(pe0, 1) + '): tiền thu về tương xứng lợi nhuận.';
       var c4_ = cell('P/CF thị trường · phi tài chính', vn(pbv, 1), 'lần · bỏ Vin · ' + (nay.ngay ? dm(nay.ngay) : qlb(ql)), 'Gồm Vin: ' + vn(pav, 1) + ' lần', true,
         lineChart({ labels: lb, fmt: function (v) { return vn(v, 1); }, aria: 'P/CF thị trường phi tài chính theo quý', series: [
           { c: 'v', n: 'Có Vin', full: 'Phi tài chính (gồm Vin)', vals: pa }, { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: pb }] }), t1);
+      if (LONG) clk(c4_, 'pcf', function () { return { title: 'P/CF thị trường · phi tài chính · từ ' + firstYear(lbF, pbF), n: lbF.length, xlab: function (i) { return lbF[i]; }, ticks: qtk(lbF), legend: true, floor0: true,
+        series: [{ v: pbF, name: 'Bỏ Vin', color: 'var(--color-fg)', fmt: function (v) { return vn(v, 1); } }, { v: paF, name: 'Gồm Vin', color: 'var(--dg-vin)', fmt: function (v) { return vn(v, 1); } }] }; });
       info(c4_, 'P/CF = vốn hoá / dòng tiền kinh doanh 4 quý của doanh nghiệp phi tài chính có lãi 4 quý; điểm "Nay" dùng giá mới nhất. Nhóm Vin = VIC, VHM, VRE, VPL.');
       // ô 5: dòng tiền kinh doanh / lợi nhuận
       var cb2 = dt.cfo_ln.bo_vin, ca2 = dt.cfo_ln.phi_tc, cbv = lastv(cb2), cav = lastv(ca2), c4 = cb2.length > 4 ? cb2[cb2.length - 5] : null;
       var t2 = (cbv >= 80 ? 'Đạt mức 80%' : 'Dưới mức đạt 80%') + (c4 != null ? ' (4 quý trước ' + vn(c4, 0) + '%).' : '.');
       var c5_ = cell('Dòng tiền kinh doanh / lợi nhuận', vn(cbv, 0), '% · bỏ Vin · ' + qlb(ql), 'Gồm Vin: ' + vn(cav, 0) + '%', true,
-        lineChart({ labels: dt.quy, fmt: function (v) { return vn(v, 0) + '%'; }, aria: 'Dòng tiền kinh doanh so với lợi nhuận 4 quý, phi tài chính', series: [
-          { c: 'v', n: 'Có Vin', full: 'Phi tài chính (gồm Vin)', vals: ca2 }, { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: cb2 }] }), t2);
+        lineChart({ labels: L12(dt.quy), fmt: function (v) { return vn(v, 0) + '%'; }, aria: 'Dòng tiền kinh doanh so với lợi nhuận 4 quý, phi tài chính', series: [
+          { c: 'v', n: 'Có Vin', full: 'Phi tài chính (gồm Vin)', vals: L12(ca2) }, { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: L12(cb2) }] }), t2);
+      if (LONG) clk(c5_, 'cfo', function () { return { title: 'Dòng tiền kinh doanh / lợi nhuận · từ ' + firstYear(dt.quy, cb2), n: dt.quy.length, xlab: function (i) { return dt.quy[i]; }, ticks: qtk(dt.quy), legend: true, floor0: true,
+        series: [{ v: cb2, name: 'Bỏ Vin', color: 'var(--color-fg)', fmt: function (v) { return vn(v, 0) + '%'; } }, { v: ca2, name: 'Gồm Vin', color: 'var(--dg-vin)', fmt: function (v) { return vn(v, 0) + '%'; } }] }; });
       info(c5_, 'Cứ 100 đồng lợi nhuận 4 quý, doanh nghiệp phi tài chính thu về bao nhiêu đồng tiền kinh doanh. Không gồm ngân hàng, chứng khoán, bảo hiểm. Tính cả Vin cao hơn vì Vin nhận tiền khách đặt cọc mua nhà trước khi ghi nhận lợi nhuận. Cộng từ BCTC quý của ' + dt.n_ma + ' doanh nghiệp, công bố trễ khoảng 45 ngày.');
       // ô 6: tăng trưởng lợi nhuận
       var tt = dt.tang_truong, tc = dt.tap_trung, tb = lastv(tt.bo_vin), tm = lastv(tt.trung_vi), tq = tt.quy[tt.quy.length - 1];
       var t3 = tm == null ? 'Lợi nhuận 4 quý so với cùng kỳ.' : tb > 0 && tm < tb * 0.5 ? 'Tập trung ở ít mã: doanh nghiệp điển hình chỉ ' + sg(tm) + '.' : 'Doanh nghiệp điển hình ' + sg(tm) + '.';
       var t3i = tc ? vn(tc.ty_le_ma_tang, 0) + '% số mã có lợi nhuận tăng; 10 mã tăng nhiều nhất' + (tc.top10 && tc.top10.length ? ' (' + tc.top10.slice(0, 3).join(', ') + '…)' : '') + (tc.top10_ty_trong != null ? ' chiếm ' + vn(tc.top10_ty_trong, 0) + '% phần tăng ròng. ' : '. ') : '';
       var c6_ = cell('Tăng trưởng lợi nhuận 4 quý', sg(tb), '· bỏ Vin · ' + qlb(tq), 'Gồm Vin: ' + sg(lastv(tt.phi_tc)) + ' · Toàn thị trường: ' + sg(lastv(tt.tong)), false,
-        lineChart({ labels: tt.quy, fmt: sg, zero: true, padR: 96, aria: 'Tăng trưởng lợi nhuận 4 quý so với cùng kỳ', series: [
-          { c: 'a', n: 'Tổng', full: 'Toàn thị trường (gồm tài chính)', vals: tt.tong }, { c: 'v', n: 'Phi TC', full: 'Phi tài chính (gồm Vin)', vals: tt.phi_tc },
-          { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: tt.bo_vin }, { c: 'd', n: 'Điển hình', full: 'Doanh nghiệp điển hình (trung vị)', vals: tt.trung_vi }] }), t3);
+        lineChart({ labels: L12(tt.quy), fmt: sg, zero: true, padR: 96, aria: 'Tăng trưởng lợi nhuận 4 quý so với cùng kỳ', series: [
+          { c: 'a', n: 'Tổng', full: 'Toàn thị trường (gồm tài chính)', vals: L12(tt.tong) }, { c: 'v', n: 'Phi TC', full: 'Phi tài chính (gồm Vin)', vals: L12(tt.phi_tc) },
+          { c: 'm', n: 'Bỏ Vin', full: 'Phi tài chính bỏ Vin', vals: L12(tt.bo_vin) }, { c: 'd', n: 'Điển hình', full: 'Doanh nghiệp điển hình (trung vị)', vals: L12(tt.trung_vi) }] }), t3);
+      if (tt.quy.length > 12) clk(c6_, 'ln', function () { return { title: 'Tăng trưởng lợi nhuận 4 quý · từ ' + firstYear(tt.quy, tt.bo_vin), n: tt.quy.length, xlab: function (i) { return tt.quy[i]; }, ticks: qtk(tt.quy), legend: true, zero: true,
+        series: [{ v: tt.tong, name: 'Tổng', color: 'var(--color-fg-muted)', fmt: sg }, { v: tt.phi_tc, name: 'Phi TC', color: 'var(--dg-vin)', fmt: sg }, { v: tt.bo_vin, name: 'Bỏ Vin', color: 'var(--color-fg)', fmt: sg }, { v: tt.trung_vi, name: 'Điển hình', color: 'var(--color-fg-muted)', fmt: sg, dash: true }] }; });
       info(c6_, t3i + 'Doanh nghiệp điển hình = trung vị mức tăng của các mã phi tài chính bỏ Vin có lợi nhuận cùng kỳ năm trước dương. Đường "Tổng" gồm cả ngân hàng, chứng khoán, bảo hiểm.');
       parts.push('dòng tiền kinh doanh bằng ' + vn(cbv, 0) + '% lợi nhuận (bỏ Vin)');
       parts.push(tm != null && tb > 0 && tm < tb * 0.5 ? 'lợi nhuận tăng tập trung (bỏ Vin ' + sg(tb) + ', doanh nghiệp điển hình ' + sg(tm) + ')' : 'lợi nhuận tăng ' + sg(tb) + ' (bỏ Vin)');
@@ -3307,8 +3516,8 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       <div class="atl-seg">
         <button type="button" data-v="all" aria-pressed="true">Xem tất cả</button>
         <button type="button" data-v="xh" aria-pressed="false">Long đầu &amp; xếp hạng</button>
-        <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
         <button type="button" data-v="nh" aria-pressed="false">Ngành vs VN-Index</button>
+        <button type="button" data-v="tm" aria-pressed="false">Bản đồ nhiệt</button>
         <button type="button" data-v="rrg" aria-pressed="false">RRG ngành &amp; mã</button>
         <button type="button" data-v="tk" aria-pressed="false">Thanh khoản &amp; giá</button>
       </div>
@@ -3371,34 +3580,6 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       </div>
     </div>
     </div>
-    <div class="atl-dv" data-view="tm">
-      <h2 class="atl-dvh">Bản đồ nhiệt</h2>
-    <div class="atl-card" id="card-ban-do">
-      <h2 class="atl-h">Bản đồ nhiệt HOSE</h2>
-      <p class="atl-note" id="tm-note">Mỗi ô là một mã có GTGD trung bình 20 phiên ≥ 3 tỷ, nhóm theo ngành ICB. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Chạm vào ô để xem chi tiết.</p>
-      <div class="atl-controls">
-        <label class="atl-lab">Khung</label>
-        <div class="atl-seg" role="group" aria-label="Khung thời gian">
-          <button type="button" id="tm-w1" aria-pressed="false">1 phiên</button>
-          <button type="button" id="tm-w10" aria-pressed="true">10 phiên</button>
-          <button type="button" id="tm-w20" aria-pressed="false">20 phiên</button>
-        </div>
-        <label class="atl-lab">Màu theo</label>
-        <div class="atl-seg" role="group" aria-label="Màu theo">
-          <button type="button" id="tm-mg" aria-pressed="true">% giá</button>
-          <button type="button" id="tm-ctk" aria-pressed="false">Thanh khoản</button>
-          <button type="button" id="tm-kn" aria-pressed="false" style="display:none">Khối ngoại ròng</button>
-        </div>
-        <div class="atl-seg" role="group" aria-label="Xem theo">
-          <button type="button" id="tm-bm" aria-pressed="true">Theo mã</button>
-          <button type="button" id="tm-bn" aria-pressed="false">Theo ngành</button>
-        </div>
-      </div>
-      <div class="atl-scale" id="tm-scale"></div>
-      <div class="atl-tm" id="ch-tm" data-source="ban_do_nhiet hom_nay xep_hang"></div>
-      <p class="atl-note">Nhãn góc ô: <b>MUA</b> · <b>GIỮ</b> · <b>TD</b> (theo dõi) theo bộ lọc; <b>CC</b> cạn cung; <b>BT</b> bán tháo (khung 10 phiên).</p>
-    </div>
-    </div>
     <div class="atl-dv" data-view="nh">
       <h2 class="atl-dvh">Ngành so với VN-Index</h2>
       <div class="atl-grid">
@@ -3448,6 +3629,34 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           <p class="atl-note" id="nh-foot">—</p>
         </div>
       </div>
+    </div>
+    <div class="atl-dv" data-view="tm">
+      <h2 class="atl-dvh">Bản đồ nhiệt</h2>
+    <div class="atl-card" id="card-ban-do">
+      <h2 class="atl-h">Bản đồ nhiệt HOSE</h2>
+      <p class="atl-note" id="tm-note">Mỗi ô là một mã có GTGD trung bình 20 phiên ≥ 3 tỷ, nhóm theo ngành ICB. Ô càng to, GTGD trong khung đã chọn (1 phiên, TB 10 hoặc TB 20 phiên) càng lớn. Chạm vào ô để xem chi tiết.</p>
+      <div class="atl-controls">
+        <label class="atl-lab">Khung</label>
+        <div class="atl-seg" role="group" aria-label="Khung thời gian">
+          <button type="button" id="tm-w1" aria-pressed="false">1 phiên</button>
+          <button type="button" id="tm-w10" aria-pressed="true">10 phiên</button>
+          <button type="button" id="tm-w20" aria-pressed="false">20 phiên</button>
+        </div>
+        <label class="atl-lab">Màu theo</label>
+        <div class="atl-seg" role="group" aria-label="Màu theo">
+          <button type="button" id="tm-mg" aria-pressed="true">% giá</button>
+          <button type="button" id="tm-ctk" aria-pressed="false">Thanh khoản</button>
+          <button type="button" id="tm-kn" aria-pressed="false" style="display:none">Khối ngoại ròng</button>
+        </div>
+        <div class="atl-seg" role="group" aria-label="Xem theo">
+          <button type="button" id="tm-bm" aria-pressed="true">Theo mã</button>
+          <button type="button" id="tm-bn" aria-pressed="false">Theo ngành</button>
+        </div>
+      </div>
+      <div class="atl-scale" id="tm-scale"></div>
+      <div class="atl-tm" id="ch-tm" data-source="ban_do_nhiet hom_nay xep_hang"></div>
+      <p class="atl-note">Nhãn góc ô: <b>MUA</b> · <b>GIỮ</b> · <b>TD</b> (theo dõi) theo bộ lọc; <b>CC</b> cạn cung; <b>BT</b> bán tháo (khung 10 phiên).</p>
+    </div>
     </div>
     <div class="atl-dv" data-view="rrg">
       <h2 class="atl-dvh">Vòng quay ngành (RRG)</h2>
@@ -5705,9 +5914,9 @@ render();if(!sec.hidden)show();
     box.replaceChildren(svg.node());
   }
 
-  const EX = { lai: null, ln: null, seed: null, rng: 'y1' };
+  const EX = { lai: null, ln: null, seed: null, rng: 'all' };
   let HR = null;
-  try { if (localStorage.getItem('atl-mua-rng') === 'all') EX.rng = 'all'; } catch (er) {}
+  try { if (localStorage.getItem('atl-mua-rng2') === 'ytd') EX.rng = 'ytd'; } catch (er) {}
   (function () {
     const hr = new Date().toISOString().slice(0, 13);
     [['lai', 'lai_suat'], ['ln', 'ln_toan_tt'], ['seed', 'nhiet_ke_2020']].forEach(([k, f]) => {
@@ -5720,7 +5929,7 @@ render();if(!sec.hidden)show();
     sync();
     g.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return; EX.rng = b.dataset.v; sync();
-      try { localStorage.setItem('atl-mua-rng', EX.rng); } catch (er) {}
+      try { localStorage.setItem('atl-mua-rng2', EX.rng); } catch (er) {}
       if (HR) drawHistory(HR[0], HR[1]);
     });
   })();
@@ -5734,7 +5943,7 @@ render();if(!sec.hidden)show();
     const sg = (v, d) => (v >= 0 ? '+' : '−') + vn(Math.abs(v), d);
     let rows = rows0;
     if (allv && EX.seed && EX.seed.length && rows0[0].d > EX.seed[EX.seed.length - 1].d) rows = EX.seed.concat(rows0);
-    if (!allv) { const c = rows0[rows0.length - 1].d.getTime() - 365 * 864e5; rows = rows0.filter((r) => r.d.getTime() >= c); }
+    if (!allv) { const ld = rows0[rows0.length - 1].d, y0 = Date.UTC(ld.getUTCFullYear(), 0, 1), c = ld.getTime() - y0 < 92 * 864e5 ? ld.getTime() - 92 * 864e5 : y0; rows = rows0.filter((r) => r.d.getTime() >= c); }
     const lai = EX.lai && EX.lai.tuan && EX.lai.tuan.length && EX.lai.hien_tai ? EX.lai : null;
     const ln = EX.ln && EX.ln.quy && EX.ln.quy.length ? EX.ln : null;
     const W = Math.max(300, box.clientWidth);
@@ -5782,7 +5991,7 @@ render();if(!sec.hidden)show();
     yV.ticks(4).forEach((t) => { svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yV(t)).attr('y2', yV(t)).attr('stroke', 'var(--cds-chart-grid)'); T(0, L - 6, yV(t) + 4, f0(t), { a: 'end' }); });
     T(0, L + 4, top + 14, 'VN-Index'); T(0, L + 4, y2 + 14, 'Nhiệt kế');
     // trục x (chỉ khung dưới cùng)
-    const xt = allv ? x.ticks(d3.utcYear.every(narrow ? 2 : 1)) : x.ticks(narrow ? 4 : 8);
+    const xt = allv ? x.ticks(d3.utcYear.every(narrow ? 2 : 1)) : x.ticks(d3.utcMonth.every(narrow ? 2 : 1));
     xt.forEach((t) => T(0, x(t), H - 6, (allv ? d3.utcFormat('%Y') : d3.utcFormat('%m/%Y'))(t), { a: 'middle' }));
     svg.append('line').attr('x1', L).attr('x2', R).attr('y1', top + hV).attr('y2', top + hV).attr('stroke', 'var(--cds-chart-axis)');
     svg.append('line').attr('x1', L).attr('x2', R).attr('y1', y2 + hN).attr('y2', y2 + hN).attr('stroke', 'var(--cds-chart-axis)');
@@ -6984,11 +7193,38 @@ render();if(!sec.hidden)show();
     return out;
   };
 
+  /* v112: Khối ngoại lũy kế (tỷ đồng) cho khung Hồ sơ mã: tải data/chart/x/<MÃ>.json (mảng nn khớp phần cuối mảng t), lỗi thì ẩn khung */
+  const NNC = {}; let NNLAST = null;
+  window.atlHsNN = (r, d) => {
+    if (!r || r.loai === 'chi_so' || !d || !d.length) return null;
+    const e = NNC[r.ma];
+    if (e === undefined) {
+      NNC[r.ma] = 'loading';
+      fetch('data/chart/x/' + encodeURIComponent(r.ma) + '.json?v=' + new Date().toISOString().slice(0, 13), { cache: 'no-cache' }).then((x) => (x.ok ? x.json() : null)).catch(() => null).then((j) => {
+        let ok = false;
+        try {
+          if (j && Array.isArray(j.nn) && Array.isArray(j.t) && j.nn.length > 0 && j.t.length >= j.nn.length) {
+            const m = {}, off = j.t.length - j.nn.length; j.nn.forEach((v, i) => { if (v != null && isFinite(+v)) m[j.t[off + i]] = +v; });
+            ok = Object.keys(m).length > 0; if (ok) NNC[r.ma] = { m };
+          }
+        } catch (er) { ok = false; }
+        if (!ok) NNC[r.ma] = false;
+        if (ok && NNLAST && NNLAST[1].ma === r.ma && $('hs-ma') && $('hs-ma').textContent === r.ma) chart(NNLAST[0], NNLAST[1], NNLAST[2]);
+      });
+      return null;
+    }
+    if (!e || e === 'loading') return null;
+    let c = 0, any = false;
+    const out = d.map((q) => { const v = e.m[q.ngay]; if (v != null) { c += v; any = true; } return c; });
+    return any ? out : null;
+  };
   function chart(rows, r, sg) {
     const box = $('ch-hs'); if (!rows.length) { box.replaceChildren(); return; }
+    NNLAST = [rows, r, sg];
     const d = rows.map((x) => ({ ...x, t: new Date(x.ngay + 'T00:00:00Z'), o: +x.o, h: +x.h, l: +x.l, c: +x.c }));
-    const W = Math.max(300, box.clientWidth), HP = W < 520 ? 280 : 320, MH = W < 520 ? 90 : 110, hasV = d.some((q) => q.gt != null && +q.gt > 0), VH = hasV ? (W < 520 ? 48 : 60) : 0, VG = hasV ? 12 : 0, H = HP + 14 + VH + VG + MH + 22, m = { l: 8, r: 46, t: 24, b: H - HP + 4 };
-    const vt = HP + 14, vb = vt + VH, mt = HP + 14 + VH + VG, mb = mt + MH;
+    const nnc = window.atlHsNN(r, d);
+    const W = Math.max(300, box.clientWidth), HP = W < 520 ? 280 : 320, MH = W < 520 ? 90 : 110, hasV = d.some((q) => q.gt != null && +q.gt > 0), VH = hasV ? (W < 520 ? 48 : 60) : 0, VG = hasV ? 12 : 0, NH = nnc ? MH : 0, NG = nnc ? 12 : 0, H = HP + 14 + VH + VG + NH + NG + MH + 22, m = { l: 8, r: 46, t: 24, b: H - HP + 4 };
+    const vt = HP + 14, vb = vt + VH, nt = HP + 14 + VH + VG, nb = nt + NH, mt = nb + NG, mb = mt + MH;
     const lv = [];
     if (sg && sg.cat_lo != null) lv.push(['Cắt lỗ', +sg.cat_lo, 'var(--color-bad)']);
     if (sg && sg.muc_tieu_1 != null) lv.push(['Mục tiêu 1', +sg.muc_tieu_1, 'var(--z3)']);
@@ -7049,6 +7285,18 @@ render();if(!sec.hidden)show();
       const v20 = vd.filter((q) => q.gt20 != null); if (v20.length > 1) svg.append('path').datum(v20).attr('fill', 'none').attr('stroke', 'var(--z4)').attr('stroke-width', 1.3).attr('d', d3.line(cx, (q) => yv(+q.gt20)));
       [vmax, vmax / 2].forEach((t) => svg.append('text').attr('x', W - m.r + 4).attr('y', yv(t) + 4).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(t >= 100 ? d3.format(',.0f')(t) : d3.format('.1f')(t)));
     }
+    // ---- khối ngoại lũy kế (tỷ đồng): cộng dồn từ 0 ở phiên đầu khung đang xem ----
+    if (nnc) {
+      const lo_ = Math.min(0, d3.min(nnc)), hi_ = Math.max(0, d3.max(nnc)), yn = d3.scaleLinear([lo_, hi_ === lo_ ? lo_ + 1 : hi_], [nb, nt + 12]);
+      const fs = (v) => (v >= 0 ? '+' : '−') + (Math.abs(v) >= 1000 ? d3.format(',.0f')(Math.abs(v)).replace(/,/g, '.') : Math.abs(v).toFixed(1).replace('.', ','));
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', yn(0)).attr('y2', yn(0)).attr('stroke', 'var(--cds-chart-axis)');
+      svg.append('text').attr('x', m.l + 2).attr('y', nt + 10).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text('Khối ngoại lũy kế (tỷ đồng)');
+      d.forEach((q, i) => { const v = nnc[i]; svg.append('rect').attr('x', x(q.ngay)).attr('width', x.bandwidth()).attr('y', yn(Math.max(0, v))).attr('height', Math.max(0.5, Math.abs(yn(v) - yn(0)))).attr('fill', v >= 0 ? '#26a69a' : 'var(--z6)').attr('opacity', 0.85); });
+      const lv = nnc[nnc.length - 1], ly = yn(lv), bwid = Math.min(m.r + 2, Math.max(36, fs(lv).length * 6.2 + 8));
+      [hi_, lo_].forEach((t) => { if (t === 0 || Math.abs(yn(t) - ly) < 13) return; svg.append('text').attr('x', W - m.r + 4).attr('y', yn(t) + 4).attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text(fs(t).replace(/^\+/, '')); });
+      svg.append('rect').attr('x', W - m.r + 2).attr('y', ly - 8).attr('width', bwid).attr('height', 16).attr('rx', 3).attr('fill', lv >= 0 ? '#26a69a' : 'var(--z6)');
+      svg.append('text').attr('x', W - m.r + 2 + bwid / 2).attr('y', ly + 4).attr('text-anchor', 'middle').attr('fill', '#fff').style('font-size', '10px').style('font-weight', 700).text(fs(lv));
+    }
     // ---- MACD 12,26,9 ----
     const md = d.filter((q) => q.macd != null);
     if (md.length) {
@@ -7074,7 +7322,7 @@ render();if(!sec.hidden)show();
     svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.r - m.l).attr('height', mb - m.t).attr('fill', 'transparent')
       .on('pointermove', (ev) => { const [px] = d3.pointer(ev); const q = d[bis(d, px)]; if (!q) return; el2.replaceChildren();
         const t = document.createElement('div'); t.className = 't'; t.textContent = q.ngay.slice(8, 10) + '/' + q.ngay.slice(5, 7) + '/' + q.ngay.slice(0, 4); el2.appendChild(t);
-        [['Mở · Cao · Thấp · Đóng', [q.o, q.h, q.l, q.c].map((v) => d3.format('.2f')(v)).join(' · ')], ['MA20 / MA50 / MA200', [q.ma20, q.ma50, q.ma200].map((v) => (v == null ? '—' : d3.format('.2f')(+v))).join(' / ')], ['GTGD / TB20 (tỷ)', q.gt == null ? '—' : d3.format(',.1f')(+q.gt) + ' / ' + (q.gt20 == null ? '—' : d3.format(',.1f')(+q.gt20)) + (q.gt20 != null && +q.gt20 > 0 ? ' (' + d3.format('.1f')(+q.gt / +q.gt20) + '×)' : '')], ['Dải dưới / trên', (q.bb_duoi == null ? '—' : d3.format('.2f')(+q.bb_duoi)) + ' / ' + (q.bb_tren == null ? '—' : d3.format('.2f')(+q.bb_tren))], ['MACD / tín hiệu / cột', q.macd == null ? '—' : [q.macd, q.macd_tb, q.macd_cot].map((v) => d3.format('.2f')(+v)).join(' / ')]]
+        [['Mở · Cao · Thấp · Đóng', [q.o, q.h, q.l, q.c].map((v) => d3.format('.2f')(v)).join(' · ')], ['MA20 / MA50 / MA200', [q.ma20, q.ma50, q.ma200].map((v) => (v == null ? '—' : d3.format('.2f')(+v))).join(' / ')], ['GTGD / TB20 (tỷ)', q.gt == null ? '—' : d3.format(',.1f')(+q.gt) + ' / ' + (q.gt20 == null ? '—' : d3.format(',.1f')(+q.gt20)) + (q.gt20 != null && +q.gt20 > 0 ? ' (' + d3.format('.1f')(+q.gt / +q.gt20) + '×)' : '')], ['Dải dưới / trên', (q.bb_duoi == null ? '—' : d3.format('.2f')(+q.bb_duoi)) + ' / ' + (q.bb_tren == null ? '—' : d3.format('.2f')(+q.bb_tren))], ['MACD / tín hiệu / cột', q.macd == null ? '—' : [q.macd, q.macd_tb, q.macd_cot].map((v) => d3.format('.2f')(+v)).join(' / ')]].concat(nnc ? [['Khối ngoại lũy kế', (nnc[d.indexOf(q)] >= 0 ? '+' : '−') + d3.format(',.1f')(Math.abs(nnc[d.indexOf(q)])) + ' tỷ']] : [])
           .forEach(([a, b]) => { const e = document.createElement('div'); e.textContent = a + ': ' + b; el2.appendChild(e); });
         const k = box.clientWidth / W; window.atlPlaceTip(el2, box, cx(q) * k, y(q.h) * k); })
       .on('pointerleave', () => { el2.hidden = true; });
