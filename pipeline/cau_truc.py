@@ -111,3 +111,36 @@ pb["nhan"], pb["nhan_cau"] = nhan, y + " " + re.sub(r"(\d)\.(\d)", r"\1,\2", dan
 print("nhan:", nhan, "|", pb["nhan_cau"])
 json.dump(pb, open("dash_out/phan_bo_loi_lo.json", "w"), ensure_ascii=False, allow_nan=False)
 print("phan_bo:", pb["ngay"], pb["so_ma"], "ma; >7%:", pb["tich_luy"][0]["pct"], "<-7%:", pb["tich_luy"][2]["pct"], "trung vi", pb["trung_vi"])
+
+# ---------- 4. Chuỗi dài từ 2020 cho nút "Từ 2020 | YTD" của hai khối trên (v117) ----------
+# Cùng định nghĩa với phần 1 và 3 (GTGD TB20 ≥ 3 tỷ, MA200 đủ 200 phiên, lãi/lỗ 20 phiên) nhưng trên lịch sử dài (vn_prices_chart.csv.gz, 2520 phiên;
+# thiếu thì thử vn_prices_long.csv.gz). Ghi vào khoá "dai" dạng cột của hai file json; lỗi thì bỏ qua, trang vẫn dùng chuỗi 60 phiên.
+try:
+    import os
+    src = next((f for f in ("vn_prices_chart.csv.gz", "vn_prices_long.csv.gz") if os.path.exists(f)), None)
+    P2 = vp.load(src, start="2019-01-01")
+    C2, VAL2 = P2["C"], P2["VAL"]
+    if C2.index[0] > pd.Timestamp("2020-06-01") or len(C2.columns) < 150:
+        raise RuntimeError("lịch sử %s chưa đủ dài/đủ mã (%s, %d mã)" % (src, C2.index[0].date(), len(C2.columns)))
+    ma2 = {n: C2.rolling(n, min_periods=n).mean() for n in (20, 50, 200)}
+    liq2 = VAL2.rolling(20, min_periods=15).mean() >= 3
+    valid2 = liq2 & C2.notna() & ma2[200].notna()
+    n2 = valid2.sum(axis=1).replace(0, np.nan)
+    p2 = lambda m: (m & valid2).sum(axis=1) / n2 * 100
+    a20, a50, a200 = (p2(C2 > ma2[n]) for n in (20, 50, 200))
+    R2 = (C2 / C2.shift(20) - 1) * 100
+    ok2 = liq2 & R2.notna(); nr2 = ok2.sum(axis=1).replace(0, np.nan)
+    g7s = ((R2 > 7) & ok2).sum(axis=1) / nr2 * 100
+    l7s = ((R2 < -7) & ok2).sum(axis=1) / nr2 * 100
+    V2 = P2["VNI"].reindex(C2.index)
+    ix = [d for d in C2.index if d >= pd.Timestamp("2020-01-01") and pd.notna(a20[d]) and pd.notna(a50[d]) and pd.notna(a200[d]) and pd.notna(g7s[d]) and pd.notna(l7s[d])]
+    vv = lambda d: round(float(V2[d]), 2) if pd.notna(V2[d]) else None
+    r1 = lambda s_, d: round(float(s_[d]), 1)
+    ct["dai"] = {"ngay": [str(d.date()) for d in ix], "ma20": [r1(a20, d) for d in ix], "ma50": [r1(a50, d) for d in ix],
+                 "ma200": [r1(a200, d) for d in ix], "vni": [vv(d) for d in ix]}
+    pb["dai"] = {"ngay": [str(d.date()) for d in ix], "g7": [r1(g7s, d) for d in ix], "l7": [r1(l7s, d) for d in ix], "vni": [vv(d) for d in ix]}
+    json.dump(ct, open("dash_out/cau_truc_thi_truong.json", "w"), ensure_ascii=False, allow_nan=False)
+    json.dump(pb, open("dash_out/phan_bo_loi_lo.json", "w"), ensure_ascii=False, allow_nan=False)
+    print("cau_truc dai: %d phiên (%s–%s) từ %s, %d–%d mã đủ điều kiện" % (len(ix), ix[0].date(), ix[-1].date(), src, int(n2[ix].min()), int(n2[ix].max())))
+except Exception as e:
+    print("cau_truc dai lỗi, bỏ qua (trang dùng 60 phiên):", e)
