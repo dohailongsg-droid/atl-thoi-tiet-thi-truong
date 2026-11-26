@@ -627,7 +627,15 @@
       var tB = m ? (m.mos >= 20 ? 'giá thấp hơn giá hợp lý ' + n0(m.mos) + '%' : m.mos < 0 ? 'giá đã cao hơn giá hợp lý ' + n0(-m.mos) + '%' : 'giá quanh giá hợp lý') : 'chưa đủ điều kiện định giá';
       var tC = TK ? (TK.lv >= 3 ? 'xu hướng giá ' + (TK.lv === 4 ? 'tích cực' : 'khả quan') : TK.lv === 2 ? 'xu hướng giá chưa rõ' : 'xu hướng giá yếu') : (J.trendUp ? 'xu hướng giá tích cực' : 'xu hướng giá chưa rõ');
       var goodV = m && m.mos >= 20, conflict = (goodV && !J.trendUp) || (m && m.mos < 0 && J.trendUp);
-      var title = esc(x.ten || ma) + ': ' + tA + ', ' + tB + (conflict ? ' — nhưng ' : ', ') + tC;
+      /* v114: tiêu đề ngắn kiểu báo cáo quỹ — "MÃ: luận điểm định giá, điều kiện"; số liệu chi tiết để ở dòng phụ và Quan điểm ATL */
+      var tE = yoyQ == null ? (sk.ln_ttm_ty > 0 ? 'Lợi nhuận duy trì' : 'Lợi nhuận chưa phục hồi') : yoyQ >= 20 ? 'Tăng trưởng mạnh' : yoyQ >= 5 ? 'Tăng trưởng ổn định' : yoyQ > -5 ? 'Lợi nhuận đi ngang' : 'Lợi nhuận suy giảm';
+      var tV = !m ? null : m.mos >= 30 ? 'Chiết khấu sâu' : m.mos >= 20 ? 'Định giá hấp dẫn' : m.mos >= 0 ? 'Định giá hợp lý' : 'Định giá đã phản ánh';
+      var tUp = TK ? TK.lv >= 3 : !!J.trendUp, tWeak = TK ? TK.lv <= 1 : false, hd;
+      if (!tV) hd = tE + ', ' + (tUp ? 'động lượng tích cực' : tWeak ? 'động lượng suy yếu' : 'xu hướng chưa xác nhận');
+      else if (m.mos >= 20) hd = yoyQ != null && yoyQ >= 20 ? tE + ', ' + tV.toLowerCase() : yoyQ != null && yoyQ <= -5 ? tV + ', lợi nhuận suy giảm' : tV + ', ' + (tUp ? 'động lượng ủng hộ' : 'chờ xác nhận xu hướng');
+      else if (m.mos >= 0) hd = tE + ', ' + tV.toLowerCase();
+      else hd = tUp ? 'Động lượng mạnh, định giá đã phản ánh' : 'Định giá đã phản ánh, ' + (tWeak ? 'động lượng suy yếu' : 'thiếu động lực mới');
+      var title = esc(ma) + ': ' + hd;
       var view = [];
       view.push('Doanh nghiệp đạt ' + qOk + '/' + qN + ' tiêu chí về tăng trưởng, khả năng sinh lời và an toàn tài chính' + (flags.length ? '; có ' + flags.length + ' điểm cần lưu ý trong báo cáo tài chính (xem phần Chất lượng doanh nghiệp).' : ', chưa thấy dấu hiệu bất thường.'));
       if (m) view.push('Giá hợp lý theo ước tính của ATL là ' + n0(m.gia_tb) + 'đ, giá bất tử (kịch bản xấu nhất) ' + n0(lo) + 'đ, vùng mua từ ' + n0(m.vung_an_toan) + 'đ trở xuống. Giá hiện tại ' + n0(P) + 'đ ' + (m.mos >= 0 ? 'thấp hơn giá hợp lý ' + n1(m.mos) + '%' : 'cao hơn giá hợp lý ' + n1(-m.mos) + '%') + (P < lo ? ' và thấp hơn cả giá bất tử.' : P <= m.vung_an_toan ? ', đang nằm trong vùng mua.' : '.'));
@@ -658,7 +666,7 @@
         '<div class="two"><div>' +
         '<h3>Luận điểm chính</h3><ul>' + pts.map(function (q) { return '<li><b>' + q[0] + '</b> ' + q[1] + '</li>'; }).join('') + '</ul>' +
         (gates.length ? '<h3>Điều gì sẽ làm thay đổi nhận định</h3><ul>' + gates.map(function (g) { return '<li>' + g + '</li>'; }).join('') + '</ul>' : '') +
-        '<h3>Lợi nhuận 12 quý gần nhất</h3>' + chart('Lợi nhuận sau thuế của cổ đông công ty mẹ' + (yoyQ != null ? ', quý gần nhất ' + sg(yoyQ) + ' so với cùng kỳ' : ''), 'tỷ đồng · 4 quý gần nhất tô màu xanh', lnS ? cols(lnS.v, Q, { W: 420, H: 96, every: 2 }) : '') + (cf ? '<h3>4 quý gần nhất so với cùng kỳ</h3>' + tbl4Html(m, fin) : '') +
+        '<h3>Lợi nhuận 12 quý gần nhất</h3>' + chart('Lợi nhuận sau thuế của cổ đông công ty mẹ' + (yoyQ != null ? ', quý gần nhất ' + sg(yoyQ) + ' so với cùng kỳ' : ''), 'tỷ đồng · 4 quý gần nhất tô màu xanh', lnS ? cols(lnS.v, Q, { W: 420, H: 96, every: 2 }) : '') + (cf ? '<h3>4 quý gần nhất so với cùng kỳ</h3>' + tbl4Html(m, fin) : '') + knBlock(rows) +
         '</div><div class="side">' +
         '<div class="rec"><div class="r">' + J.rec + '</div><div class="l">Kiểu cơ hội: ' + J.label + '</div></div>' +
         '<table class="kv">' +
@@ -696,7 +704,7 @@
         TK.sup.map(function (q) { return '<tr><td>Hỗ trợ: ' + q[0].toLowerCase() + '</td><td>' + n0(q[1]) + '</td><td class="no_">' + sg((q[1] / P - 1) * 100) + '</td></tr>'; }).join('') + '</table>' +
         (!TK.res.length ? '<p class="note">Giá đang ở trên tất cả các mức tham chiếu: không còn mức cản gần phía trên.</p>' : '') + (!TK.sup.length ? '<p class="note">Giá đang ở dưới tất cả các mức tham chiếu: chưa có mức hỗ trợ gần phía dưới.</p>' : '');
       var nganhT = xh ? '<p style="font-size:10.3px;margin:6px 0 0"><b>Vị thế trong ngành.</b> ' + esc(ma) + ' đứng thứ ' + xh.hang + '/' + xh.so_ma_nhom + ' về sức mạnh giá trong nhóm ' + esc(xh.nhom) + (dcd && dcd.hang ? '; nhóm này đang xếp thứ ' + dcd.hang + '/' + nNganh + ' nhóm ngành về độ mạnh' + (dcd.hang <= 5 ? ' (thuộc nhóm dẫn dắt thị trường)' : dcd.hang > nNganh - 5 ? ' (thuộc nhóm yếu của thị trường)' : '') : '') + '. Giá trị giao dịch bình quân ' + n0(xh.gtgd20) + ' tỷ đồng/phiên' + (xh.gtgd20 < 10 ? ': thanh khoản thấp, khó mua bán khối lượng lớn.' : '.') + '</p>' : '';
-      pg((x ? '' : cover(c, (xh && xh.nhom) || '') + '<h1>' + esc(c.ten || ma) + ' (' + san + ': ' + esc(ma) + '): bức tranh kỹ thuật ' + TK.lab.toLowerCase() + '</h1><p class="sub">Giá đóng cửa ' + dmy(c.ngay) + ': ' + n0(P) + 'đ · ' + esc(J.why) + '</p>') +
+      pg((x ? '' : cover(c, (xh && xh.nhom) || '') + '<h1>' + esc(ma) + ': Góc nhìn kỹ thuật ' + TK.lab.toLowerCase() + '</h1><p class="sub">Giá đóng cửa ' + dmy(c.ngay) + ': ' + n0(P) + 'đ · ' + esc(J.why) + '</p>') +
         '<h2><span class="no">' + (x ? '04' : '01') + '</span>Phân tích kỹ thuật: ' + TK.lab.charAt(0) + TK.lab.slice(1).toLowerCase() + '</h2>' +
         scale(TK.lv) + '<p>' + esc(TK.sum) + (KT ? ' <b>' + esc(plainKT(KT.ten)) + '.</b> ' + esc(plainKT(KT.txt)) + ' <b>Nên ưu tiên góc nhìn ' + esc(plainKT(KT.uu)) + '</b>, vì ' + esc(plainKT(KT.vi)) + '.' : ' Kết luận này tổng hợp từ ba góc nhìn độc lập về diễn biến giá (bảng bên dưới) và sức mạnh giá của cổ phiếu so với thị trường.') + '</p>' + ret +
         chart('Diễn biến giá ' + rows.length + ' phiên gần nhất', 'đồng/cổ phiếu · ' + legend([['Trung bình 20 phiên', ACC, 1], ['Trung bình 50 phiên', '#C9A227', 1], ['Trung bình 200 phiên', RED, 1], ['Vùng cân bằng giá', '#E9DDB0']]) + ' · ' + (rows.some(function (q) { return q.gt > 0; }) ? 'giữa: giá trị giao dịch mỗi phiên và trung bình 20 phiên (cột đậm là phiên giao dịch từ 1,5 lần trung bình) · ' : '') + 'dưới cùng: đà giá (xanh là lực tăng, đỏ là lực giảm)', candles(rows, { zd: TK.zd, zg: TK.zg, tu: hs.tl_tt_tu, H: x ? 196 : 132 })) +
@@ -1000,7 +1008,7 @@
       var baoOn = bao && isT(bao.bao_bat);
       /* ---- trang 1: bức tranh hôm nay ---- */
       var head = KT ? plainKT(KT.ten) : ['Xu hướng giảm', 'Nghiêng về giảm', 'Chưa có xu hướng rõ', 'Nghiêng về tăng', 'Xu hướng tăng'][lv];
-      var h1 = esc(nm) + ': ' + esc(head.charAt(0).toLowerCase() + head.slice(1)) + (c20 ? ', 20 phiên tới thường dao động trong ' + n0(c20.lo80) + '–' + n0(c20.hi80) + ' điểm' : '');
+      var h1 = esc(nm) + ': ' + esc(head) + (c20 ? ', biên độ 20 phiên ' + n0(c20.lo80) + '–' + n0(c20.hi80) : '');
       var pts = [];
       if (vz) pts.push('<b>Thị trường chung:</b> ' + esc(vz[1]) + '. Theo khung ATL, tổng tỷ trọng cổ phiếu nên ở mức ' + esc(vz[2]) + (nk && nk.tb7 != null ? ' (nhiệt kế ' + n1(+nk.tb7) + ' điểm).' : '.'));
       if (baoOn) pts.push('<b>Chế độ bão đang bật:</b> thị trường vừa có nhịp sụt mạnh; biên độ thực tế có thể rộng hơn các vùng giá trong báo cáo.');
@@ -1046,20 +1054,55 @@
     } finally { KIND = K0; }
   }
 
+
+  /* ======== v113: khối "Khối ngoại 60 phiên" ở trang bìa (chỉ mô tả, không phải tín hiệu) ======== */
+  var KN = null;                           // data/chart/x/<MÃ>.json (nạp trong atlBaoCao)
+  function wq(a, q) { var W = 0, i, acc = 0; for (i = 0; i < a.length; i++) W += a[i][1]; if (!(W > 0)) return null; a = a.slice().sort(function (u, v) { return u[0] - v[0]; }); for (i = 0; i < a.length; i++) { acc += a[i][1]; if (acc >= q * W - 1e-9) return a[i][0]; } return a[a.length - 1][0]; }
+  function knStat(a, sgn) { var w = []; a.forEach(function (r) { if (r.nn * sgn > 0) w.push([r.p, Math.abs(r.nn)]); }); if (!w.length) return null; var W = 0, S = 0; w.forEach(function (q) { W += q[1]; S += q[0] * q[1]; }); return { avg: S / W, lo: wq(w, .25), hi: wq(w, .75) }; }
+  function knBlock(rows) {
+    try {
+      if (!KN || !KN.t || !KN.nn || !rows || !rows.length) return '';
+      var off = KN.t.length - KN.nn.length, nm = {}, gm = {}, i;
+      for (i = 0; i < KN.nn.length; i++) if (KN.nn[i] != null && isFinite(KN.nn[i])) nm[KN.t[off + i]] = +KN.nn[i];
+      if (KN.gt) for (i = 0; i < KN.t.length; i++) if (KN.gt[i] != null && isFinite(KN.gt[i])) gm[KN.t[i]] = +KN.gt[i];
+      var a = rows.filter(function (r) { return nm[r.ngay] != null && r.c > 0; }).map(function (r) { return { d: r.ngay, p: r.c * 1000, nn: nm[r.ngay], gt: gm[r.ngay] || 0 }; }).slice(-60);
+      if (a.length < 40) return '';
+      var tot = 0, gts = 0, am = 0; a.forEach(function (r) { tot += r.nn; gts += r.gt; am = Math.max(am, Math.abs(r.nn)); });
+      var B = knStat(a, 1), S = knStat(a, -1), P = a[a.length - 1].p, r10 = function (v) { return n0(Math.round(v / 10) * 10); };
+      var W = 200, H = 50, n = a.length, X = function (k) { return 2 + k * (W - 4) / (n - 1); };
+      var pv = a.map(function (r) { return r.p; }); if (B) pv.push(B.avg);
+      var mn = Math.min.apply(null, pv), mx = Math.max.apply(null, pv), Y = function (v) { return 3 + (mx - v) / ((mx - mn) || 1) * 25; }, yb = 36;
+      var sv = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" style="display:block">';
+      a.forEach(function (r, k) { var h = am ? Math.abs(r.nn) / am * 8 : 0; sv += '<rect x="' + (X(k) - 1.3).toFixed(1) + '" y="' + (r.nn > 0 ? yb - h : yb).toFixed(1) + '" width="2.6" height="' + Math.max(.6, h).toFixed(1) + '" fill="' + (r.nn > 0 ? GOOD : BAD) + '"/>'; });
+      sv += '<line x1="0" x2="' + W + '" y1="' + yb + '" y2="' + yb + '" stroke="' + GRID + '"/>';
+      if (B) sv += '<line x1="0" x2="' + W + '" y1="' + Y(B.avg).toFixed(1) + '" y2="' + Y(B.avg).toFixed(1) + '" stroke="' + GOOD + '" stroke-dasharray="3 2"/>';
+      sv += '<polyline fill="none" stroke="' + NAVY + '" stroke-width="1.3" points="' + a.map(function (r, k) { return X(k).toFixed(1) + ',' + Y(r.p).toFixed(1); }).join(' ') + '"/>';
+      sv += '<text x="0" y="' + (H - 1) + '" font-size="7" fill="' + MUT + '">' + a[0].d.slice(8, 10) + '/' + a[0].d.slice(5, 7) + '</text><text x="' + W + '" y="' + (H - 1) + '" font-size="7" fill="' + MUT + '" text-anchor="end">' + a[n - 1].d.slice(8, 10) + '/' + a[n - 1].d.slice(5, 7) + '</text></svg>';
+      var t1 = '<b>60 phiên: ' + (tot >= 0 ? 'mua' : 'bán') + ' ròng ' + (tot >= 0 ? '+' : '−') + n0(Math.abs(tot)) + ' tỷ</b>' + (gts > 0 ? ' (' + n1(Math.abs(tot) / gts * 100) + '% giá trị giao dịch)' : '');
+      var parts = [];
+      if (B) parts.push('Mua ròng chủ yếu ở vùng ' + r10(B.lo) + '–' + r10(B.hi) + 'đ (bình quân ' + r10(B.avg) + 'đ)');
+      if (S) parts.push((B ? 'bán' : 'Bán') + ' ròng ' + (B ? '' : 'chủ yếu ') + 'ở vùng ' + r10(S.lo) + '–' + r10(S.hi) + 'đ (bình quân ' + r10(S.avg) + 'đ)');
+      var t2 = parts.length ? '. ' + parts.join('; ') + '.' : '.';
+      var t3 = B ? ' Giá hiện tại ' + r10(P) + 'đ, ' + (P >= B.avg ? 'cao' : 'thấp') + ' hơn giá bình quân mua ròng ' + n1(Math.abs(P / B.avg - 1) * 100) + '%.' : '';
+      return '<div class="knb"><h3 style="margin-top:7px;margin-bottom:2px">Khối ngoại 60 phiên <span style="font-weight:400;font-size:7.4px;color:' + MUT + ';letter-spacing:0;text-transform:none">━ giá · ┅ bình quân mua ròng · cột: ròng mỗi phiên</span></h3><div style="display:flex;gap:10px;align-items:flex-start"><div class="knv" style="flex:none">' + sv + '</div><p style="font-size:9.6px;line-height:1.3;margin:0">' + t1 + t2 + t3 + '</p></div><div style="font-size:7.6px;color:' + MUT + ';margin-top:1px">Thông tin tham khảo: kiểm định 2020–2026 cho thấy mua/bán ròng của khối ngoại không dự báo được giá.</div></div>';
+    } catch (e) { return ''; }
+  }
+
   function tenKB(t) { return t === 'Bảo thủ' ? 'Bất tử' : t; }
   window.atlBaoCao = function (x, w, ma) {
     ma = ma || (x && x.ma); if (x && x.ma !== ma) x = null;
     var cur = window.__nonCur && window.__nonCur.ma === ma && window.__nonCur.tj !== undefined ? Promise.resolve(window.__nonCur) : (window.atlNonBundle ? window.atlNonBundle(ma) : Promise.resolve(null));
     var dv = new Date().toISOString().slice(0, 10), gj = function (u) { return fetch(u + '?v=' + dv).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
+    KN = null; var knP = gj('data/chart/x/' + encodeURIComponent(ma) + '.json').then(function (d) { KN = d; }).catch(function () { KN = null; });
     var ext = (BCN && HSN) ? Promise.resolve() : Promise.all([gj('data/bao_cao_nganh.json'), gj('data/ho_so_nganh.json')]).then(function (a) { BCN = a[0]; HSN = a[1]; });
-    var P2 = Promise.all([cur.catch(function () { return null; }), ext.catch(function () { return null; })]).then(function (a) { return render(x, w, ma, a[0]); }).catch(function (e) { if (w === 'html') throw e; try { w.document.body.textContent = 'Không dựng được báo cáo: ' + e.message; } catch (e2) {} });
+    var P2 = Promise.all([cur.catch(function () { return null; }), ext.catch(function () { return null; }), knP]).then(function (a) { return render(x, w, ma, a[0]); }).catch(function (e) { if (w === 'html') throw e; try { w.document.body.textContent = 'Không dựng được báo cáo: ' + e.message; } catch (e2) {} });
     return w === 'html' ? P2 : void 0;
   };
   function render(x, w, ma, NB) {
     var r = NB && NB.ix ? buildChiSo(ma, NB) : build(x, ma, NB), base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '');
     var doc = '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=820"><base href="' + base + '"><title>' + r.title + '</title><style>' + CSS + CSS107 + '</style></head><body>' +
       '<div class="bar"><button onclick="atlBack()">← Quay lại trang</button><span class="tx">Báo cáo ' + esc(ma) + ' · ' + r.n + ' trang A4' + (x || (NB && NB.ix) ? '' : ' (chỉ có phần kỹ thuật: mã này chưa có dữ liệu tài chính)') + '. Trong hộp in chọn <b>&nbsp;Lưu thành PDF&nbsp;</b>, khổ A4, lề "Không có". </span><button onclick="window.print()">In / Lưu PDF</button></div>' + r.html +
-      '<script>function atlBack(){try{if(window.opener&&!window.opener.closed)window.opener.focus();}catch(e){}try{window.close();}catch(e){}setTimeout(function(){location.href=' + JSON.stringify(base + '#ho-so') + ';},250);}(function(){var go=function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);};var imgs=[].slice.call(document.images).filter(function(i){return !i.complete;});var n=imgs.length;var done=function(){if(--n<=0)(document.fonts&&document.fonts.ready?document.fonts.ready.then(go):go());};if(!n){n=1;done();}else imgs.forEach(function(i){i.onload=i.onerror=done;});})();<\/script></body></html>';
+      '<script>function atlBack(){try{if(window.opener&&!window.opener.closed)window.opener.focus();}catch(e){}try{window.close();}catch(e){}setTimeout(function(){location.href=' + JSON.stringify(base + '#ho-so') + ';},250);}(function(){var go=function(){setTimeout(function(){try{var p1=document.querySelector(".pg"),kb=p1&&p1.querySelector(".knb"),ft=p1&&p1.querySelector(".ft");if(kb&&ft){var ov=function(){return kb.getBoundingClientRect().bottom>ft.getBoundingClientRect().top-6;};if(ov()){var sv=kb.querySelector(".knv");if(sv)sv.remove();}if(ov())kb.remove();}}catch(e){}try{window.focus();window.print();}catch(e){}},350);};var imgs=[].slice.call(document.images).filter(function(i){return !i.complete;});var n=imgs.length;var done=function(){if(--n<=0)(document.fonts&&document.fonts.ready?document.fonts.ready.then(go):go());};if(!n){n=1;done();}else imgs.forEach(function(i){i.onload=i.onerror=done;});})();<\/script></body></html>';
     if (w === 'html') return doc;
     try { w.document.open(); w.document.write(doc); w.document.close(); } catch (e) { w.document.body.textContent = 'Không dựng được báo cáo: ' + e.message; }
   }

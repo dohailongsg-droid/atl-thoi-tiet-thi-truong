@@ -2683,7 +2683,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       w.document.write('<p style="font:16px Arial;padding:24px">Đang dựng báo cáo '+ma+'…</p>');
       var x=window.__dgCur&&window.__dgCur.ma===ma?window.__dgCur:null;
       var run=function(){ttLoad(function(){try{window.atlBaoCao(x,w,ma);}catch(e){w.document.body.textContent='Không dựng được báo cáo: '+e.message;}});};
-      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=107';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
+      var go=function(){if(window.atlBaoCao)run();else{var sc=document.createElement('script');sc.src='bao-cao.js?v=114';sc.onload=run;sc.onerror=function(){w.document.body.textContent='Không tải được bao-cao.js';};document.head.appendChild(sc);}};
       if(x||(ma in cache))go();
       else fetch('data/cb/'+encodeURIComponent(ma)+'.json?v='+(new Date().toISOString().slice(0,10)),{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){x=j&&j.ma===ma?j:null;go();});});})();
   function mtDs(dg){var a=[];if(dg.vci)a.push('Vietcap '+n0(dg.vci.gia));(dg.ctck||[]).forEach(function(c){a.push(c.cty+' '+n0(c.gia));});return 'mục tiêu 12 tháng: '+a.join(' · ');}
