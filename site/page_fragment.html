@@ -2935,9 +2935,9 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     </div>
     <div class="atl-dv" data-view="mua">
       <div class="atl-card atl-wide" id="card-lich-su">
-        <h2 class="atl-h">VN-Index theo mùa và nhiệt kế</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 class="atl-h" style="margin:0">VN-Index theo mùa</h2><div class="atl-seg" id="mua-rng" role="group" aria-label="Khung thời gian"><button type="button" data-v="y1" aria-pressed="true">1 năm</button><button type="button" data-v="all" aria-pressed="false">Từ 2020</button></div></div>
         <div class="atl-legend" id="lg-mua"></div>
-        <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:22rem"></div>
+        <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:38rem"></div>
       </div>
       <div class="atl-card atl-wide" id="card-dgdb" hidden>
         <style>
@@ -5705,87 +5705,214 @@ render();if(!sec.hidden)show();
     box.replaceChildren(svg.node());
   }
 
-  function drawHistory(box, rows) {
-    // v1.7: dải mùa mỏng phía trên thay cho nền màu phủ cả hai khung; khung nhiệt kế tô vùng theo ngưỡng, đường TB7 đổi màu theo vùng
+  const EX = { lai: null, ln: null, seed: null, rng: 'y1' };
+  let HR = null;
+  try { if (localStorage.getItem('atl-mua-rng') === 'all') EX.rng = 'all'; } catch (er) {}
+  (function () {
+    const hr = new Date().toISOString().slice(0, 13);
+    [['lai', 'lai_suat'], ['ln', 'ln_toan_tt'], ['seed', 'nhiet_ke_2020']].forEach(([k, f]) => {
+      fetch('data/' + f + '.json?v=' + hr, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+        if (k === 'seed' && d) d = d.map((r) => ({ ...r, d: P(r.ngay), vung: +r.vung, tho: +r.vung, tb7: +r.tb7, diem: r.diem == null ? null : +r.diem, vni: +r.vni })); EX[k] = d; if (d && HR && window.atlVis && window.atlVis('mua')) drawHistory(HR[0], HR[1]);
+      });
+    });
+    const g = document.getElementById('mua-rng'); if (!g) return;
+    const sync = () => g.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === EX.rng ? 'true' : 'false'));
+    sync();
+    g.addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return; EX.rng = b.dataset.v; sync();
+      try { localStorage.setItem('atl-mua-rng', EX.rng); } catch (er) {}
+      if (HR) drawHistory(HR[0], HR[1]);
+    });
+  })();
+
+  function drawHistory(box, rows0) {
+    HR = [box, rows0];
     const ZCOL = { 1: 'var(--z1)', 2: 'var(--z2)', 7: 'var(--z7)', 3: 'var(--z3)', 4: 'var(--z4)', 5: 'var(--z5)', 6: 'var(--z6)' };
-    const narrow = box.clientWidth < 520;
-    const W = Math.max(300, box.clientWidth), H = narrow ? 420 : 400;
-    const m = { l: 8, r: narrow ? 12 : 92, t: 8, b: 24 }, rib = 8, gap = 28;
+    const GRN = '#1f9d63', RED = '#d6453c', ORG = '#e8891a', MUT = 'var(--color-fg-muted)';
+    const narrow = box.clientWidth < 520, allv = EX.rng === 'all';
+    const vn = (v, d) => v.toFixed(d).replace('.', ',');
+    const sg = (v, d) => (v >= 0 ? '+' : '−') + vn(Math.abs(v), d);
+    let rows = rows0;
+    if (allv && EX.seed && EX.seed.length && rows0[0].d > EX.seed[EX.seed.length - 1].d) rows = EX.seed.concat(rows0);
+    if (!allv) { const c = rows0[rows0.length - 1].d.getTime() - 365 * 864e5; rows = rows0.filter((r) => r.d.getTime() >= c); }
+    const lai = EX.lai && EX.lai.tuan && EX.lai.tuan.length && EX.lai.hien_tai ? EX.lai : null;
+    const ln = EX.ln && EX.ln.quy && EX.ln.quy.length ? EX.ln : null;
+    const W = Math.max(300, box.clientWidth);
+    const m = { l: 8, r: narrow ? 12 : 104, t: 8, b: 24 }, rib = 8, gap = narrow ? 16 : 20;
+    const hV = narrow ? 150 : 190, hP = ln ? Math.round(hV * 0.55) : 0, rr = narrow ? 48 : 56, rg = 6, hdr = 26, hN = narrow ? 100 : 120;
+    const hR = lai ? hdr + 3 * rr + 2 * rg : 0;
     const top = m.t + rib + 8;
-    const h1 = Math.round((H - top - m.b - gap) * 0.52), h2 = H - top - m.b - gap - h1;
-    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'VN-Index và nhiệt kế theo thời gian');
-    const yV = d3.scaleLinear(d3.extent(rows, (r) => r.vni), [top + h1, top + 4]).nice();
-    const y2 = top + h1 + gap;
-    const yT = d3.scaleLinear([25, 90], [y2 + h2, y2]);
+    const yP0 = top + hV + (ln ? gap : 0);
+    const yR0 = yP0 + hP + (lai ? gap : 0);
+    const y2 = yR0 + hR + gap;
+    const H = y2 + hN + m.b;
+    const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'VN-Index, lợi nhuận toàn thị trường, lãi suất và nhiệt kế theo thời gian');
+    const yV = d3.scaleLinear(d3.extent(rows, (r) => r.vni), [top + hV, top + 4]).nice();
+    const yT = d3.scaleLinear([25, 90], [y2 + hN, y2]);
     const lw = f0(yV.domain()[1]).length * 6.8;
     const L = m.l + lw + 8, R = W - m.r;
     const x = d3.scaleUtc(d3.extent(rows, (r) => r.d), [L, R]);
+    const x0d = x.domain()[0].getTime(), x1d = x.domain()[1].getTime();
     const step = (R - L) / Math.max(1, rows.length - 1);
     const last = rows[rows.length - 1];
-    // dải mùa (ribbon)
+    const T = (sel, X, Y, txt, o) => { o = o || {}; const t = svg.append('text').attr('x', X).attr('y', Y).attr('fill', o.c || MUT).style('font-size', (o.s || 11) + 'px').text(txt); if (o.a) t.attr('text-anchor', o.a); if (o.w) t.style('font-weight', o.w); if (o.halo) t.attr('stroke', 'var(--color-panel)').attr('stroke-width', 3).attr('paint-order', 'stroke'); return t; };
+    const info = (X, Y, tip) => { const g = svg.append('g').attr('data-tip', tip).attr('tabindex', 0); g.append('rect').attr('x', X - 3).attr('y', Y - 12).attr('width', 18).attr('height', 16).attr('fill', 'transparent'); g.append('text').attr('x', X).attr('y', Y).attr('fill', MUT).style('font-size', '11px').text('ⓘ'); };
+    // dải mùa
     let s0 = 0;
     for (let i = 1; i <= rows.length; i++) {
       if (i === rows.length || rows[i].vung !== rows[s0].vung) {
-        const x0 = Math.max(L, x(rows[s0].d) - step / 2), x1 = Math.min(R, (i === rows.length ? x(rows[i - 1].d) + step / 2 : x(rows[i].d) - step / 2));
-        svg.append('rect').attr('x', x0).attr('width', Math.max(0, x1 - x0)).attr('y', m.t).attr('height', rib).attr('fill', ZCOL[rows[s0].vung]).attr('opacity', 0.95);
-        svg.append('rect').attr('x', x0).attr('width', Math.max(0, x1 - x0)).attr('y', top).attr('height', h1).attr('fill', ZCOL[rows[s0].vung]).attr('opacity', 0.13);
-        if (x1 - x0 > 74) svg.append('text').attr('x', (x0 + x1) / 2).attr('y', top + h1 - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '10.5px').text(Z[rows[s0].vung].ten.split(' · ')[0]);
+        const a0 = Math.max(L, x(rows[s0].d) - step / 2), a1 = Math.min(R, (i === rows.length ? x(rows[i - 1].d) + step / 2 : x(rows[i].d) - step / 2));
+        svg.append('rect').attr('x', a0).attr('width', Math.max(0, a1 - a0)).attr('y', m.t).attr('height', rib).attr('fill', ZCOL[rows[s0].vung]).attr('opacity', 0.95);
+        svg.append('rect').attr('x', a0).attr('width', Math.max(0, a1 - a0)).attr('y', top).attr('height', hV).attr('fill', ZCOL[rows[s0].vung]).attr('opacity', 0.13);
+        if (a1 - a0 > 74) T(0, (a0 + a1) / 2, top + hV - 6, Z[rows[s0].vung].ten.split(' · ')[0], { a: 'middle', s: 10.5 });
         s0 = i;
       }
     }
-    // vùng nhiệt kế theo ngưỡng (nền nhẹ) và nhãn vùng ở mép phải
+    // nhiệt kế: vùng + ngưỡng
     const NAME = { 1: 'Nghỉ đông', 2: 'Giáp hạt', 3: 'Ra hoa', 4: 'Lúa chín', 5: 'Thân cá', 6: 'Thu hoạch' };
     BANDS.forEach(([lo, hi, k]) => {
-      const yy0 = yT(Math.min(90, hi)), yy1 = yT(Math.max(25, lo)); if (yy1 <= yy0) return;
-      svg.append('rect').attr('x', L).attr('width', R - L).attr('y', yy0).attr('height', yy1 - yy0).attr('fill', ZCOL[k]).attr('opacity', 0.10);
-      if (!narrow && yy1 - yy0 > 12) svg.append('text').attr('x', R + 8).attr('y', (yy0 + yy1) / 2 + 3.5).attr('fill', ZCOL[k]).style('font-size', '11px').style('font-weight', 600).text(NAME[k]);
+      const a = yT(Math.min(90, hi)), b = yT(Math.max(25, lo)); if (b <= a) return;
+      svg.append('rect').attr('x', L).attr('width', R - L).attr('y', a).attr('height', b - a).attr('fill', ZCOL[k]).attr('opacity', 0.10);
+      if (!narrow && b - a > 12) T(0, R + 8, (a + b) / 2 + 3.5, NAME[k], { c: ZCOL[k], w: 600 });
     });
     [45, 55, 65, 70, 75].forEach((t) => {
       svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yT(t)).attr('y2', yT(t)).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0.45).attr('stroke-width', 0.8);
-      if (t !== 70) svg.append('text').attr('x', L - 6).attr('y', yT(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(t);
+      if (t !== 70) T(0, L - 6, yT(t) + 4, t, { a: 'end' });
     });
-    // lưới + trục VN-Index
-    yV.ticks(4).forEach((t) => {
-      svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yV(t)).attr('y2', yV(t)).attr('stroke', 'var(--cds-chart-grid)');
-      svg.append('text').attr('x', L - 6).attr('y', yV(t) + 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(f0(t));
-    });
-    svg.append('text').attr('x', L + 4).attr('y', top + 14).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('VN-Index');
-    svg.append('text').attr('x', L + 4).attr('y', y2 - 8).attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text('Nhiệt kế');
-    x.ticks(narrow ? 4 : 8).forEach((t) => svg.append('text').attr('x', x(t)).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', '11px').text(d3.utcFormat('%m/%Y')(t)));
-    svg.append('line').attr('x1', L).attr('x2', R).attr('y1', top + h1).attr('y2', top + h1).attr('stroke', 'var(--cds-chart-axis)');
-    svg.append('line').attr('x1', L).attr('x2', R).attr('y1', y2 + h2).attr('y2', y2 + h2).attr('stroke', 'var(--cds-chart-axis)');
-    // VN-Index: vùng mờ dưới đường + đường
-    svg.append('path').datum(rows).attr('fill', 'var(--color-fg)').attr('opacity', 0.06).attr('d', d3.area().x((r) => x(r.d)).y0(top + h1).y1((r) => yV(r.vni)));
-    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.9).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
-      .attr('d', d3.line((r) => x(r.d), (r) => yV(r.vni)));
-    // TB7: đường đổi màu theo vùng (gradient cứng theo ngưỡng)
-    const defs = svg.append('defs'), gid = 'nkg' + Math.round(Math.random() * 1e6);
-    const grad = defs.append('linearGradient').attr('id', gid).attr('gradientUnits', 'userSpaceOnUse').attr('x1', 0).attr('x2', 0).attr('y1', yT(90)).attr('y2', yT(25));
-    const off = (v) => (yT(v) - yT(90)) / (yT(25) - yT(90));
-    [[90, 75, 6], [75, 70, 5], [70, 65, 4], [65, 55, 3], [55, 45, 2], [45, 25, 1]].forEach(([a, b, k]) => {
-      grad.append('stop').attr('offset', off(a)).attr('stop-color', ZCOL[k]); grad.append('stop').attr('offset', off(b)).attr('stop-color', ZCOL[k]);
-    });
-    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#' + gid + ')').attr('stroke-width', 2.4).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
-      .attr('d', d3.line((r) => x(r.d), (r) => yT(Math.max(25, Math.min(90, r.tb7)))));
-    // điểm cuối + giá trị
+    yV.ticks(4).forEach((t) => { svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yV(t)).attr('y2', yV(t)).attr('stroke', 'var(--cds-chart-grid)'); T(0, L - 6, yV(t) + 4, f0(t), { a: 'end' }); });
+    T(0, L + 4, top + 14, 'VN-Index'); T(0, L + 4, y2 + 14, 'Nhiệt kế');
+    // trục x (chỉ khung dưới cùng)
+    const xt = allv ? x.ticks(d3.utcYear.every(narrow ? 2 : 1)) : x.ticks(narrow ? 4 : 8);
+    xt.forEach((t) => T(0, x(t), H - 6, (allv ? d3.utcFormat('%Y') : d3.utcFormat('%m/%Y'))(t), { a: 'middle' }));
+    svg.append('line').attr('x1', L).attr('x2', R).attr('y1', top + hV).attr('y2', top + hV).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('line').attr('x1', L).attr('x2', R).attr('y1', y2 + hN).attr('y2', y2 + hN).attr('stroke', 'var(--cds-chart-axis)');
+    // VN-Index
+    svg.append('path').datum(rows).attr('fill', 'var(--color-fg)').attr('opacity', 0.06).attr('d', d3.area().x((r) => x(r.d)).y0(top + hV).y1((r) => yV(r.vni)));
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.9).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line((r) => x(r.d), (r) => yV(r.vni)));
+    // ---- lợi nhuận toàn thị trường
+    if (ln) {
+      const qs = ln.quy.map((q) => { const y = +q.q.slice(0, 4), n = +q.q.slice(-1); return { ...q, y, n, a: Date.UTC(y, (n - 1) * 3, 1), b: Date.UTC(y, n * 3, 1) }; });
+      const vis = qs.filter((q) => q.b > x0d && q.a < x1d);
+      let cho = null; if (ln.cho) { const y = +ln.cho.slice(0, 4), n = +ln.cho.slice(-1); cho = { y, n, a: Date.UTC(y, (n - 1) * 3, 1), b: Date.UTC(y, n * 3, 1) }; }
+      const vals = vis.flatMap((q) => [q.g, q.g_xvin]);
+      const yPb = yP0 + hP, yPt = yP0 + hP * 0.26;
+      const yp = d3.scaleLinear([Math.min(0, d3.min(vals) || 0), Math.max(0.2, d3.max(vals) || 0.2)], [yPb, yPt]).nice(3);
+      yp.ticks(3).forEach((t) => {
+        svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yp(t)).attr('y2', yp(t)).attr('stroke', t === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)').attr('stroke-width', t === 0 ? 1.4 : 1).attr('opacity', t === 0 ? 1 : 0.7);
+        T(0, L - 6, yp(t) + 4, Math.round(t * 100) + '%', { a: 'end' });
+      });
+      const xq = (ms) => x(new Date(ms)), bw = (q) => { const w = xq(q.b) - xq(q.a); return [xq(q.a) + w * 0.12, xq(q.b) - w * 0.12]; };
+      vis.forEach((q) => {
+        let [p0, p1] = bw(q); p0 = Math.max(L, p0); p1 = Math.min(R, p1); if (p1 - p0 < 2) return;
+        const y0 = yp(0), y1 = yp(q.g);
+        svg.append('rect').attr('x', p0).attr('width', p1 - p0).attr('y', Math.min(y0, y1)).attr('height', Math.abs(y1 - y0)).attr('fill', q.g >= 0 ? GRN : RED).attr('opacity', 0.55);
+        if (q.g_xvin != null) { const cx = (p0 + p1) / 2, tw = (p1 - p0) * 0.55; svg.append('rect').attr('x', cx - tw / 2).attr('width', tw).attr('y', yp(q.g_xvin) - 1.3).attr('height', 2.6).attr('fill', 'var(--color-fg)'); }
+      });
+      if (cho && cho.b > x0d && cho.a < x1d) {
+        let [p0, p1] = bw(cho); p0 = Math.max(L, p0); p1 = Math.min(R, p1);
+        if (p1 - p0 > 2) svg.append('rect').attr('x', p0).attr('width', p1 - p0).attr('y', yp(0) - 16).attr('height', 16).attr('fill', 'none').attr('stroke', MUT).attr('stroke-dasharray', '3 3').attr('stroke-width', 1);
+      }
+      const lq = ln.quy[ln.quy.length - 1];
+      const ql = 'Q' + lq.q.slice(-1) + '/' + lq.q.slice(2, 4), gc = lq.g >= 0 ? GRN : RED;
+      const pct = (v) => sg(v * 100, 0) + '%';
+      T(0, L + 2, yP0 + 10, narrow ? 'Lợi nhuận toàn thị trường' : 'Lợi nhuận toàn thị trường · 4 quý so cùng kỳ', { s: 11.5 });
+      T(0, L + 2, yP0 + 23, narrow ? 'so cùng kỳ · gạch đen = trừ nhóm Vin' : 'cột = toàn thị trường · gạch đen = trừ nhóm Vin', { s: 10 });
+      info(L + 2 + (narrow ? 176 : 255), yP0 + 10, 'Tổng lợi nhuận sau thuế (cổ đông công ty mẹ) 4 quý gần nhất so với 4 quý cùng kỳ năm trước, của ~400 mã HOSE có đủ 8 quý; gạch đen = trừ nhóm Vin (VIC, VHM, VRE, VPL).\nCông bố chậm 1–2 tháng sau khi quý kết thúc; ô nét đứt = quý đang chờ.\nBacktest 2020–2026: tăng trưởng lợi nhuận đi SAU giá (tương quan +0,6 với VN-Index của 4 quý trước, −0,3 đến −0,4 với 2 quý sau): đỉnh tăng trưởng cuối 2021 ngay trước đỉnh giá, âm năm 2023 gần đáy.\nKhông phải tín hiệu mua bán.');
+      if (narrow) {
+        const t = svg.append('text').attr('x', R).attr('y', yP0 + 10).attr('text-anchor', 'end').style('font-size', '11px').attr('fill', MUT);
+        t.append('tspan').attr('fill', gc).style('font-weight', 700).text(pct(lq.g)); t.append('tspan').text(' ' + ql);
+      } else {
+        T(0, R + 8, yP0 + hP * 0.30 + 4, pct(lq.g), { c: gc, s: 15, w: 700 });
+        T(0, R + 8, yP0 + hP * 0.30 + 20, ql, { s: 10.5 });
+        T(0, R + 8, yP0 + hP * 0.30 + 35, 'trừ Vin ' + pct(lq.g_xvin), { s: 10.5 });
+      }
+    }
+    // ---- lãi suất
+    let laiPts = null;
+    if (lai) {
+      const wk = lai.tuan.map((w) => ({ ...w, t: P(w.d) })).filter((w) => w.t.getTime() >= x0d && w.t.getTime() <= x1d);
+      laiPts = wk;
+      T(0, L + 2, yR0 + 10, 'LÃI SUẤT', { w: 700, s: 11 }).style('letter-spacing', '0.04em');
+      let lx = L + 2 + 66;
+      [['giảm', GRN], ['tăng', RED], ['đi ngang', 'var(--color-fg-muted)']].forEach(([t, c]) => {
+        svg.append('rect').attr('x', lx).attr('y', yR0 + 5).attr('width', 9).attr('height', 4).attr('fill', c).attr('opacity', 0.8);
+        T(0, lx + 13, yR0 + 10, t, { c, s: 11 }); lx += 13 + t.length * 6 + 12;
+      });
+      info(lx + 2, yR0 + 10, 'Xanh = lãi suất đang giảm, đỏ = đang tăng, xám = đi ngang (10 năm: đổi ≥0,15 điểm/6 tuần; 3 tháng ≥0,4/4 tuần; qua đêm ≥0,5/4 tuần).\nVạch cam = lãi suất căng: lãi 3 tháng tăng ≥1 điểm trong 13 tuần hoặc qua đêm vượt TB 6 tháng ≥1 điểm.\nBacktest 2018–2026: lợi suất 10 năm giảm thường đến SAU đáy (xác nhận hồi), không báo trước đáy.\nNguồn: NHNN, HNX.');
+      // vạch cam
+      for (let i = 0, j; i < wk.length; i = j) {
+        j = i + 1; if (!wk[i].can) continue;
+        while (j < wk.length && wk[j].can) j++;
+        const a = x(wk[i].t), b = j < wk.length ? x(wk[j].t) : Math.min(R, x(wk[j - 1].t) + step * 5);
+        svg.append('rect').attr('x', a).attr('width', Math.max(2, b - a)).attr('y', yR0 + 15).attr('height', 4).attr('fill', ORG).attr('rx', 1);
+      }
+      const H0 = lai.hien_tai, td = H0.tuan_doi || { y10: 6, m3: 4, on: 4 };
+      const defs = [['y10', 'h_y10', 'TPCP 10 năm', 'y10', 'd_y10', td.y10 || 6], ['m3', 'h_m3', 'Liên ngân hàng 3 tháng', 'm3', 'd_m3', td.m3 || 4], ['on4', 'h_on', 'Qua đêm (TB 4 tuần)', 'on4', 'd_on', td.on || 4]];
+      defs.forEach(([key, hk, name, hv, dk, nw], i) => {
+        const yt = yR0 + hdr + i * (rr + rg), yb = yt + rr;
+        const pts = wk.filter((w) => w[key] != null);
+        if (pts.length < 2) return;
+        const lo = d3.min(pts, (w) => w[key]), hi = d3.max(pts, (w) => w[key]), pad = Math.max(0.05, (hi - lo) * 0.15);
+        const ys = d3.scaleLinear([lo - pad, hi + pad], [yb, yt + (narrow ? 15 : 0)]);
+        let hh = pts.map((w) => +w[hk] || 0);
+        if (allv) { // gộp đoạn dốc ngắn (<3 tuần) vào đoạn trước
+          for (let pass = 0; pass < 3; pass++) {
+            let s = 0; for (let k = 1; k <= hh.length; k++) if (k === hh.length || hh[k] !== hh[s]) { if (k - s < 3 && s > 0) for (let q = s; q < k; q++) hh[q] = hh[s - 1]; s = k; }
+          }
+        }
+        const A = d3.area().x((w) => x(w.t)).y0(yb).y1((w) => ys(w[key]));
+        svg.append('path').datum(pts).attr('d', A).attr('fill', 'var(--color-fg)').attr('opacity', 0.07);
+        for (let s = 0, e; s < pts.length; s = e) {
+          e = s + 1; while (e < pts.length && hh[e] === hh[s]) e++;
+          if (!hh[s]) continue;
+          svg.append('path').datum(pts.slice(s, Math.min(pts.length, e + 1))).attr('d', A).attr('fill', hh[s] > 0 ? RED : GRN).attr('opacity', 0.5);
+        }
+        svg.append('path').datum(pts).attr('d', d3.line((w) => x(w.t), (w) => ys(w[key]))).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.1).attr('stroke-linejoin', 'round');
+        const lp = pts[pts.length - 1];
+        svg.append('circle').attr('cx', x(lp.t)).attr('cy', ys(lp[key])).attr('r', 2.8).attr('fill', 'var(--color-fg)');
+        T(0, L + 4, yt + 11, name, { s: 10.5, halo: true });
+        const h = +H0['h_' + (hk === 'h_on' ? 'on' : key)] || 0, ac = h > 0 ? RED : h < 0 ? GRN : MUT, ar = h > 0 ? '▲' : h < 0 ? '▼' : '▬';
+        const val = H0[hv] != null ? vn(H0[hv], 1) + '%' : '—', dl = H0[dk];
+        if (narrow) {
+          const t = svg.append('text').attr('x', R).attr('y', yt + 11).attr('text-anchor', 'end').style('font-size', '11px').attr('fill', 'var(--color-fg)').attr('stroke', 'var(--color-panel)').attr('stroke-width', 3).attr('paint-order', 'stroke');
+          t.append('tspan').style('font-weight', 700).text(val + ' '); t.append('tspan').attr('fill', ac).text(ar);
+        } else {
+          T(0, R + 8, yt + rr * 0.45, val, { c: 'var(--color-fg)', s: 14, w: 700 });
+          T(0, R + 8 + 52, yt + rr * 0.45, ar, { c: ac, s: 12 });
+          if (dl != null) T(0, R + 8, yt + rr * 0.45 + 17, sg(dl, 2) + ' điểm/' + nw + ' tuần', { s: 10 });
+        }
+      });
+    }
+    // điểm cuối VNI / nhiệt kế
     svg.append('circle').attr('cx', x(last.d)).attr('cy', yV(last.vni)).attr('r', 3.8).attr('fill', 'var(--color-fg)');
     const lt = Math.max(25, Math.min(90, last.tb7));
+    // TB7 gradient
+    const defsE = svg.append('defs'), gid = 'nkg' + Math.round(Math.random() * 1e6);
+    const grad = defsE.append('linearGradient').attr('id', gid).attr('gradientUnits', 'userSpaceOnUse').attr('x1', 0).attr('x2', 0).attr('y1', yT(90)).attr('y2', yT(25));
+    const off = (v) => (yT(v) - yT(90)) / (yT(25) - yT(90));
+    [[90, 75, 6], [75, 70, 5], [70, 65, 4], [65, 55, 3], [55, 45, 2], [45, 25, 1]].forEach(([a, b, k]) => { grad.append('stop').attr('offset', off(a)).attr('stop-color', ZCOL[k]); grad.append('stop').attr('offset', off(b)).attr('stop-color', ZCOL[k]); });
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#' + gid + ')').attr('stroke-width', 2.4).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line((r) => x(r.d), (r) => yT(Math.max(25, Math.min(90, r.tb7)))));
     svg.append('circle').attr('cx', x(last.d)).attr('cy', yT(lt)).attr('r', 3.8).attr('fill', ZCOL[last.vung]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.2);
     if (!narrow) {
-      svg.append('text').attr('x', x(last.d) + 8).attr('y', yV(last.vni) + 4).attr('fill', 'var(--color-fg)').style('font-size', '12px').style('font-weight', 700).text(d3.format(',.0f')(last.vni));
-      svg.append('text').attr('x', x(last.d) - 8).attr('y', yT(lt) - 9).attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', '12px').style('font-weight', 700).text(f1(last.tb7));
+      T(0, R + 8, yV(last.vni) + 4, d3.format(',.0f')(last.vni), { c: 'var(--color-fg)', s: 12, w: 700 });
+      T(0, x(last.d) - 8, yT(lt) - 9, f1(last.tb7), { c: 'var(--color-fg)', s: 12, w: 700, a: 'end' });
     }
     // hover
-    const hl = svg.append('line').attr('y1', top).attr('y2', y2 + h2).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0);
+    const hl = svg.append('line').attr('y1', top).attr('y2', y2 + hN).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0).style('pointer-events', 'none');
     const el = tip(box);
     const bis = d3.bisector((r) => r.d).center;
-    svg.append('rect').attr('x', L).attr('y', top).attr('width', R - L).attr('height', h1 + gap + h2).attr('fill', 'transparent')
+    svg.append('rect').attr('x', L).attr('y', top).attr('width', R - L).attr('height', y2 + hN - top).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
         const [px] = d3.pointer(ev); const r = rows[bis(rows, x.invert(px))]; if (!r) return;
         hl.attr('x1', x(r.d)).attr('x2', x(r.d)).attr('opacity', 1);
         el.replaceChildren();
         const t = document.createElement('div'); t.className = 't'; t.textContent = dmy(r.d) + ' · ' + Z[r.vung].ten; el.appendChild(t);
-        [['VN-Index', d3.format(',.2f')(r.vni)], ['Nhiệt kế', f1(r.tb7)], ['Điểm phiên', r.diem == null ? '—' : f0(r.diem)]].forEach(([a, b]) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; el.appendChild(d); });
+        const L2 = [['VN-Index', d3.format(',.2f')(r.vni)], ['Nhiệt kế', f1(r.tb7)], ['Điểm phiên', r.diem == null ? '—' : f0(r.diem)]];
+        if (laiPts && laiPts.length) {
+          let w = null; for (const q of laiPts) { if (q.t.getTime() <= r.d.getTime()) w = q; else break; }
+          if (w) L2.push(['10 năm', w.y10 == null ? '—' : vn(w.y10, 2) + '%'], ['LNH 3 tháng', w.m3 == null ? '—' : vn(w.m3, 2) + '%'], ['Qua đêm (TB 4 tuần)', w.on4 == null ? '—' : vn(w.on4, 2) + '%']);
+        }
+        L2.forEach(([a, b]) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; el.appendChild(d); });
         const sc = box.clientWidth / W; placeTip(el, box, x(r.d) * sc, (top + 30) * sc);
       })
       .on('pointerleave', () => { hl.attr('opacity', 0); el.hidden = true; });
