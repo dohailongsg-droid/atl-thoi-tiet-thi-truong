@@ -1,15 +1,15 @@
 # Khối ngoại mua(+)/bán(-) ròng cổ phiếu, TRIỆU USD, chép tay. Ô trống = chưa có số.
-# ngay = ngày số liệu (YYYY-MM-DD); ma = VN TW JP KR TH IN ID MY PH US; tuan/thang/quy/nam = Tuần, Từ đầu tháng, Từ đầu quý, Từ đầu năm
+# ngay = ngày số liệu (YYYY-MM-DD); ma = VN TW JP KR TH IN ID MY PH, US (quỹ cổ phiếu Mỹ, ICI), UW (quỹ cổ phiếu quốc tế của Mỹ, ICI); tuan/thang/quy/nam = Tuần, Từ đầu tháng, Từ đầu quý, Từ đầu năm
 # Mỗi thị trường dùng dòng có ngày mới nhất. Số tự động (VN, TW, JP, IN) được giữ khi đủ 4 ô và mới hơn số chép tay.
+# Số tự động hằng tuần do Claude ghi vào Google Sheet "ATL – Vốn ngoại" (MIDF Research, ICI); file này chỉ là số tạm/bổ sung. Có thêm cột thứ 7 nguon (tuỳ chọn).
 # Nguồn đợt 20/11/2026: bảng Foreign Portfolio Investment (Equity, USD) người dùng gửi.
-ngay,ma,tuan,thang,quy,nam
-2026-11-20,VN,-127.49,-190.12,-1105.15,-4739.32
-2026-11-19,TW,-5981.87,-24561.80,-56341.45,-93268.44
-2026-11-13,JP,-1403.18,-2067.00,48338.48,97662.30
-2026-11-20,KR,-3940.72,-12065.59,-26611.45,-153323.81
-2026-11-20,TH,-138.30,-184.06,-380.87,432.90
-2026-11-19,IN,3464.51,12527.65,10358.73,-17902.74
-2026-11-20,ID,-142.78,-126.52,-1062.13,-5727.80
-2026-11-19,MY,-32.10,-4.90,-216.10,-1742.80
-2026-11-20,PH,-17.66,5.75,-230.01,-765.74
-2026-09-30,US,,66790.00,220422.99,670970.00
+ngay,ma,tuan,thang,quy,nam,nguon
+2026-11-20,VN,-127.49,-190.12,-1105.15,-4739.32,bảng tổng hợp chép tay (tạm)
+2026-11-19,TW,-5981.87,-24561.80,-56341.45,-93268.44,bảng tổng hợp chép tay (tạm)
+2026-11-13,JP,-1403.18,-2067.00,48338.48,97662.30,bảng tổng hợp chép tay (tạm)
+2026-11-20,KR,-3940.72,-12065.59,-26611.45,-153323.81,bảng tổng hợp chép tay (tạm)
+2026-11-20,TH,-138.30,-184.06,-380.87,432.90,bảng tổng hợp chép tay (tạm)
+2026-11-19,IN,3464.51,12527.65,10358.73,-17902.74,bảng tổng hợp chép tay (tạm)
+2026-11-20,ID,-142.78,-126.52,-1062.13,-5727.80,bảng tổng hợp chép tay (tạm)
+2026-11-19,MY,-32.10,-4.90,-216.10,-1742.80,bảng tổng hợp chép tay (tạm)
+2026-11-20,PH,-17.66,5.75,-230.01,-765.74,bảng tổng hợp chép tay (tạm)

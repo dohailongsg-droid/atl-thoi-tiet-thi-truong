@@ -15,7 +15,7 @@ SITE = os.environ.get("ATL_SITE", os.path.join(HERE, "..", "site"))
 NN = os.environ.get("ATL_NN_FILE", os.path.join(HERE, "nn_lich_su.csv.gz"))
 HIST = os.path.join(HERE, "state", "dvn_lich_su.json")
 TAY = os.path.join(HERE, "von_ngoai_tay.csv")
-TAY_URL = os.environ.get("ATL_DVN_SHEET", "")      # tuỳ chọn: link CSV của Google Sheet (cùng cột với file chép tay)
+TAY_URL = os.environ.get("ATL_DVN_SHEET", "https://docs.google.com/spreadsheets/d/1S5oWd3ntaJzK8PpnFhe2uBz8Y2J_x0RdBdfIlymh-XI/gviz/tq?tqx=out:csv&sheet=Von_ngoai")   # Google Sheet "ATL – Vốn ngoại" (Claude ghi hằng tuần)
 OUT = os.path.join(SITE, "data", "dong_von_ngoai.json")
 BACKFILL = int(os.environ.get("ATL_DVN_BACKFILL", "260"))
 UA = {"User-Agent": "Mozilla/5.0 (compatible; ATL-dashboard)", "Accept-Encoding": "identity"}
@@ -216,12 +216,50 @@ def in_update(h):
 
 TEN = {"VN": ("Việt Nam", "Vietcap IQ (HOSE)"), "TW": ("Đài Loan", "TWSE"), "JP": ("Nhật Bản", "JPX"), "KR": ("Hàn Quốc", "KRX"),
        "TH": ("Thái Lan", "SET"), "IN": ("Ấn Độ", "NSDL"), "ID": ("Indonesia", "IDX"), "MY": ("Malaysia", "Bursa"),
-       "PH": ("Philippines", "PSE"), "US": ("Mỹ", "TIC")}
+       "PH": ("Philippines", "PSE"), "US": ("Mỹ · quỹ cổ phiếu Mỹ", "ICI"), "UW": ("Mỹ · quỹ cổ phiếu quốc tế", "ICI")}
+
+
+def _ngay(t):
+    t = t.strip()
+    for f in ("%Y-%m-%d", "%m/%d/%Y", "%Y/%m/%d", "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(t, f).date()
+        except ValueError:
+            pass
+    raise ValueError("ngày không đọc được: " + t)
+
+
+def _ky(d, k):
+    return (d.year, d.month) if k == "thang" else (d.year, (d.month - 1) // 3) if k == "quy" else (d.year,)
+
+
+def _dau_ky(d, k):
+    return datetime.date(d.year, d.month, 1) if k == "thang" else datetime.date(d.year, 3 * ((d.month - 1) // 3) + 1, 1) if k == "quy" else datetime.date(d.year, 1, 1)
+
+
+def _snap(rs):
+    """rs: các dòng của 1 thị trường (đã sắp theo ngày). Dòng mới nhất là ảnh chụp; ô Tháng/Quý/Năm để trống thì tính =
+    giá trị gần nhất cùng kỳ + tổng số tuần sau đó, hoặc tổng số tuần trong kỳ nếu phủ kín (tuần tính theo ngày cuối tuần)."""
+    L = rs[-1]; out = dict(den_ngay=L["d"].isoformat(), tuan=L["tuan"], nguon=L["nguon"])
+    for k in ("thang", "quy", "nam"):
+        if L[k] is not None:
+            out[k] = L[k]; continue
+        cung = [r for r in rs if _ky(r["d"], k) == _ky(L["d"], k)]
+        base = next((r for r in reversed(cung) if r[k] is not None), None)
+        sau = [r for r in cung if base is None or r["d"] > base["d"]]
+        ok = all(r["tuan"] is not None for r in sau) and all((b["d"] - a["d"]).days <= 9 for a, b in zip(sau, sau[1:]))
+        if base is not None:
+            ok = ok and (not sau or (sau[0]["d"] - base["d"]).days <= 9)
+            out[k] = round(base[k] + sum(r["tuan"] for r in sau), 1) if ok else None
+        else:
+            ok = ok and bool(sau) and (sau[0]["d"] - _dau_ky(L["d"], k)).days <= 6
+            out[k] = round(sum(r["tuan"] for r in sau), 1) if ok else None
+    return out
 
 
 def tay_snap():
-    """Số chép tay dạng ảnh chụp: ngay,ma,tuan,thang,quy,nam (triệu USD, ô trống = chưa có).
-    Nguồn: pipeline/von_ngoai_tay.csv và (nếu có) Google Sheet ATL_DVN_SHEET. Mỗi thị trường lấy dòng có ngày mới nhất."""
+    """Số chép tay: ngay,ma,tuan,thang,quy,nam[,nguon] (triệu USD, ô trống = chưa có).
+    Nguồn: pipeline/von_ngoai_tay.csv và Google Sheet TAY_URL (trùng ngày thì Sheet thắng)."""
     texts = []
     if os.path.exists(TAY):
         texts.append(("csv", open(TAY, encoding="utf-8-sig").read()))
@@ -230,21 +268,20 @@ def tay_snap():
             texts.append(("sheet", http(TAY_URL, tries=2)))
         except Exception as e:
             print("[dvn] sheet lỗi:", str(e)[:120])
-    out = {}; n = bad = 0
+    by = {}; n = bad = 0
     for src, t in texts:
         for row in csv.reader(t.splitlines()):
             if not row or not row[0].strip() or row[0].strip().startswith("#") or row[0].strip().lower() == "ngay":
                 continue
             try:
-                d = datetime.date.fromisoformat(row[0].strip()).isoformat(); ma = row[1].strip().upper()
-                vals = [(_num(x) if x.strip() else None) for x in (row[2:6] + [""] * 4)[:4]]
-                if ma not in out or d >= out[ma]["den_ngay"]:
-                    out[ma] = dict(den_ngay=d, tuan=vals[0], thang=vals[1], quy=vals[2], nam=vals[3], src=src)
-                n += 1
+                d = _ngay(row[0]); ma = row[1].strip().upper()
+                v = [(_num(x) if x.strip() else None) for x in (row[2:6] + [""] * 4)[:4]]
+                ng = row[6].strip() if len(row) > 6 and row[6].strip() else ""
+                by.setdefault(ma, {})[d] = dict(d=d, tuan=v[0], thang=v[1], quy=v[2], nam=v[3], nguon=ng); n += 1
             except Exception as e:
                 bad += 1; print("[dvn] chép tay: bỏ dòng lỗi", row, str(e)[:80])
-    print("[dvn] chép tay: %d dòng hợp lệ, %d dòng lỗi, thị trường %s" % (n, bad, sorted(out)))
-    return out
+    print("[dvn] chép tay: %d dòng hợp lệ, %d dòng lỗi, thị trường %s" % (n, bad, sorted(by)))
+    return {ma: _snap([m[d] for d in sorted(m)]) for ma, m in by.items()}
 
 
 def main():
@@ -297,17 +334,17 @@ def main():
             if auto_ok:
                 status[ma] = status.get(ma, "") + " | giữ số tự động (mới hơn chép tay %s)" % m["den_ngay"]; continue
             rows[:] = [r for r in rows if r["ma"] != ma]
-            ten, ng = TEN.get(ma, (ma, ma)); dd = m["den_ngay"]
+            ten, ng = TEN.get(ma, (ma, ma)); ng = m.get("nguon") or ng; dd = m["den_ngay"]
             if (today - datetime.date.fromisoformat(dd)).days > 14:
                 ten += " (%s)" % "/".join(str(int(x)) for x in reversed(dd.split("-")[1:]))
-            rows.append(dict(ma=ma, ten=ten, nguon="%s, chép tay đến %s" % (ng, "/".join(reversed(dd.split("-")))), den_ngay=dd,
+            rows.append(dict(ma=ma, ten=ten, nguon="%s, số đến %s" % (ng, "/".join(reversed(dd.split("-")))), den_ngay=dd,
                              tuan=m["tuan"], thang=m["thang"], quy=m["quy"], nam=m["nam"]))
             status[ma] = "chép tay đến " + dd
     except Exception as e:
         status["tay"] = "lỗi: " + str(e)[:120]
     json.dump(hist, open(HIST, "w", encoding="utf8"), ensure_ascii=False)
     out = {"cap_nhat": datetime.date.today().isoformat(), "don_vi": "triệu USD", "ty_gia": fxsrc, "thi_truong": rows,
-           "ghi_chu": "Khối ngoại ròng quy theo tỷ giá hiện tại; 5 phiên = tổng 5 phiên gần nhất. Không dùng dữ liệu Bloomberg."}
+           "ghi_chu": "Khối ngoại ròng quy theo tỷ giá hiện tại; 5 phiên = tổng 5 phiên gần nhất. Mỹ = dòng tiền vào quỹ cổ phiếu (ICI)."}
     json.dump(out, open(OUT, "w", encoding="utf8"), ensure_ascii=False, indent=1)
     print("[dvn] trạng thái:", status)
 
