@@ -52,6 +52,9 @@ python3 nn_lich_su.py || echo "nn_lich_su.py lỗi, bỏ qua"
 python3 khoi_ngoai_top.py || echo "khoi_ngoai_top.py lỗi, bỏ qua"
 # thị trường thế giới: chỉ số, hàng hóa, bitcoin (lỗi không làm dừng pipeline)
 python3 the_gioi.py || echo "the_gioi.py lỗi, bỏ qua"
+python3 tpcp10.py || echo "tpcp10.py lỗi, bỏ qua"
+python3 lai_suat.py || echo "lai_suat.py lỗi, bỏ qua"
+python3 ln_toan_tt.py || echo "ln_toan_tt.py lỗi, bỏ qua"
 # dòng vốn khối ngoại châu Á quy USD (VN, Đài Loan; Nhật/Ấn Độ đang thử nghiệm; lỗi không làm dừng pipeline)
 python3 dong_von_ngoai.py || echo "dong_von_ngoai.py lỗi, bỏ qua"
 # danh mục mô phỏng ATL (vốn 1 tỷ, theo tín hiệu trong nhật ký; lỗi không làm dừng pipeline)
