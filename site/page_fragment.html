@@ -7739,7 +7739,7 @@ render();if(!sec.hidden)show();
   (function () {
     const f = (v) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v)).toLocaleString('vi-VN');
     const col = (v) => v == null ? '' : v > 0 ? 'var(--sem-up, #4cc38a)' : v < 0 ? 'var(--sem-down, #f0716b)' : '';
-    const ORD = ['VN', 'TW', 'JP', 'KR', 'TH', 'IN', 'ID', 'MY', 'PH', 'US'], oi = (m) => { const i = ORD.indexOf(m); return i < 0 ? 99 : i; };
+    const ORD = ['VN', 'TW', 'JP', 'KR', 'TH', 'IN', 'ID', 'MY', 'PH', 'US', 'UW'], oi = (m) => { const i = ORD.indexOf(m); return i < 0 ? 99 : i; };
     fetch('data/dong_von_ngoai.json?v=' + new Date().toISOString().slice(0, 13), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
       const rows = (d.thi_truong || []).slice().sort((a, b) => oi(a.ma) - oi(b.ma)); if (!rows.length) return;
       const tb = document.querySelector('#tb-dvn tbody'); if (!tb) return; tb.textContent = '';
@@ -7749,13 +7749,13 @@ render();if(!sec.hidden)show();
           const td = document.createElement('td'); if (i > 0) { td.className = 'num'; td.textContent = f(v); if (col(v)) td.style.color = col(v); } else td.textContent = v; tr.appendChild(td);
         }); tb.appendChild(tr);
       });
-      const vn = rows.find((x) => x.ma === 'VN'), peers = rows.filter((x) => x.ma !== 'VN' && x.ma !== 'US' && x.tuan != null), kl = document.getElementById('dvn-kl');
+      const vn = rows.find((x) => x.ma === 'VN'), peers = rows.filter((x) => x.ma !== 'VN' && x.ma !== 'US' && x.ma !== 'UW' && x.tuan != null), kl = document.getElementById('dvn-kl');
       if (vn && vn.tuan != null && peers.length) {
         const sell = peers.filter((x) => x.tuan < 0).length, a = Math.abs(Math.round(vn.tuan)).toLocaleString('vi-VN');
         kl.textContent = 'Tuần này khối ngoại ' + (vn.tuan < 0 ? 'bán ròng ' : 'mua ròng ') + a + ' triệu USD ở Việt Nam; ' + sell + '/' + peers.length + ' thị trường còn lại bán ròng.';
       } else kl.hidden = true;
       const h2 = document.getElementById('dvn-h'), tip = document.createElement('span'); tip.textContent = ' ⓘ'; tip.style.cssText = 'font-size:.5em;color:var(--color-fg-muted);cursor:help;vertical-align:middle'; tip.tabIndex = 0;
-      tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Mỗi thị trường tính đến ngày số liệu gần nhất của nguồn đó (ghi trong nguồn), nên cột Tuần có thể lệch nhau vài ngày. Mỹ chỉ có số theo tháng, trễ khoảng 2 tháng. Ô – là chưa có dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
+      tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Mỗi thị trường tính đến ngày số liệu gần nhất của nguồn đó (ghi trong nguồn), nên cột Tuần có thể lệch nhau vài ngày. Hai dòng Mỹ là dòng tiền vào quỹ mở và ETF của Mỹ theo ICI (tuần kết thúc thứ Tư): quỹ cổ phiếu Mỹ rút ra trong khi quỹ cổ phiếu quốc tế nạp vào là dấu hiệu tiền rời Mỹ sang nước khác. Ô – là chưa có dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
       h2.appendChild(tip); h2.hidden = false; document.getElementById('card-dvn').hidden = false;
     }).catch(() => {});
   })();
