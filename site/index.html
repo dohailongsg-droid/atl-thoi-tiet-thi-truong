@@ -3115,7 +3115,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 </script>
       <div class="atl-card atl-wide" id="card-lich-su">
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 class="atl-h" style="margin:0">VN-Index</h2><div class="atl-seg" id="mua-rng" role="group" aria-label="Khung thời gian"><button type="button" data-v="all" aria-pressed="true">Từ 2020</button><button type="button" data-v="ytd" aria-pressed="false" title="Từ đầu năm; tháng 1–3 hiển thị 3 tháng gần nhất">YTD</button></div></div>
-        <div class="atl-legend" id="lg-mua"></div><div id="mua-hv" style="min-height:1.5em;margin:2px 0 4px;font-size:.8125rem;color:var(--color-fg)" aria-live="off"></div>
+        <div class="atl-legend" id="lg-mua"></div><div id="mua-hv" style="display:flex;flex-wrap:wrap;align-content:flex-start;row-gap:2px;min-height:2.9em;margin:2px 0 4px;font-size:.8125rem;color:var(--color-fg)" aria-live="off"></div>
         <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:38rem"></div>
       </div>
       <div class="atl-card atl-wide" id="card-dgdb" hidden>
@@ -5947,13 +5947,14 @@ render();if(!sec.hidden)show();
     box.replaceChildren(svg.node());
   }
 
-  const EX = { lai: null, ln: null, seed: null, vin: null, rng: 'all' };
+  const EX = { lai: null, ln: null, seed: null, vin: null, tc: null, rng: 'all' };
   let HR = null;
   try { if (localStorage.getItem('atl-mua-rng2') === 'ytd') EX.rng = 'ytd'; } catch (er) {}
   (function () {
     const hr = new Date().toISOString().slice(0, 13);
-    [['lai', 'lai_suat'], ['ln', 'ln_toan_tt'], ['seed', 'nhiet_ke_2020'], ['vin', 'vin_loai_tru']].forEach(([k, f]) => {
+    [['lai', 'lai_suat'], ['ln', 'ln_toan_tt'], ['seed', 'nhiet_ke_2020'], ['vin', 'vin_loai_tru'], ['tc', 'tien_cho']].forEach(([k, f]) => {
       fetch('data/' + f + '.json?v=' + hr, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+        if (k === 'tc' && d && d.quy) d = d.quy.map((q, i) => { const y = +q.slice(0, 4), n = +q.slice(-1); return { q, d: new Date(Date.UTC(y, n * 3, 0)), tien: d.tien[i], vq: d.vq[i] }; });
         if (k === 'vin' && d && d.ngay) d = Object.fromEntries(d.ngay.map((n, i) => [n, [d.ex[i], d.w[i]]]));
         if (k === 'seed' && d) d = d.map((r) => ({ ...r, d: P(r.ngay), vung: +r.vung, tho: +r.vung, tb7: +r.tb7, diem: r.diem == null ? null : +r.diem, vni: +r.vni })); EX[k] = d; if (d && HR && window.atlVis && window.atlVis('mua')) drawHistory(HR[0], HR[1]);
       });
@@ -5987,7 +5988,9 @@ render();if(!sec.hidden)show();
     const top = m.t + rib + 8;
     const yP0 = top + hV + (ln ? gap : 0);
     const yR0 = yP0 + hP + (lai ? gap : 0);
-    const y2 = yR0 + hR + gap;
+    const TC = EX.tc && EX.tc.length ? EX.tc : null, hQ = TC ? (narrow ? 56 : 66) : 0;
+    const yQ0 = yR0 + hR + gap;
+    const y2 = yQ0 + (TC ? hQ + gap : 0);
     const H = y2 + hN + m.b;
     const svg = d3.create('svg').attr('viewBox', [0, 0, W, H]).attr('width', '100%').attr('role', 'img').attr('aria-label', 'VN-Index, lợi nhuận toàn thị trường, lãi suất và nhiệt kế theo thời gian');
     const VX = EX.vin || {}, kd = d3.utcFormat('%Y-%m-%d'), vx = (r) => { const q = VX[kd(r.d)]; return q ? q[0] : null; }, vw = (r) => { const q = VX[kd(r.d)]; return q ? q[1] : null; };
@@ -5999,6 +6002,8 @@ render();if(!sec.hidden)show();
     const x0d = x.domain()[0].getTime(), x1d = x.domain()[1].getTime();
     const step = (R - L) / Math.max(1, rows.length - 1);
     const last = rows[rows.length - 1];
+    const TV = TC ? TC.filter((q) => q.d.getTime() >= x0d - 92 * 864e5 && q.d.getTime() <= x1d + 92 * 864e5) : [];
+    const cxq = (q) => Math.max(L, Math.min(R, x(q.d)));
     const T = (sel, X, Y, txt, o) => { o = o || {}; const t = svg.append('text').attr('x', X).attr('y', Y).attr('fill', o.c || MUT).style('font-size', (o.s || 11) + 'px').text(txt); if (o.a) t.attr('text-anchor', o.a); if (o.w) t.style('font-weight', o.w); if (o.halo) t.attr('stroke', 'var(--color-panel)').attr('stroke-width', 3).attr('paint-order', 'stroke'); return t; };
     const info = (X, Y, tip) => { const g = svg.append('g').attr('data-tip', tip).attr('tabindex', 0); g.append('rect').attr('x', X - 3).attr('y', Y - 12).attr('width', 18).attr('height', 16).attr('fill', 'transparent'); g.append('text').attr('x', X).attr('y', Y).attr('fill', MUT).style('font-size', '11px').text('ⓘ'); };
     // dải mùa
@@ -6026,7 +6031,23 @@ render();if(!sec.hidden)show();
     yV.ticks(4).forEach((t) => { svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yV(t)).attr('y2', yV(t)).attr('stroke', 'var(--cds-chart-grid)'); T(0, L - 6, yV(t) + 4, f0(t), { a: 'end' }); });
     T(0, L + 4, top + 14, 'VN-Index');
     if (rows.some((r) => vx(r) != null)) { T(0, L + 62, top + 14, 'VN-Index trừ VIC, VHM, VRE, VPL', { c: '#e5484d' }); if (!narrow) info(L + 62 + 178, top + 14, 'Ước lượng: VN-Index nhân phần vốn hoá còn lại sau khi bỏ nhóm Vin (VIC, VHM, VRE, VPL), gốc 16/11/2022 bằng VN-Index. Tỷ trọng Vin lấy theo vốn hoá cuối mỗi quý (Vietcap) rồi nội suy theo ngày nên sai số vài %. Đối chiếu với chỉ số trừ VIC+VHM của nguồn bên ngoài thì lệch dưới 4%.'); }
+    if (TV.length > 1 && !narrow) { T(0, L + 62 + 200, top + 14, '┅ Tiền chờ mua (quý)', { c: '#e0a43a' }); info(L + 62 + 200 + 128, top + 14, 'Tiền gửi của nhà đầu tư về giao dịch chứng khoán tại 32 công ty chứng khoán (chỉ tiêu ngoài bảng trong BCTC quý, Vietcap), tại cuối mỗi quý. Thang riêng, không theo trục VN-Index. Số có sau khi kết thúc quý khoảng 30–45 ngày.'); }
     T(0, L + 4, y2 + 14, 'Nhiệt kế');
+    if (TC) {   // ô vòng quay tiền chờ mua (ngay trên Nhiệt kế)
+      const yq = d3.scaleLinear([3, 10], [yQ0 + hQ, yQ0 + 14]).clamp(true);
+      svg.append('rect').attr('x', L).attr('width', R - L).attr('y', yq(5)).attr('height', yQ0 + hQ - yq(5)).attr('fill', 'var(--z1)').attr('opacity', 0.12);
+      svg.append('rect').attr('x', L).attr('width', R - L).attr('y', yQ0 + 14).attr('height', yq(7.5) - yQ0 - 14).attr('fill', 'var(--z6)').attr('opacity', 0.10);
+      [5, 7.5].forEach((t) => { svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yq(t)).attr('y2', yq(t)).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0.45).attr('stroke-width', 0.8); T(0, L - 6, yq(t) + 4, vn(t, t % 1 ? 1 : 0), { a: 'end' }); });
+      svg.append('line').attr('x1', L).attr('x2', R).attr('y1', yQ0 + hQ).attr('y2', yQ0 + hQ).attr('stroke', 'var(--cds-chart-axis)');
+      if (TV.length > 1) {
+        svg.append('path').datum(TV).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.7).attr('stroke-linejoin', 'round').attr('d', d3.line().curve(d3.curveMonotoneX).x(cxq).y((q) => yq(q.vq)));
+        TV.forEach((q) => svg.append('circle').attr('cx', cxq(q)).attr('cy', yq(q.vq)).attr('r', 1.8).attr('fill', q.vq < 5 ? 'var(--z1)' : q.vq >= 7.5 ? 'var(--z6)' : 'var(--color-fg)'));
+        const lq = TV[TV.length - 1];
+        if (!narrow) { T(0, R + 8, yQ0 + hQ * 0.45, vn(lq.vq, 1) + ' lần', { c: 'var(--color-fg)', s: 14, w: 700 }); T(0, R + 8, yQ0 + hQ * 0.45 + 16, 'Lạnh < 5 · Nóng ≥ 7,5', { s: 10 }); }
+      }
+      T(0, L + 4, yQ0 + 11, 'Vòng quay tiền chờ mua', { s: 10.5 });
+      if (!narrow) info(L + 4 + 132, yQ0 + 11, 'Giá trị giao dịch HOSE 20 phiên cuối quý chia cho tiền gửi của nhà đầu tư tại 32 công ty chứng khoán (BCTC quý, Vietcap). Dưới 5 lần: tiền nằm im, vùng chán, gần đáy (2018–19, giữa 2022–đầu 2023, nửa sau 2024, quý 2/2025). Từ 7,5 lần: tiền quay nhanh, vùng hưng phấn (cuối 2021, quý 3/2023). Số liệu theo quý, có sau khoảng 30–45 ngày nên dùng để xác nhận, không để bắt đáy.');
+    }
     // trục x (chỉ khung dưới cùng)
     const xt = allv ? x.ticks(d3.utcYear.every(narrow ? 2 : 1)) : x.ticks(d3.utcMonth.every(narrow ? 2 : 1));
     xt.forEach((t) => T(0, x(t), H - 6, (allv ? d3.utcFormat('%Y') : d3.utcFormat('%m/%Y'))(t), { a: 'middle' }));
@@ -6040,6 +6061,13 @@ render();if(!sec.hidden)show();
       svg.append('path').datum(RV).attr('fill', 'none').attr('stroke', '#e5484d').attr('stroke-width', 1.9).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line((r) => x(r.d), (r) => yV(vx(r))));
       const lv = RV[RV.length - 1]; svg.append('circle').attr('cx', x(lv.d)).attr('cy', yV(vx(lv))).attr('r', 3.8).attr('fill', '#e5484d');
       if (!narrow) T(0, R + 8, yV(vx(lv)) + 4, d3.format(',.0f')(vx(lv)), { c: '#e5484d', s: 12, w: 700 });
+    }
+    if (TV.length > 1) {   // tiền chờ mua: nét đứt vàng, thang riêng ở nửa dưới ô VN-Index
+      const yd = d3.scaleLinear([0, d3.max(TV, (q) => q.tien)], [top + hV, top + hV * 0.5]);
+      svg.append('path').datum(TV).attr('fill', '#e0a43a').attr('opacity', 0.10).attr('d', d3.area().curve(d3.curveMonotoneX).x(cxq).y0(top + hV).y1((q) => yd(q.tien)));
+      svg.append('path').datum(TV).attr('fill', 'none').attr('stroke', '#e0a43a').attr('stroke-width', 1.6).attr('stroke-dasharray', '4 3').attr('d', d3.line().curve(d3.curveMonotoneX).x(cxq).y((q) => yd(q.tien)));
+      const lq = TV[TV.length - 1]; svg.append('circle').attr('cx', cxq(lq)).attr('cy', yd(lq.tien)).attr('r', 3).attr('fill', '#e0a43a');
+      if (!narrow) T(0, R + 8, yd(lq.tien) + 4, vn(lq.tien / 1000, 1) + 'k tỷ', { c: '#e0a43a', s: 11.5, w: 700 });
     }
     // ---- lợi nhuận toàn thị trường
     if (ln) {
@@ -6152,7 +6180,7 @@ render();if(!sec.hidden)show();
     // hover: số liệu hiện ở dòng cố định phía trên biểu đồ (không đè lên dữ liệu)
     const hl = svg.append('line').attr('y1', top).attr('y2', y2 + hN).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0).style('pointer-events', 'none');
     const hh = svg.append('line').attr('x1', L).attr('x2', R).attr('stroke', 'var(--color-fg)').attr('stroke-width', 1).attr('stroke-dasharray', '1.5 3').attr('stroke-linecap', 'round').attr('opacity', 0).style('pointer-events', 'none');
-    const panels = [[top, top + hV]].concat(ln ? [[yP0, yP0 + hP]] : [], lai ? [0, 1, 2].map((k) => [yR0 + hdr + k * (rr + rg), yR0 + hdr + k * (rr + rg) + rr]) : [], [[y2, y2 + hN]]);
+    const panels = [[top, top + hV]].concat(ln ? [[yP0, yP0 + hP]] : [], lai ? [0, 1, 2].map((k) => [yR0 + hdr + k * (rr + rg), yR0 + hdr + k * (rr + rg) + rr]) : [], TC ? [[yQ0, yQ0 + hQ]] : [], [[y2, y2 + hN]]);
     const hv = document.getElementById('mua-hv'); if (hv) hv.replaceChildren();
     const bis = d3.bisector((r) => r.d).center;
     svg.append('rect').attr('x', L).attr('y', top).attr('width', R - L).attr('height', y2 + hN - top).attr('fill', 'transparent')
@@ -6161,7 +6189,7 @@ render();if(!sec.hidden)show();
         hl.attr('x1', x(r.d)).attr('x2', x(r.d)).attr('opacity', 1);
         hh.attr('y1', py).attr('y2', py).attr('opacity', panels.some((p) => py >= p[0] && py <= p[1]) ? 0.6 : 0);
         if (!hv) return;
-        const parts = [[dmy(r.d) + ' · ' + Z[r.vung].ten, true], ['VN-Index ' + d3.format(',.2f')(r.vni)], ...(vx(r) != null ? [['Trừ Vin ' + d3.format(',.2f')(vx(r))], ['Vin chiếm ' + vn(vw(r), 0) + '%']] : []), ['Nhiệt kế ' + f1(r.tb7)], ['Điểm phiên ' + (r.diem == null ? '—' : f0(r.diem))]];
+        const parts = [[dmy(r.d) + ' · ' + Z[r.vung].ten, true], ['VN-Index ' + d3.format(',.2f')(r.vni)], ...(vx(r) != null ? [['Trừ Vin ' + d3.format(',.2f')(vx(r))], ['Vin chiếm ' + vn(vw(r), 0) + '%']] : []), ...(() => { if (!TC) return []; let w = null; for (const q of TC) { if (q.d.getTime() <= r.d.getTime()) w = q; else break; } return w ? [['Tiền chờ ' + vn(w.tien / 1000, 1) + 'k tỷ (' + w.q.slice(-2) + '/' + w.q.slice(0, 4) + ') · vòng quay ' + vn(w.vq, 1)]] : []; })(), ['Nhiệt kế ' + f1(r.tb7)], ['Điểm phiên ' + (r.diem == null ? '—' : f0(r.diem))]];
         if (laiPts && laiPts.length) {
           let w = null; for (const q of laiPts) { if (q.t.getTime() <= r.d.getTime()) w = q; else break; }
           if (w) parts.push(['10 năm ' + (w.y10 == null ? '—' : vn(w.y10, 2) + '%')], ['LNH 3 tháng ' + (w.m3 == null ? '—' : vn(w.m3, 2) + '%')], ['Qua đêm ' + (w.on4 == null ? '—' : vn(w.on4, 2) + '%')]);
