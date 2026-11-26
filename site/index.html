@@ -2969,7 +2969,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     <div class="atl-dv" data-view="mua">
       <div class="atl-card atl-wide" id="card-lich-su">
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 class="atl-h" style="margin:0">VN-Index theo mùa</h2><div class="atl-seg" id="mua-rng" role="group" aria-label="Khung thời gian"><button type="button" data-v="y1" aria-pressed="true">1 năm</button><button type="button" data-v="all" aria-pressed="false">Từ 2020</button></div></div>
-        <div class="atl-legend" id="lg-mua"></div>
+        <div class="atl-legend" id="lg-mua"></div><div id="mua-hv" style="min-height:1.5em;margin:2px 0 4px;font-size:.8125rem;color:var(--color-fg)" aria-live="off"></div>
         <div class="atl-chart" id="ch-lich-su" data-source="nhiet_ke" style="min-height:38rem"></div>
       </div>
       <div class="atl-card atl-wide" id="card-dgdb" hidden>
@@ -5930,26 +5930,25 @@ render();if(!sec.hidden)show();
       T(0, R + 8, yV(last.vni) + 4, d3.format(',.0f')(last.vni), { c: 'var(--color-fg)', s: 12, w: 700 });
       T(0, x(last.d) - 8, yT(lt) - 9, f1(last.tb7), { c: 'var(--color-fg)', s: 12, w: 700, a: 'end' });
     }
-    // hover
+    // hover: số liệu hiện ở dòng cố định phía trên biểu đồ (không đè lên dữ liệu)
     const hl = svg.append('line').attr('y1', top).attr('y2', y2 + hN).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0).style('pointer-events', 'none');
-    const el = tip(box);
+    const hv = document.getElementById('mua-hv'); if (hv) hv.replaceChildren();
     const bis = d3.bisector((r) => r.d).center;
     svg.append('rect').attr('x', L).attr('y', top).attr('width', R - L).attr('height', y2 + hN - top).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
         const [px] = d3.pointer(ev); const r = rows[bis(rows, x.invert(px))]; if (!r) return;
         hl.attr('x1', x(r.d)).attr('x2', x(r.d)).attr('opacity', 1);
-        el.replaceChildren();
-        const t = document.createElement('div'); t.className = 't'; t.textContent = dmy(r.d) + ' · ' + Z[r.vung].ten; el.appendChild(t);
-        const L2 = [['VN-Index', d3.format(',.2f')(r.vni)], ['Nhiệt kế', f1(r.tb7)], ['Điểm phiên', r.diem == null ? '—' : f0(r.diem)]];
+        if (!hv) return;
+        const parts = [[dmy(r.d) + ' · ' + Z[r.vung].ten, true], ['VN-Index ' + d3.format(',.2f')(r.vni)], ['Nhiệt kế ' + f1(r.tb7)], ['Điểm phiên ' + (r.diem == null ? '—' : f0(r.diem))]];
         if (laiPts && laiPts.length) {
           let w = null; for (const q of laiPts) { if (q.t.getTime() <= r.d.getTime()) w = q; else break; }
-          if (w) L2.push(['10 năm', w.y10 == null ? '—' : vn(w.y10, 2) + '%'], ['LNH 3 tháng', w.m3 == null ? '—' : vn(w.m3, 2) + '%'], ['Qua đêm (TB 4 tuần)', w.on4 == null ? '—' : vn(w.on4, 2) + '%']);
+          if (w) parts.push(['10 năm ' + (w.y10 == null ? '—' : vn(w.y10, 2) + '%')], ['LNH 3 tháng ' + (w.m3 == null ? '—' : vn(w.m3, 2) + '%')], ['Qua đêm ' + (w.on4 == null ? '—' : vn(w.on4, 2) + '%')]);
         }
-        L2.forEach(([a, b]) => { const d = document.createElement('div'); d.textContent = a + ': ' + b; el.appendChild(d); });
-        const sc = box.clientWidth / W; placeTip(el, box, x(r.d) * sc, (top + 30) * sc);
+        hv.replaceChildren();
+        parts.forEach(([t, b], i) => { const sp = document.createElement('span'); sp.textContent = t; if (b) sp.style.fontWeight = 700; sp.style.marginRight = '14px'; sp.style.whiteSpace = 'nowrap'; hv.appendChild(sp); });
       })
-      .on('pointerleave', () => { hl.attr('opacity', 0); el.hidden = true; });
-    box.replaceChildren(svg.node(), el);
+      .on('pointerleave', () => { hl.attr('opacity', 0); if (hv) hv.replaceChildren(); });
+    box.replaceChildren(svg.node());
   }
 
   window.atlDrawNK = draw;
