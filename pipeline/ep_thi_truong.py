@@ -447,9 +447,11 @@ def main():
     rf, erp = float(macro.get("rf") or 0.045), float(macro.get("erp") or 0.07)
     tong_vh = sum(mc_now.values())
     nhom = {}
+    GOP = {"Dầu khí": "Điện, nước & xăng dầu khí đốt"}      # Dầu khí chỉ 3 mã (PVD, PLX, BSR): gộp vào nhóm xăng dầu khí đốt
+    DAU_KHI = {m for m in ma_ok if sect.get(m) in GOP}
     for m in ma_ok:
         if sect.get(m):
-            nhom.setdefault(sect[m], []).append(m)
+            nhom.setdefault(GOP.get(sect[m], sect[m]), []).append(m)
     for ten, ms in nhom.items():
         e, n, a, b = ep_nhom(M, S, ms, L, mc_now)
         if e is None or n < 3 or b < 0.01 * tong_vh:
@@ -485,7 +487,8 @@ def main():
         nganh.append({"ten": ten, "ep": round(e, 2), "ke": round(ke * 100, 2), "beta": round(bt, 2), "med5": None if med is None else round(med, 2),
                       "tt_ln": None if gr is None else round(gr, 1), "roe": None if roe is None else round(roe, 1),
                       "pb": None if pb is None else round(pb, 2), "pb_hl": None if pb_hl is None else round(pb_hl, 2),
-                      "vh_ty": round(b), "vh_pct": round(b / tong_vh * 100, 1), "n": n, "chu_ky": ten in CHU_KY})
+                      "vh_ty": round(b), "vh_pct": round(b / tong_vh * 100, 1), "n": n, "chu_ky": ten in CHU_KY or sum(mc_now.get(m, 0) for m in ms if m in DAU_KHI) >= 0.25 * b,
+                      "ma": [m for m in sorted(ms, key=lambda x: -mc_now.get(x, 0))]})
     nganh.sort(key=lambda r: -r["ep"])
     nganh = nganh[:12]
 
@@ -502,7 +505,7 @@ def main():
     out = {"cap_nhat": today.isoformat(), "ep_all": ep_all, "ep_xvin": ep_xvin, "giai_doan": gd, "chenh_tpcp": chenh,
            "tpcp": {"ngay": [x["d"] for x in ls.get("tuan", [])], "y10": [x.get("y10") for x in ls.get("tuan", [])],
                     "m3": [x.get("m3") for x in ls.get("tuan", [])]} if ls else None,
-           "nganh": nganh, "rf": rf, "erp": erp, "g": G_DAI, "kiem_dinh": kd}
+           "nganh": nganh, "tham_chieu": {"bu": 8.0}, "rf": rf, "erp": erp, "g": G_DAI, "kiem_dinh": kd}
     if not ep_all and os.path.exists(OUT):
         try:   # thiếu P/E ngày: giữ phần cũ
             old = json.load(open(OUT, encoding="utf8"))

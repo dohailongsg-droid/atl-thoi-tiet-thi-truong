@@ -1,6 +1,6 @@
 """den_lai_suat.py — "Đèn đảo chiều lãi suất" theo % -> dash_out/den_lai_suat.json   (v120)
 
-Sáu chỉ báo (ngưỡng theo VPBankS 26/11/2026, ghi nguồn trong ⓘ của trang), thứ tự "năng lượng → lạm phát → liên ngân hàng → huy động → cho vay":
+Sáu chỉ báo (ngưỡng tham chiếu), thứ tự "năng lượng → lạm phát → liên ngân hàng → huy động → cho vay":
   brent : Brent, bình quân tháng < 90 USD, 2 tháng liên tiếp                 (FRED DCOILBRENTEU, ngày)
   pce   : PCE lõi Mỹ so cùng kỳ < 2,8%                                        (FRED PCEPILFE, tháng, tự tính % so 12 tháng trước)
   ust   : Lợi suất UST 10 năm < 4,5%                                          (FRED DGS10, ngày)
@@ -58,6 +58,45 @@ def fred(code):
     if len(out) < 12:
         raise RuntimeError("quá ít dòng")
     return out
+
+
+def _yahoo(sym):
+    import urllib.parse
+    for host in ("query1", "query2"):
+        try:
+            j = json.loads(http("https://%s.finance.yahoo.com/v8/finance/chart/%s?range=2y&interval=1d" % (host, urllib.parse.quote(sym)), tries=2, timeout=25))
+            r = j["chart"]["result"][0]
+            out = [(dt.datetime.fromtimestamp(t, dt.timezone.utc).date(), float(v)) for t, v in zip(r["timestamp"], r["indicators"]["quote"][0]["close"]) if v is not None]
+            if len(out) > 60:
+                return out
+        except Exception:
+            pass
+    return None
+
+
+def _stooq(sym):
+    import urllib.parse
+    try:
+        rows = list(csv.DictReader(io.StringIO(http("https://stooq.com/q/d/l/?s=" + urllib.parse.quote(sym) + "&i=d", tries=2, timeout=25))))
+        out = [(dt.date.fromisoformat(r["Date"]), float(r["Close"])) for r in rows[-600:] if r.get("Close") not in (None, "", "null")]
+        return out if len(out) > 60 else None
+    except Exception:
+        return None
+
+
+def chuoi(code, ysym, ssym, chia=1.0):
+    """FRED trước; lỗi thì Yahoo, rồi Stooq. Trả (chuỗi ngày, tên nguồn)."""
+    try:
+        return fred(code), "FRED " + code
+    except Exception as e:
+        print("den_lai_suat: FRED %s lỗi (%s), thử Yahoo/Stooq" % (code, str(e)[:60]))
+    for ten, fn, sym in (("Yahoo", _yahoo, ysym), ("Stooq", _stooq, ssym)):
+        s = fn(sym) if sym else None
+        if s:
+            if chia != 1.0 and s[-1][1] > 20:
+                s = [(d, v / chia) for d, v in s]
+            return s, "%s %s" % (ten, sym)
+    raise RuntimeError("FRED, Yahoo, Stooq đều không tải được")
 
 
 def parse_ky(s):
@@ -120,7 +159,7 @@ def run_dau(vals, ok):
 
 
 def ck_brent(today):
-    s = fred("DCOILBRENTEU")
+    s, nguon = chuoi("DCOILBRENTEU", "BZ=F", "cb.f")
     m = thang(s)
     ks = sorted(m)[-12:]
     vals = [m[k] for k in ks]
@@ -132,23 +171,31 @@ def ck_brent(today):
     ref = [v for d, v in s if d <= last - dt.timedelta(days=28)]
     doi = s[-1][1] - ref[-1] if ref else None
     return dict(hien_tai=round(hien, 1), ky="%02d/%d (TB tháng)" % (ks[-1][1], ks[-1][0]), dinh12=round(dinh, 1), doi=None if doi is None else round(doi, 1),
-                doi_ky="4 tuần", td=td, dat=hien < 90 and held >= 2, giu=held, ngay=last.isoformat())
+                doi_ky="4 tuần", td=td, dat=hien < 90 and held >= 2, giu=held, ngay=last.isoformat(), nguon=nguon)
 
 
-def ck_pce():
-    s = fred("PCEPILFE")
-    yoy = [(s[i][0], (s[i][1] / s[i - 12][1] - 1) * 100) for i in range(12, len(s))]
+def ck_pce(vm=None):
+    try:
+        s = fred("PCEPILFE")
+        yoy = [(s[i][0], (s[i][1] / s[i - 12][1] - 1) * 100) for i in range(12, len(s))]
+        nguon = "FRED PCEPILFE"
+    except Exception as e:
+        pc = (vm or {}).get("PCE_LOI")
+        if not pc:
+            raise RuntimeError("FRED lỗi (%s) và Vi_mo chưa có dòng PCE_LOI" % str(e)[:50])
+        yoy = [(k, v) for k, v in pc]
+        nguon = "Sheet Vi_mo (PCE_LOI)"
     vals = [v for _, v in yoy[-12:]]
     hien = yoy[-1][1]
     dinh = max(vals)
     td = tien_do(hien, dinh, 2.8, hien < 2.8, 1, 1)
     doi = hien - yoy[-2][1] if len(yoy) > 1 else None
     return dict(hien_tai=round(hien, 2), ky="%02d/%d" % (yoy[-1][0].month, yoy[-1][0].year), dinh12=round(dinh, 2), doi=None if doi is None else round(doi, 2),
-                doi_ky="1 tháng", td=td, dat=hien < 2.8, giu=1, ngay=yoy[-1][0].isoformat())
+                doi_ky="1 tháng", td=td, dat=hien < 2.8, giu=1, ngay=yoy[-1][0].isoformat(), nguon=nguon)
 
 
 def ck_ust():
-    s = fred("DGS10")
+    s, nguon = chuoi("DGS10", "^TNX", "10usy.b", chia=10.0)
     last = s[-1][0]
     ndm = [v for d, v in s if d > last - dt.timedelta(days=365)]
     hien = s[-1][1]
@@ -157,7 +204,7 @@ def ck_ust():
     ref = [v for d, v in s if d <= last - dt.timedelta(days=28)]
     doi = hien - ref[-1] if ref else None
     return dict(hien_tai=round(hien, 2), ky=last.strftime("%d/%m/%Y"), dinh12=round(dinh, 2), doi=None if doi is None else round(doi, 2), doi_ky="4 tuần",
-                td=td, dat=hien < 4.5, giu=1, ngay=last.isoformat())
+                td=td, dat=hien < 4.5, giu=1, ngay=last.isoformat(), nguon=nguon)
 
 
 def ck_cpi(vm):
@@ -240,14 +287,14 @@ def main():
         vm = vi_mo()
     except Exception as e:
         vm_loi = str(e)[:100]
-    jobs = [("brent", lambda: ck_brent(today)), ("pce", ck_pce), ("ust", ck_ust), ("cpi", lambda: ck_cpi(vm)), ("lnh", lambda: ck_lnh(ls)), ("tk12", lambda: ck_tk12(vm))]
+    jobs = [("brent", lambda: ck_brent(today)), ("pce", lambda: ck_pce(vm)), ("ust", ck_ust), ("cpi", lambda: ck_cpi(vm)), ("lnh", lambda: ck_lnh(ls)), ("tk12", lambda: ck_tk12(vm))]
     rows = []
     for ma, fn in jobs:
         try:
             r = fn()
             r["cu"] = False
         except Exception as e:
-            ten_loi = {"brent": "FRED DCOILBRENTEU", "pce": "FRED PCEPILFE", "ust": "FRED DGS10"}.get(ma, "nguồn " + ma)
+            ten_loi = "nguồn " + ma
             print("den_lai_suat: %s lỗi, giữ số lượt trước (%s)" % (ten_loi, str(e)[:80]))
             if ma in cu:
                 r = dict(cu[ma]); r["cu"] = True
@@ -255,7 +302,8 @@ def main():
                 rows.append(r)
                 continue
             r = {"hien_tai": None, "ky": "", "td": 0.0, "dat": False, "cu": True, "thieu": True}
-        r.update({"ma": ma, "ten": TEN[ma], "nguong": NGUONG_TXT[ma], "don_vi": DON_VI[ma], "nguon": NGUON[ma]})
+        r.update({"ma": ma, "ten": TEN[ma], "nguong": NGUONG_TXT[ma], "don_vi": DON_VI[ma]})
+        r.setdefault("nguon", NGUON[ma])
         rows.append(r)
     if not rows:
         return
