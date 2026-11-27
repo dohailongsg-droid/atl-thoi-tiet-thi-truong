@@ -2735,6 +2735,19 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     st.textContent=P<=vm&&P<bt?'Giá dưới cả Giá bất tử và Vùng mua · thấp hơn giá hợp lý '+n1(-d)+'%':P<bt?'Giá dưới Giá bất tử · thấp hơn giá hợp lý '+n1(-d)+'%':P<=vm?'Giá trong Vùng mua · thấp hơn giá hợp lý '+n1(-d)+'%':P<=hl?'Giá thấp hơn giá hợp lý '+n1(-d)+'%, chưa vào Vùng mua':'Giá cao hơn giá hợp lý '+n1(d)+'%';
     b.appendChild(st);b.hidden=false;}
   window.__valStrip=valStrip;
+  /* VN-Index: vùng giá theo E/P toàn thị trường (giữ nguyên lợi nhuận 4 quý hiện tại) */
+  window.__valIdx=function(r){var b=$('hs-val');if(!b)return;b.textContent='';b.hidden=true;var ma=String(r&&r.ma||'').toUpperCase();if(ma!=='VNINDEX')return;
+    (window.__epJ=window.__epJ||fetch('data/ep_thi_truong.json',{cache:'no-cache'}).then(function(x){return x.ok?x.json():null;}).catch(function(){return null;})).then(function(E){
+      var v=E&&E.vni_dg;if(!v||!v.bat_tu||!v.hop_ly||!v.vung_mua||(($('hs-ma')||{}).textContent||'').trim().toUpperCase()!=='VNINDEX')return;b.textContent='';
+      var P=+r.gia>0?+r.gia:v.vni,pc=function(x){return n1(x)+'%';};
+      var cell=function(lab,val,tip,hot){var c=el('div','hv-c'+(hot?' hot':''));c.appendChild(el('div','hv-l',lab));c.appendChild(el('div','hv-v',val));c.dataset.tip=tip;return c;};
+      var goc=' Cách tính: lợi nhuận 4 quý của thị trường giữ nguyên, tìm mức VN-Index để E/P toàn thị trường (= 1 / P/E, hiện '+pc(v.ep)+') đạt mốc. Lợi nhuận đổi thì các mức này đổi theo.';
+      b.appendChild(cell('Giá bất tử',n0(v.bat_tu),'VN-Index tại đó E/P toàn thị trường bằng mức tham chiếu '+pc(v.ep_ref)+' (lợi suất TPCP 10 năm + 8 điểm %), tương đương P/E '+n1(100/v.ep_ref)+' lần.'+goc,P<v.bat_tu));
+      b.appendChild(cell('Giá hợp lý',n0(v.hop_ly),'VN-Index tại đó E/P toàn thị trường bằng trung vị 5 năm '+pc(v.ep_med5)+', tương đương P/E '+n1(100/v.ep_med5)+' lần.'+goc,false));
+      b.appendChild(cell('Vùng mua',' ≤ '+n0(v.vung_mua),'VN-Index tại đó E/P toàn thị trường bằng mức ở đáy thị trường '+(v.nhan_day||'gần nhất')+' ('+pc(v.ep_day)+'), tương đương P/E '+n1(100/v.ep_day)+' lần.'+goc,P<=v.vung_mua));
+      var d=(P/v.hop_ly-1)*100,st=el('div','hv-s '+(P<v.bat_tu?'pos':P<=v.hop_ly?'':'neg'));
+      st.textContent=P<v.bat_tu?'Dưới Giá bất tử · thấp hơn giá hợp lý '+n1(-d)+'%':P<=v.vung_mua?'Trong Vùng mua · thấp hơn giá hợp lý '+n1(-d)+'%':P<=v.hop_ly?'Chưa tới Vùng mua · thấp hơn giá hợp lý '+n1(-d)+'%':'Cao hơn giá hợp lý '+n1(d)+'%';
+      b.appendChild(st);b.hidden=false;});};
   window.__dg=function(ma){
     ma=String(ma||'').toUpperCase();pend=ma;
     if(ma in cache){var x=cache[ma];valStrip(x);if(x)render(x);else hideAll();return;}
@@ -3478,6 +3491,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
 #card-dg-ls .dl-row.ok .t b{background:var(--dl-ok);opacity:.85}
 #card-dg-ls .dl-row .t u{position:absolute;top:-1px;width:2px;height:18px;background:var(--dl-ke);text-decoration:none}
 #card-dg-ls .dl-row .t s{position:absolute;top:2px;width:8px;height:8px;background:var(--color-fg);transform:translateX(-4px) rotate(45deg);text-decoration:none;margin-top:2px}
+#card-dg-ls .dl-row .t i.rf{position:absolute;top:-4px;height:24px;border-left:1.5px dashed var(--color-fg);opacity:.55}
 #card-dg-ls .dl-row .v{text-align:left;font-weight:600;font-variant-numeric:tabular-nums}
 #card-dg-ls .dl-row.ok .v{color:var(--dl-ok)}
 #card-dg-ls .dl-row:hover .n{text-decoration:underline dotted}
@@ -3704,6 +3718,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
       var t = mk('div', 't'), b = mk('b'); b.style.width = (r.ep / mx * 100) + '%'; t.appendChild(b);
       var u = mk('u'); u.style.left = (r.ke / mx * 100) + '%'; t.appendChild(u);
       if (r.med5 != null) { var s = mk('s'); s.style.left = (r.med5 / mx * 100) + '%'; t.appendChild(s); }
+      if (REFB != null) { var rf = mk('i', 'rf'); rf.style.left = (REFB / mx * 100) + '%'; t.appendChild(rf); }
       row.appendChild(t); row.appendChild(mk('div', 'v', vn(r.ep, 1) + '%'));
       var dt = mk('div', 'dl-dt'); dt.hidden = true; dt.innerHTML = detail(r);
       function tg() { dt.hidden = !dt.hidden; }
@@ -3736,7 +3751,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
         g.appendChild(se('rect', { x: x, y: Y(r.ep), width: bw, height: yb - Y(r.ep), rx: 2, fill: r.ep >= r.ke ? 'var(--dl-ok)' : 'var(--cds-chart-muted)', opacity: r.ep >= r.ke ? .85 : .55 }));
         g.appendChild(se('line', { x1: x - 5, x2: x + bw + 5, y1: Y(r.ke), y2: Y(r.ke), stroke: 'var(--dl-ke)', 'stroke-width': 2.4 }));
         if (r.med5 != null) g.appendChild(se('rect', { x: cx - 3.5, y: Y(r.med5) - 3.5, width: 7, height: 7, fill: 'var(--color-fg)', transform: 'rotate(45 ' + cx + ' ' + Y(r.med5) + ')' }));
-        var vt = se('text', { x: cx, y: yb - 7, 'text-anchor': 'middle', 'class': 'dl-tx', fill: '#fff', 'font-weight': 700 }); vt.textContent = vn(r.ep, 1) + '%'; g.appendChild(vt);
+        var vt = se('text', { x: cx, y: yb - 7, 'text-anchor': 'middle', 'class': 'dl-tx', fill: r.ep >= r.ke ? '#fff' : 'var(--color-fg)', 'font-weight': 700 }); vt.textContent = vn(r.ep, 1) + '%'; g.appendChild(vt);
         wrap2(nm(r.ten), 13).forEach(function (q, k) { var lt = se('text', { x: cx, y: yb + 15 + k * 12, 'text-anchor': 'middle', 'class': 'dl-ax', fill: r.chu_ky ? 'var(--dl-y)' : 'var(--color-fg)' }); lt.textContent = q; g.appendChild(lt); });
         g.addEventListener('pointermove', function (ev) { tipShow(r, ev); }); g.addEventListener('pointerleave', tipHide);
         g.addEventListener('click', function (ev) { tipShow(r, ev); });
@@ -7471,6 +7486,22 @@ render();if(!sec.hidden)show();
       const n = S.length, pts = S.reduce((a, q) => a + (q.s + 1) / 2, 0), pc = n ? Math.round(100 * pts / n) : 0;
       const xauT = xr && (xr.dong_tien === 'Hết thời' || xr.tk_gia === 'TK tăng · giá giảm');
       S.filter((q) => q.s !== 0).forEach((q) => { const p = el('span', 'atl-pill' + (q.s < 0 ? ' neg' : ''), (q.s > 0 ? '✓ ' : '✕ ') + q.txt); tk.appendChild(p); });
+      // E/P của mã so với ngành và lịch sử (dữ liệu thẻ "Định giá so với lãi suất")
+      tk.dataset.ma = r.ma;
+      (window.__epJ = window.__epJ || fetch('data/ep_thi_truong.json', { cache: 'no-cache' }).then((x) => x.ok ? x.json() : null).catch(() => null)).then((E) => {
+        const q = E && E.ma_ep && E.ma_ep[r.ma]; if (!q || tk.dataset.ma !== r.ma) return;
+        const f1 = (v) => (Math.round(v * 10) / 10).toLocaleString('vi-VN'), ep = q[0], med = q[1], ng = q[2], ne = ng && E.ng_ep ? E.ng_ep[ng] : null;
+        const nm = { 'Điện, nước & xăng dầu khí đốt': 'Điện, nước, xăng dầu', 'Hàng & Dịch vụ Công nghiệp': 'Hàng & DV công nghiệp', 'Xây dựng và Vật liệu': 'Xây dựng & VL', 'Thực phẩm và đồ uống': 'Thực phẩm & đồ uống', 'Tài nguyên Cơ bản': 'Tài nguyên cơ bản', 'Công nghệ Thông tin': 'Công nghệ thông tin', 'Bất động sản': 'Bất động sản' }[ng] || ng;
+        let txt, cls = 'atl-pill', st = '';
+        if (ep <= 0) { txt = 'E/P âm (lỗ 4 quý)'; cls += ' neg'; }
+        else {
+          txt = 'E/P ' + f1(ep) + '%' + (ne != null ? ' · ngành ' + f1(ne) + '%' : '') + (med != null ? ' · TB 5 năm ' + f1(med) + '%' : '');
+          if (ne != null) { if (ep >= ne) st = 'border-color:var(--color-ok);color:var(--color-ok)'; else cls += ' neg'; }
+        }
+        const p = el('span', cls, txt); if (st) p.style.cssText = st;
+        p.title = 'E/P = lợi nhuận 4 quý / vốn hoá (= 1 / P/E). E/P càng cao thì càng rẻ. Xanh: cao hơn E/P ngành' + (nm ? ' ' + nm : '') + '; đỏ: thấp hơn. TB 5 năm là trung vị E/P 20 quý của chính mã (lợi nhuận 4 quý đến quý trước / vốn hoá cuối quý)' + (med != null && ep > 0 ? '; hiện ' + (ep >= med ? 'cao hơn, tức rẻ hơn lịch sử' : 'thấp hơn, tức đắt hơn lịch sử') : '') + '. Lợi nhuận ở đỉnh chu kỳ làm E/P cao giả.';
+        tk.appendChild(p);
+      });
       const z = pc < 30 ? 0 : pc < 50 ? 1 : pc < 70 ? 2 : 3;
       const hz = xauT && pc >= 50 ? 4 : z;
       const LBH = ['Yếu', 'Trung bình', 'Khá', 'Mạnh', 'Cảnh báo'];
@@ -7478,7 +7509,7 @@ render();if(!sec.hidden)show();
       const why = 'Đồng thuận ' + pc + '% · ' + S.filter((q) => q.s > 0).length + ' tốt, ' + S.filter((q) => q.s === 0).length + ' trung tính, ' + S.filter((q) => q.s < 0).length + ' xấu' + (hz === 4 ? ' · có lực bán' : '');
       tk.title = n >= 3 ? LBH[hz] + ' · ' + why + '. Chỉ để mô tả: thử trên giá 2020–nay, mức đồng thuận này không giúp mã vượt thị trường sau 20 phiên.' : ''; }
 
-    if (!IX) { window.__livePx = { ma: r.ma, gia: +r.gia * 1000 }; if (window.__dg) window.__dg(r.ma); } else { window.__livePx = null; if (window.__aiSet) window.__aiSet(null); }
+    if (!IX) { window.__livePx = { ma: r.ma, gia: +r.gia * 1000 }; if (window.__dg) window.__dg(r.ma); } else { window.__livePx = null; if (window.__aiSet) window.__aiSet(null); if (window.__valIdx) window.__valIdx(r); }
     // suc khoe doanh nghiep (bao cao tai chinh quy, toan HOSE)
     { const CB = dash.data('co_ban'), bx = $('hs-cb'), sm = $('hs-cb-sum'), dl = $('dl-cb'), vb = $('hs-cb-val'); bx.replaceChildren(); vb.replaceChildren();
       const cr = CB.status === 'ok' ? CB.data.find((x) => x.ma === r.ma) : null;
