@@ -51,6 +51,19 @@ def phai_sinh(today, end):
     return out
 
 
+# v120: sự kiện cố định theo lịch công bố của tổ chức xếp hạng (nhãn "dự kiến", chưa có thông báo chính thức cho năm 2027)
+CO_DINH = [
+    ("2027-03-19", "FTSE giải ngân đợt 1 (dự kiến)", "Theo lịch review của FTSE: sau phiên thứ Sáu tuần thứ ba của tháng 3. Dự kiến, chờ thông báo chính thức."),
+    ("2027-06-18", "FTSE giải ngân đợt 2 (dự kiến)", "Theo lịch review của FTSE: sau phiên thứ Sáu tuần thứ ba của tháng 6. Dự kiến, chờ thông báo chính thức."),
+    ("2027-09-17", "FTSE giải ngân đợt 3 (dự kiến)", "Theo lịch review của FTSE: sau phiên thứ Sáu tuần thứ ba của tháng 9. Dự kiến, chờ thông báo chính thức."),
+    ("2027-06-24", "MSCI công bố phân loại thị trường (dự kiến)", "MSCI thường công bố kết quả phân loại thị trường thường niên vào khoảng cuối tháng 6; chưa có ngày chính thức."),
+]
+
+
+def co_dinh(today, end):
+    return [{"ngay": d, "ten": t, "ghi_chu": g} for d, t, g in CO_DINH if today.isoformat() <= d <= end.isoformat()]
+
+
 def mo_ta(code, title):
     t = title or ""
     if code == "DIV":
@@ -96,7 +109,7 @@ def main():
         return
     for tk in ma:
         ma[tk].sort(key=lambda r: r["ngay"])
-    out = {"cap_nhat": today.isoformat(), "thi_truong": phai_sinh(today, end), "ma": ma,
+    out = {"cap_nhat": today.isoformat(), "thi_truong": sorted(phai_sinh(today, end) + co_dinh(today, end), key=lambda r: r["ngay"]), "ma": ma,
            "ghi_chu": "Ngày theo Vietcap IQ; xem thông báo của công ty để chắc chắn. Chưa gồm lịch cơ cấu ETF và review VN30."}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf8") as f:

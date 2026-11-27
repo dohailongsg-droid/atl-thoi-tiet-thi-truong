@@ -46,7 +46,8 @@ def tinh(s):
     def goc(ngay):  # đóng cửa gần nhất tính đến hết ngày 'ngay'
         x = [p for d, p in s if d <= ngay]; return x[-1] if x else None
     def pct(b): return None if not b else round((p1 / b - 1) * 100, 2)
-    return {"gia": round(p1, 2), "ngay_gia": d1.isoformat(), "tuan": pct(goc(d1 - dt.timedelta(days=7))),
+    p0 = s[-2][1] if len(s) > 1 else None          # v120: % phiên gần nhất cho ô Thế giới ở tab Bảng giá
+    return {"gia": round(p1, 2), "ngay_gia": d1.isoformat(), "ngay_pct": None if not p0 else round((p1 / p0 - 1) * 100, 2), "tuan": pct(goc(d1 - dt.timedelta(days=7))),
             "thang": pct(goc(d1 - dt.timedelta(days=30))), "ytd": pct(goc(dt.date(d1.year - 1, 12, 31)))}
 def main():
     out, loi = [], []

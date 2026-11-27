@@ -66,6 +66,9 @@ python3 long_dau_mo_phong.py || echo "long_dau_mo_phong.py lỗi, bỏ qua"
 python3 cau_truc.py || echo "cau_truc.py lỗi, bỏ qua"
 # định giá thị trường (P/E, P/B VN-Index) + cho vay của công ty chứng khoán theo quý (lỗi không làm dừng pipeline)
 python3 dinh_gia_thi_truong.py || echo "dinh_gia_thi_truong.py lỗi, bỏ qua"
+# v120: E/P so với lãi suất (toàn thị trường, trừ Vin, từng ngành) và đèn đảo chiều lãi suất theo % (cần lai_suat.json và vn_prices_chart; lỗi không làm dừng pipeline)
+python3 ep_thi_truong.py || echo "ep_thi_truong.py lỗi, bỏ qua"
+python3 den_lai_suat.py || echo "den_lai_suat.py lỗi, bỏ qua"
 # tiền chờ mua (tiền gửi nhà đầu tư tại công ty chứng khoán) + vòng quay tiền theo quý, cho biểu đồ VN-Index (lỗi không làm dừng pipeline)
 python3 tien_cho_mua.py || echo "tien_cho_mua.py lỗi, bỏ qua"
 # lịch sự kiện 45 ngày: đáo hạn phái sinh, cổ tức, phát hành, họp cổ đông (lỗi không làm dừng pipeline)
