@@ -452,8 +452,11 @@ def main():
     for m in ma_ok:
         if sect.get(m):
             nhom.setdefault(GOP.get(sect[m], sect[m]), []).append(m)
+    ng_all = {}
     for ten, ms in nhom.items():
         e, n, a, b = ep_nhom(M, S, ms, L, mc_now)
+        if e is not None and n >= 3:
+            ng_all[ten] = round(e, 2)
         if e is None or n < 3 or b < 0.01 * tong_vh:
             continue
         # beta trọng số vốn hoá
@@ -491,6 +494,19 @@ def main():
                       "ma": [m for m in sorted(ms, key=lambda x: -mc_now.get(x, 0))]})
     nganh.sort(key=lambda r: -r["ep"])
     nganh = nganh[:12]
+    # E/P từng mã (cho Hồ sơ mã): [E/P hiện tại, trung vị 20 quý (LN 4 quý đến quý trước / vốn hoá cuối quý), ngành]
+    ma_ep = {}
+    for m in ma_ok:
+        l4, c = ln4(M, m, L), mc_now.get(m)
+        if l4 is None or not c:
+            continue
+        h = []
+        for k in ks[-20:]:
+            l, cq = ln4(M, m, k - 1), (S[m]["q"].get(str(k)) or [None])[0]
+            if l is not None and cq:
+                h.append(l / cq * 100)
+        ten = GOP.get(sect.get(m), sect.get(m))
+        ma_ep[m] = [round(l4 / c * 100, 2), round(statistics.median(h), 2) if len(h) >= 8 else None, ten]
 
     kd = None
     try:
@@ -502,10 +518,30 @@ def main():
     except Exception as e:
         print("ep_thi_truong: kiểm định lỗi:", str(e)[:100])
 
-    out = {"cap_nhat": today.isoformat(), "ep_all": ep_all, "ep_xvin": ep_xvin, "giai_doan": gd, "chenh_tpcp": chenh,
+    # ---- vùng giá VN-Index cho Hồ sơ mã: mức chỉ số để E/P toàn thị trường đạt các mốc, giữ nguyên lợi nhuận 4 quý hiện tại
+    vni_dg = None
+    try:
+        if ep_all and ep_all.get("v") and vni:
+            e_now, d_now = ep_all["v"][-1], ep_all["ngay"][-1]
+            dv = [x for x in sorted(vni) if x <= d_now]
+            c_now = vni[dv[-1]] if dv else None
+            y_now = (chenh or {}).get("y10")
+            med5 = statistics.median(ep_all["v"][-1250:]) if len(ep_all["v"]) > 500 else None
+            day = dinh_all["v"] if dinh_all else None
+            if c_now and e_now > 0:
+                k = c_now * e_now
+                lv = lambda t: round(k / t) if t and t > 0 else None
+                vni_dg = {"ngay": d_now, "vni": round(c_now, 2), "ep": e_now,
+                          "ep_ref": round(y_now + 8.0, 2) if y_now is not None else None, "ep_day": day, "ep_med5": round(med5, 2) if med5 else None,
+                          "nhan_day": dinh_all["nhan"] if dinh_all else None}
+                vni_dg.update({"bat_tu": lv(vni_dg["ep_ref"]), "vung_mua": lv(day), "hop_ly": lv(vni_dg["ep_med5"])})
+    except Exception as e:
+        print("ep_thi_truong: vùng giá VN-Index lỗi:", str(e)[:100])
+
+    out = {"cap_nhat": today.isoformat(), "ep_all": ep_all, "vni_dg": vni_dg, "ep_xvin": ep_xvin, "giai_doan": gd, "chenh_tpcp": chenh,
            "tpcp": {"ngay": [x["d"] for x in ls.get("tuan", [])], "y10": [x.get("y10") for x in ls.get("tuan", [])],
                     "m3": [x.get("m3") for x in ls.get("tuan", [])]} if ls else None,
-           "nganh": nganh, "tham_chieu": {"bu": 8.0}, "rf": rf, "erp": erp, "g": G_DAI, "kiem_dinh": kd}
+           "nganh": nganh, "ng_ep": ng_all, "ma_ep": ma_ep, "tham_chieu": {"bu": 8.0}, "rf": rf, "erp": erp, "g": G_DAI, "kiem_dinh": kd}
     if not ep_all and os.path.exists(OUT):
         try:   # thiếu P/E ngày: giữ phần cũ
             old = json.load(open(OUT, encoding="utf8"))
