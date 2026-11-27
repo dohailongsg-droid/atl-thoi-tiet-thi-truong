@@ -314,6 +314,23 @@ window.atlLoadTH=function(cb){if(window.ATLTH)return cb();var q=window.__thq||(w
 .lv-k .v{font-family:var(--font-anthropic-sans);font-weight:600;font-size:1.15rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lv-k .s{font-size:11px;color:var(--color-fg-muted);line-height:1.4}
 .lv-up{color:var(--sem-up)} .lv-dn{color:var(--sem-down)}
+.lv-tgw{margin:calc(-1 * var(--cds-gap-sm)) 0 var(--cds-gap-md)}
+.lv-tgh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 4px;font-size:11px;color:var(--color-fg-muted)}
+.lv-tgh b{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.lv-tg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+@media(min-width:600px){.lv-tg{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:900px){.lv-tg{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.lv-tt{border:1px solid var(--color-border-line);border-radius:6px;padding:5px 8px;background:var(--color-panel);display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:0 6px;min-width:0;cursor:default}
+.lv-tt .n{grid-column:1/-1;font-size:11px;color:var(--color-fg-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv-tt .p{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lv-tt .g{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.lv-tt.u{background:color-mix(in srgb,var(--sem-up) 14%,var(--color-panel));border-color:color-mix(in srgb,var(--sem-up) 35%,var(--color-border-line))}
+.lv-tt.u2{background:color-mix(in srgb,var(--sem-up) 26%,var(--color-panel))}
+.lv-tt.d{background:color-mix(in srgb,var(--sem-down) 14%,var(--color-panel));border-color:color-mix(in srgb,var(--sem-down) 35%,var(--color-border-line))}
+.lv-tt.d2{background:color-mix(in srgb,var(--sem-down) 26%,var(--color-panel))}
+.lv-tt.old{opacity:.6}
+@media(max-width:599px){.lv-tt .p{display:none}.lv-tt .g{grid-column:1/-1;text-align:left;font-size:13px}}
+@media(min-width:900px){.lv-tt{grid-template-columns:minmax(0,1fr) auto auto}.lv-tt .n{grid-column:auto}.lv-tt .p{text-align:right}.lv-tt .g{min-width:4.2em}}
 .lv-note{margin:0;font-size:11px;color:var(--color-fg-muted);line-height:1.5;max-width:68ch}
 .lv-grid{display:grid;grid-template-columns:1fr;gap:var(--cds-gap-md)}
 @media(min-width:900px){.lv-grid{grid-template-columns:1fr 1fr}}
@@ -1096,6 +1113,27 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   function n0(x){return x==null?'—':Number(x).toLocaleString('vi-VN',{maximumFractionDigits:0});}
   function sg(x,d){if(x==null)return '—';var v=Number(x);return (v>0?'+':'')+v.toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});}
   function cl(x){return x>0?'lv-up':(x<0?'lv-dn':'');}
+  /* v120: ô thị trường thế giới (phiên gần nhất) ngay dưới hàng chỉ số — dữ liệu the_gioi.json, cập nhật theo pipeline hằng ngày */
+  var TG=null,TGO=[['SPX','S&P 500'],['IXIC','Nasdaq'],['DJI','Dow Jones'],['N225','Nikkei 225'],['KS11','KOSPI'],['SSEC','Thượng Hải'],['HSI','Hang Seng'],['SXXP','STOXX 600'],['GOLD','Vàng'],['WTI','Dầu WTI'],['DXY','USD (DXY)'],['BTC','Bitcoin']];
+  fetch('data/the_gioi.json?v='+new Date().toISOString().slice(0,13),{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){TG=j;fillTG();}).catch(function(){});
+  function fillTG(){
+    var h=document.getElementById('lv-tg');if(!h||!TG||!TG.chi_so)return;h.textContent='';
+    var m={};TG.chi_so.forEach(function(x){m[x.ma]=x;});
+    var g=el('div','lv-tg'),n=0,up=0,dn=0,newest='';
+    TGO.forEach(function(o){var x=m[o[0]];if(!x||x.ngay_pct==null)return;n++;if(x.ngay_gia>newest)newest=x.ngay_gia;});
+    if(!n)return;
+    var fmt=function(v,ma){var d=v>=10000?0:(v>=100?1:2);if(ma==='DXY')d=2;return Number(v).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});};
+    var dm=function(s){var a=String(s||'').split('-');return a.length===3?a[2]+'/'+a[1]:'';};
+    TGO.forEach(function(o){var x=m[o[0]];if(!x||x.ngay_pct==null)return;
+      var p=x.ngay_pct,c=p>=1?'u2':p>0?'u':p<=-1?'d2':p<0?'d':'',old=newest&&(Date.parse(newest)-Date.parse(x.ngay_gia))>3*864e5;
+      if(p>0)up++;else if(p<0)dn++;
+      var t=el('div','lv-tt '+c+(old?' old':''));t.appendChild(el('span','n',o[1]));t.appendChild(el('span','p',fmt(x.gia,o[0])));
+      t.appendChild(el('span','g '+cl(p),sg(p,2)+'%'));
+      t.title=o[1]+' · đóng cửa '+dm(x.ngay_gia)+(x.tuan!=null?' · tuần '+sg(x.tuan,1)+'%':'')+(x.thang!=null?' · tháng '+sg(x.thang,1)+'%':'')+(x.ytd!=null?' · từ đầu năm '+sg(x.ytd,1)+'%':'')+' · nguồn '+(x.nguon||'');
+      g.appendChild(t);});
+    var hd=el('div','lv-tgh');hd.appendChild(el('b',null,'Thế giới · phiên gần nhất'));hd.appendChild(el('span',null,up+' tăng / '+dn+' giảm · đến '+dm(newest)));
+    h.appendChild(hd);h.appendChild(g);
+  }
   function kpi(k,v,s,c){var d=el('div','lv-k');d.appendChild(el('span','k',k));var vv=el('span','v'+(c?' '+c:''),v);d.appendChild(vv);if(s)d.appendChild(el('span','s',s));return d;}
   function box(title){var b=el('div','lv-box');b.appendChild(el('h3',null,title));return b;}
   function tbl(rows,fn){var t=el('table','lv-t'),tb=el('tbody');rows.forEach(function(r){var tr=el('tr');fn(r).forEach(function(c,i){var td=el('td',c.c||'',c.t);tr.appendChild(td);});tb.appendChild(tr);});t.appendChild(tb);return t;}
@@ -1233,6 +1271,7 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
     var kn=d.khoi_ngoai||{};
     k.appendChild(kpi('Khối ngoại ròng',sg(kn.rong_ty,0)+' tỷ','Mua '+n0(kn.mua_ty)+' · bán '+n0(kn.ban_ty),cl(kn.rong_ty)));
     body.appendChild(k);
+    var tgw=el('div','lv-tgw');tgw.id='lv-tg';body.appendChild(tgw);fillTG();
     var pm=d.vni_phut||[],s1=chart('VN-Index trong ngày',pm.map(function(p){return p[1];}),pm.map(function(p){return p[0];}),d.vni_ref,null);
     var ch=(d.chuoi||[]).filter(function(p){return p.do_rong!=null;}),s2=chart('Độ rộng (% mã tăng)',ch.map(function(p){return p.do_rong;}),ch.map(function(p){return p.gio;}),null,null);
     var cn=(d.chuoi||[]).filter(function(p){return p.ngoai!=null;}),s4=chart('Khối ngoại ròng',cn.map(function(p){return p.ngoai;}),cn.map(function(p){return p.gio;}),0);
@@ -3433,60 +3472,361 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
   }).catch(function () {});
 })();
       </script>
-      <div class="atl-card atl-wide" id="card-mua-lam-gi">
+      <div class="atl-card atl-wide" id="card-dg-ls" hidden>
         <style>
-.mua-tbw{overflow-x:auto}
-.mua-tb{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
-#mua-tb{table-layout:fixed}
-#mua-tb th:nth-child(1){width:17%}#mua-tb th:nth-child(2){width:9%}#mua-tb th:nth-child(3){width:13%}#mua-tb th:nth-child(4){width:35%}#mua-tb th:nth-child(5){width:26%}
-.mua-tb th{text-align:left;font-weight:600;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);padding:6px 10px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
-.mua-tb td{padding:8px 10px;border-bottom:1px solid var(--color-border-line);vertical-align:top;line-height:1.45;white-space:normal;overflow-wrap:break-word}
-.mua-tb td.c,.mua-tb th.c{text-align:center}
-.mua-tb tr.on td{background:color-mix(in srgb,var(--color-fg) 8%,transparent)}
-.mua-tb tr.on td:first-child{box-shadow:inset 3px 0 0 var(--color-fg)}
-.mua-tb .zd{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:6px;vertical-align:-1px}
-.mua-tb small{color:var(--color-fg-muted);font-size:.85em}
-.mua-tb td.on,.mua-tb th.on{background:color-mix(in srgb,var(--color-fg) 8%,transparent)}
-.mua-now{font-size:var(--cds-font-size-caption);font-weight:700;margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--color-fg)}
-.mua-fold>summary{display:flex;align-items:baseline;gap:.8rem;cursor:pointer;list-style:none;flex-wrap:wrap}
-.mua-fold>summary::-webkit-details-marker{display:none}
-.mua-fold>summary .atl-h{margin:0}
-.mua-gist{flex:1;min-width:12rem;color:var(--color-fg-muted);font-size:.9rem}
-.mua-fold[open] .mua-gist{visibility:hidden}
-.mua-tog{font-size:var(--cds-font-size-caption);font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--color-border-line);color:var(--color-fg-muted);white-space:nowrap}
-.mua-tog::before{content:"Hiện ▾"}.mua-fold[open] .mua-tog::before{content:"Ẩn ▴"}
-.mua-fold[open]>summary{margin-bottom:.6rem}
-.mua-pfg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem}
-@media(max-width:900px){.mua-pfg{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.mua-pfg{grid-template-columns:1fr}}
-.mua-col{border:1px solid var(--color-border-line);border-radius:10px;padding:.7rem .8rem}
-.mua-col.on{border-color:var(--color-fg);background:color-mix(in srgb,var(--color-fg) 6%,transparent)}
-.mua-col h3{margin:0 0 .5rem;font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.mua-col h3 small{font-weight:400;color:var(--color-fg-muted)}
-.mua-col .zd{display:inline-block;width:.7rem;height:.7rem;border-radius:50%}
-.mua-r{display:grid;grid-template-columns:1.1rem minmax(0,1fr) 2.6rem;gap:2px 6px;align-items:center;font-size:.84rem;padding:3px 0}
-.mua-r .rk{color:var(--color-fg-muted);font-size:.78rem;text-align:right}
-.mua-r .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mua-r .nm small{color:var(--color-fg-muted);font-size:.78rem}
-.mua-r .pf{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
-.mua-r .br{grid-column:2/4;height:5px;border-radius:3px;background:color-mix(in srgb,var(--color-fg) 9%,transparent);position:relative}
-.mua-r .br i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
-.mua-r .br u{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--color-fg-muted)}
-.mua-r.few{opacity:.55}
+#card-dg-ls{--dl-xv:#d9a066;--dl-all:#a98456;--dl-tp:#6fa8dc;--dl-up:rgba(240,113,107,.14);--dl-dn:rgba(76,195,138,.14);--dl-ok:#4cc38a;--dl-bad:#f0716b;--dl-ke:#f0716b;--dl-y:#e0b04a}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) #card-dg-ls{--dl-xv:#8a4f12;--dl-all:#c49a62;--dl-tp:#2f6aa3;--dl-up:rgba(200,60,50,.10);--dl-dn:rgba(40,150,100,.12);--dl-ok:#1f8f5f;--dl-bad:#c0392b;--dl-ke:#c0392b;--dl-y:#b98a1c}}
+:root[data-theme="light"] #card-dg-ls{--dl-xv:#8a4f12;--dl-all:#c49a62;--dl-tp:#2f6aa3;--dl-up:rgba(200,60,50,.10);--dl-dn:rgba(40,150,100,.12);--dl-ok:#1f8f5f;--dl-bad:#c0392b;--dl-ke:#c0392b;--dl-y:#b98a1c}
+#card-dg-ls .dl-blk{padding:.9rem 0 .2rem;border-top:1px solid var(--color-border-line);margin-top:.9rem}
+#card-dg-ls .dl-blk:first-of-type{border-top:0;margin-top:0;padding-top:.2rem}
+#card-dg-ls .dl-cap{font-size:var(--cds-font-size-caption);letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+#card-dg-ls .dl-big{font-size:1.45rem;font-weight:700;line-height:1.25;margin:.15rem 0 .1rem;font-variant-numeric:tabular-nums}
+#card-dg-ls .dl-big small{font-size:.95rem;font-weight:500;color:var(--color-fg-muted)}
+#card-dg-ls .dl-sub{font-size:.9rem;line-height:1.45;color:var(--color-fg-muted);margin:0 0 .35rem}
+#card-dg-ls .dl-top{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-start;justify-content:space-between}
+#card-dg-ls .dl-i{cursor:pointer;color:var(--color-fg-muted);font-weight:400;border:0;background:none;padding:0 2px;font:inherit;letter-spacing:0;text-transform:none}
+#card-dg-ls .dl-i:focus-visible{outline:2px solid var(--color-fg-muted);outline-offset:2px;border-radius:3px}
+#card-dg-ls .dl-note{font-size:.85rem;line-height:1.5;color:var(--color-fg-muted);margin:.4rem 0 .5rem;padding:.6rem .8rem;border:1px solid var(--color-border-line);border-radius:var(--cds-radius)}
+#card-dg-ls .dl-note p{margin:0 0 .45rem}#card-dg-ls .dl-note p:last-child{margin:0}
+#card-dg-ls .dl-leg{display:flex;flex-wrap:wrap;gap:.2rem .9rem;font-size:.82rem;color:var(--color-fg-muted);margin:.1rem 0 .3rem}
+#card-dg-ls .dl-leg i{display:inline-block;width:16px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+#card-dg-ls .dl-leg i.d{border-top:2px dashed var(--color-fg-muted)}#card-dg-ls .dl-leg i.d2{border-top-width:2px;border-top-style:dashed}#card-dg-ls .dl-leg i.b{height:10px;border:0;width:12px;border-radius:2px;vertical-align:-1px}
+#card-dg-ls .dl-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:8px;overflow:hidden}
+#card-dg-ls .dl-seg button{font:inherit;font-size:.82rem;padding:5px 12px;border:0;background:none;color:var(--color-fg-muted);cursor:pointer}
+#card-dg-ls .dl-seg button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg);font-weight:600}
+#card-dg-ls .dl-ch{position:relative;width:100%;touch-action:pan-y}
+#card-dg-ls .dl-ch svg{display:block;width:100%;height:auto}
+#card-dg-ls .dl-ax{font-size:10px;fill:var(--color-fg-muted)}
+#card-dg-ls .dl-gr{stroke:var(--cds-chart-grid);stroke-width:1}
+#card-dg-ls .dl-tx{font-size:11px;font-variant-numeric:tabular-nums}
+#card-dg-ls .dl-tip{position:absolute;top:0;z-index:2;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:6px;box-shadow:var(--cds-shadow-popover);padding:6px 8px;font-size:12px;line-height:1.45;white-space:nowrap}
+#card-dg-ls .dl-tip b{font-variant-numeric:tabular-nums}
+#card-dg-ls .dl-2{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem 1.6rem}
+@media (min-width:900px){#card-dg-ls .dl-2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#card-dg-ls .dl-tg{display:none}#card-dg-ls .dl-pn{display:block!important}}
+#card-dg-ls .dl-pn[hidden]{display:none!important}
+#card-dg-ls .dl-row{display:grid;grid-template-columns:minmax(0,9.8rem) minmax(0,1fr) 3.2rem;align-items:center;gap:6px 8px;padding:4px 0;cursor:pointer;font-size:.86rem}
+#card-dg-ls .dl-row .n{text-align:right;color:var(--color-fg);line-height:1.2}
+#card-dg-ls .dl-row .t{position:relative;height:16px;background:transparent}
+#card-dg-ls .dl-row .t b{position:absolute;left:0;top:2px;height:12px;border-radius:2px;background:var(--cds-chart-muted);opacity:.55}
+#card-dg-ls .dl-row.ok .t b{background:var(--dl-ok);opacity:.85}
+#card-dg-ls .dl-row .t u{position:absolute;top:-1px;width:2px;height:18px;background:var(--dl-ke);text-decoration:none}
+#card-dg-ls .dl-row .t s{position:absolute;top:2px;width:8px;height:8px;background:var(--color-fg);transform:translateX(-4px) rotate(45deg);text-decoration:none;margin-top:2px}
+#card-dg-ls .dl-row .v{text-align:left;font-weight:600;font-variant-numeric:tabular-nums}
+#card-dg-ls .dl-row.ok .v{color:var(--dl-ok)}
+#card-dg-ls .dl-row:hover .n{text-decoration:underline dotted}
+#card-dg-ls .dl-dt{grid-column:1/-1;font-size:.82rem;line-height:1.5;color:var(--color-fg-muted);padding:2px 0 6px 0;border-bottom:1px dashed var(--color-border-line)}
+#card-dg-ls .dl-dt b{color:var(--color-fg)}
+#card-dg-ls .dl-lt{display:grid;grid-template-columns:14px minmax(0,1fr) minmax(8.5rem,38%);gap:2px 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--color-border-line)}
+#card-dg-ls .dl-lt:last-of-type{border-bottom:0}
+#card-dg-ls .dl-lt .dot{width:11px;height:11px;border-radius:50%;background:var(--cds-chart-muted)}
+#card-dg-ls .dl-lt .dot.y{background:var(--dl-y)}#card-dg-ls .dl-lt .dot.g{background:var(--dl-ok)}
+#card-dg-ls .dl-lt .nm{font-weight:600;font-size:.95rem;line-height:1.25}
+#card-dg-ls .dl-lt .ng{font-size:.8rem;color:var(--color-fg-muted);line-height:1.35}
+#card-dg-ls .dl-lt .vl{text-align:right;font-weight:600;font-size:.92rem;font-variant-numeric:tabular-nums;line-height:1.3}
+#card-dg-ls .dl-lt .vl small{display:block;font-weight:400;font-size:.76rem;color:var(--color-fg-muted)}
+#card-dg-ls .dl-lt .pg{grid-column:3;display:flex;align-items:center;gap:8px}
+#card-dg-ls .dl-lt .pg span{flex:1;height:7px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
+#card-dg-ls .dl-lt .pg span i{display:block;height:100%;background:var(--cds-chart-muted)}
+#card-dg-ls .dl-lt .pg span i.y{background:var(--dl-y)}#card-dg-ls .dl-lt .pg span i.g{background:var(--dl-ok)}
+#card-dg-ls .dl-lt .pg em{font-style:normal;font-size:.8rem;font-weight:600;width:2.6rem;text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:560px){#card-dg-ls .dl-lt{grid-template-columns:14px minmax(0,1fr);}#card-dg-ls .dl-lt .vl{grid-column:2;text-align:left;margin-top:2px}#card-dg-ls .dl-lt .pg{grid-column:2}#card-dg-ls .dl-big{font-size:1.2rem}#card-dg-ls .dl-row{grid-template-columns:minmax(0,6.2rem) minmax(0,1fr) 2.9rem;font-size:.8rem}}
         </style>
-        <details class="mua-fold" id="mua-f1" open>
-          <summary><span class="atl-h">Mùa này nên làm gì</span><span class="mua-gist" id="mua-g1"></span><span class="mua-tog"></span></summary>
-          <p class="atl-note">Mỗi mùa một dòng: tỷ trọng tối đa và chiến thuật đã kiểm định trên HOSE 2020–10/2026 (đã trừ phí 0,3%, cắt lỗ 7%, tôn trọng T+2). Dòng tô sáng là mùa hiện tại. Số liệu để so sánh phương án, không phải dự báo lợi nhuận.</p>
-          <div class="mua-tbw"><table class="mua-tb" id="mua-tb"></table></div>
+        <details class="mua-fold" id="mua-f4" open>
+          <summary><span class="atl-h">Định giá so với lãi suất</span><span class="mua-gist" id="dl-gist"></span><span class="mua-tog"></span></summary>
+          <div class="dl-blk" id="dl-a" hidden>
+            <div class="dl-top"><div style="min-width:0;flex:1 1 20rem"><div class="dl-cap">Lợi suất lợi nhuận (E/P) và lãi suất <button type="button" class="dl-i" id="dl-ia" aria-label="Giải thích E/P và lãi suất" aria-expanded="false">ⓘ</button></div>
+              <div class="dl-big" id="dl-ha"></div><p class="dl-sub" id="dl-sa"></p></div>
+              <div class="dl-seg" id="dl-rng" role="group" aria-label="Khung thời gian"><button type="button" data-r="1" aria-pressed="false">1 năm</button><button type="button" data-r="0" aria-pressed="true">Từ 2017</button></div></div>
+            <div class="dl-note" id="dl-na" hidden></div>
+            <div class="dl-leg" id="dl-lg"></div>
+            <div class="dl-ch" id="dl-ch"></div>
+            <div class="dl-cap" style="margin-top:.7rem">Phần bù lợi suất: E/P toàn thị trường − lợi suất TPCP 10 năm (điểm %)</div>
+            <div class="dl-ch" id="dl-gap" style="margin-top:.2rem"></div>
+          </div>
+          <div class="dl-blk" id="dl-b" hidden>
+            <div class="dl-top"><div class="dl-cap">E/P ngành so với chi phí vốn chủ sở hữu <button type="button" class="dl-i" id="dl-ib" aria-label="Giải thích E/P ngành và bản đồ ngành" aria-expanded="false">ⓘ</button></div>
+              <div class="dl-seg dl-tg" id="dl-tg" role="group" aria-label="Kiểu xem"><button type="button" data-v="cot" aria-pressed="true">Cột</button><button type="button" data-v="map" aria-pressed="false">Bản đồ</button></div></div>
+            <div class="dl-note" id="dl-nb" hidden></div>
+            <div class="dl-2">
+              <div class="dl-pn" id="dl-pc"><p class="dl-sub" id="dl-sb"></p><div class="dl-leg"><span><i class="b" style="background:var(--dl-ok)"></i>E/P vượt chi phí vốn</span><span><i style="border-color:var(--dl-ke);border-top-width:0;border-left:2px solid var(--dl-ke);height:11px;width:0"></i>Chi phí vốn chủ sở hữu</span><span><i class="b" style="background:var(--color-fg);transform:rotate(45deg) scale(.7)"></i>Trung vị E/P 5 năm</span></div><div id="dl-bars"></div></div>
+              <div class="dl-pn" id="dl-pm" hidden><p class="dl-sub" id="dl-sm">Bản đồ ngành: E/P (trục dọc) và tăng trưởng lợi nhuận 4 quý (trục ngang). Chấm vàng là ngành chu kỳ, dễ “rẻ giả” khi lợi nhuận ở đỉnh.</p><div class="dl-ch" id="dl-map"></div><div class="dl-dt" id="dl-mdt" hidden></div></div>
+            </div>
+          </div>
+          <div class="dl-blk" id="dl-c" hidden>
+            <div class="dl-cap">Tín hiệu đảo chiều lãi suất <button type="button" class="dl-i" id="dl-ic" aria-label="Giải thích đèn đảo chiều lãi suất" aria-expanded="false">ⓘ</button></div>
+            <div class="dl-big" id="dl-hc"></div><p class="dl-sub" id="dl-sc"></p>
+            <div class="dl-note" id="dl-nc" hidden></div>
+            <div id="dl-lts"></div>
+            <p class="dl-sub" id="dl-ftc" style="margin-top:.5rem"></p>
+          </div>
         </details>
       </div>
-      <div class="atl-card atl-wide" id="card-mua-chi-bao">
-        <details class="mua-fold" id="mua-f2" open>
-          <summary><span class="atl-h">Mùa nào thức nấy</span><span class="mua-gist" id="mua-g2"></span><span class="mua-tog"></span></summary>
-          <div class="kn-seg" id="mua-per" role="group" aria-label="Giai đoạn tính" style="margin:.7rem 0 .6rem"><button type="button" data-p="all" aria-pressed="true">2020–2026</button><button type="button" data-p="23" aria-pressed="false">Từ 2023</button></div>
-          <div class="mua-pfg" id="mua-pf"></div>
-          <p class="atl-note" id="mua-kl"></p>
-        </details>
-      </div>
+      <script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function vn(x, d) { return Number(x).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function mk(t, c, tx) { var e = document.createElement(t); if (c) e.className = c; if (tx != null) e.textContent = tx; return e; }
+  function se(t, at) { var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); return e; }
+  function T(iso) { return Date.parse(String(iso).slice(0, 10) + 'T00:00:00Z'); }
+  function mmyyyy(iso) { var a = String(iso).slice(0, 10).split('-'); return a[1] + '/' + a[0]; }
+  function dmy(iso) { var a = String(iso).slice(0, 10).split('-'); return a[2] + '/' + a[1] + '/' + a[0]; }
+  function gj(f) { return fetch(f, { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  var card = document.getElementById('card-dg-ls'); if (!card) return;
+  function $(id) { return document.getElementById(id); }
+  function lerp(pts, t) { if (!pts.length) return null; if (t <= pts[0][0]) return pts[0][1]; for (var i = 1; i < pts.length; i++) if (t <= pts[i][0]) { var a = pts[i - 1], b = pts[i]; return a[1] + (b[1] - a[1]) * (t - a[0]) / ((b[0] - a[0]) || 1); } return pts[pts.length - 1][1]; }
+  function clip(pts, t0, t1) { var o = pts.filter(function (p) { return p[0] >= t0 && p[0] <= t1; }); if (pts.length && pts[0][0] < t0 && pts[pts.length - 1][0] > t0) o.unshift([t0, lerp(pts, t0)]); return o; }
+  function path(pts, X, Y) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1); }).join(''); }
+  function spread(labs, gap, lo, hi) { labs.sort(function (a, b) { return a.y - b.y; }); labs.forEach(function (l, i) { l.ly = Math.max(l.y, i ? labs[i - 1].ly + gap : lo); }); for (var i = labs.length - 1; i >= 0; i--) { if (labs[i].ly > hi) labs[i].ly = hi; if (i < labs.length - 1 && labs[i].ly > labs[i + 1].ly - gap) labs[i].ly = labs[i + 1].ly - gap; } }
+  function note(btn, box, paras) { btn.addEventListener('click', function () { var o = box.hidden; box.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o && !box.dataset.f) { box.dataset.f = '1'; paras.forEach(function (t) { box.appendChild(mk('p', '', t)); }); } }); }
+  function lsRange() { try { return localStorage.getItem('atl-dgls-r') === '1' ? 1 : 0; } catch (e) { return 0; } }
+  Promise.all([gj('data/ep_thi_truong.json'), gj('data/den_lai_suat.json')]).then(function (R) {
+    var E = R[0], D = R[1], any = false;
+    var XV = E && E.ep_xvin && E.ep_xvin.hien_tai != null && E.ep_xvin.q && E.ep_xvin.q.length > 4 ? E.ep_xvin : null;
+    var EA = E && E.ep_all && E.ep_all.v && E.ep_all.v.length > 100 ? E.ep_all : null;
+    if (EA) { any = true; blockA(E, XV); }
+    if (E && E.nganh && E.nganh.length >= 3) { any = true; blockB(E); }
+    if (D && D.chi_bao && D.chi_bao.length) { any = true; blockC(D); }
+    if (!any) return;
+    card.hidden = false;
+    var f = $('mua-f4'); if (f && !f.dataset.b) { f.dataset.b = '1';
+      try { if (localStorage.getItem('atl-mua-f4') === '0') f.open = false; } catch (er) {}
+      f.addEventListener('toggle', function () { try { localStorage.setItem('atl-mua-f4', f.open ? '1' : '0'); } catch (er) {} }); }
+    var g = [];
+    if (EA) g.push('E/P toàn thị trường ' + vn(EA.v[EA.v.length - 1], 1) + '%');
+    if (D && D.tien_do != null) g.push('tiến độ đảo chiều lãi suất ' + D.tien_do + '%');
+    $('dl-gist').textContent = g.join(' · ');
+  });
+
+  /* ---------- 1a ---------- */
+  function blockA(E, XV) {
+    var A = E.ep_all, TP = E.tpcp, GD = E.giai_doan || [], CH = E.chenh_tpcp || {};
+    var QE = function (lab) { var y = +lab.slice(0, 4), q = +lab.slice(5); var m = 3 * q, d = (m === 3 || m === 12) ? 31 : 30; return Date.UTC(y, m - 1, d); };
+    var xv = XV ? XV.q.map(function (l, i) { return [QE(l), XV.v[i]]; }) : [];
+    var tX = XV ? T(XV.ngay_ht) : 0; if (XV && xv.length && tX > xv[xv.length - 1][0]) xv.push([tX, XV.hien_tai]);
+    var all = A.ngay.map(function (d, i) { return [T(d), A.v[i]]; });
+    var y10 = [], m3 = [];
+    if (TP && TP.ngay) TP.ngay.forEach(function (d, i) { if (TP.y10[i] != null) y10.push([T(d), TP.y10[i]]); if (TP.m3[i] != null) m3.push([T(d), TP.m3[i]]); });
+    var tNow = all[all.length - 1][0];
+    var tMax = Math.max(tNow, tX, y10.length ? y10[y10.length - 1][0] : 0);
+    var tFirst = Math.max(all[0][0], y10.length ? y10[0][0] : 0);
+    var ht = all[all.length - 1][1], ch = CH.hien_tai, dg = A.dinh_cu;
+    /* mức cao nhất từ bao giờ: lần gần nhất (cũ hơn 6 tháng) E/P toàn thị trường cao bằng hiện tại */
+    var cut = tNow - 182 * 864e5, hi = null;
+    for (var i = all.length - 1; i >= 0; i--) if (all[i][0] < cut && all[i][1] >= ht) { hi = all[i]; break; }
+    var my = function (t) { var d = new Date(t); return ('0' + (d.getUTCMonth() + 1)).slice(-2) + '/' + d.getUTCFullYear(); };
+    var tail = !hi ? ' – cao nhất từ ' + new Date(all[0][0]).getUTCFullYear() : (tNow - hi[0] > 365 * 864e5 ? ' – cao nhất từ ' + my(hi[0]) : '');
+    $('dl-ha').textContent = 'E/P toàn thị trường ' + vn(ht, 1) + '%' + tail;
+    var s1 = 'Tương đương P/E ' + vn(100 / ht, 1) + ' lần';
+    if (ch != null) s1 += ', ' + (ch >= 0 ? 'cao hơn' : 'thấp hơn') + ' lợi suất TPCP 10 năm ' + vn(Math.abs(ch), 1) + ' điểm %';
+    if (dg) { var dd = ht - dg.v; s1 += Math.abs(dd) < 0.15 ? ', ngang mức ' + vn(dg.v, 1) + '% tại đáy thị trường ' + dg.nhan : dd > 0 ? ', đã vượt mức ' + vn(dg.v, 1) + '% tại đáy thị trường ' + dg.nhan : ', còn thấp hơn mức ' + vn(dg.v, 1) + '% tại đáy thị trường ' + dg.nhan; }
+    var parts = [s1];
+    if (m3.length > 8) { var ls = m3[m3.length - 1][1], l0 = m3[Math.max(0, m3.length - 9)][1], dl = ls - l0;
+      parts.push('Lãi suất liên ngân hàng 3 tháng ' + (dl > 0.3 ? 'vẫn đi lên' : dl < -0.3 ? 'đang hạ' : 'đi ngang') + ' (' + vn(ls, 1) + '%)'); }
+    if (XV) parts.push('Nếu loại nhóm Vin: ' + vn(XV.hien_tai, 1) + '% (tham khảo)');
+    $('dl-sa').textContent = parts.join('. ') + '.';
+    var lg = $('dl-lg');
+    [['', 'var(--dl-xv)', 'E/P toàn thị trường'], ['d2', 'var(--dl-all)', 'E/P loại nhóm Vin (tham khảo)'], ['', 'var(--dl-tp)', 'Lợi suất TPCP 10 năm'], ['d', '', 'Liên ngân hàng 3 tháng'], ['b', 'var(--dl-up)', 'Lãi suất tăng'], ['b', 'var(--dl-dn)', 'Lãi suất giảm']].forEach(function (a) {
+      var s = mk('span'); var i = mk('i', a[0]); if (a[1]) { if (a[0] === 'b') i.style.background = a[1]; else i.style.borderColor = a[1]; } s.appendChild(i); s.appendChild(document.createTextNode(a[2])); lg.appendChild(s); });
+    var K = kiemDinhText(E.kiem_dinh);
+    note($('dl-ia'), $('dl-na'), [
+      'E/P (lợi suất lợi nhuận) = lợi nhuận 4 quý ÷ vốn hoá = 1 ÷ P/E; P/E 10 lần tương đương E/P 10%. Đây là mức “lãi” mà cổ phiếu tạo ra trên số tiền bỏ ra, nên có thể đặt cạnh lãi suất trái phiếu và liên ngân hàng.',
+      'Chỉ báo chính là E/P toàn thị trường, tính từ P/E của VN-Index (Vietcap), gồm mọi cổ phiếu và không loại bỏ nhóm nào. Đường nét đứt “loại nhóm Vin” (VIC, VHM, VRE, VPL) chỉ để tham khảo mức ảnh hưởng của nhóm này: nhóm Vin chiếm khoảng một phần ba vốn hoá nhưng E/P thấp, nên bỏ đi thì E/P cao hơn. Không dùng đường này để kết luận thị trường rẻ.',
+      'Phần bù lợi suất = E/P toàn thị trường − lợi suất TPCP 10 năm. Vạch đứt “mức bù yêu cầu” là phần bù rủi ro hệ thống giả định (7 điểm %, như mô hình định giá): phần bù đạt mức này nghĩa là E/P ngang chi phí vốn chủ sở hữu bình quân. Vạch xanh là phần bù lớn nhất quanh các đáy VN-Index giảm từ 20% trở lên.',
+      'Nền đỏ nhạt và xanh nhạt là giai đoạn lãi suất liên ngân hàng 3 tháng tăng hoặc giảm (đoạn ngắn dưới 13 tuần được gộp); nhãn ghi thay đổi của VN-Index và E/P toàn thị trường trong giai đoạn đó.',
+      'Đường loại nhóm Vin tự cộng từ BCTC theo quý: lợi nhuận 4 quý đã công bố đến quý trước, vốn hoá cuối quý theo Vietcap, chưa gồm mã đã huỷ niêm yết; điểm cuối dùng giá mới nhất.'
+    ].concat(K ? [K] : []));
+    var rg = lsRange(), btns = $('dl-rng').querySelectorAll('button'), tip = null;
+    function setR(v) { rg = v; try { localStorage.setItem('atl-dgls-r', String(v)); } catch (e) {} Array.prototype.forEach.call(btns, function (b) { b.setAttribute('aria-pressed', String(+b.dataset.r === v)); }); draw(); }
+    Array.prototype.forEach.call(btns, function (b) { b.addEventListener('click', function () { setR(+b.dataset.r); }); });
+    btns[1].textContent = 'Từ ' + new Date(tFirst).getUTCFullYear();
+    function draw() {
+      var box = $('dl-ch'); box.textContent = '';
+      var W = box.clientWidth || 640, mob = W < 560, H = mob ? 250 : 330, p = { l: 32, r: mob ? 44 : 150, t: mob ? 30 : 46, b: 22 };
+      var t0 = rg === 1 ? tMax - 365 * 864e5 : tFirst, t1 = tMax;
+      var X = function (t) { return p.l + (t - t0) / (t1 - t0) * (W - p.l - p.r); };
+      var xvC = clip(xv, t0, t1), allC = clip(all, t0, t1), tpC = clip(y10, t0, t1), mC = clip(m3, t0, t1);
+      var mx = 0; [xvC, allC, tpC, mC].forEach(function (s) { s.forEach(function (q) { if (q[1] > mx) mx = q[1]; }); });
+      var ym = Math.ceil((mx + 0.3) / 2) * 2, Y = function (v) { return p.t + (1 - v / ym) * (H - p.t - p.b); };
+      var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'E/P toàn thị trường, E/P loại nhóm Vin và lãi suất' });
+      for (var v = 0; v <= ym; v += 2) { svg.appendChild(se('line', { x1: p.l, x2: W - p.r, y1: Y(v), y2: Y(v), 'class': 'dl-gr' })); var tx = se('text', { x: p.l - 5, y: Y(v) + 3, 'text-anchor': 'end', 'class': 'dl-ax' }); tx.textContent = v + '%'; svg.appendChild(tx); }
+      var span = t1 - t0, yrs = span / (365 * 864e5);
+      if (yrs <= 1.2) { for (var i = 0; i < 13; i++) { var d = new Date(t1); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - i * 2); var tt = d.getTime(); if (tt < t0) break; var a = se('text', { x: X(tt), y: H - 6, 'text-anchor': 'middle', 'class': 'dl-ax' }); a.textContent = ('0' + (d.getUTCMonth() + 1)).slice(-2) + '/' + String(d.getUTCFullYear()).slice(2); svg.appendChild(a); } }
+      else { var step = yrs > 6 ? 2 : 1; for (var y = new Date(t0).getUTCFullYear() + 1; y <= new Date(t1).getUTCFullYear(); y += step) { var ty = Date.UTC(y, 0, 1); if (ty < t0) continue; var a2 = se('text', { x: X(ty), y: H - 6, 'text-anchor': 'middle', 'class': 'dl-ax' }); a2.textContent = mob ? String(y).slice(2) : 'Q1/' + String(y).slice(2); svg.appendChild(a2); } }
+      GD.forEach(function (g) {
+        if (g.loai !== 'tang' && g.loai !== 'giam') return;
+        var a = Math.max(T(g.tu), t0), b = Math.min(T(g.den), t1); if (b - a <= 0) return;
+        var x0 = X(a), x1 = X(b); if (x1 - x0 < 2) return;
+        svg.appendChild(se('rect', { x: x0, y: p.t, width: x1 - x0, height: H - p.t - p.b, fill: g.loai === 'tang' ? 'var(--dl-up)' : 'var(--dl-dn)' }));
+        if (x1 - x0 > 30) {
+          var c = (x0 + x1) / 2, l1 = se('text', { x: c, y: p.t - (mob ? 6 : 18), 'text-anchor': 'middle', 'class': 'dl-tx', fill: g.loai === 'tang' ? 'var(--dl-bad)' : 'var(--dl-ok)', 'font-weight': 700 });
+          l1.textContent = (mob || x1 - x0 < 110) ? (g.loai === 'tang' ? 'TĂNG' : 'GIẢM') : (g.loai === 'tang' ? 'LÃI SUẤT TĂNG' : 'LÃI SUẤT GIẢM'); svg.appendChild(l1);
+          if (!mob && g.vni_pct != null && x1 - x0 > 150) { var l2 = se('text', { x: c, y: p.t - 5, 'text-anchor': 'middle', 'class': 'dl-ax' }); l2.textContent = 'VN-Index ' + (g.vni_pct >= 0 ? '+' : '−') + vn(Math.abs(g.vni_pct), 0) + '% · E/P ' + (g.ep_doi >= 0 ? '+' : '−') + vn(Math.abs(g.ep_doi), 1) + ' điểm'; svg.appendChild(l2); }
+        }
+      });
+      if (allC.length > 1 && y10.length) {   /* vùng tô giữa E/P toàn thị trường và TPCP 10 năm = phần bù lợi suất */
+        var up = allC, dn = allC.slice().reverse().map(function (q) { return [q[0], lerp(y10, q[0])]; });
+        svg.appendChild(se('path', { d: path(up, X, Y) + path(dn, X, Y).replace(/^M/, 'L') + 'Z', fill: 'var(--dl-xv)', opacity: .12 }));
+      }
+      if (dg && T(dg.ngay) >= t0 - 365 * 864e5 && T(dg.ngay) <= t1) { var yy = Y(dg.v); svg.appendChild(se('line', { x1: p.l, x2: W - p.r, y1: yy, y2: yy, stroke: 'var(--dl-xv)', 'stroke-dasharray': '1 3', 'stroke-width': 1.2, opacity: .8 }));
+        var dl = se('text', { x: p.l + 4, y: yy - 4, 'class': 'dl-ax', fill: 'var(--dl-xv)' }); dl.textContent = 'Đáy thị trường ' + dg.nhan + ': ' + vn(dg.v, 1) + '%'; svg.appendChild(dl); }
+      function ln(pts, col, w, dash, op) { if (pts.length < 2) return; svg.appendChild(se('path', { d: path(pts, X, Y), fill: 'none', stroke: col, 'stroke-width': w, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': dash || '', opacity: op || 1 })); }
+      ln(mC, 'var(--color-fg-muted)', 1.4, '4 3'); ln(xvC, 'var(--dl-all)', 1.5, '5 3'); ln(tpC, 'var(--dl-tp)', 2); ln(allC, 'var(--dl-xv)', 2.4);
+      var labs = [], lastv = function (s) { return s.length ? s[s.length - 1][1] : 0; };
+      function endLab(pts, col, txt) { if (!pts.length) return; var q = pts[pts.length - 1]; svg.appendChild(se('circle', { cx: X(q[0]), cy: Y(q[1]), r: 3, fill: col })); labs.push({ y: Y(q[1]), v: q[1], col: col, txt: txt }); }
+      endLab(allC, 'var(--dl-xv)', vn(lastv(allC), 1) + (mob ? '' : '% E/P toàn TT')); endLab(xvC, 'var(--dl-all)', vn(lastv(xvC), 1) + (mob ? '' : '% loại Vin')); endLab(mC, 'var(--color-fg-muted)', vn(lastv(mC), 1) + (mob ? '' : '% Liên NH 3 tháng')); endLab(tpC, 'var(--dl-tp)', vn(lastv(tpC), 1) + (mob ? '' : '% TPCP 10 năm'));
+      spread(labs, 14, p.t + 4, H - p.b - 2);
+      labs.forEach(function (l) { var tx = se('text', { x: W - p.r + 7, y: l.ly + 4, 'class': 'dl-tx', fill: l.col, 'font-weight': 600 }); tx.textContent = l.txt; svg.appendChild(tx); });
+      var cur = se('line', { x1: 0, x2: 0, y1: p.t, y2: H - p.b, stroke: 'var(--color-fg-muted)', 'stroke-dasharray': '2 2' }); cur.style.display = 'none'; svg.appendChild(cur);
+      var hit = se('rect', { x: p.l, y: p.t, width: W - p.l - p.r, height: H - p.t - p.b, fill: 'transparent' }); svg.appendChild(hit);
+      box.appendChild(svg); tip = mk('div', 'dl-tip'); tip.hidden = true; box.appendChild(tip);
+      function show(ev) { var r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * W / r.width, t = t0 + (x - p.l) / (W - p.l - p.r) * (t1 - t0); if (t < t0 || t > t1) return;
+        var d = new Date(t), rows = [], f = function (s) { return s.length ? lerp(s, t) : null; };
+        var a1 = xv.length ? lerp(xv, t) : null, a2 = f(all), a3 = f(y10), a4 = f(m3);
+        tip.textContent = ''; tip.appendChild(mk('div', '', ('0' + d.getUTCDate()).slice(-2) + '/' + ('0' + (d.getUTCMonth() + 1)).slice(-2) + '/' + d.getUTCFullYear()));
+        [['E/P toàn thị trường', a2, 'var(--dl-xv)'], ['E/P loại nhóm Vin (theo quý, tham khảo)', a1, 'var(--dl-all)'], ['Lợi suất TPCP 10 năm', a3, 'var(--dl-tp)'], ['Liên ngân hàng 3 tháng', a4, 'var(--color-fg-muted)']].forEach(function (q) { if (q[1] == null || q[0].indexOf('Vin') > 0 && (!xv.length || t < xv[0][0])) return; var row = mk('div'); row.style.color = q[2]; row.appendChild(document.createTextNode(q[0] + ': ')); row.appendChild(mk('b', '', vn(q[1], 2) + '%')); tip.appendChild(row); });
+        tip.hidden = false; cur.style.display = ''; cur.setAttribute('x1', X(t)); cur.setAttribute('x2', X(t));
+        var px = X(t) * r.width / W; tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, px + 10)) + 'px'; }
+      function hide() { tip.hidden = true; cur.style.display = 'none'; }
+      hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show); hit.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hide(); });
+      drawGap();
+    }
+    function drawGap() {
+      var box = $('dl-gap'); box.textContent = '';
+      if (ch == null) return;
+      var W = box.clientWidth || 640, mob = W < 560, H = mob ? 114 : 100, p = { l: 12, r: 12 }, erp = (E.erp || 0.07) * 100;
+      var olds = (CH.day_cu || []), mxv = Math.max(8, Math.ceil(Math.max(ch, erp, Math.max.apply(null, olds.map(function (o) { return o.v; }).concat([0]))) + 1));
+      var X = function (v) { return p.l + v / mxv * (W - p.l - p.r); }, cy = 34;
+      var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Phần bù lợi suất E/P toàn thị trường so với TPCP 10 năm' });
+      svg.appendChild(se('rect', { x: p.l, y: cy - 5, width: W - p.l - p.r, height: 10, rx: 5, fill: 'var(--cds-chart-grid)' }));
+      svg.appendChild(se('rect', { x: p.l, y: cy - 5, width: X(ch) - p.l, height: 10, rx: 5, fill: 'var(--dl-xv)', opacity: .55 }));
+      for (var v = 0; v <= mxv; v += 2) { var t = se('text', { x: X(v), y: H - 3, 'text-anchor': 'middle', 'class': 'dl-ax' }); t.textContent = v; svg.appendChild(t); }
+      olds.slice().sort(function (a, b) { return a.v - b.v; }).forEach(function (o, i) {
+        svg.appendChild(se('line', { x1: X(o.v), x2: X(o.v), y1: cy - 10, y2: cy + 12 + (i % 2) * 12, stroke: 'var(--dl-ok)', 'stroke-width': 2 }));
+        var tt = se('text', { x: X(o.v), y: cy + 26 + (i % 2) * 12, 'text-anchor': 'middle', 'class': 'dl-ax', fill: 'var(--dl-ok)' }); tt.textContent = 'Đáy ' + mmyyyy(o.ngay) + ': ' + vn(o.v, 1); svg.appendChild(tt); });
+      /* mức bù rủi ro yêu cầu (ERP giả định, beta = 1): E/P đạt mức này nghĩa là ngang chi phí vốn chủ sở hữu bình quân */
+      var xe = X(erp), right = ch >= erp;
+      svg.appendChild(se('line', { x1: xe, x2: xe, y1: mob ? cy - 9 : cy - 16, y2: cy + 9, stroke: 'var(--color-fg)', 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+      var te = mob ? se('text', { x: W - p.r, y: cy + 54, 'text-anchor': 'end', 'class': 'dl-ax', fill: 'var(--color-fg)' }) : se('text', { x: right ? xe - 5 : xe + 5, y: cy - 14, 'text-anchor': right ? 'end' : 'start', 'class': 'dl-ax', fill: 'var(--color-fg)' }); te.textContent = (mob ? 'Vạch đứt: mức bù yêu cầu ' : 'Mức bù yêu cầu ') + vn(erp, 0); svg.appendChild(te);
+      svg.appendChild(se('circle', { cx: X(ch), cy: cy, r: 7, fill: 'var(--dl-xv)', stroke: 'var(--color-bg)', 'stroke-width': 2 }));
+      var ht2 = se('text', { x: right ? X(ch) + 10 : X(ch) - 10, y: cy - 14, 'text-anchor': right ? 'start' : 'end', 'class': 'dl-tx', fill: 'var(--dl-xv)', 'font-weight': 700 }); ht2.textContent = 'Hiện tại ' + vn(ch, 1); svg.appendChild(ht2);
+      box.appendChild(svg);
+    }
+    draw(); if (window.ResizeObserver) { var lw = 0; new ResizeObserver(function () { var w = $('dl-ch').clientWidth; if (w && Math.abs(w - lw) > 4) { lw = w; draw(); } }).observe($('dl-ch')); } else window.addEventListener('resize', draw);
+    var bt = $('dl-rng').querySelectorAll('button'); Array.prototype.forEach.call(bt, function (b) { b.setAttribute('aria-pressed', String(+b.dataset.r === rg)); });
+    $('dl-a').hidden = false;
+  }
+  function kiemDinhText(K) {
+    if (!K || !K.nhom || !K.nhom.length) return '';
+    var hi = K.nhom[K.nhom.length - 1], lo = K.nhom[0];
+    if (hi.r12 == null || lo.r12 == null) return '';
+    var pc = function (v) { return (v >= 0 ? '+' : '−') + vn(Math.abs(v), 0) + '%'; };
+    return 'Kiểm định trên ' + K.mau + ' mốc cuối tháng' + (K.tu ? ' từ ' + K.tu.slice(5) + '/' + K.tu.slice(0, 4) : '') + ': khi phần bù lợi suất (E/P toàn thị trường − TPCP 10 năm) thuộc nhóm cao nhất (' + vn(hi.tu, 1) + '–' + vn(hi.den, 1) + ' điểm %), VN-Index 12 tháng sau tăng trung bình ' + pc(hi.r12) + ', ' + hi.thang12 + '% số lần có lãi, nhưng trong kỳ từng giảm sâu nhất ' + pc(hi.sau12) + '. Nhóm thấp nhất (' + vn(lo.tu, 1) + '–' + vn(lo.den, 1) + ' điểm %): trung bình ' + pc(lo.r12) + '. Các mốc chồng lấn nhau và thực chất chỉ gồm vài chu kỳ lớn, nên đây là tham khảo, không phải xác suất. Phần bù cao cho biết cổ phiếu rẻ so với lãi suất, không cho biết đáy giá đã hình thành.';
+  }
+
+  /* ---------- 1b, 1c ---------- */
+  var ALIAS = { 'Điện, nước & xăng dầu khí đốt': 'Điện, nước, xăng dầu', 'Hàng & Dịch vụ Công nghiệp': 'Hàng & DV công nghiệp', 'Xây dựng và Vật liệu': 'Xây dựng & VL', 'Thực phẩm và đồ uống': 'Thực phẩm & đồ uống', 'Công nghệ Thông tin': 'Công nghệ thông tin', 'Tài nguyên Cơ bản': 'Tài nguyên cơ bản', 'Dịch vụ tài chính': 'Dịch vụ tài chính' };
+  function nm(s) { return ALIAS[s] || s; }
+  function detail(r) {
+    var a = ['E/P ' + vn(r.ep, 1) + '%', 'chi phí vốn ' + vn(r.ke, 1) + '%'];
+    if (r.med5 != null) a.push('trung vị E/P 5 năm ' + vn(r.med5, 1) + '%');
+    var s = '<b>' + nm(r.ten) + '</b>: ' + a.join(' · ') + '.';
+    if (r.pb != null) s += ' P/B ' + vn(r.pb, 2) + (r.pb_hl != null ? ' so với P/B hợp lý ' + vn(r.pb_hl, 2) + (r.pb < r.pb_hl ? ' (rẻ hơn mức hợp lý)' : ' (đắt hơn mức hợp lý)') : '') + (r.roe != null ? ', ROE ' + vn(r.roe, 1) + '%' : '') + '.';
+    if (r.tt_ln != null) s += ' Lợi nhuận 4 quý ' + (r.tt_ln >= 0 ? '+' : '−') + vn(Math.abs(r.tt_ln), 0) + '% so cùng kỳ.';
+    if (r.chu_ky) s += ' Ngành chu kỳ: E/P cao ở đỉnh lợi nhuận có thể là “rẻ giả”.';
+    return s;
+  }
+  function blockB(E) {
+    var N = E.nganh, nOk = N.filter(function (r) { return r.ep >= r.ke; }).length;
+    $('dl-sb').textContent = nOk + '/' + N.length + ' ngành có E/P vượt chi phí vốn chủ sở hữu.';
+    var mx = Math.ceil(Math.max.apply(null, N.map(function (r) { return Math.max(r.ep, r.ke, r.med5 || 0); })) * 1.08 / 5) * 5;
+    var host = $('dl-bars'); host.textContent = '';
+    N.forEach(function (r) {
+      var row = mk('div', 'dl-row' + (r.ep >= r.ke ? ' ok' : '')); row.tabIndex = 0; row.setAttribute('role', 'button');
+      row.appendChild(mk('div', 'n', nm(r.ten)));
+      var t = mk('div', 't'), b = mk('b'); b.style.width = (r.ep / mx * 100) + '%'; t.appendChild(b);
+      var u = mk('u'); u.style.left = (r.ke / mx * 100) + '%'; t.appendChild(u);
+      if (r.med5 != null) { var s = mk('s'); s.style.left = (r.med5 / mx * 100) + '%'; t.appendChild(s); }
+      row.appendChild(t); row.appendChild(mk('div', 'v', vn(r.ep, 1) + '%'));
+      var dt = mk('div', 'dl-dt'); dt.hidden = true; dt.innerHTML = detail(r);
+      function tg() { dt.hidden = !dt.hidden; }
+      row.addEventListener('click', tg); row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } });
+      host.appendChild(row); host.appendChild(dt);
+    });
+    note($('dl-ib'), $('dl-nb'), [
+      'E/P ngành = tổng lợi nhuận cổ đông công ty mẹ 4 quý ÷ tổng vốn hoá các mã trong ngành (cộng cả mã lỗ). Chỉ hiện ngành chiếm từ 1% vốn hoá trở lên.',
+      'Chi phí vốn chủ sở hữu của ngành = lợi suất TPCP 10 năm + beta ngành × 7% (phần bù rủi ro giả định, dùng chung với mô hình định giá). E/P vượt chi phí vốn nghĩa là lợi nhuận hiện tại đã đủ bù mức lợi suất nhà đầu tư đòi hỏi, chưa cần tăng trưởng. ◆ là trung vị E/P của chính ngành trong 20 quý. Chạm vào từng dòng để xem P/B so với P/B hợp lý và tăng trưởng lợi nhuận.',
+      'Bản đồ ngành thay cho PEG: PEG chia cho tăng trưởng của một năm nên rất nhiễu, và ngành chu kỳ thường vừa có E/P cao vừa tăng trưởng mạnh đúng lúc lợi nhuận ở đỉnh. Ô xanh là vùng “rẻ và lợi nhuận tăng nhanh”: E/P từ trung vị các ngành trở lên và tăng trưởng từ 20%. Bất động sản gồm nhóm Vin; tăng trưởng vượt 120% được vẽ ở mép phải.'
+    ]);
+    // bản đồ
+    var tg = $('dl-tg'), pc = $('dl-pc'), pm = $('dl-pm'), view = 'cot';
+    function setV(v) { view = v; Array.prototype.forEach.call(tg.querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === v)); }); pc.hidden = v !== 'cot'; pm.hidden = v !== 'map'; if (v === 'map') drawMap(); }
+    Array.prototype.forEach.call(tg.querySelectorAll('button'), function (b) { b.addEventListener('click', function () { setV(b.dataset.v); }); });
+    var medEP = (function () { var a = N.map(function (r) { return r.ep; }).sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; })();
+    function drawMap() {
+      var box = $('dl-map'); box.textContent = ''; var W = box.clientWidth || 480; if (W < 50) return; var H = W < 420 ? 280 : 340, p = { l: 34, r: 14, t: 14, b: 34 };
+      var xmin = -30, xmax = 120, ymin = Math.floor(Math.min.apply(null, N.map(function (r) { return r.ep; })) - 1), ymax = Math.ceil(Math.max.apply(null, N.map(function (r) { return r.ep; })) + 1);
+      var X = function (v) { return p.l + (Math.max(xmin, Math.min(xmax, v)) - xmin) / (xmax - xmin) * (W - p.l - p.r); }, Y = function (v) { return p.t + (1 - (v - ymin) / (ymax - ymin)) * (H - p.t - p.b); };
+      var svg = se('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Bản đồ ngành: E/P và tăng trưởng lợi nhuận' });
+      svg.appendChild(se('rect', { x: X(20), y: Y(ymax), width: X(xmax) - X(20), height: Y(medEP) - Y(ymax), fill: 'var(--dl-ok)', opacity: .1 }));
+      var qt = se('text', { x: W - p.r - 4, y: p.t + 11, 'text-anchor': 'end', 'class': 'dl-ax', fill: 'var(--dl-ok)', 'font-weight': 700 }); qt.textContent = 'Rẻ và lợi nhuận tăng nhanh'; svg.appendChild(qt);
+      for (var gv = Math.ceil(ymin / 2) * 2; gv <= ymax; gv += 2) { svg.appendChild(se('line', { x1: p.l, x2: W - p.r, y1: Y(gv), y2: Y(gv), 'class': 'dl-gr' })); var ty = se('text', { x: p.l - 5, y: Y(gv) + 3, 'text-anchor': 'end', 'class': 'dl-ax' }); ty.textContent = gv + '%'; svg.appendChild(ty); }
+      [0, 20, 40, 60, 80, 100].forEach(function (xv) { var tx = se('text', { x: X(xv), y: H - 16, 'text-anchor': 'middle', 'class': 'dl-ax' }); tx.textContent = (xv > 0 ? '+' : '') + xv + '%'; svg.appendChild(tx); });
+      svg.appendChild(se('line', { x1: X(0), x2: X(0), y1: p.t, y2: H - p.b, stroke: 'var(--color-fg-muted)', 'stroke-width': 1, opacity: .6 }));
+      var ax = se('text', { x: (p.l + W - p.r) / 2, y: H - 3, 'text-anchor': 'middle', 'class': 'dl-ax' }); ax.textContent = 'Tăng trưởng lợi nhuận 4 quý so với cùng kỳ →'; svg.appendChild(ax);
+      var mv = Math.max.apply(null, N.map(function (r) { return r.vh_ty; })), pts = [];
+      N.forEach(function (r) { if (r.tt_ln == null) return; var rad = 5 + 10 * Math.sqrt(r.vh_ty / mv), cx = X(r.tt_ln), cy = Y(r.ep);
+        var c = se('circle', { cx: cx, cy: cy, r: rad, fill: r.chu_ky ? 'var(--dl-y)' : 'var(--dl-tp)', opacity: .65, stroke: 'var(--color-bg)', 'stroke-width': 1, style: 'cursor:pointer' });
+        c.addEventListener('click', function () { var d = $('dl-mdt'); d.hidden = false; d.innerHTML = detail(r); }); svg.appendChild(c); pts.push({ r: r, cx: cx, cy: cy, rad: rad }); });
+      var used = [];
+      pts.sort(function (a, b) { return b.rad - a.rad; }).forEach(function (q) { var w = nm(q.r.ten).length * 5.2, lx = q.cx + q.rad + 3, anchor = 'start'; if (lx + w > W - p.r) { lx = q.cx - q.rad - 3; anchor = 'end'; }
+        var ly = q.cy + 3; for (var k = 0; k < 6; k++) { var hit = used.some(function (u) { return Math.abs(u.y - ly) < 11 && lx < u.x1 && lx + w > u.x0 || false; }); if (!hit) break; ly += (k % 2 ? -1 : 1) * 11 * (k + 1) / 2 + 0; }
+        used.push({ x0: anchor === 'start' ? lx : lx - w, x1: anchor === 'start' ? lx + w : lx, y: ly });
+        var t = se('text', { x: lx, y: ly, 'text-anchor': anchor, 'class': 'dl-ax', fill: 'var(--color-fg)' }); t.textContent = nm(q.r.ten); svg.appendChild(t); });
+      box.appendChild(svg);
+    }
+    if (window.matchMedia) { var mq = matchMedia('(min-width:900px)'); var ap = function () { if (mq.matches) { pc.hidden = false; pm.hidden = false; drawMap(); } else setV(view); }; try { mq.addEventListener('change', ap); } catch (e) {} ap(); } else setV('cot');
+    if (window.ResizeObserver) { var lw = 0; new ResizeObserver(function () { var w = $('dl-map').clientWidth; if (w && Math.abs(w - lw) > 4) { lw = w; drawMap(); } }).observe($('dl-map')); }
+    $('dl-b').hidden = false;
+  }
+
+  /* ---------- 1d ---------- */
+  function blockC(D) {
+    var rows = D.chi_bao.slice(), ord = ['brent', 'pce', 'ust', 'cpi', 'lnh', 'tk12'];
+    var NG = { brent: 'dưới 90 USD trong 2 tháng liên tiếp', pce: 'dưới 2,8%', ust: 'dưới 4,5%', cpi: 'CPI dưới 4,5% và lạm phát cơ bản dưới 4,0% trong 3 tháng', lnh: 'dưới 6,0% và giữ qua mốc cuối quý', tk12: 'giảm từ 0,3 điểm % so với đỉnh 12 tháng' };
+    rows.sort(function (a, b) { return ord.indexOf(a.ma) - ord.indexOf(b.ma); });
+    $('dl-hc').innerHTML = 'Tiến độ đảo chiều lãi suất: <b>' + D.tien_do + '%</b>';
+    var nCu = rows.filter(function (r) { return r.cu; }).length;
+    $('dl-sc').textContent = D.dat + '/' + D.tong + ' chỉ báo đạt ngưỡng' + (nCu ? ' · ' + nCu + ' chỉ báo chưa cập nhật' : '') + ' · Ngưỡng theo VPBankS (26/11/2026)';
+    var host = $('dl-lts'); host.textContent = '';
+    function val(r) {
+      if (r.hien_tai == null) return ['chưa có số', ''];
+      var s;
+      if (r.ma === 'brent') s = vn(r.hien_tai, 0) + ' USD/thùng'; else if (r.ma === 'cpi') s = vn(r.hien_tai, 2) + '% / ' + (r.hien_tai2 != null ? vn(r.hien_tai2, 2) : '—') + '%'; else s = vn(r.hien_tai, 2) + '%';
+      return [s, (r.ky || '').replace(' (TB tháng)', ', bình quân tháng') + (r.cu ? ' · chưa cập nhật' : '')];
+    }
+    function arrow(r) {
+      var eps = r.ma === 'brent' ? 0.5 : 0.04, d = r.doi; if (d == null || Math.abs(d) < eps) return ['▬', 'var(--color-fg-muted)'];
+      return d < 0 ? ['▼', 'var(--dl-ok)'] : ['▲', 'var(--dl-bad)'];
+    }
+    rows.forEach(function (r) {
+      var p = r.td_pct != null ? r.td_pct : Math.round((r.td || 0) * 100), cls = r.dat ? 'g' : p >= 50 ? 'y' : '';
+      var it = mk('div', 'dl-lt'); it.appendChild(mk('div', 'dot ' + cls));
+      var l = mk('div'); l.appendChild(mk('div', 'nm', r.ten)); l.appendChild(mk('div', 'ng', 'Ngưỡng: ' + (NG[r.ma] || r.nguong))); it.appendChild(l);
+      var v = val(r), a = arrow(r), vl = mk('div', 'vl'); vl.appendChild(document.createTextNode(v[0] + ' ')); var ar = mk('span', '', a[0]); ar.style.color = a[1]; ar.style.fontSize = '.75em'; ar.title = r.doi != null ? 'Thay đổi ' + r.doi_ky + ': ' + (r.doi > 0 ? '+' : '') + vn(r.doi, 2) : ''; vl.appendChild(ar); vl.appendChild(mk('small', '', v[1])); it.appendChild(vl);
+      var pg = mk('div', 'pg'), sp = mk('span'), bi = mk('i', cls); bi.style.width = p + '%'; sp.appendChild(bi); pg.appendChild(sp); pg.appendChild(mk('em', '', p + '%')); it.appendChild(pg);
+      host.appendChild(it);
+    });
+    $('dl-ftc').textContent = 'Trình tự đảo chiều thường gặp: giá năng lượng → lạm phát → lãi suất liên ngân hàng → lãi huy động → lãi cho vay.';
+    note($('dl-ic'), $('dl-nc'), [
+      'Cách tính: mỗi chỉ báo đo quãng đường đã đi từ đỉnh 12 tháng tới ngưỡng, (đỉnh − hiện tại) ÷ (đỉnh − ngưỡng), giới hạn 0–100%. Đã xuống dưới ngưỡng nhưng chưa giữ đủ thời gian yêu cầu thì tính 80%, cộng dần 20% theo thời gian đã giữ; giữ đủ thì đạt 100%. Tiến độ chung là trung bình sáu chỉ báo.',
+      'Ngưỡng theo VPBankS (26/11/2026). Với CPI, lấy chỉ tiêu còn xa ngưỡng hơn giữa CPI chung và lạm phát cơ bản. Mũi tên là thay đổi 4 tuần hoặc 1 tháng: xanh khi đi xuống (thuận cho đảo chiều), đỏ khi đi lên.',
+      'Nguồn: Brent, PCE lõi và lợi suất UST 10 năm từ FRED; lãi suất liên ngân hàng từ NHNN (cập nhật tự động hằng ngày). CPI, lạm phát cơ bản và lãi tiết kiệm Big 4 cập nhật ngày 7 và 22 hằng tháng. Nguồn nào lỗi thì giữ số kỳ trước và ghi “chưa cập nhật”.',
+      'Đây là chỉ báo theo dõi, chưa được kiểm định như nhiệt kế.'
+    ]);
+    $('dl-c').hidden = false;
+  }
+})();
+      </script>
       <div class="atl-card atl-wide" id="card-cau-truc">
         <style>
 .ct-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) 3.2rem;align-items:center;gap:2px 10px;padding:4px 0}
@@ -3555,6 +3895,60 @@ html.dthi-lock,html.dthi-lock body{overflow:hidden}
           </div>
         </div>
         <p class="ct-src" id="pb-src"></p>
+      </div>
+      <div class="atl-card atl-wide" id="card-mua-lam-gi">
+        <style>
+.mua-tbw{overflow-x:auto}
+.mua-tb{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+#mua-tb{table-layout:fixed}
+#mua-tb th:nth-child(1){width:17%}#mua-tb th:nth-child(2){width:9%}#mua-tb th:nth-child(3){width:13%}#mua-tb th:nth-child(4){width:35%}#mua-tb th:nth-child(5){width:26%}
+.mua-tb th{text-align:left;font-weight:600;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);padding:6px 10px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.mua-tb td{padding:8px 10px;border-bottom:1px solid var(--color-border-line);vertical-align:top;line-height:1.45;white-space:normal;overflow-wrap:break-word}
+.mua-tb td.c,.mua-tb th.c{text-align:center}
+.mua-tb tr.on td{background:color-mix(in srgb,var(--color-fg) 8%,transparent)}
+.mua-tb tr.on td:first-child{box-shadow:inset 3px 0 0 var(--color-fg)}
+.mua-tb .zd{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.mua-tb small{color:var(--color-fg-muted);font-size:.85em}
+.mua-tb td.on,.mua-tb th.on{background:color-mix(in srgb,var(--color-fg) 8%,transparent)}
+.mua-now{font-size:var(--cds-font-size-caption);font-weight:700;margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--color-fg)}
+.mua-fold>summary{display:flex;align-items:baseline;gap:.8rem;cursor:pointer;list-style:none;flex-wrap:wrap}
+.mua-fold>summary::-webkit-details-marker{display:none}
+.mua-fold>summary .atl-h{margin:0}
+.mua-gist{flex:1;min-width:12rem;color:var(--color-fg-muted);font-size:.9rem}
+.mua-fold[open] .mua-gist{visibility:hidden}
+.mua-tog{font-size:var(--cds-font-size-caption);font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--color-border-line);color:var(--color-fg-muted);white-space:nowrap}
+.mua-tog::before{content:"Hiện ▾"}.mua-fold[open] .mua-tog::before{content:"Ẩn ▴"}
+.mua-fold[open]>summary{margin-bottom:.6rem}
+.mua-pfg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem}
+@media(max-width:900px){.mua-pfg{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.mua-pfg{grid-template-columns:1fr}}
+.mua-col{border:1px solid var(--color-border-line);border-radius:10px;padding:.7rem .8rem}
+.mua-col.on{border-color:var(--color-fg);background:color-mix(in srgb,var(--color-fg) 6%,transparent)}
+.mua-col h3{margin:0 0 .5rem;font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mua-col h3 small{font-weight:400;color:var(--color-fg-muted)}
+.mua-col .zd{display:inline-block;width:.7rem;height:.7rem;border-radius:50%}
+.mua-r{display:grid;grid-template-columns:1.1rem minmax(0,1fr) 2.6rem;gap:2px 6px;align-items:center;font-size:.84rem;padding:3px 0}
+.mua-r .rk{color:var(--color-fg-muted);font-size:.78rem;text-align:right}
+.mua-r .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mua-r .nm small{color:var(--color-fg-muted);font-size:.78rem}
+.mua-r .pf{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.mua-r .br{grid-column:2/4;height:5px;border-radius:3px;background:color-mix(in srgb,var(--color-fg) 9%,transparent);position:relative}
+.mua-r .br i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.mua-r .br u{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--color-fg-muted)}
+.mua-r.few{opacity:.55}
+        </style>
+        <details class="mua-fold" id="mua-f1" open>
+          <summary><span class="atl-h">Mùa này nên làm gì</span><span class="mua-gist" id="mua-g1"></span><span class="mua-tog"></span></summary>
+          <p class="atl-note">Mỗi mùa một dòng: tỷ trọng tối đa và chiến thuật đã kiểm định trên HOSE 2020–10/2026 (đã trừ phí 0,3%, cắt lỗ 7%, tôn trọng T+2). Dòng tô sáng là mùa hiện tại. Số liệu để so sánh phương án, không phải dự báo lợi nhuận.</p>
+          <div class="mua-tbw"><table class="mua-tb" id="mua-tb"></table></div>
+        </details>
+      </div>
+      <div class="atl-card atl-wide" id="card-mua-chi-bao">
+        <details class="mua-fold" id="mua-f2" open>
+          <summary><span class="atl-h">Mùa nào thức nấy</span><span class="mua-gist" id="mua-g2"></span><span class="mua-tog"></span></summary>
+          <div class="kn-seg" id="mua-per" role="group" aria-label="Giai đoạn tính" style="margin:.7rem 0 .6rem"><button type="button" data-p="all" aria-pressed="true">2020–2026</button><button type="button" data-p="23" aria-pressed="false">Từ 2023</button></div>
+          <div class="mua-pfg" id="mua-pf"></div>
+          <p class="atl-note" id="mua-kl"></p>
+        </details>
       </div>
 
     </div>
@@ -7788,7 +8182,7 @@ render();if(!sec.hidden)show();
         kl.textContent = 'Tuần này khối ngoại ' + (vn.tuan < 0 ? 'bán ròng ' : 'mua ròng ') + a + ' triệu USD ở Việt Nam; ' + sell + '/' + peers.length + ' thị trường còn lại bán ròng.';
       } else kl.hidden = true;
       const h2 = document.getElementById('dvn-h'), tip = document.createElement('span'); tip.textContent = ' ⓘ'; tip.style.cssText = 'font-size:.5em;color:var(--color-fg-muted);cursor:help;vertical-align:middle'; tip.tabIndex = 0;
-      tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Mỗi thị trường tính đến ngày số liệu gần nhất của nguồn đó (ghi trong nguồn), nên cột Tuần có thể lệch nhau vài ngày. Hai dòng Mỹ là dòng tiền vào quỹ mở và ETF của Mỹ theo ICI (tuần kết thúc thứ Tư): quỹ cổ phiếu Mỹ rút ra trong khi quỹ cổ phiếu quốc tế nạp vào là dấu hiệu tiền rời Mỹ sang nước khác. Ô – là chưa có dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
+      tip.title = 'Khối ngoại mua trừ bán ròng cổ phiếu, triệu USD, quy theo tỷ giá hiện tại (' + (d.ty_gia || '') + '). Nguồn: ' + rows.map((x) => x.ten + ' ' + x.nguon).join('; ') + '. Mỗi thị trường tính đến ngày số liệu gần nhất của nguồn đó (ghi trong nguồn), nên cột Tuần có thể lệch nhau vài ngày. Hai dòng Mỹ là dòng tiền vào quỹ mở và ETF của Mỹ theo ICI (tuần kết thúc thứ Tư): quỹ cổ phiếu Mỹ rút ra trong khi quỹ cổ phiếu quốc tế nạp vào là dấu hiệu tiền rời Mỹ sang nước khác. Sở hữu nước ngoài (trừ cổ đông chiến lược) ở Việt Nam khoảng 8% vốn hoá, so với Hàn Quốc 35%, Malaysia 18%, Thái Lan trên 20% (Dragon Capital, 26/11/2026). Ô – là chưa có dữ liệu. Cập nhật ' + (d.cap_nhat || '').split('-').reverse().join('/') + '.';
       h2.appendChild(tip); h2.hidden = false; document.getElementById('card-dvn').hidden = false;
     }).catch(() => {});
   })();
